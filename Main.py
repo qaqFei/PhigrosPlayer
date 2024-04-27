@@ -194,10 +194,10 @@ else:
                         _process_path(row[info_csv_map["Image"] if info_csv_map["Image"] is not None else 2])
                     )
                 ] = {
-                    name:row[info_csv_map[name]] for name in info_csv_map.keys() if info_csv_map[name] is not None
+                    name:row[info_csv_map[name]] for name in info_csv_map.keys() if info_csv_map[name] is not None and info_csv_map[name] < len(row)
                 }
-            except IndexError:
-                pass
+            except Exception as e:
+                print(f"Warning: {e} in info.csv.")
     now_key = (
         _process_path2(phigros_chart_filepath),
         _process_path2(audio_file),
