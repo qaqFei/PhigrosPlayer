@@ -11,7 +11,7 @@ python Main.py
 ```
 
 ## 兼容性
-1. 目前只有Phigros的官谱 且只支持```formatVerison```为```3```的谱面
+1. 目前只有Phigros的官谱 且只支持```formatVerison```为```1```或```3```的谱面
 2. 目前只能读取谱面中的```info.csv```
 
 ## 已知问题

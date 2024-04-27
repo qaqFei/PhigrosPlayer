@@ -251,6 +251,9 @@ def loger():
             print(loger_queue.get())
         sleep(0.01)
 
+def unpack_pos(number:int) -> tuple[int,int]:
+    return (number - number % 1000) // 1000,number % 1000
+
 loger_queue = Queue()
 
 def Load_Chart_Object():
@@ -312,6 +315,16 @@ def Load_Chart_Object():
                         end2=judgeLineMoveEvent_item["end2"]
                     )
                     for judgeLineMoveEvent_item in judgeLine_item["judgeLineMoveEvents"]
+                ] if len(judgeLine_item["judgeLineMoveEvents"]) > 0 and "start2" in judgeLine_item["judgeLineMoveEvents"][0] and "end2" in judgeLine_item["judgeLineMoveEvents"][0] else [
+                    Chart_Objects.judgeLineMoveEvent(
+                        startTime=judgeLineMoveEvent_item["startTime"],
+                        endTime=judgeLineMoveEvent_item["endTime"],
+                        start=unpack_pos(judgeLineMoveEvent_item["start"])[0] / 880,
+                        end=unpack_pos(judgeLineMoveEvent_item["end"])[0] / 880,
+                        start2=unpack_pos(judgeLineMoveEvent_item["start"])[1] / 520,
+                        end2=unpack_pos(judgeLineMoveEvent_item["end"])[1] / 520
+                    )
+                    for judgeLineMoveEvent_item in judgeLine_item["judgeLineMoveEvents"]
                 ],
                 judgeLineRotateEvents=[
                     Chart_Objects.judgeLineRotateEvent(
@@ -357,10 +370,6 @@ def Load_Chart_Object():
     print("Load Chart Object Successfully.")
 
 Load_Chart_Object()
-
-if phigros_chart_obj.formatVersion != 3:
-    print("formatVersion is not 3.")
-    windll.kernel32.ExitProcess(1)
 
 def Replace_Image_Color(im:Image.Image,color):
     for x in range(im.width):
