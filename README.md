@@ -31,6 +31,7 @@ python Main.py
 8. ```-loop``` 循环播放
 9. ```-fullscreen``` 全屏
 10. ```-hidemouse``` 隐藏鼠标
+11. ```-nofcapline``` 去除```FC/AP```指示器 默认开启```FC/AP```指示器
 
 ## 声明
 1. 此项目仅用于学习交流，请勿用于商业用途

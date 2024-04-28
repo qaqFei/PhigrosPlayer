@@ -71,7 +71,7 @@ if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
     dlg.DoModal()
     argv = [argv[0]] + [dlg.GetPathName()] + argv[0:]
-    if argv[-1] == "":
+    if argv[1] == "":
         windll.kernel32.ExitProcess(1)
 
 note_id = -1
@@ -378,7 +378,6 @@ def Replace_Image_Color(im:Image.Image,color):
     return im
 
 def Load_Resource():
-    root.deiconify()
     print("Loading Resource...")
     Note_width = int(min(w,h) / 7.5)
     Note_height_Tap = int(Note_width / 989 * 100)
@@ -422,6 +421,7 @@ def Load_Resource():
     print("Loading Resource Successfully.")
     root.configure(cursor="arrow")
     show_start_toplevel.configure(cursor="arrow")
+    root.deiconify()
     return Resource
 
 def Show_Start():
@@ -541,6 +541,9 @@ def Cal_judgeLine_NoteDy(judgeLine_cfg,T:int|float) -> float:
                 pass
         return dy
 
+def Get_judgeLine_Color() -> str:
+    return "#feffa9" if "-nofcapline" not in argv else "#ffffff"
+
 def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
     print("Player Start")
     root.title("Phigros Chart Player")
@@ -554,7 +557,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
             last_id_ = cv.create_line(
                 w / 2 - (val * w / 2),h / 2,
                 w / 2 + (val * w / 2),h / 2,
-                fill="#feffa9",
+                fill=Get_judgeLine_Color(),
                 width=(0.05625 * w) / 17.5,
                 smooth=True,
                 tag="judgeLine_start_animation"
@@ -634,13 +637,13 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
             judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
             judgeLine_cfg["Note_dy"] = Cal_judgeLine_NoteDy(judgeLine_cfg,T_dws[judgeLine_cfg_key])
             judgeLine_DrawPos = [
-                *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],(w ** 2 + h ** 2) ** 0.5),
-                *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,(w ** 2 + h ** 2) ** 0.5)
+                *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
+                *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
             ]
             last_cfg = judgeLine_last_cfg_dict[judgeLine_cfg_key]
             draw_cfg = {
-                "fill":"#feffa9",
-                "width":PHIGROS_X / 17.5 * judgeLine_cfg["Disappear"],
+                "fill":Get_judgeLine_Color(),
+                "width":h * 0.0075 * judgeLine_cfg["Disappear"],
                 "smooth":True,
                 "tag":"judgeLine"
             }
@@ -801,6 +804,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
 print("Loading Window...")
 root = Tk()
 root.withdraw()
+root["bg"] = "black"
 root.title(f"Phigros Chart Player")
 root.iconbitmap(".\\icon.ico")
 root.configure(cursor="watch")
