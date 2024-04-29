@@ -1,4 +1,4 @@
-from tkinter import Tk,Toplevel,Canvas,Event
+from tkinter import Tk,Toplevel,Canvas
 from threading import Thread
 from ctypes import windll
 from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -254,31 +254,7 @@ def loger():
 def unpack_pos(number:int) -> tuple[int,int]:
     return (number - number % 1000) // 1000,number % 1000
 
-def Is_26_Key(char:str) -> bool:
-    if char == "": return False
-    if len(char) != 1: return False
-    return ord("a") <= chr(char.lower()) <= ord("z")
-
-def Key_Down(e:Event):
-    if not Is_26_Key(e.char):
-        return None
-    char = e.char.lower()
-    if not key_is_uped[char]:
-        return None
-    else:
-        key_is_uped[char] = False
-        key_state[char] = True
-
-def Key_Up(e:Event):
-    if not Is_26_Key(e.char):
-        return None
-    char = e.char.lower()
-    key_is_uped[char] = True
-    key_state[char] = False
-
 loger_queue = Queue()
-key_state = {chr(key):False for key in range(ord("a"),ord("z") + 1)}
-key_is_uped = {chr(key):True for key in range(ord("a"),ord("z") + 1)}
 
 def Load_Chart_Object():
     global phigros_chart_obj
@@ -859,8 +835,6 @@ show_start_toplevel.configure(cursor="watch")
 root.protocol("WM_DELETE_WINDOW",process_quit)
 show_start_toplevel.bind("<FocusIn>",lambda e:root.focus_force())
 root.focus_force()
-root.bind("<KeyPress>",Key_Down)
-root.bind("<KeyRelease>",Key_Up)
 Resource = Load_Resource()
 Thread(target=Show_Start,daemon=True).start()
 Thread(target=loger,daemon=True).start()
