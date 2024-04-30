@@ -84,6 +84,7 @@ windll.gdi32.AddFontResourceW(".\\font.ttf")
 
 print("Init Pygame Mixer...")
 mixer.init()
+mixer.music.set_volume(0.5)
 
 print("Unpack Chart...")
 popen(f".\\7z.exe e \"{argv[1]}\" -o\"{temp_dir}\" >> nul").read()
