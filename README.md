@@ -25,13 +25,12 @@ python Main.py
 2. ```-clear``` 让程序在清理临时目录完成后退出
 3. ```-debug``` 显示定位点
 4. ```-combotips <text>``` 设置连击下的提示 默认为```Autoplay```
-5. ```-noclickeffect``` 禁用点击效果
-6. ```-fps <python-eval>``` 设置帧率 默认为```120``` tips:可以使用```-fps "float('inf')"```解除帧率限制
-7. ```-showfps``` 在标题栏显示帧率
-8. ```-loop``` 循环播放
-9. ```-fullscreen``` 全屏
-10. ```-hidemouse``` 隐藏鼠标
-11. ```-nofcapline``` 去除```FC/AP```指示器 默认开启```FC/AP```指示器
+5. ```-fps <python-eval>``` 设置帧率 默认为```120``` tips:可以使用```-fps "float('inf')"```解除帧率限制
+6. ```-showfps``` 在标题栏显示帧率
+7. ```-loop``` 循环播放
+8. ```-fullscreen``` 全屏
+9. ```-hidemouse``` 隐藏鼠标
+10. ```-nofcapline``` 去除```FC/AP```指示器 默认开启```FC/AP```指示器
 
 ## 声明
 1. 此项目仅用于学习交流，请勿用于商业用途

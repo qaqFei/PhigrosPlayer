@@ -463,10 +463,6 @@ def Show_Start():
     Thread(target=PlayerStart,daemon=True).start()
 
 def Show_Note_Click_Effect(x,y,t:typing.Literal["Perfect","Good"]):
-    if "-noclickeffect" in argv:
-        global Show_Note_Click_Effect
-        Show_Note_Click_Effect = lambda *args,**kwargs:None
-        return None
     last_id = None
     effect_time = 0.5
     effect_ims = Resource["Note_Click_Effect"][t]
