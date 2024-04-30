@@ -255,6 +255,7 @@ def unpack_pos(number:int) -> tuple[int,int]:
     return (number - number % 1000) // 1000,number % 1000
 
 loger_queue = Queue()
+clickeffect_cache = []
 
 def Load_Chart_Object():
     global phigros_chart_obj
@@ -378,6 +379,7 @@ def Replace_Image_Color(im:Image.Image,color):
     return im
 
 def Load_Resource():
+    global ClickEffect_Size
     print("Loading Resource...")
     Note_width = int(min(w,h) / 7.5)
     Note_height_Tap = int(Note_width / 989 * 100)
@@ -386,6 +388,7 @@ def Load_Resource():
     Note_height_Drag_dub = int(Note_width / 1089 * 160)
     Note_height_Flick = int(Note_width / 989 * 200)
     Note_height_Flick_dub = int(Note_width / 1089 * 300)
+    ClickEffect_Size = int(Note_width*1.5)
     Resource = {
         "Notes":{
             "Tap":ImageTk.PhotoImage(Image.open("./Resources/Notes/Tap.png").resize((Note_width,Note_height_Tap))),
@@ -399,11 +402,11 @@ def Load_Resource():
         },
         "Note_Click_Effect":{
             "Perfect":[
-                ImageTk.PhotoImage(Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png").resize((int(Note_width*1.5),)*2))
+                ImageTk.PhotoImage(Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png").resize((ClickEffect_Size,)*2))
                 for i in range(1,31)
             ],
             "Good":[
-                ImageTk.PhotoImage(Image.open(f"./Resources/Note_Click_Effect/Good/{i}.png").resize((int(Note_width*1.5),)*2))
+                ImageTk.PhotoImage(Image.open(f"./Resources/Note_Click_Effect/Good/{i}.png").resize((ClickEffect_Size,)*2))
                 for i in range(1,31)
             ]
         },
@@ -468,14 +471,39 @@ def Show_Note_Click_Effect(x,y,t:typing.Literal["Perfect","Good"]):
     effect_time = 0.5
     effect_ims = Resource["Note_Click_Effect"][t]
     effect_step_time = effect_time / len(effect_ims)
-    for im in effect_ims:
-        st = time()
-        id_ = cv.create_image(x,y,image=im,anchor="center")
-        if last_id is not None:
-            cv.delete(last_id)
-        last_id = id_
-        sleep(effect_step_time - min(time() - st,effect_step_time))
-    cv.delete(last_id)
+    def nocache_create_a_cache():
+        nonlocal last_id
+        ids = []
+        for im in effect_ims:
+            st = time()
+            id_ = cv.create_image(x,y,image=im,anchor="center")
+            if last_id is not None:
+                cv.moveto(last_id,-w,-h)
+                ids.append(last_id)
+            last_id = id_
+            sleep(effect_step_time - min(time() - st,effect_step_time))
+        cv.moveto(last_id,-w,-h)
+        ids.append(last_id)
+        clickeffect_cache.append([ids,t,False])
+    if not any([not item[2] and item[1] == t for item in clickeffect_cache]):
+        nocache_create_a_cache()
+    else:
+        try:
+            index = [item[2] for item in clickeffect_cache].index(False)
+        except ValueError:
+            nocache_create_a_cache()
+            return None
+        clickeffect_cache[index][2] = True #using
+        last_imid = None
+        for imid in clickeffect_cache[index][0]:
+            st = time()
+            cv.moveto(imid,x - ClickEffect_Size / 2,y - ClickEffect_Size / 2)
+            if last_imid is not None:
+                cv.moveto(last_imid,-w,-h)
+            last_imid = imid
+            sleep(effect_step_time - min(time() - st,effect_step_time))
+        cv.moveto(last_imid,-w,-h)
+        clickeffect_cache[index][2] = False
 
 def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:int|float):
     for judgeLine_cfg_key in judgeLine_Configs:
