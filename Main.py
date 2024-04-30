@@ -768,7 +768,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                     pass
                     if (
                             (not note_item.clicked)
-                            and (T_dws[judgeLine_cfg_key] * note_item.time < now_t)
+                            and (T_dws[judgeLine_cfg_key] * note_item.time <= now_t)
                         ):
                         try:
                             cv.delete(f"note_{note_item.id}")
@@ -778,7 +778,6 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         combo += 1
                         loger_queue.put(f"Destroy Note: {note_item}")
                         score = phigros_chart_obj.cal_score(combo)
-                        loger_queue.put(f"Update Score: {score}")
                         cv.itemconfigure("score",text=f"{score}")
                         cv.itemconfigure("combo",text=f"{combo}")
                         if not combo_and_combo_under_tips_showed:
