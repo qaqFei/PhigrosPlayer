@@ -654,6 +654,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
     last_time_text = "0:00/0:00"
     deleted_start_animation_judgeLine = False
     this_function_call_st = time()
+    process_xpos = 0
     judgeLine_last_cfg_dict = {item:None for item in judgeLine_Configs.keys()}
     judgeLine_draw_ids_dict = {item:None for item in judgeLine_Configs.keys()}
     while True:
@@ -804,7 +805,10 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
             process(judgeLine_notes_above,1)
             process(judgeLine_notes_below,-1)
         music_pos = time() - this_function_call_st
-        cv.moveto("ProcessBar",(music_pos / audio_length) * w - w,0)
+        now_process_xpos = int((music_pos / audio_length) * w)
+        if now_process_xpos != process_xpos:
+            process_xpos = now_process_xpos
+            cv.moveto("ProcessBar",process_xpos - w,0)
         time_text = f"{Format_Time(music_pos)}/{Format_Time(audio_length)}"
         if time_text != last_time_text:
             last_time_text = time_text
