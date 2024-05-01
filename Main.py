@@ -451,13 +451,13 @@ def Show_Start():
         show_start_toplevel.attributes("-alpha",alpha)
         sleep(step_time)
     cv.create_image(0,0,image=background_image,anchor="nw")
-    cv.create_image(-w,0,image=Resource["ProcessBar"],anchor="nw",tags=["ProcessBar","top"])
-    cv.create_text(w * 0.99,h * 0.005,text="0000000",anchor="ne",tags=["score","top"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 75)))
-    cv.create_text(w / 2,h * 0.001,text="0",anchor="n",fill="white",tags=["combo","top"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 70)),state="hidden")
-    cv.create_text(w / 2,h * 0.055,text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],anchor="n",fill="white",tags=["combo_under_tips","top"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),state="hidden")
-    cv.create_text(0,h * 0.00075,text="0:00/0:00",anchor="nw",fill="white",tags=["time","top"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 175)))
-    cv.create_text(w * 0.01,h * 0.98,text=chart_information["Name"],anchor="sw",tags=["chart_name","top"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
-    cv.create_text(w * 0.99,h * 0.99,text=chart_information["Level"],anchor="se",tags=["level","top"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
+    cv.create_image(-w,0,image=Resource["ProcessBar"],anchor="nw",tags=["ProcessBar","gui_widget"])
+    cv.create_text(w * 0.99,h * 0.005,text="0000000",anchor="ne",tags=["score","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 75)))
+    cv.create_text(w / 2,h * 0.001,text="0",anchor="n",fill="white",tags=["combo","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 70)),state="hidden")
+    cv.create_text(w / 2,h * 0.055,text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],anchor="n",fill="white",tags=["combo_under_tips","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),state="hidden")
+    cv.create_text(0,h * 0.00075,text="0:00/0:00",anchor="nw",fill="white",tags=["time","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 175)))
+    cv.create_text(w * 0.01,h * 0.98,text=chart_information["Name"],anchor="sw",tags=["chart_name","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
+    cv.create_text(w * 0.99,h * 0.99,text=chart_information["Level"],anchor="se",tags=["level","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
     sleep(0.5)
     for step in gr:
         alpha -= step
@@ -651,6 +651,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
         fps = eval(argv[argv.index("-fps") + 1])
     ids = {}
     combo = 0
+    score = "0000000"
     combo_and_combo_under_tips_showed = False
     last_time_text = "0:00/0:00"
     deleted_start_animation_judgeLine = False
@@ -658,6 +659,10 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
     process_xpos = 0
     judgeLine_last_cfg_dict = {item:None for item in judgeLine_Configs.keys()}
     judgeLine_draw_ids_dict = {item:None for item in judgeLine_Configs.keys()}
+    cal_fps_block_size = fps / 15 if fps != float("inf") else 60 / 15
+    last_cal_fps_time = time()
+    time_block_render_count = 0
+    combo_or_score_changed = False
     while True:
         st = time()
         now_t = time() - show_start_time
@@ -708,7 +713,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
             judgeLine_notes_above = judgeLine.notesAbove
             judgeLine_notes_below = judgeLine.notesBelow
             def process(notes_list:list[Chart_Objects.note],t:int):
-                nonlocal combo,combo_and_combo_under_tips_showed
+                nonlocal combo,score,combo_or_score_changed,combo_and_combo_under_tips_showed
                 for note_item in notes_list:
                     if note_item.clicked:
                         continue
@@ -783,8 +788,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         combo += 1
                         loger_queue.put(f"Destroy Note: {note_item}")
                         score = phigros_chart_obj.cal_score(combo)
-                        cv.itemconfigure("score",text=f"{score}")
-                        cv.itemconfigure("combo",text=f"{combo}")
+                        combo_or_score_changed = True
                         if not combo_and_combo_under_tips_showed:
                             if combo >= 3:
                                 cv.itemconfigure("combo",state="normal")
@@ -813,11 +817,18 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
         if time_text != last_time_text:
             last_time_text = time_text
             cv.itemconfigure("time",text=time_text)
-        cv.tag_raise("top")
         if not mixer.music.get_busy():
             break
+        if combo_or_score_changed:
+            cv.itemconfigure("score",text=f"{score}")
+            cv.itemconfigure("combo",text=f"{combo}")
+            combo_or_score_changed = False
+        time_block_render_count += 1
+        if time_block_render_count >= cal_fps_block_size:
+            if "-showfps" in argv:
+                root.title(f"Phigros Chart Player - FPS: {(time_block_render_count / (time() - last_cal_fps_time)) : .2f}")
+            last_cal_fps_time,time_block_render_count = time(),0
         sleep(1 / fps - min(time() - st,1 / fps))
-        if "-showfps" in argv: root.title(f"Phigros Chart Player - FPS: {round(1 / (time() - st))}")
     print("Player Stopped")
     if "-loop" in argv:
         Load_Chart_Object()
