@@ -36,10 +36,14 @@ class Tk(Tk_Temp):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         self.tk.call("tk","scaling",ScaleFactor / 75)
+        if "-hidemouse" in argv:
+            self.configure(cursor="none")
 class Toplevel(Toplevel_Temp):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         self.tk.call("tk","scaling",ScaleFactor / 75)
+        if "-hidemouse" in argv:
+            self.configure(cursor="none")
 del Tk_Temp,Toplevel_Temp
 
 selfdir = dirname(argv[0])
@@ -847,8 +851,6 @@ print("Createing Canvas...")
 cv = Canvas(root,width=w,height=h,bg="black",highlightthickness=0)
 background_image = ImageTk.PhotoImage(ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"]))
 cv.pack()
-if "-hidemouse" in argv:
-    cv.configure(cursor="none")
 root.update()
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 window_hwnd = int(root.frame(),16)
