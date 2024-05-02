@@ -854,7 +854,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         and note_item.hold_endtime > now_t
                         and not note_item.hold_end_clicked
                     ):
-                        if time() - note_item.note_last_show_hold_effect_time >= 0.25:
+                        if time() - note_item.note_last_show_hold_effect_time >= (1 / judgeLine.bpm * 30):
                             note_item.note_last_show_hold_effect_time = time()
                             Thread(
                                     target=Show_Note_Click_Effect,
