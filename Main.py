@@ -19,8 +19,10 @@ from pygame import mixer
 import win32con
 import win32ui
 
-try: import Chart_Objects
-except SyntaxError: import Chart_Objects_Low_Python_Ver as Chart_Objects
+# try: import Chart_Objects
+# except SyntaxError: import Chart_Objects_Low_Python_Ver as Chart_Objects
+import Chart_Objects
+import Const
 import Find_Files
 import PlaySound
 import ConsoleWindow
@@ -259,6 +261,9 @@ def loger():
 def unpack_pos(number:int) -> tuple[int,int]:
     return (number - number % 1000) // 1000,number % 1000
 
+def is_nan(x) -> bool:
+    return x != x
+
 loger_queue = Queue()
 clickeffect_cache = []
 
@@ -402,8 +407,13 @@ def Load_Resource():
             "Drag_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Drag_dub.png").resize((Note_width,Note_height_Drag_dub))),
             "Flick":ImageTk.PhotoImage(Image.open("./Resources/Notes/Flick.png").resize((Note_width,Note_height_Flick))),
             "Flick_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Flick_dub.png").resize((Note_width,Note_height_Flick_dub))),
-            "Hold":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold.png").resize((Note_width,int(min(w,h)/75)))),
-            "Hold_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_dub.png").resize((Note_width,int(min(w,h)/75))))
+            "Hold":{
+                "Hold_Head":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_Head.png").resize((Note_width,int(Note_width / 989 * 50)))),
+                "Hold_Head_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_Head_dub.png").resize((Note_width,int(Note_width / 1058 * 97)))),
+                "Hold_Body":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_Body.png").resize((Note_width,int(Note_width / 989 * 1900)))),
+                "Hold_Body_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_Body_dub.png").resize((Note_width,int(Note_width / 1060 * 1854)))),
+                "Hold_End":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_End.png").resize((Note_width,int(Note_width / 989 * 50)))),
+            }
         },
         "Note_Click_Effect":{
             "Perfect":[
@@ -511,34 +521,14 @@ def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:int|float):
         judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
         judgeLine_cfg["time"] = now_t / T_dws[judgeLine_cfg_key]
         judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
-        for rotate_event in judgeLine.judgeLineRotateEvents:
-            if rotate_event.startTime <= judgeLine_cfg["time"] <= rotate_event.endTime:
-                try: judgeLine_cfg["Rotate"] = rotate_event.start + (rotate_event.end - rotate_event.start) * ((judgeLine_cfg["time"] - rotate_event.startTime) / (rotate_event.endTime - rotate_event.startTime))
-                except ZeroDivisionError: judgeLine_cfg["Rotate"] = rotate_event.start
-        for disappear_event in judgeLine.judgeLineDisappearEvents:
-            if disappear_event.startTime <= judgeLine_cfg["time"] <= disappear_event.endTime:
-                try: judgeLine_cfg["Disappear"] = disappear_event.start + (disappear_event.end - disappear_event.start) * ((judgeLine_cfg["time"] - disappear_event.startTime) / (disappear_event.endTime - disappear_event.startTime)) 
-                except ZeroDivisionError: judgeLine_cfg["Disappear"] = disappear_event.start
-        for move_event in judgeLine.judgeLineMoveEvents:
-            if move_event.startTime <= judgeLine_cfg["time"] <= move_event.endTime:
-                try:
-                    judgeLine_cfg["Pos"] = [
-                        move_event.start + (move_event.end - move_event.start) * ((judgeLine_cfg["time"] - move_event.startTime) / (move_event.endTime - move_event.startTime)),
-                        move_event.start2 + (move_event.end2 - move_event.start2) * ((judgeLine_cfg["time"] - move_event.startTime) / (move_event.endTime - move_event.startTime))
-                    ]
-                    judgeLine_cfg["Pos"] = [
-                        judgeLine_cfg["Pos"][0] * w,
-                        judgeLine_cfg["Pos"][1] * h
-                    ]
-                except ZeroDivisionError:
-                    judgeLine_cfg["Pos"] = [
-                        move_event.start * w,
-                        move_event.start2 * h
-                    ]
-                judgeLine_cfg["Pos"][1] = h - judgeLine_cfg["Pos"][1]
-        for speed_event in judgeLine.speedEvents:
-            if speed_event.startTime <= judgeLine_cfg["time"] <= speed_event.endTime:
-                judgeLine_cfg["Speed"] = speed_event.value
+        rotate_var = judgeLine.get_datavar_rotate(judgeLine_cfg["time"])
+        disappear_var = judgeLine.get_datavar_disappear(judgeLine_cfg["time"])
+        move_var = judgeLine.get_datavar_move(judgeLine_cfg["time"],w,h)
+        speed_var = judgeLine.get_datavar_speed(judgeLine_cfg["time"])
+        if not is_nan(rotate_var): judgeLine_cfg["Rotate"] = rotate_var
+        if not is_nan(disappear_var): judgeLine_cfg["Disappear"] = disappear_var
+        if not is_nan(move_var): judgeLine_cfg["Pos"] = move_var
+        if not is_nan(speed_var): judgeLine_cfg["Speed"] = speed_var
 
 def Format_Time(t:int|float) -> str:
     m,s = t // 60,t % 60
@@ -629,6 +619,9 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
         again_toplevel.destroy()
     else:
         judgeLine_Animation()
+    
+    if not again:
+        phigros_chart_obj.init_holdlength(PHIGROS_Y)
 
     show_start_time = time()
     now_t = 0
@@ -678,7 +671,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
             last_cfg = judgeLine_last_cfg_dict[judgeLine_cfg_key]
             draw_cfg = {
                 "fill":Get_judgeLine_Color(),
-                "width":h * 0.0075 * judgeLine_cfg["Disappear"],
+                "width":int(h * 0.0075 * judgeLine_cfg["Disappear"]),
                 "smooth":True,
                 "tag":"judgeLine"
             }
@@ -715,7 +708,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
             def process(notes_list:list[Chart_Objects.note],t:int):
                 nonlocal combo,score,combo_or_score_changed,combo_and_combo_under_tips_showed
                 for note_item in notes_list:
-                    if note_item.clicked:
+                    if note_item.clicked and (note_item.type != Const.Note.HOLD or note_item.hold_end_clicked):
                         continue
                     cfg = {
                         "note":note_item,
@@ -724,30 +717,49 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                     rotatenote_at_judgeLine_pos = rotate_point(
                         *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
                     )
-                    rotated_x,rotated_y = rotate_point(
+                    x,y = rotate_point(
                         *rotatenote_at_judgeLine_pos,90 - judgeLine_cfg["Rotate"] - (180 if t == 1 else 0),cfg["now_floorPosition"] #why? -> (180 if t == 1 else 0)
                     )
-                    x,y = rotated_x,rotated_y
-                    note_type = {1:"Tap",2:"Drag",3:"Hold",4:"Flick"}[note_item.type]
+                    if note_item.type == Const.Note.HOLD:
+                        holdend_x,holdend_y = rotate_point(
+                            *rotatenote_at_judgeLine_pos,90 - judgeLine_cfg["Rotate"] - (180 if t == 1 else 0),cfg["now_floorPosition"] + note_item.hold_length_px
+                        )
+                    note_type = {
+                        Const.Note.TAP:"Tap",
+                        Const.Note.DRAG:"Drag",
+                        Const.Note.HOLD:"Hold",
+                        Const.Note.FLICK:"Flick"
+                    }[note_item.type]
                     render_range = 1.2
                     if (
                             -w * (render_range - 1.0) < x < render_range * w
                             and -h * (render_range - 1.0) < y < render_range * h
                         ) or note_item.rendered:
-                        if not T_dws[judgeLine_cfg_key] * note_item.time < now_t:
-                            if note_item.morebets:
-                                note_type += "_dub"
+                        if not note_item.clicked or not note_item.hold_end_clicked:
                             if note_item.__hash__() not in ids:
+                                if note_item.type != Const.Note.HOLD:
+                                    this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")]
+                                else:
+                                    this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")]
+                                    this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"]
                                 ids.update(
                                     {
                                         note_item.__hash__():[cv.create_image(
                                             x,y,
-                                            image=Resource["Notes"][note_type],
+                                            image=this_note_img,
                                             anchor="center",tag=f"note_{note_item.id}"
                                         ),t,
-                                        Resource["Notes"][note_type].width(),
-                                        Resource["Notes"][note_type].height(),
-                                        x,y]
+                                        this_note_img.width(),
+                                        this_note_img.height(),
+                                        x,y,None if note_item.type != Const.Note.HOLD else [
+                                            cv.create_image(
+                                                holdend_x,holdend_y,image=this_note_img_end,
+                                                anchor="center",tag=f"note_{note_item.id}_end"
+                                            ),
+                                            this_note_img_end.width(),
+                                            this_note_img_end.height(),
+                                            holdend_x,holdend_y
+                                        ]]
                                     }
                                 )
                                 if debug:
@@ -768,23 +780,25 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                 try:
                                     data = ids[note_item.__hash__()]
                                     if data[4] != x or data[5] != y:
-                                        cv.moveto(
-                                            f"note_{note_item.id}",
-                                            x - data[2] / 2,
-                                            y - data[3] / 2
-                                        )
+                                        if not note_item.hold_end_clicked:
+                                            cv.moveto(
+                                                f"note_{note_item.id}",
+                                                x - data[2] / 2,
+                                                y - data[3] / 2
+                                            )
+                                        if note_item.type == Const.Note.HOLD:
+                                            holdend_data = data[6]
+                                            cv.moveto(
+                                                f"note_{note_item.id}_end",
+                                                holdend_x - holdend_data[1] / 2,
+                                                holdend_y - holdend_data[2] / 2
+                                            )
+                                            holdend_data[3],holdend_data[4] = holdend_x,holdend_y
                                         data[4],data[5] = x,y
                                 except KeyError:
                                     pass
-                    if (
-                            (not note_item.clicked)
-                            and (T_dws[judgeLine_cfg_key] * note_item.time <= now_t)
-                        ):
-                        try:
-                            cv.delete(f"note_{note_item.id}")
-                            ids.pop(note_item.__hash__())
-                        except KeyError:
-                            pass
+                    def add_combo():
+                        nonlocal combo,score,combo_or_score_changed,combo_and_combo_under_tips_showed
                         combo += 1
                         loger_queue.put(f"Destroy Note: {note_item}")
                         score = phigros_chart_obj.cal_score(combo)
@@ -797,15 +811,58 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                             combo_and_combo_under_tips_showed = False
                             cv.itemconfigure("combo",state="hidden")
                             cv.itemconfigure("combo_under_tips",state="hidden")
-                        Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][str(note_item.type)],),daemon=True).start()
+                    def show_clickeffect(note_item:Chart_Objects.note):
+                        will_show_effect_pos = judgeLine.get_datavar_move(note_item.time,w,h)
+                        will_show_effect_rotate = judgeLine.get_datavar_rotate(note_item.time)
+                        if is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
+                        if is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
                         Thread(
                                 target=Show_Note_Click_Effect,
                                 args=(
-                                    *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X),
+                                    *rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note_item.positionX * PHIGROS_X),
                                     "Perfect"
                                 )
                                ).start()
+                    if (
+                            (not note_item.clicked)
+                            and (T_dws[judgeLine_cfg_key] * note_item.time <= now_t)
+                        ):
+                        cv.delete(f"note_{note_item.id}")
+                        if note_item.type != Const.Note.HOLD:
+                            add_combo()
+                            try:
+                                ids.pop(note_item.__hash__())
+                            except KeyError:
+                                pass
+                        else:
+                            note_item.note_last_show_hold_effect_time = time()
+                        show_clickeffect(note_item)
+                        Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][str(note_item.type)],),daemon=True).start()
                         note_item.clicked = True
+                    elif (
+                        note_item.clicked
+                        and note_item.type == Const.Note.HOLD
+                        and note_item.hold_endtime <= now_t
+                        and not note_item.hold_end_clicked
+                    ):
+                        cv.delete(f"note_{note_item.id}_end")
+                        add_combo()
+                        note_item.hold_end_clicked = True
+                    elif (
+                        note_item.clicked
+                        and note_item.type == Const.Note.HOLD
+                        and note_item.hold_endtime > now_t
+                        and not note_item.hold_end_clicked
+                    ):
+                        if time() - note_item.note_last_show_hold_effect_time >= 0.25:
+                            note_item.note_last_show_hold_effect_time = time()
+                            Thread(
+                                    target=Show_Note_Click_Effect,
+                                    args=(
+                                        *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X),
+                                        "Perfect"
+                                    )
+                                ).start()
             process(judgeLine_notes_above,1)
             process(judgeLine_notes_below,-1)
         music_pos = time() - this_function_call_st
