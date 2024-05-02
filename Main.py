@@ -478,6 +478,7 @@ def Show_Start():
     Thread(target=PlayerStart,daemon=True).start()
 
 def Show_Note_Click_Effect(x,y,t:typing.Literal["Perfect","Good"]):
+    if "-noclickeffect" in argv: return None
     last_id = None
     effect_time = 0.5
     effect_ims = Resource["Note_Click_Effect"][t]
@@ -620,8 +621,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
     else:
         judgeLine_Animation()
     
-    if not again:
-        phigros_chart_obj.init_holdlength(PHIGROS_Y)
+    phigros_chart_obj.init_holdlength(PHIGROS_Y)
 
     show_start_time = time()
     now_t = 0

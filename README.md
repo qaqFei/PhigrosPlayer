@@ -31,6 +31,7 @@ python Main.py
 - ```-fullscreen``` 全屏
 - ```-hidemouse``` 隐藏鼠标
 - ```-nofcapline``` 去除```FC/AP```指示器 默认开启```FC/AP```指示器
+- ```-noclickeffect``` 关闭点击特效
 
 ## 编写时的一些坑
 - ```tkinter.Canvas``` 的 ```create_line``` 方法 的 ```smooth``` 参数不生效 T_T
