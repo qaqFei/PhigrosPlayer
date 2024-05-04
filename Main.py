@@ -737,8 +737,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         holdbody_kwargs = {
                             "fill":"#0078d7",
                             "outline":"",
-                            "tag":f"note_{note_item.id}_body",
-                            "smooth":True
+                            "tag":f"note_{note_item.id}_body"
                         }
                     note_type = {
                         Const.Note.TAP:"Tap",
