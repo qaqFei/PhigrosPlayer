@@ -755,9 +755,12 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                             if any(key_state.values()): # eq -> True in key_state.values()
                                 note_item.is_will_click = True
                     if note_item.type == Const.Note.HOLD:
-                        holdend_x,holdend_y = rotate_point(
-                            *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] + note_item.hold_length_px
-                        )
+                        if cfg["now_floorPosition"] + note_item.hold_length_px >= 0:
+                            holdend_x,holdend_y = rotate_point(
+                                *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] + note_item.hold_length_px
+                            )
+                        else:
+                            holdend_x,holdend_y = rotatenote_at_judgeLine_pos
                         if cfg["now_floorPosition"] >= 0:
                             holdhead_pos = x,y
                         else:
@@ -899,7 +902,13 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                 Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][str(note_item.type)],),daemon=True).start()
                                 note_item.clicked = True
                     def miss_note(note_item:Chart_Objects.note):
-                        pass
+                        print(f"Miss Note: {note_item}")
+                        cv.delete(f"note_{note_item.id}")
+                        try:
+                            ids.pop(note_item.__hash__())
+                        except KeyError:
+                            pass
+                        note_item.clicked = True #is destroy...
                     if (
                             (not note_item.clicked)
                             and (this_judgeLine_T * note_item.time <= now_t)
@@ -942,7 +951,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                     elif (
                         not autoplay
                         and not note_item.is_will_click
-                        and note_item.time * this_judgeLine_T < now_t - 180 / 1000
+                        and now_t - note_item.time * this_judgeLine_T > 100 / 1000
                         and note_item.type != Const.Note.HOLD
                     ):
                         miss_note(note_item)
