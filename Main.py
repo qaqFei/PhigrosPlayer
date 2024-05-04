@@ -898,6 +898,8 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                 show_clickeffect(note_item)
                                 Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][str(note_item.type)],),daemon=True).start()
                                 note_item.clicked = True
+                    def miss_note(note_item:Chart_Objects.note):
+                        pass
                     if (
                             (not note_item.clicked)
                             and (this_judgeLine_T * note_item.time <= now_t)
@@ -934,9 +936,16 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                             not autoplay
                             and note_item.is_will_click
                             and note_item.time * this_judgeLine_T <= now_t
-                            and note_item.type != Const.Note.HOLD
+                            and (note_item.type == Const.Note.DRAG or note_item.type == Const.Note.FLICK)
                         ):
                         click_note(note_item)
+                    elif (
+                        not autoplay
+                        and not note_item.is_will_click
+                        and note_item.time * this_judgeLine_T < now_t - 180 / 1000
+                        and note_item.type != Const.Note.HOLD
+                    ):
+                        miss_note(note_item)
             process(judgeLine_notes_above,1)
             process(judgeLine_notes_below,-1)
         music_pos = time() - this_function_call_st
