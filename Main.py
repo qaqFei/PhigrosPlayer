@@ -52,6 +52,10 @@ selfdir = dirname(argv[0])
 if selfdir == "": selfdir = "."
 chdir(selfdir)
 
+if exists(".//__pycache__"):
+    try: rmtree(".//__pycache__")
+    except Exception: pass
+
 if not exists(".\\7z.exe"):
     print("7z.exe Not Found.")
     windll.kernel32.ExitProcess(1)
@@ -535,27 +539,29 @@ def Format_Time(t:int|float) -> str:
     m,s = int(m),int(s)
     return f"{m}:{s:>2}".replace(" ","0")
 
-def Cal_judgeLine_NoteDy(judgeLine_cfg,T:int|float) -> float:
+def Cal_judgeLine_NoteDy(judgeLine_cfg,T:float) -> float:
     judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
     if judgeLine.speedEvents == []: return 0
+    return Cal_judgeLine_NoteDy_ByTime(judgeLine,T,judgeLine_cfg["time"])
+
+def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects.judgeLine,T:float,time:float) -> float:
     dy = 0
-    t = judgeLine_cfg["time"]
     if judgeLine.speedEvents[0].floorPosition is not None:
         for speed_event in judgeLine.speedEvents:
-            if speed_event.startTime <= t <= speed_event.endTime:
+            if speed_event.startTime <= time <= speed_event.endTime:
                 dy = speed_event.floorPosition * PHIGROS_Y + (
-                    t - speed_event.startTime
+                    time - speed_event.startTime
                 ) * T * speed_event.value * PHIGROS_Y
                 return dy
         last_speed_event = sorted(judgeLine.speedEvents,key=lambda x:x.startTime)[-1]
-        dy = last_speed_event.floorPosition * PHIGROS_Y + (t - last_speed_event.endTime) * T * last_speed_event.value * PHIGROS_Y
+        dy = last_speed_event.floorPosition * PHIGROS_Y + (time - last_speed_event.endTime) * T * last_speed_event.value * PHIGROS_Y
         return dy
     else:
         for speed_event in judgeLine.speedEvents:
-            if speed_event.startTime < t and speed_event.endTime < t:
+            if speed_event.startTime < time and speed_event.endTime < time:
                 dy += (speed_event.endTime - speed_event.startTime) * T * speed_event.value * PHIGROS_Y
-            elif speed_event.startTime <= t <= speed_event.endTime:
-                dy += (t - speed_event.startTime) * T * speed_event.value * PHIGROS_Y
+            elif speed_event.startTime <= time <= speed_event.endTime:
+                dy += (time - speed_event.startTime) * T * speed_event.value * PHIGROS_Y
             else:
                 pass
         return dy
@@ -667,6 +673,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
             ]
+            judgeLine_DrawPos = [int(item) for item in judgeLine_DrawPos]
             last_cfg = judgeLine_last_cfg_dict[judgeLine_cfg_key]
             draw_cfg = {
                 "fill":Get_judgeLine_Color(),
@@ -711,7 +718,9 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         continue
                     cfg = {
                         "note":note_item,
-                        "now_floorPosition":note_item.floorPosition * PHIGROS_Y - judgeLine_cfg["Note_dy"]
+                        "now_floorPosition":note_item.floorPosition * PHIGROS_Y - (judgeLine_cfg["Note_dy"] if not (note_item.type == Const.Note.HOLD and note_item.clicked) else (
+                            Cal_judgeLine_NoteDy_ByTime(judgeLine,T_dws[judgeLine_cfg_key],note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
+                        ))
                     }
                     rotatenote_at_judgeLine_pos = rotate_point(
                         *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X

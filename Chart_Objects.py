@@ -45,9 +45,9 @@ class note:
         }[self.type]
         return f"{self.master.id}+{self.id}{note_t}"
     
-    def _cal_holdlength(self,T,PHIGROS_Y):
-        self.hold_length_sec = self.holdTime * T
-        self.hold_length_px = (self.master.get_datavar_speed(self.time) * self.hold_length_sec) * PHIGROS_Y
+    def _cal_holdlength(self,PHIGROS_Y):
+        self.hold_length_sec = self.holdTime * (1.875 / self.master.bpm)
+        self.hold_length_px = (self.speed * self.hold_length_sec) * PHIGROS_Y
         self.hold_endtime = self.time * (1.875 / self.master.bpm) + self.hold_length_sec
 
 @dataclass
@@ -169,8 +169,8 @@ class Phigros_Chart:
     def init_holdlength(self,PHIGROS_Y):
         for judgeLine in self.judgeLineList:
             for note in judgeLine.notesAbove:
-                note._cal_holdlength(1.875/judgeLine.bpm,PHIGROS_Y)
+                note._cal_holdlength(PHIGROS_Y)
             for note in judgeLine.notesBelow:
-                note._cal_holdlength(1.875/judgeLine.bpm,PHIGROS_Y)
+                note._cal_holdlength(PHIGROS_Y)
 
 del typing,dataclass
