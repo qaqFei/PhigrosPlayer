@@ -32,6 +32,7 @@ python Main.py
 - ```-hidemouse``` 隐藏鼠标
 - ```-nofcapline``` 去除```FC/AP```指示器 默认开启```FC/AP```指示器
 - ```-noclickeffect``` 关闭点击特效
+- ```-holdbody``` 显示```hold```的中间部分
 
 ## 编写时的一些坑
 - ```tkinter.Canvas``` 的 ```create_line``` 方法 的 ```smooth``` 参数不生效 T_T

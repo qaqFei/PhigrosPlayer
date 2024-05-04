@@ -69,9 +69,8 @@ print(f"Temp Dir: {temp_dir}")
 if "-clear" in argv:
     windll.kernel32.ExitProcess(0)
 
-debug = False
-if "-debug" in argv:
-    debug = True
+debug = "-debug" in argv
+show_holdbody = "-holdbody" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -389,7 +388,7 @@ def Replace_Image_Color(im:Image.Image,color):
     return im
 
 def Load_Resource():
-    global ClickEffect_Size
+    global ClickEffect_Size,Note_width
     print("Loading Resource...")
     Note_width = int(min(w,h) / 7.5)
     Note_height_Tap = int(Note_width / 989 * 100)
@@ -717,13 +716,30 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                     rotatenote_at_judgeLine_pos = rotate_point(
                         *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
                     )
+                    judgeLine_to_note_rotate_angle = 90 - judgeLine_cfg["Rotate"] - (180 if t == 1 else 0)
                     x,y = rotate_point(
-                        *rotatenote_at_judgeLine_pos,90 - judgeLine_cfg["Rotate"] - (180 if t == 1 else 0),cfg["now_floorPosition"] #why? -> (180 if t == 1 else 0)
+                        *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] #why? -> (180 if t == 1 else 0)
                     )
                     if note_item.type == Const.Note.HOLD:
                         holdend_x,holdend_y = rotate_point(
-                            *rotatenote_at_judgeLine_pos,90 - judgeLine_cfg["Rotate"] - (180 if t == 1 else 0),cfg["now_floorPosition"] + note_item.hold_length_px
+                            *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] + note_item.hold_length_px
                         )
+                        if cfg["now_floorPosition"] >= 0:
+                            holdhead_pos = x,y
+                        else:
+                            holdhead_pos = rotatenote_at_judgeLine_pos
+                        holdbody_range = [
+                            rotate_point(*holdhead_pos,judgeLine_to_note_rotate_angle - 90,Note_width / 2),
+                            rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_angle - 90,Note_width / 2),
+                            rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_angle + 90,Note_width / 2),
+                            rotate_point(*holdhead_pos,judgeLine_to_note_rotate_angle + 90,Note_width / 2),
+                        ]
+                        holdbody_kwargs = {
+                            "fill":"#0078d7",
+                            "outline":"",
+                            "tag":f"note_{note_item.id}_body",
+                            "smooth":True
+                        }
                     note_type = {
                         Const.Note.TAP:"Tap",
                         Const.Note.DRAG:"Drag",
@@ -758,7 +774,10 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                             ),
                                             this_note_img_end.width(),
                                             this_note_img_end.height(),
-                                            holdend_x,holdend_y
+                                            holdend_x,holdend_y,
+                                            cv.create_polygon(
+                                                *holdbody_range,**holdbody_kwargs
+                                            ) if show_holdbody else None
                                         ]]
                                     }
                                 )
@@ -793,6 +812,11 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                                 holdend_x - holdend_data[1] / 2,
                                                 holdend_y - holdend_data[2] / 2
                                             )
+                                            if show_holdbody:
+                                                cv.delete(holdend_data[5])
+                                                holdend_data[5] = cv.create_polygon(
+                                                    *holdbody_range,**holdbody_kwargs
+                                                )
                                             holdend_data[3],holdend_data[4] = holdend_x,holdend_y
                                         data[4],data[5] = x,y
                                 except KeyError:
@@ -846,6 +870,8 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         and not note_item.hold_end_clicked
                     ):
                         cv.delete(f"note_{note_item.id}_end")
+                        if show_holdbody:
+                            cv.delete(f"note_{note_item.id}_body")
                         add_combo()
                         note_item.hold_end_clicked = True
                     elif (
