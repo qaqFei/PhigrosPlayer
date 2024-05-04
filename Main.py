@@ -279,7 +279,7 @@ def key_press(e:TkinterEvent):
     char = e.char.lower()
     if key_state[char]: return None
     key_state[char] = True
-    key_press_count[char].append((time(),char))
+    key_press_count.append((time(),char))
 
 def key_release(e:TkinterEvent):
     if not is_will_process_char(e.char): return None
@@ -289,7 +289,7 @@ def key_release(e:TkinterEvent):
 loger_queue = Queue()
 clickeffect_cache = []
 key_state = {chr(i):False for i in range(ord("a"),ord("z") + 1)}
-key_press_count = {chr(i):[] for i in range(ord("a"),ord("z") + 1)}
+key_press_count = []
 
 def Load_Chart_Object():
     global phigros_chart_obj
@@ -591,6 +591,7 @@ def Get_judgeLine_Color() -> str:
     return "#feffa9" if "-nofcapline" not in argv else "#ffffff"
 
 def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
+    global key_press_count
     print("Player Start")
     root.title("Phigros Chart Player")
     def judgeLine_Animation():
@@ -733,6 +734,10 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                 deleted_start_animation_judgeLine = True
             judgeLine_notes_above = judgeLine.notesAbove
             judgeLine_notes_below = judgeLine.notesBelow
+            for index,key_event in enumerate(key_press_count):
+                if abs(time() - key_event[0]) > 200 / 1000:
+                    key_press_count[index] = None
+            key_press_count = [item for item in key_press_count if item is not None]
             def process(notes_list:list[Chart_Objects.note],t:int):
                 nonlocal combo,score,combo_or_score_changed
                 for note_item in notes_list:
@@ -954,10 +959,10 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                     )
                                 ).start()
                     if (
-                            not autoplay
-                            and note_item.is_will_click
-                            and note_item.time * this_judgeLine_T <= now_t
-                            and (note_item.type == Const.Note.DRAG or note_item.type == Const.Note.FLICK)
+                        not autoplay
+                        and note_item.is_will_click
+                        and note_item.time * this_judgeLine_T <= now_t
+                        and (note_item.type == Const.Note.DRAG or note_item.type == Const.Note.FLICK)
                         ):
                         click_note(note_item,"perfect")
                     elif (
@@ -967,6 +972,21 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         and note_item.type != Const.Note.HOLD
                     ):
                         miss_note(note_item)
+                    elif (
+                        not autoplay
+                        and not note_item.is_will_click
+                        and note_item.type == Const.Note.TAP
+                        and len(key_press_count) > 0
+                    ):
+                        key_press_event = key_press_count[0]
+                        del key_press_count[0]
+                        click_abs_time = abs(key_press_event[0] - note_item.time * this_judgeLine_T)
+                        if click_abs_time <= 80 / 1000:
+                            click_note(note_item,"perfect")
+                        elif click_abs_time <= 160 / 1000:
+                            click_note(note_item,"good")
+                        elif 200 / 1000 > now_t - note_item.time * this_judgeLine_T > 160 / 1000:
+                            bad_note(note_item)
             process(judgeLine_notes_above,1)
             process(judgeLine_notes_below,-1)
         music_pos = time() - this_function_call_st
