@@ -163,10 +163,6 @@ class Phigros_Chart:
             for _ in judgeLine.notesBelow:
                 self.note_num += 1
     
-    def cal_score(self,combo:int) -> str:
-        score = int((combo / self.note_num) * 1e6 + 0.5)
-        return f"{score:>7}".replace(" ","0")
-    
     def init_holdlength(self,PHIGROS_Y):
         for judgeLine in self.judgeLineList:
             for note in judgeLine.notesAbove:

@@ -26,6 +26,7 @@ import Const
 import Find_Files
 import PlaySound
 import ConsoleWindow
+import psm
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
@@ -670,7 +671,6 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
     ids = {}
     combo = 0
     score = "0000000"
-    combo_and_combo_under_tips_showed = False
     last_time_text = "0:00/0:00"
     deleted_start_animation_judgeLine = False
     this_function_call_st = time()
@@ -681,6 +681,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
     last_cal_fps_time = time()
     time_block_render_count = 0
     combo_or_score_changed = False
+    score_manager = psm.Manager(phigros_chart_obj.note_num)
     while True:
         st = time()
         now_t = time() - show_start_time
@@ -733,7 +734,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
             judgeLine_notes_above = judgeLine.notesAbove
             judgeLine_notes_below = judgeLine.notesBelow
             def process(notes_list:list[Chart_Objects.note],t:int):
-                nonlocal combo,score,combo_or_score_changed,combo_and_combo_under_tips_showed
+                nonlocal combo,score,combo_or_score_changed
                 for note_item in notes_list:
                     if note_item.clicked and (note_item.type != Const.Note.HOLD or note_item.hold_end_clicked):
                         continue
@@ -857,21 +858,22 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                         data[4],data[5] = x,y
                                 except KeyError:
                                     pass
-                    def add_combo():
-                        nonlocal combo,score,combo_or_score_changed,combo_and_combo_under_tips_showed
-                        combo += 1
+                    def add_note_event(event:psm.psm_event_type):
+                        nonlocal combo,score,combo_or_score_changed
+                        data_bak = (combo,score)
+                        score_manager.add_event(event)
+                        combo = score_manager.get_combo()
                         loger_queue.put(f"Destroy Note: {note_item}")
-                        score = phigros_chart_obj.cal_score(combo)
-                        combo_or_score_changed = True
-                        if not combo_and_combo_under_tips_showed:
+                        score = score_manager.get_stringscore(score_manager.get_score())
+                        if data_bak != (combo,score):
+                            combo_or_score_changed = True
                             if combo >= 3:
                                 cv.itemconfigure("combo",state="normal")
                                 cv.itemconfigure("combo_under_tips",state="normal")
-                        elif combo < 3:
-                            combo_and_combo_under_tips_showed = False
-                            cv.itemconfigure("combo",state="hidden")
-                            cv.itemconfigure("combo_under_tips",state="hidden")
-                    def show_clickeffect(note_item:Chart_Objects.note):
+                            elif combo < 3:
+                                cv.itemconfigure("combo",state="hidden")
+                                cv.itemconfigure("combo_under_tips",state="hidden")
+                    def show_clickeffect(note_item:Chart_Objects.note,effect_type:typing.Literal["Perfect","Good"]):
                         will_show_effect_pos = judgeLine.get_datavar_move(note_item.time,w,h)
                         will_show_effect_rotate = judgeLine.get_datavar_rotate(note_item.time)
                         if is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
@@ -880,10 +882,10 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                 target=Show_Note_Click_Effect,
                                 args=(
                                     *rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note_item.positionX * PHIGROS_X),
-                                    "Perfect"
+                                    effect_type
                                 )
                                ).start()
-                    def click_note(note_item:Chart_Objects.note):
+                    def click_note(note_item:Chart_Objects.note,event:typing.Literal["perfect","good"]):
                         nonlocal combo,score,combo_or_score_changed
                         if (
                                 (not note_item.clicked)
@@ -891,14 +893,14 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                             ):
                                 cv.delete(f"note_{note_item.id}")
                                 if note_item.type != Const.Note.HOLD:
-                                    add_combo()
+                                    add_note_event(event)
                                     try:
                                         ids.pop(note_item.__hash__())
                                     except KeyError:
                                         pass
                                 else:
                                     note_item.note_last_show_hold_effect_time = time()
-                                show_clickeffect(note_item)
+                                show_clickeffect(note_item,event[0].upper() + event[1:]) #perfect -> Perfect / good -> Good
                                 Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][str(note_item.type)],),daemon=True).start()
                                 note_item.clicked = True
                     def miss_note(note_item:Chart_Objects.note):
@@ -908,13 +910,23 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                             ids.pop(note_item.__hash__())
                         except KeyError:
                             pass
+                        add_note_event("miss")
+                        note_item.clicked = True #is destroy...
+                    def bad_note(note_item:Chart_Objects.note):
+                        print(f"Bad Note: {note_item}")
+                        cv.delete(f"note_{note_item.id}")
+                        try:
+                            ids.pop(note_item.__hash__())
+                        except KeyError:
+                            pass
+                        add_note_event("bad")
                         note_item.clicked = True #is destroy...
                     if (
                             (not note_item.clicked)
                             and (this_judgeLine_T * note_item.time <= now_t)
                             and autoplay
                         ):
-                        click_note(note_item)
+                        click_note(note_item,"perfect")
                     elif (
                         note_item.clicked
                         and note_item.type == Const.Note.HOLD
@@ -924,7 +936,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         cv.delete(f"note_{note_item.id}_end")
                         if show_holdbody:
                             cv.delete(f"note_{note_item.id}_body")
-                        add_combo()
+                        add_note_event("perfect")
                         note_item.hold_end_clicked = True
                     elif (
                         note_item.clicked
@@ -947,7 +959,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                             and note_item.time * this_judgeLine_T <= now_t
                             and (note_item.type == Const.Note.DRAG or note_item.type == Const.Note.FLICK)
                         ):
-                        click_note(note_item)
+                        click_note(note_item,"perfect")
                     elif (
                         not autoplay
                         and not note_item.is_will_click
