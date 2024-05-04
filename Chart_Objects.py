@@ -26,6 +26,7 @@ class note:
     master:judgeLine|None = None
     hold_end_clicked:bool = False
     note_last_show_hold_effect_time:float = 0.0
+    is_will_click:bool = False
 
     def __eq__(self,oth):
         try:

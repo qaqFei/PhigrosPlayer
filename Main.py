@@ -1,4 +1,4 @@
-from tkinter import Tk,Toplevel,Canvas
+from tkinter import Tk,Toplevel,Canvas,Event as TkinterEvent
 from threading import Thread
 from ctypes import windll
 from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -75,6 +75,7 @@ if "-clear" in argv:
 
 debug = "-debug" in argv
 show_holdbody = "-holdbody" in argv
+autoplay = "-noautoplay" not in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -267,8 +268,27 @@ def unpack_pos(number:int) -> tuple[int,int]:
 def is_nan(x) -> bool:
     return x != x
 
+def is_will_process_char(char:str) -> bool:
+    if len(char) != 1: return False
+    if ord("a") <= ord(char.lower()) <= ord("z"): return True
+    return False
+
+def key_press(e:TkinterEvent):
+    if not is_will_process_char(e.char): return None
+    char = e.char.lower()
+    if key_state[char]: return None
+    key_state[char] = True
+    key_press_count[char].append((time(),char))
+
+def key_release(e:TkinterEvent):
+    if not is_will_process_char(e.char): return None
+    char = e.char.lower()
+    key_state[char] = False
+
 loger_queue = Queue()
 clickeffect_cache = []
+key_state = {chr(i):False for i in range(ord("a"),ord("z") + 1)}
+key_press_count = {chr(i):[] for i in range(ord("a"),ord("z") + 1)}
 
 def Load_Chart_Object():
     global phigros_chart_obj
@@ -668,7 +688,8 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
         for judgeLine_cfg_key in judgeLine_Configs:
             judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
             judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
-            judgeLine_cfg["Note_dy"] = Cal_judgeLine_NoteDy(judgeLine_cfg,T_dws[judgeLine_cfg_key])
+            this_judgeLine_T = T_dws[judgeLine_cfg_key]
+            judgeLine_cfg["Note_dy"] = Cal_judgeLine_NoteDy(judgeLine_cfg,this_judgeLine_T)
             judgeLine_DrawPos = [
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
@@ -719,7 +740,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                     cfg = {
                         "note":note_item,
                         "now_floorPosition":note_item.floorPosition * PHIGROS_Y - (judgeLine_cfg["Note_dy"] if not (note_item.type == Const.Note.HOLD and note_item.clicked) else (
-                            Cal_judgeLine_NoteDy_ByTime(judgeLine,T_dws[judgeLine_cfg_key],note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
+                            Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
                         ))
                     }
                     rotatenote_at_judgeLine_pos = rotate_point(
@@ -729,6 +750,10 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                     x,y = rotate_point(
                         *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] #why? -> (180 if t == 1 else 0)
                     )
+                    if note_item.type == Const.Note.DRAG or note_item.type == Const.Note.FLICK:
+                        if abs(note_item.time * this_judgeLine_T - now_t) < 80 / 1000:
+                            if any(key_state.values()): # eq -> True in key_state.values()
+                                note_item.is_will_click = True
                     if note_item.type == Const.Note.HOLD:
                         holdend_x,holdend_y = rotate_point(
                             *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] + note_item.hold_length_px
@@ -855,22 +880,30 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                     "Perfect"
                                 )
                                ).start()
+                    def click_note(note_item:Chart_Objects.note):
+                        nonlocal combo,score,combo_or_score_changed
+                        if (
+                                (not note_item.clicked)
+                                and (this_judgeLine_T * note_item.time <= now_t)
+                            ):
+                                cv.delete(f"note_{note_item.id}")
+                                if note_item.type != Const.Note.HOLD:
+                                    add_combo()
+                                    try:
+                                        ids.pop(note_item.__hash__())
+                                    except KeyError:
+                                        pass
+                                else:
+                                    note_item.note_last_show_hold_effect_time = time()
+                                show_clickeffect(note_item)
+                                Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][str(note_item.type)],),daemon=True).start()
+                                note_item.clicked = True
                     if (
                             (not note_item.clicked)
-                            and (T_dws[judgeLine_cfg_key] * note_item.time <= now_t)
+                            and (this_judgeLine_T * note_item.time <= now_t)
+                            and autoplay
                         ):
-                        cv.delete(f"note_{note_item.id}")
-                        if note_item.type != Const.Note.HOLD:
-                            add_combo()
-                            try:
-                                ids.pop(note_item.__hash__())
-                            except KeyError:
-                                pass
-                        else:
-                            note_item.note_last_show_hold_effect_time = time()
-                        show_clickeffect(note_item)
-                        Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][str(note_item.type)],),daemon=True).start()
-                        note_item.clicked = True
+                        click_note(note_item)
                     elif (
                         note_item.clicked
                         and note_item.type == Const.Note.HOLD
@@ -897,6 +930,13 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                         "Perfect"
                                     )
                                 ).start()
+                    if (
+                            not autoplay
+                            and note_item.is_will_click
+                            and note_item.time * this_judgeLine_T <= now_t
+                            and note_item.type != Const.Note.HOLD
+                        ):
+                        click_note(note_item)
             process(judgeLine_notes_above,1)
             process(judgeLine_notes_below,-1)
         music_pos = time() - this_function_call_st
@@ -938,6 +978,8 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
 print("Loading Window...")
 root = Tk()
 root.withdraw()
+root.bind("<KeyPress>",key_press)
+root.bind("<KeyRelease>",key_release)
 root["bg"] = "black"
 root.title(f"Phigros Chart Player")
 root.iconbitmap(".\\icon.ico")
