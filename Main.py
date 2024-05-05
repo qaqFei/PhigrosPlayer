@@ -924,110 +924,107 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         add_note_event("bad")
                         note_item.clicked = True #is destroy...
                     def miss_hold_note(note_item:Chart_Objects.note):
-                        print(f"Miss Note: {note_item}")
+                        print(f"Miss Note: {note_item} (Hold)")
                         cv.delete(f"note_{note_item.id}")
                         add_note_event("miss")
                         note_item.clicked = True
                     def miss_hold_note_destroy_end(note_item:Chart_Objects.note):
+                        print(f"Miss Note: {note_item} (Hold Destroy End)")
                         cv.delete(f"note_{note_item.id}_end")
                         if show_holdbody:
                             cv.delete(f"note_{note_item.id}_body")
                         note_item.hold_end_clicked = True
-                    if (
-                            (not note_item.clicked)
-                            and (this_judgeLine_T * note_item.time <= now_t)
-                            and autoplay
+                    if autoplay:
+                        if (
+                                (not note_item.clicked)
+                                and (this_judgeLine_T * note_item.time <= now_t)
+                                and autoplay
+                            ):
+                            click_note(note_item,"perfect")
+                        elif (
+                            note_item.clicked
+                            and note_item.type == Const.Note.HOLD
+                            and note_item.hold_endtime <= now_t
+                            and not note_item.hold_end_clicked
                         ):
-                        click_note(note_item,"perfect")
-                    elif (
-                        note_item.clicked
-                        and note_item.type == Const.Note.HOLD
-                        and note_item.hold_endtime <= now_t
-                        and not note_item.hold_end_clicked
-                    ):
-                        cv.delete(f"note_{note_item.id}_end")
-                        if show_holdbody:
-                            cv.delete(f"note_{note_item.id}_body")
-                        add_note_event("perfect")
-                        note_item.hold_end_clicked = True
-                    elif (
-                        note_item.clicked
-                        and note_item.type == Const.Note.HOLD
-                        and note_item.hold_endtime > now_t
-                        and not note_item.hold_end_clicked
-                    ):
-                        if time() - note_item.note_last_show_hold_effect_time >= (1 / judgeLine.bpm * 30):
-                            note_item.note_last_show_hold_effect_time = time()
-                            Thread(
-                                    target=Show_Note_Click_Effect,
-                                    args=(
-                                        *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X),
-                                        "Perfect"
-                                    )
-                                ).start()
-                    if (
-                        not autoplay
-                        and note_item.is_will_click
-                        and note_item.time * this_judgeLine_T <= now_t
-                        and (note_item.type == Const.Note.DRAG or note_item.type == Const.Note.FLICK)
+                            cv.delete(f"note_{note_item.id}_end")
+                            if show_holdbody:
+                                cv.delete(f"note_{note_item.id}_body")
+                            add_note_event("perfect")
+                            note_item.hold_end_clicked = True
+                        elif (
+                            note_item.clicked
+                            and note_item.type == Const.Note.HOLD
+                            and note_item.hold_endtime > now_t
+                            and not note_item.hold_end_clicked
                         ):
-                        click_note(note_item,"perfect")
-                    elif (
-                        not autoplay
-                        and not note_item.is_will_click
-                        and now_t - note_item.time * this_judgeLine_T > 100 / 1000
-                        and note_item.type != Const.Note.HOLD
-                    ):
-                        miss_note(note_item)
-                    elif (
-                        not autoplay
-                        and not note_item.is_will_click
-                        and note_item.type == Const.Note.TAP
-                        and len(key_press_count) > 0
-                    ):
-                        for index,key_press_event in enumerate(key_press_count):
-                            click_abs_time = abs((key_press_event[0]- show_start_time) - note_item.time * this_judgeLine_T)
-                            click_to_now_time = time() - key_press_event[0]
-                            if click_to_now_time > 360 / 1000:
-                                key_press_count[index] = None
-                            if click_abs_time <= 160 / 1000:
-                                click_note(note_item,"perfect")
-                            elif click_abs_time <= 320 / 1000:
-                                click_note(note_item,"good")
-                            elif (360 / 1000 > click_abs_time > 320 / 1000) and (not any([(360 / 1000 > abs((key_press_event[0]- show_start_time) - item.time * (1.875 / item.master.bpm))) > 320 / 1000 for item in phigros_chart_obj.get_all_note() if item is not note_item and item.type in (Const.Note.TAP,Const.Note.HOLD)])):
-                                bad_note(note_item)
-                            else:
-                                continue
-                            break
-                        key_press_count = [item for item in key_press_count if item is not None]
-                    elif (
-                        not autoplay
-                        and not note_item.is_will_click
-                        and note_item.type == Const.Note.HOLD
-                        and not note_item.clicked
-                        and note_item.hold_click_type is None
-                        and len(key_press_count) > 0
-                    ):
-                        pass
-                    elif (
-                        not autoplay
-                        and not note_item.is_will_click
-                        and note_item.type == Const.Note.HOLD
-                        and not note_item.clicked
-                        and note_item.hold_click_type is not None
-                        and now_t - note_item.time * this_judgeLine_T > 360 / 1000
-                    ):
-                        miss_hold_note(note_item)
-                    elif (
-                        not autoplay
-                        and not note_item.is_will_click
-                        and note_item.type == Const.Note.HOLD
-                        and note_item.clicked
-                        and note_item.hold_endtime <= now_t
-                        and note_item.hold_click_type is not None
-                        and not note_item.hold_end_clicked
-                    ):
-                        miss_hold_note_destroy_end(note_item)
+                            if time() - note_item.note_last_show_hold_effect_time >= (1 / judgeLine.bpm * 30):
+                                note_item.note_last_show_hold_effect_time = time()
+                                Thread(
+                                        target=Show_Note_Click_Effect,
+                                        args=(
+                                            *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X),
+                                            "Perfect"
+                                        )
+                                    ).start()
+                    else: #autoplay == True
+                        if (
+                            note_item.is_will_click
+                            and note_item.time * this_judgeLine_T <= now_t
+                            and (note_item.type == Const.Note.DRAG or note_item.type == Const.Note.FLICK)
+                            ):
+                            click_note(note_item,"perfect")
+                        elif (
+                            not note_item.is_will_click
+                            and now_t - note_item.time * this_judgeLine_T > 100 / 1000
+                            and note_item.type != Const.Note.HOLD
+                        ):
+                            miss_note(note_item)
+                        elif (
+                            not note_item.is_will_click
+                            and note_item.type == Const.Note.TAP
+                            and len(key_press_count) > 0
+                        ):
+                            for index,key_press_event in enumerate(key_press_count):
+                                click_abs_time = abs((key_press_event[0]- show_start_time) - note_item.time * this_judgeLine_T)
+                                click_to_now_time = time() - key_press_event[0]
+                                if click_to_now_time > 360 / 1000:
+                                    key_press_count[index] = None
+                                if click_abs_time <= 160 / 1000:
+                                    click_note(note_item,"perfect")
+                                elif click_abs_time <= 320 / 1000:
+                                    click_note(note_item,"good")
+                                elif (360 / 1000 > click_abs_time > 320 / 1000) and (not any([(360 / 1000 > abs((key_press_event[0]- show_start_time) - item.time * (1.875 / item.master.bpm))) > 320 / 1000 for item in phigros_chart_obj.get_all_note() if item is not note_item and item.type in (Const.Note.TAP,Const.Note.HOLD)])):
+                                    bad_note(note_item)
+                                else:
+                                    continue
+                                break
+                            key_press_count = [item for item in key_press_count if item is not None]
+                        elif (
+                            not note_item.is_will_click
+                            and note_item.type == Const.Note.HOLD
+                            and not note_item.clicked
+                            and note_item.hold_click_type is None
+                            and len(key_press_count) > 0
+                        ):
+                            pass
+                        elif (
+                            not note_item.is_will_click
+                            and note_item.type == Const.Note.HOLD
+                            and not note_item.clicked
+                            and note_item.hold_click_type is None
+                            and note_item.time * this_judgeLine_T < now_t
+                        ):
+                            miss_hold_note(note_item)
+                        elif (
+                            not note_item.is_will_click
+                            and note_item.type == Const.Note.HOLD
+                            and note_item.clicked
+                            and note_item.hold_endtime <= now_t
+                            and note_item.hold_click_type is None
+                            and not note_item.hold_end_clicked
+                        ):
+                            miss_hold_note_destroy_end(note_item)
             process(judgeLine_notes_above,1)
             process(judgeLine_notes_below,-1)
         music_pos = time() - this_function_call_st
