@@ -76,7 +76,6 @@ if "-clear" in argv:
 
 debug = "-debug" in argv
 show_holdbody = "-holdbody" in argv
-autoplay = "-noautoplay" not in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -415,6 +414,11 @@ def rotate_image(im:Image.Image,angle:float) -> Image.Image:
     ))
     return new_im.rotate(angle)
 
+def get_all_angle_img(im:Image.Image,w:int,h:int) -> dict[int,Image.Image]:
+    return {
+        angle:rotate_image(im,angle).resize((int((w ** 2 + h ** 2) ** 0.5),)*2) for angle in range(0,360)
+    }
+
 def Load_Resource():
     global ClickEffect_Size,Note_width
     print("Loading Resource...")
@@ -425,21 +429,22 @@ def Load_Resource():
     Note_height_Drag_dub = int(Note_width / 1089 * 160)
     Note_height_Flick = int(Note_width / 989 * 200)
     Note_height_Flick_dub = int(Note_width / 1089 * 300)
+    Note_height_Hold_Head = int(Note_width / 989 * 50)
+    Note_height_Hold_Head_dub = int(Note_width / 1058 * 97)
+    Note_height_Hold_End = int(Note_width / 989 * 50)
     ClickEffect_Size = int(Note_width*1.5)
     Resource = {
-        "Notes":{
-            "Tap":ImageTk.PhotoImage(Image.open("./Resources/Notes/Tap.png").resize((Note_width,Note_height_Tap))),
-            "Tap_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Tap_dub.png").resize((Note_width,Note_height_Tap_dub))),
-            "Drag":ImageTk.PhotoImage(Image.open("./Resources/Notes/Drag.png").resize((Note_width,Note_height_Drag))),
-            "Drag_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Drag_dub.png").resize((Note_width,Note_height_Drag_dub))),
-            "Flick":ImageTk.PhotoImage(Image.open("./Resources/Notes/Flick.png").resize((Note_width,Note_height_Flick))),
-            "Flick_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Flick_dub.png").resize((Note_width,Note_height_Flick_dub))),
+        "Notes_Base":{
+            "Tap":Image.open("./Resources/Notes/Tap.png"),
+            "Tap_dub":Image.open("./Resources/Notes/Tap_dub.png"),
+            "Drag":Image.open("./Resources/Notes/Drag.png"),
+            "Drag_dub":Image.open("./Resources/Notes/Drag_dub.png"),
+            "Flick":Image.open("./Resources/Notes/Flick.png"),
+            "Flick_dub":Image.open("./Resources/Notes/Flick_dub.png"),
             "Hold":{
-                "Hold_Head":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_Head.png").resize((Note_width,int(Note_width / 989 * 50)))),
-                "Hold_Head_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_Head_dub.png").resize((Note_width,int(Note_width / 1058 * 97)))),
-                "Hold_Body":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_Body.png").resize((Note_width,int(Note_width / 989 * 1900)))),
-                "Hold_Body_dub":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_Body_dub.png").resize((Note_width,int(Note_width / 1060 * 1854)))),
-                "Hold_End":ImageTk.PhotoImage(Image.open("./Resources/Notes/Hold_End.png").resize((Note_width,int(Note_width / 989 * 50)))),
+                "Hold_Head":Image.open("./Resources/Notes/Hold_Head.png"),
+                "Hold_Head_dub":Image.open("./Resources/Notes/Hold_Head_dub.png"),
+                "Hold_End":Image.open("./Resources/Notes/Hold_End.png")
             }
         },
         "Note_Click_Effect":{
@@ -460,6 +465,46 @@ def Load_Resource():
         },
         "ProcessBar":Image.new("RGB",(w,int(h / 125)),(145,)*3),
         "Start":ImageTk.PhotoImage(Image.open("./Resources/Start.png").resize((w,h)))
+    }
+    res_note_base_small_x = 4
+    Resource["Notes_Base"] = {
+        "Tap":Resource["Notes_Base"]["Tap"].resize((int(Resource["Notes_Base"]["Tap"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Tap"].height / res_note_base_small_x))),
+        "Tap_dub":Resource["Notes_Base"]["Tap_dub"].resize((int(Resource["Notes_Base"]["Tap_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Tap_dub"].height / res_note_base_small_x))),
+        "Drag":Resource["Notes_Base"]["Drag"].resize((int(Resource["Notes_Base"]["Drag"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Drag"].height / res_note_base_small_x))),
+        "Drag_dub":Resource["Notes_Base"]["Drag_dub"].resize((int(Resource["Notes_Base"]["Drag_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Drag_dub"].height / res_note_base_small_x))),
+        "Flick":Resource["Notes_Base"]["Flick"].resize((int(Resource["Notes_Base"]["Flick"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Flick"].height / res_note_base_small_x))),
+        "Flick_dub":Resource["Notes_Base"]["Flick_dub"].resize((int(Resource["Notes_Base"]["Flick_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Flick_dub"].height / res_note_base_small_x))),
+        "Hold":{
+            "Hold_Head":Resource["Notes_Base"]["Hold"]["Hold_Head"].resize((int(Resource["Notes_Base"]["Hold"]["Hold_Head"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Hold"]["Hold_Head"].height / res_note_base_small_x))),
+            "Hold_Head_dub":Resource["Notes_Base"]["Hold"]["Hold_Head_dub"].resize((int(Resource["Notes_Base"]["Hold"]["Hold_Head_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Hold"]["Hold_Head_dub"].height / res_note_base_small_x))),
+            "Hold_End":Resource["Notes_Base"]["Hold"]["Hold_End"].resize((int(Resource["Notes_Base"]["Hold"]["Hold_End"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Hold"]["Hold_End"].height / res_note_base_small_x)))
+        }
+    }
+    Resource["Notes"] = {
+        "Tap":get_all_angle_img(Resource["Notes_Base"]["Tap"],Note_width,Note_height_Tap),
+        "Tap_dub":get_all_angle_img(Resource["Notes_Base"]["Tap_dub"],Note_width,Note_height_Tap_dub),
+        "Drag":get_all_angle_img(Resource["Notes_Base"]["Drag"],Note_width,Note_height_Drag),
+        "Drag_dub":get_all_angle_img(Resource["Notes_Base"]["Drag_dub"],Note_width,Note_height_Drag_dub),
+        "Flick":get_all_angle_img(Resource["Notes_Base"]["Flick"],Note_width,Note_height_Flick),
+        "Flick_dub":get_all_angle_img(Resource["Notes_Base"]["Flick_dub"],Note_width,Note_height_Flick_dub),
+        "Hold":{
+            "Hold_Head":get_all_angle_img(Resource["Notes_Base"]["Hold"]["Hold_Head"],Note_width,Note_height_Hold_Head),
+            "Hold_Head_dub":get_all_angle_img(Resource["Notes_Base"]["Hold"]["Hold_Head_dub"],Note_width,Note_height_Hold_Head_dub),
+            "Hold_End":get_all_angle_img(Resource["Notes_Base"]["Hold"]["Hold_End"],Note_width,Note_height_Hold_End)
+        }
+    }
+    Resource["Notes"] = {
+        "Tap":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Tap"].items()},
+        "Tap_dub":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Tap_dub"].items()},
+        "Drag":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Drag"].items()},
+        "Drag_dub":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Drag_dub"].items()},
+        "Flick":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Flick"].items()},
+        "Flick_dub":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Flick_dub"].items()},
+        "Hold":{
+            "Hold_Head":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Hold"]["Hold_Head"].items()},
+            "Hold_Head_dub":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Hold"]["Hold_Head_dub"].items()},
+            "Hold_End":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Hold"]["Hold_End"].items()}
+        }
     }
     ImageDraw.Draw(Resource["ProcessBar"]).rectangle((w * 0.998,0,w,int(h / 125)),fill=(255,)*3)
     Resource["ProcessBar"] = ImageTk.PhotoImage(Resource["ProcessBar"])
@@ -491,7 +536,7 @@ def Show_Start():
     cv.create_image(-w,0,image=Resource["ProcessBar"],anchor="nw",tags=["ProcessBar","gui_widget"])
     cv.create_text(w * 0.99,h * 0.005,text="0000000",anchor="ne",tags=["score","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 75)))
     cv.create_text(w / 2,h * 0.001,text="0",anchor="n",fill="white",tags=["combo","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 70)),state="hidden")
-    cv.create_text(w / 2,h * 0.055,text={True:"Autoplay",False:"Combo"}[autoplay] if "-combotips" not in argv else argv[argv.index("-combotips") + 1],anchor="n",fill="white",tags=["combo_under_tips","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),state="hidden")
+    cv.create_text(w / 2,h * 0.055,text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],anchor="n",fill="white",tags=["combo_under_tips","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),state="hidden")
     cv.create_text(0,h * 0.00075,text="0:00/0:00",anchor="nw",fill="white",tags=["time","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 175)))
     cv.create_text(w * 0.01,h * 0.98,text=chart_information["Name"],anchor="sw",tags=["chart_name","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
     cv.create_text(w * 0.99,h * 0.99,text=chart_information["Level"],anchor="se",tags=["level","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
@@ -730,6 +775,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                             ) if debug else None
                         ]
                     })
+                judgeLine_last_cfg_dict[judgeLine_cfg_key] = (judgeLine_DrawPos,draw_cfg)
                 if will_delete_id is not None:
                     cv.delete(*will_delete_id)
             if not deleted_start_animation_judgeLine:
@@ -795,11 +841,12 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         ) or note_item.rendered:
                         if not note_item.clicked or not note_item.hold_end_clicked:
                             if note_item.__hash__() not in ids:
+                                judgeLine_rotate_integer = int(judgeLine_cfg["Rotate"]) % 360
                                 if note_item.type != Const.Note.HOLD:
-                                    this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")]
+                                    this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
                                 else:
-                                    this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")]
-                                    this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"]
+                                    this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
+                                    this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"][judgeLine_rotate_integer]
                                 ids.update(
                                     {
                                         note_item.__hash__():[cv.create_image(
@@ -820,7 +867,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                             cv.create_polygon(
                                                 *holdbody_range,**holdbody_kwargs
                                             ) if show_holdbody else None
-                                        ]]
+                                        ],judgeLine_rotate_integer]
                                     }
                                 )
                                 if debug:
@@ -840,6 +887,25 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                             else:
                                 try:
                                     data = ids[note_item.__hash__()]
+                                    judgeLine_rotate_integer = int(judgeLine_cfg["Rotate"]) % 360
+                                    if judgeLine_rotate_integer < 0: 
+                                        judgeLine_rotate_integer += 360
+                                    if judgeLine_rotate_integer < 0: 
+                                        judgeLine_rotate_integer += 360
+                                    if judgeLine_rotate_integer != data[7]:
+                                        if note_item.type != Const.Note.HOLD:
+                                            this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
+                                        else:
+                                            this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
+                                            this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"][judgeLine_rotate_integer]
+                                        cv.itemconfigure(
+                                            data[0],image=this_note_img
+                                        )
+                                        if note_item.type == Const.Note.HOLD:
+                                            cv.itemconfigure(
+                                                data[6][0],image=this_note_img_end
+                                            )
+                                        data[7] = judgeLine_rotate_integer
                                     if data[4] != x or data[5] != y:
                                         if not note_item.hold_end_clicked:
                                             cv.moveto(
@@ -911,7 +977,6 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                     if (
                             (not note_item.clicked)
                             and (this_judgeLine_T * note_item.time <= now_t)
-                            and autoplay
                         ):
                         click_note(note_item,"perfect")
                     elif (
