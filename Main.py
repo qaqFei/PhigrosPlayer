@@ -406,11 +406,14 @@ def Load_Chart_Object():
 
 Load_Chart_Object()
 
-def Replace_Image_Color(im:Image.Image,color):
-    for x in range(im.width):
-        for y in range(im.height):
-            im.putpixel((x,y),(color[0],color[1],color[2],im.getpixel((x,y))[-1]))
-    return im
+def rotate_image(im:Image.Image,angle:float) -> Image.Image:
+    imsize = int((im.width ** 2 + im.height ** 2) ** 0.5) + 1
+    new_im = Image.new("RGBA",(imsize,)*2,(0,0,0,0))
+    new_im.paste(im,(
+        int(imsize / 2 - im.width / 2),
+        int(imsize / 2 - im.height / 2)
+    ))
+    return new_im.rotate(angle)
 
 def Load_Resource():
     global ClickEffect_Size,Note_width
