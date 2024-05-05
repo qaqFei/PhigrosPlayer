@@ -49,3 +49,12 @@ class Manager:
     def get_stringscore(self,score:float) -> str:
         score_integer = int(score + 0.5)
         return f"{score_integer:>7}".replace(" ","0")
+    
+    def get_judgeLine_color(self) -> str:
+        if "bad" not in self._events and "miss" not in self._events:
+            if "good" in self._events:
+                return "#a2eeff"
+            else:
+                return "#feffa9"
+        else:
+            return "#FFFFFF"

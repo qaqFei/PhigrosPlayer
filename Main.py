@@ -488,7 +488,7 @@ def Show_Start():
     cv.create_image(-w,0,image=Resource["ProcessBar"],anchor="nw",tags=["ProcessBar","gui_widget"])
     cv.create_text(w * 0.99,h * 0.005,text="0000000",anchor="ne",tags=["score","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 75)))
     cv.create_text(w / 2,h * 0.001,text="0",anchor="n",fill="white",tags=["combo","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 70)),state="hidden")
-    cv.create_text(w / 2,h * 0.055,text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],anchor="n",fill="white",tags=["combo_under_tips","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),state="hidden")
+    cv.create_text(w / 2,h * 0.055,text={True:"Autoplay",False:"Combo"}[autoplay] if "-combotips" not in argv else argv[argv.index("-combotips") + 1],anchor="n",fill="white",tags=["combo_under_tips","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),state="hidden")
     cv.create_text(0,h * 0.00075,text="0:00/0:00",anchor="nw",fill="white",tags=["time","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 175)))
     cv.create_text(w * 0.01,h * 0.98,text=chart_information["Name"],anchor="sw",tags=["chart_name","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
     cv.create_text(w * 0.99,h * 0.99,text=chart_information["Level"],anchor="se",tags=["level","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
@@ -588,12 +588,13 @@ def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects.judgeLine,T:float,time:f
         return dy
 
 def Get_judgeLine_Color() -> str:
-    return "#feffa9" if "-nofcapline" not in argv else "#ffffff"
+    return score_manager.get_judgeLine_color()
 
 def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
-    global key_press_count
+    global key_press_count,score_manager
     print("Player Start")
     root.title("Phigros Chart Player")
+    score_manager = psm.Manager(phigros_chart_obj.note_num)
     def judgeLine_Animation():
         gr,step_time = Get_Animation_Gr(60,0.5)
         last_id = None
@@ -682,7 +683,6 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
     last_cal_fps_time = time()
     time_block_render_count = 0
     combo_or_score_changed = False
-    score_manager = psm.Manager(phigros_chart_obj.note_num)
     while True:
         st = time()
         now_t = time() - show_start_time
@@ -734,11 +734,8 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                 deleted_start_animation_judgeLine = True
             judgeLine_notes_above = judgeLine.notesAbove
             judgeLine_notes_below = judgeLine.notesBelow
-            for index,key_event in enumerate(key_press_count):
-                if abs(time() - key_event[0]) > 200 / 1000:
-                    key_press_count[index] = None
-            key_press_count = [item for item in key_press_count if item is not None]
             def process(notes_list:list[Chart_Objects.note],t:int):
+                global key_press_count
                 nonlocal combo,score,combo_or_score_changed
                 for note_item in notes_list:
                     if note_item.clicked and (note_item.type != Const.Note.HOLD or note_item.hold_end_clicked):
@@ -926,6 +923,16 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                             pass
                         add_note_event("bad")
                         note_item.clicked = True #is destroy...
+                    def miss_hold_note(note_item:Chart_Objects.note):
+                        print(f"Miss Note: {note_item}")
+                        cv.delete(f"note_{note_item.id}")
+                        add_note_event("miss")
+                        note_item.clicked = True
+                    def miss_hold_note_destroy_end(note_item:Chart_Objects.note):
+                        cv.delete(f"note_{note_item.id}_end")
+                        if show_holdbody:
+                            cv.delete(f"note_{note_item.id}_body")
+                        note_item.hold_end_clicked = True
                     if (
                             (not note_item.clicked)
                             and (this_judgeLine_T * note_item.time <= now_t)
@@ -978,15 +985,49 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                         and note_item.type == Const.Note.TAP
                         and len(key_press_count) > 0
                     ):
-                        key_press_event = key_press_count[0]
-                        del key_press_count[0]
-                        click_abs_time = abs(key_press_event[0] - note_item.time * this_judgeLine_T)
-                        if click_abs_time <= 80 / 1000:
-                            click_note(note_item,"perfect")
-                        elif click_abs_time <= 160 / 1000:
-                            click_note(note_item,"good")
-                        elif 200 / 1000 > now_t - note_item.time * this_judgeLine_T > 160 / 1000:
-                            bad_note(note_item)
+                        for index,key_press_event in enumerate(key_press_count):
+                            click_abs_time = abs((key_press_event[0]- show_start_time) - note_item.time * this_judgeLine_T)
+                            click_to_now_time = time() - key_press_event[0]
+                            if click_to_now_time > 360 / 1000:
+                                key_press_count[index] = None
+                            if click_abs_time <= 160 / 1000:
+                                click_note(note_item,"perfect")
+                            elif click_abs_time <= 320 / 1000:
+                                click_note(note_item,"good")
+                            elif (360 / 1000 > click_abs_time > 320 / 1000) and (not any([(360 / 1000 > abs((key_press_event[0]- show_start_time) - item.time * (1.875 / item.master.bpm))) > 320 / 1000 for item in phigros_chart_obj.get_all_note() if item is not note_item and item.type in (Const.Note.TAP,Const.Note.HOLD)])):
+                                bad_note(note_item)
+                            else:
+                                continue
+                            break
+                        key_press_count = [item for item in key_press_count if item is not None]
+                    elif (
+                        not autoplay
+                        and not note_item.is_will_click
+                        and note_item.type == Const.Note.HOLD
+                        and not note_item.clicked
+                        and note_item.hold_click_type is None
+                        and len(key_press_count) > 0
+                    ):
+                        pass
+                    elif (
+                        not autoplay
+                        and not note_item.is_will_click
+                        and note_item.type == Const.Note.HOLD
+                        and not note_item.clicked
+                        and note_item.hold_click_type is not None
+                        and now_t - note_item.time * this_judgeLine_T > 360 / 1000
+                    ):
+                        miss_hold_note(note_item)
+                    elif (
+                        not autoplay
+                        and not note_item.is_will_click
+                        and note_item.type == Const.Note.HOLD
+                        and note_item.clicked
+                        and note_item.hold_endtime <= now_t
+                        and note_item.hold_click_type is not None
+                        and not note_item.hold_end_clicked
+                    ):
+                        miss_hold_note_destroy_end(note_item)
             process(judgeLine_notes_above,1)
             process(judgeLine_notes_below,-1)
         music_pos = time() - this_function_call_st

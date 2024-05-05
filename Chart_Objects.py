@@ -27,6 +27,7 @@ class note:
     hold_end_clicked:bool = False
     note_last_show_hold_effect_time:float = 0.0
     is_will_click:bool = False
+    hold_click_type:None|typing.Literal["Perfect","Good"] = None
 
     def __eq__(self,oth):
         try:
@@ -169,5 +170,8 @@ class Phigros_Chart:
                 note._cal_holdlength(PHIGROS_Y)
             for note in judgeLine.notesBelow:
                 note._cal_holdlength(PHIGROS_Y)
+    
+    def get_all_note(self) -> list[note]:
+       return [j for i in self.judgeLineList for j in i.notesAbove + i.notesBelow]
 
 del typing,dataclass
