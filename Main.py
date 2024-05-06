@@ -1029,7 +1029,10 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
         time_block_render_count += 1
         if time_block_render_count >= cal_fps_block_size:
             if "-showfps" in argv:
-                root.title(f"Phigros Chart Player - FPS: {(time_block_render_count / (time() - last_cal_fps_time)) : .2f}")
+                try:
+                    root.title(f"Phigros Chart Player - FPS: {(time_block_render_count / (time() - last_cal_fps_time)) : .2f}")
+                except ZeroDivisionError:
+                    root.title(f"Phigros Chart Player - FPS: inf")
             last_cal_fps_time,time_block_render_count = time(),0
         sleep(1 / fps - min(time() - st,1 / fps))
     print("Player Stopped")
