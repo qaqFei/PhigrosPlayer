@@ -23,6 +23,7 @@ class note:
     morebets:bool
     id:int
     rendered:bool
+    by_judgeLine_id:int
     master:judgeLine|None = None
     hold_end_clicked:bool = False
     note_last_show_hold_effect_time:float = 0.0
@@ -45,7 +46,7 @@ class note:
             Const.Note.HOLD:"h",
             Const.Note.FLICK:"f"
         }[self.type]
-        return f"{self.master.id}+{self.id}{note_t}"
+        return f"{self.master.id}+{self.by_judgeLine_id}{note_t}"
     
     def _cal_holdlength(self,PHIGROS_Y):
         self.hold_length_sec = self.holdTime * (1.875 / self.master.bpm)

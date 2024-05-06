@@ -1,4 +1,4 @@
-from tkinter import Tk,Toplevel,Canvas,Event as TkinterEvent
+from tkinter import Tk,Toplevel,Canvas
 from threading import Thread
 from ctypes import windll
 from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -83,8 +83,6 @@ if len(argv) < 2 or not exists(argv[1]):
     argv = [argv[0]] + [dlg.GetPathName()] + argv[0:]
     if argv[1] == "":
         windll.kernel32.ExitProcess(1)
-
-note_id = -1
 
 print("Loading Font...")
 def remove_font():
@@ -251,6 +249,13 @@ def rotate_point(x,y,θ,r):
     yo = r * sin(radians(θ))
     return x + xo,y + yo
 
+def Get_A_New_NoteId_By_judgeLine(judgeLine_item:dict):
+    if "_note_count" not in judgeLine_item:
+        judgeLine_item["_note_count"] = 1
+    else:
+        judgeLine_item["_note_count"] += 1
+    return judgeLine_item["_note_count"] - 1
+
 def Get_A_New_NoteId():
     global note_id
     note_id += 1
@@ -273,22 +278,11 @@ def is_will_process_char(char:str) -> bool:
     if ord("a") <= ord(char.lower()) <= ord("z"): return True
     return False
 
-def key_press(e:TkinterEvent):
-    if not is_will_process_char(e.char): return None
-    char = e.char.lower()
-    if key_state[char]: return None
-    key_state[char] = True
-    key_press_count.append((time(),char))
-
-def key_release(e:TkinterEvent):
-    if not is_will_process_char(e.char): return None
-    char = e.char.lower()
-    key_state[char] = False
-
 loger_queue = Queue()
 clickeffect_cache = []
 key_state = {chr(i):False for i in range(ord("a"),ord("z") + 1)}
 key_press_count = []
+note_id = -1
 
 def Load_Chart_Object():
     global phigros_chart_obj
@@ -311,6 +305,7 @@ def Load_Chart_Object():
                         clicked=False,
                         morebets=False,
                         id=Get_A_New_NoteId(),
+                        by_judgeLine_id=Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         rendered=False
                     )
                     for notesAbove_item in judgeLine_item["notesAbove"]
@@ -326,6 +321,7 @@ def Load_Chart_Object():
                         clicked=False,
                         morebets=False,
                         id=Get_A_New_NoteId(),
+                        by_judgeLine_id=Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         rendered=False
                     )
                     for notesBelow_item in judgeLine_item["notesBelow"]
@@ -719,6 +715,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
         for judgeLine_item in phigros_chart_obj.judgeLineList
     }
     Thread(target=lambda:[sleep(max(0,phigros_chart_obj.offset)),mixer.music.play()],daemon=True).start()
+    while not mixer.music.get_busy(): pass
     fps = 120
     if "-fps" in argv:
         fps = eval(argv[argv.index("-fps") + 1])
@@ -1053,8 +1050,6 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
 print("Loading Window...")
 root = Tk()
 root.withdraw()
-root.bind("<KeyPress>",key_press)
-root.bind("<KeyRelease>",key_release)
 root["bg"] = "black"
 root.title(f"Phigros Chart Player")
 root.iconbitmap(".\\icon.ico")
