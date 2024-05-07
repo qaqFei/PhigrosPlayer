@@ -31,6 +31,8 @@ import psm
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
 
+hidemouse = "-hidemouse" in argv
+
 windll.shcore.SetProcessDpiAwareness(1)
 ScaleFactor = windll.shcore.GetScaleFactorForDevice(0)
 Tk_Temp = Tk
@@ -39,13 +41,13 @@ class Tk(Tk_Temp):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         self.tk.call("tk","scaling",ScaleFactor / 75)
-        if "-hidemouse" in argv:
+        if hidemouse:
             self.configure(cursor="none")
 class Toplevel(Toplevel_Temp):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         self.tk.call("tk","scaling",ScaleFactor / 75)
-        if "-hidemouse" in argv:
+        if hidemouse:
             self.configure(cursor="none")
 del Tk_Temp,Toplevel_Temp
 
@@ -505,8 +507,8 @@ def Load_Resource():
     ImageDraw.Draw(Resource["ProcessBar"]).rectangle((w * 0.998,0,w,int(h / 125)),fill=(255,)*3)
     Resource["ProcessBar"] = ImageTk.PhotoImage(Resource["ProcessBar"])
     print("Loading Resource Successfully.")
-    root.configure(cursor="arrow")
-    show_start_toplevel.configure(cursor="arrow")
+    if not hidemouse: root.configure(cursor="arrow")
+    if not hidemouse: show_start_toplevel.configure(cursor="arrow")
     root.deiconify()
     return Resource
 
@@ -1039,7 +1041,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
         again_toplevel.geometry(f"{w}x{h}+99999+99999")
         again_toplevel.withdraw()
         again_toplevel.protocol("WM_DELETE_WINDOW",lambda:[root.destroy(),remove_font()])
-        again_toplevel.configure(cursor="watch")
+        if not hidemouse: again_toplevel.configure(cursor="watch")
         again_toplevel.bind("<FocusIn>",lambda e:root.focus_force())
         again_toplevel["bg"] = "#0078d7"
         Thread(target=PlayerStart,args=(True,again_toplevel),daemon=True).start()
@@ -1053,7 +1055,7 @@ root.withdraw()
 root["bg"] = "black"
 root.title(f"Phigros Chart Player")
 root.iconbitmap(".\\icon.ico")
-root.configure(cursor="watch")
+if not hidemouse: root.configure(cursor="watch")
 if "-fullscreen" in argv:
     w,h = root.winfo_screenwidth(),root.winfo_screenheight()
     root.attributes("-fullscreen",True)
@@ -1075,7 +1077,7 @@ process_quit = lambda:[root.destroy(),remove_font(),exec("raise SystemExit"),win
 show_start_toplevel = Toplevel(root)
 show_start_toplevel.geometry(f"{w}x{h}+99999+99999")
 show_start_toplevel.protocol("WM_DELETE_WINDOW",process_quit)
-show_start_toplevel.configure(cursor="watch")
+if not hidemouse: show_start_toplevel.configure(cursor="watch")
 root.protocol("WM_DELETE_WINDOW",process_quit)
 show_start_toplevel.bind("<FocusIn>",lambda e:root.focus_force())
 root.focus_force()
