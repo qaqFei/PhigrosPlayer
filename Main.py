@@ -869,7 +869,8 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                             holdend_x,holdend_y,
                                             cv.create_polygon(
                                                 *holdbody_range,**holdbody_kwargs
-                                            ) if show_holdbody else None
+                                            ) if show_holdbody else None,
+                                            None
                                         ],judgeLine_rotate_integer]
                                     }
                                 )
@@ -924,10 +925,13 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
                                                 holdend_y - holdend_data[2] / 2
                                             )
                                             if show_holdbody:
-                                                cv.delete(holdend_data[5])
-                                                holdend_data[5] = cv.create_polygon(
+                                                temp_id = cv.create_polygon(
                                                     *holdbody_range,**holdbody_kwargs
                                                 )
+                                                if holdend_data[6] is not None:
+                                                    cv.delete(holdend_data[6])
+                                                holdend_data[6] = holdend_data[5]
+                                                holdend_data[5] = temp_id
                                             holdend_data[3],holdend_data[4] = holdend_x,holdend_y
                                         data[4],data[5] = x,y
                                 except KeyError:
