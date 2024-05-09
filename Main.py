@@ -720,7 +720,12 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
     while not mixer.music.get_busy(): pass
     fps = 120
     if "-fps" in argv:
-        fps = eval(argv[argv.index("-fps") + 1])
+        try:
+            fps = eval(argv[argv.index("-fps") + 1])
+            if fps > 144:
+                raise Exception
+        except Exception:
+            fps = 120
     ids = {}
     combo = 0
     score = "0000000"
