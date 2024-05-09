@@ -59,8 +59,8 @@ if exists(".//__pycache__"):
     try: rmtree(".//__pycache__")
     except Exception: pass
 
-if not exists(".\\7z.exe"):
-    print("7z.exe Not Found.")
+if not exists(".\\7z.exe") or not exists(".\\7z.dll"):
+    print("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
 
 temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time()}"
