@@ -723,7 +723,7 @@ def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
         try:
             fps = eval(argv[argv.index("-fps") + 1])
             if fps > 144:
-                raise Exception
+                fps = 144
         except Exception:
             fps = 120
     ids = {}
