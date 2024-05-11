@@ -282,8 +282,6 @@ def is_will_process_char(char:str) -> bool:
 
 loger_queue = Queue()
 clickeffect_cache = []
-key_state = {chr(i):False for i in range(ord("a"),ord("z") + 1)}
-key_press_count = []
 note_id = -1
 
 def Load_Chart_Object():
@@ -810,10 +808,6 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                     x,y = rotate_point(
                         *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] #why? -> (180 if t == 1 else 0)
                     )
-                    if note_item.type == Const.Note.DRAG or note_item.type == Const.Note.FLICK:
-                        if abs(note_item.time * this_judgeLine_T - now_t) < 80 / 1000:
-                            if any(key_state.values()): # eq -> True in key_state.values()
-                                note_item.is_will_click = True
                     if note_item.type == Const.Note.HOLD:
                         if cfg["now_floorPosition"] + note_item.hold_length_px >= 0:
                             holdend_x,holdend_y = rotate_point(
