@@ -6,29 +6,24 @@ import Const
 
 NAN = float("NaN")
 
-class _low_python_version_use_dataclass:
-    def __init__(self,**kw) -> None:
-        for key,val in zip(kw.keys(),kw.values()):
-            setattr(self,key,val)
-
 @dataclass
 class note:
     type:typing.Literal[1,2,3,4]
-    time:int|float
-    positionX:int|float
-    holdTime:int|float
-    speed:int|float
-    floorPosition:int|float
+    time:typing.Union[int,float]
+    positionX:typing.Union[int,float]
+    holdTime:typing.Union[int,float]
+    speed:typing.Union[int,float]
+    floorPosition:typing.Union[int,float]
     clicked:bool
     morebets:bool
     id:int
     rendered:bool
     by_judgeLine_id:int
-    master:judgeLine|None = None
+    master:typing.Union[judgeLine,None] = None
     hold_end_clicked:bool = False
     note_last_show_hold_effect_time:float = 0.0
     is_will_click:bool = False
-    hold_click_type:None|typing.Literal["Perfect","Good"] = None
+    hold_click_type:typing.Union[None,typing.Literal["Perfect","Good"]] = None
 
     def __eq__(self,oth):
         try:
@@ -55,38 +50,38 @@ class note:
 
 @dataclass
 class speedEvent:
-    startTime:int|float
-    endTime:int|float
-    value:int|float
-    floorPosition:int|float|None
+    startTime:typing.Union[int,float]
+    endTime:typing.Union[int,float]
+    value:typing.Union[int,float]
+    floorPosition:typing.Union[typing.Union[int,float],None]
 
 @dataclass
 class judgeLineMoveEvent:
-    startTime:int|float
-    endTime:int|float
-    start:int|float
-    end:int|float
-    start2:int|float
-    end2:int|float
+    startTime:typing.Union[int,float]
+    endTime:typing.Union[int,float]
+    start:typing.Union[int,float]
+    end:typing.Union[int,float]
+    start2:typing.Union[int,float]
+    end2:typing.Union[int,float]
 
 @dataclass
 class judgeLineRotateEvent:
-    startTime:int|float
-    endTime:int|float
-    start:int|float
-    end:int|float
+    startTime:typing.Union[int,float]
+    endTime:typing.Union[int,float]
+    start:typing.Union[int,float]
+    end:typing.Union[int,float]
 
 @dataclass
 class judgeLineDisappearEvent:
-    startTime:int|float
-    endTime:int|float
-    start:int|float
-    end:int|float
+    startTime:typing.Union[int,float]
+    endTime:typing.Union[int,float]
+    start:typing.Union[int,float]
+    end:typing.Union[int,float]
 
 @dataclass
 class judgeLine:
     id:int
-    bpm:int|float
+    bpm:typing.Union[int,float]
     notesAbove:list[note]
     notesBelow:list[note]
     speedEvents:list[speedEvent]
@@ -154,7 +149,7 @@ class judgeLine:
 @dataclass
 class Phigros_Chart:
     formatVersion:int
-    offset:int|float
+    offset:typing.Union[int,float]
     judgeLineList:list[judgeLine]
 
     def cal_note_num(self):

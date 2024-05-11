@@ -591,7 +591,7 @@ def Show_Note_Click_Effect(x,y,t:typing.Literal["Perfect","Good"]):
         cv.moveto(last_imid,-w,-h)
         clickeffect_cache[index][2] = False
 
-def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:int|float):
+def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:typing.Union[int,float]):
     for judgeLine_cfg_key in judgeLine_Configs:
         judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
         judgeLine_cfg["time"] = now_t / T_dws[judgeLine_cfg_key]
@@ -605,7 +605,7 @@ def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:int|float):
         if not is_nan(move_var): judgeLine_cfg["Pos"] = move_var
         if not is_nan(speed_var): judgeLine_cfg["Speed"] = speed_var
 
-def Format_Time(t:int|float) -> str:
+def Format_Time(t:typing.Union[int,float]) -> str:
     m,s = t // 60,t % 60
     m,s = int(m),int(s)
     return f"{m}:{s:>2}".replace(" ","0")
@@ -640,7 +640,7 @@ def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects.judgeLine,T:float,time:f
 def Get_judgeLine_Color() -> str:
     return score_manager.get_judgeLine_color()
 
-def PlayerStart(again:bool=False,again_toplevel:None|Toplevel=None):
+def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None):
     global key_press_count,score_manager
     print("Player Start")
     root.title("Phigros Chart Player")
