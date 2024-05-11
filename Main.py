@@ -420,7 +420,7 @@ def get_all_angle_img(im:Image.Image,w:int,h:int) -> dict[int,Image.Image]:
 def Load_Resource():
     global ClickEffect_Size,Note_width
     print("Loading Resource...")
-    Note_width = int(min(w,h) / 7.5)
+    Note_width = int(PHIGROS_X * 1.5)
     Note_height_Tap = int(Note_width / 989 * 100)
     Note_height_Tap_dub = int(Note_width / 1089 * 200)
     Note_height_Drag = int(Note_width / 989 * 60)
@@ -716,13 +716,13 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
         }
         for judgeLine_item in phigros_chart_obj.judgeLineList
     }
-    Thread(target=lambda:[sleep(max(0,phigros_chart_obj.offset)),mixer.music.play()],daemon=True).start()
+    mixer.music.play()
     while not mixer.music.get_busy(): pass
     fps = 120
     if "-fps" in argv:
         try:
             fps = eval(argv[argv.index("-fps") + 1])
-            if fps > 144:
+            if fps > 144 and fps != float("inf"):
                 fps = 144
         except Exception:
             fps = 120
@@ -874,8 +874,7 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                                             holdend_x,holdend_y,
                                             cv.create_polygon(
                                                 *holdbody_range,**holdbody_kwargs
-                                            ) if show_holdbody else None,
-                                            None
+                                            ) if show_holdbody else None
                                         ],judgeLine_rotate_integer]
                                     }
                                 )
@@ -923,21 +922,19 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                                                 y - data[3] / 2
                                             )
                                         if note_item.type == Const.Note.HOLD:
-                                            holdend_data = data[6]
+                                            hold_data = data[6]
                                             cv.moveto(
                                                 f"note_{note_item.id}_end",
-                                                holdend_x - holdend_data[1] / 2,
-                                                holdend_y - holdend_data[2] / 2
+                                                holdend_x - hold_data[1] / 2,
+                                                holdend_y - hold_data[2] / 2
                                             )
                                             if show_holdbody:
-                                                temp_id = cv.create_polygon(
+                                                will_delete_id_holdbody = hold_data[5]
+                                                hold_data[5] = cv.create_polygon(
                                                     *holdbody_range,**holdbody_kwargs
                                                 )
-                                                if holdend_data[6] is not None:
-                                                    cv.delete(holdend_data[6])
-                                                holdend_data[6] = holdend_data[5]
-                                                holdend_data[5] = temp_id
-                                            holdend_data[3],holdend_data[4] = holdend_x,holdend_y
+                                                cv.delete(will_delete_id_holdbody)
+                                            hold_data[3],hold_data[4] = holdend_x,holdend_y
                                         data[4],data[5] = x,y
                                 except KeyError:
                                     pass
@@ -1072,7 +1069,7 @@ else:
     w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
 root.geometry(f"{w}x{h}+{int(root.winfo_screenwidth() / 2 - w / 2)}+{int(root.winfo_screenheight() / 2 - h / 2)}")
 root.resizable(False,False)
-print("Createing Canvas...")
+print("Creating Canvas...")
 cv = Canvas(root,width=w,height=h,bg="black",highlightthickness=0)
 background_image = ImageTk.PhotoImage(ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"]))
 cv.pack()
