@@ -10,6 +10,8 @@ from json import loads
 from queue import Queue
 from shutil import rmtree
 from tempfile import gettempdir
+from tempfile import mkdtemp
+from random import randint
 import typing
 import csv
 
@@ -17,6 +19,8 @@ from PIL import Image,ImageDraw,ImageFont,ImageFilter,ImageEnhance
 from pygame import mixer
 from cv2 import VideoWriter
 from numpy import asarray
+from pydub import AudioSegment
+from moviepy.editor import VideoFileClip,AudioFileClip
 
 import Chart_Objects
 import Find_Files
@@ -126,6 +130,7 @@ if len(chart_files_dict["audio"]) > 1:
 else:
     audio_file = chart_files_dict["audio"][audio_file_index]
 mixer.music.load(audio_file)
+audio_seg = AudioSegment.from_file(audio_file)
 audio_length = mixer.Sound(audio_file).get_length()
 all_inforamtion = {}
 print("Loading Chart Information...")
@@ -179,6 +184,7 @@ else:
     except NameError:
         print("info.cvs Found. But cannot find information of this chart.")
         chart_information = defualt_information
+mixer.music.unload()
 print("Loading Chart Information Successfully.")
 print("Inforamtions: ")
 print("              Name:",chart_information["Name"])
@@ -383,22 +389,17 @@ def Load_Resource():
             "Perfect":[
                 Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png").resize((ClickEffect_Size,)*2)
                 for i in range(1,31)
-            ],
-            "Good":[
-                Image.open(f"./Resources/Note_Click_Effect/Good/{i}.png").resize((ClickEffect_Size,)*2)
-                for i in range(1,31)
             ]
         },
         "Note_Click_Audio":{
-            "1":open("./Resources/Note_Click_Audio/Tap.wav","rb").read(),
-            "2":open("./Resources/Note_Click_Audio/Drag.wav","rb").read(),
-            "3":open("./Resources/Note_Click_Audio/Hold.wav","rb").read(),
-            "4":open("./Resources/Note_Click_Audio/Flick.wav","rb").read()
+            "1":AudioSegment(open("./Resources/Note_Click_Audio/Tap.wav","rb").read()),
+            "2":AudioSegment(open("./Resources/Note_Click_Audio/Drag.wav","rb").read()),
+            "3":AudioSegment(open("./Resources/Note_Click_Audio/Hold.wav","rb").read()),
+            "4":AudioSegment(open("./Resources/Note_Click_Audio/Flick.wav","rb").read())
         },
-        "ProcessBar":Image.new("RGB",(w,int(h / 125)),(145,)*3),
-        "Start":Image.open("./Resources/Start.png").resize((w,h))
+        # "ProcessBar":Image.new("RGB",(int(w),int(h / 125)),(145,)*3)
     }
-    res_note_base_small_x = 4
+    res_note_base_small_x = 2
     Resource["Notes_Base"] = {
         "Tap":Resource["Notes_Base"]["Tap"].resize((int(Resource["Notes_Base"]["Tap"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Tap"].height / res_note_base_small_x))),
         "Tap_dub":Resource["Notes_Base"]["Tap_dub"].resize((int(Resource["Notes_Base"]["Tap_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Tap_dub"].height / res_note_base_small_x))),
@@ -425,7 +426,11 @@ def Load_Resource():
             "Hold_End":get_all_angle_img(Resource["Notes_Base"]["Hold"]["Hold_End"],Note_width,Note_height_Hold_End)
         }
     }
-    ImageDraw.Draw(Resource["ProcessBar"]).rectangle((w * 0.998,0,w,int(h / 125)),fill=(255,)*3)
+    ImageDraw.Draw(Resource["ProcessBar"]).rectangle((
+        int(w * 0.998),
+        0,
+        int(w),
+        int(h / 125)),fill=(255,)*3)
     print("Loading Resource Successfully.")
     return Resource
 
@@ -479,50 +484,57 @@ def merge_image(base:Image.Image,img:Image.Image):
     base.paste(img,(0,0),mask=img.split()[-1])
 
 def get_cv_video_writer_array_by_pil_image(im:Image.Image):
-    return asarray(im.resize((w,h)))[:,:,::-1]
+    return asarray(im.resize((int(w / SSAA_Scale),int(h / SSAA_Scale))))[:,:,::-1]
 
 fps = 45
-w,h = 1920,1080
-SSAA_Scale = 1
-judgeLine_width = h * 0.0075 * SSAA_Scale
+SSAA_Scale = 1.5
+w,h = 1920 * SSAA_Scale,1080 * SSAA_Scale
+judgeLine_width = h * 0.0075
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_COLOR = (254,255,169)
+click_effect_time = 0.5
 Resource = Load_Resource()
+TempDir = mkdtemp()
+WriterPath = f"{TempDir}/{randint(1,2**31-1)}.mp4"
+AudioPath = f"{TempDir}/{randint(1,2**31-1)}.wav"
 video_writer = VideoWriter(
-    argv[2],
+    WriterPath,
     VideoWriter.fourcc(*"mp4v"),
     fps,
-    (w,h),True
+    (int(w / SSAA_Scale),int(h / SSAA_Scale)),True
 )
-background = ImageEnhance.Brightness(chart_image.resize((int(w * SSAA_Scale),int(h * SSAA_Scale))).filter(ImageFilter.GaussianBlur((w + h) * SSAA_Scale / 300))).enhance(1.0 - chart_information["BackgroundDim"])
+background = ImageEnhance.Brightness(chart_image.resize((int(w),int(h))).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 background_draw = ImageDraw.Draw(background)
-pil_font_1 = ImageFont.truetype("./font.ttf",size=int((w + h) * SSAA_Scale / 175 / 0.75)) #pt -> px (pt / 0.75 = px)
-pil_font_2 = ImageFont.truetype("./font.ttf",size=int((w + h) * SSAA_Scale / 125 / 0.75))
-pil_font_3 = ImageFont.truetype("./font.ttf",size=int((w + h) * SSAA_Scale / 100 / 0.75))
-pil_font_4 = ImageFont.truetype("./font.ttf",size=int((w + h) * SSAA_Scale / 70 / 0.75))
-pil_font_5 = ImageFont.truetype("./font.ttf",size=int((w + h) * SSAA_Scale / 75 / 0.75))
+pil_font_1 = ImageFont.truetype("./font.ttf",size=int((w + h) / 175 / 0.75)) #pt -> px (pt / 0.75 = px)
+pil_font_2 = ImageFont.truetype("./font.ttf",size=int((w + h) / 125 / 0.75))
+pil_font_3 = ImageFont.truetype("./font.ttf",size=int((w + h) / 100 / 0.75))
+pil_font_4 = ImageFont.truetype("./font.ttf",size=int((w + h) / 70 / 0.75))
+pil_font_5 = ImageFont.truetype("./font.ttf",size=int((w + h) / 75 / 0.75))
 begin_animation_time = 1.25
 begin_animation_gr = Get_Animation_Gr(fps,begin_animation_time)[0]
 get_bbox_draw = ImageDraw.Draw(background)
 
-score_draw_bbox = get_bbox_draw.textbbox((0,0),text="0000000",font=pil_font_5)
-score_draw_bbox_size = (score_draw_bbox[2] - score_draw_bbox[0],score_draw_bbox[3] - score_draw_bbox[1])
-score_draw_kwargs = {
-    "xy":(
-        w * SSAA_Scale * 0.99 - score_draw_bbox_size[0],
-        h * SSAA_Scale * 0.005
-    ),
-    "fill":"white",
-    "font":pil_font_5
-}
+def get_score_draw_kwargs(score:str):
+    score_draw_bbox = get_bbox_draw.textbbox((0,0),text=score,font=pil_font_5)
+    score_draw_bbox_size = (score_draw_bbox[2] - score_draw_bbox[0],score_draw_bbox[3] - score_draw_bbox[1])
+    score_draw_kwargs = {
+        "xy":(
+            w * 0.99 - score_draw_bbox_size[0],
+            h * 0.005
+        ),
+        "fill":"white",
+        "font":pil_font_5,
+        "text":score
+    }
+    return score_draw_kwargs
 
 def get_combo_draw_kwargs(combo:int):
     combo_draw_bbox = get_bbox_draw.textbbox((0,0),text=f"{combo}",font=pil_font_4)
     combo_draw_bbox_size = (combo_draw_bbox[2] - combo_draw_bbox[0],combo_draw_bbox[3] - combo_draw_bbox[1])
     combo_draw_kwargs = {
         "xy":(
-            w * SSAA_Scale / 2 - combo_draw_bbox_size[0] / 2,
-            h * SSAA_Scale * 0.001 + combo_draw_bbox_size[1] / 2
+            w / 2 - combo_draw_bbox_size[0] / 2,
+            h * 0.001 + combo_draw_bbox_size[1] / 2
         ),
         "fill":"white",
         "font":pil_font_4
@@ -533,8 +545,8 @@ autoplay_draw_bbox = get_bbox_draw.textbbox((0,0),text="Autoplay",font=pil_font_
 autoplay_draw_bbox_size = (autoplay_draw_bbox[2] - autoplay_draw_bbox[0],autoplay_draw_bbox[3] - autoplay_draw_bbox[1])
 autoplay_draw_kwargs = {
     "xy":(
-        w * SSAA_Scale / 2 - autoplay_draw_bbox_size[0] / 2,
-        h * SSAA_Scale * 0.055 + autoplay_draw_bbox_size[1] / 2
+        w / 2 - autoplay_draw_bbox_size[0] / 2,
+        h * 0.055 + autoplay_draw_bbox_size[1] / 2
     ),
     "fill":"white",
     "font":pil_font_3,
@@ -546,7 +558,7 @@ time_draw_bbox_size = (time_draw_bbox[2] - time_draw_bbox[0],time_draw_bbox[3] -
 time_draw_kwargs = {
     "xy":(
         0,
-        h * SSAA_Scale * 0.00075
+        h * 0.00075
     ),
     "fill":"white",
     "font":pil_font_1
@@ -556,8 +568,8 @@ chart_name_draw_bbox = get_bbox_draw.textbbox((0,0),text=chart_information["Name
 chart_name_draw_bbox_size = (chart_name_draw_bbox[2] - chart_name_draw_bbox[0],chart_name_draw_bbox[3] - chart_name_draw_bbox[1])
 chart_name_draw_kwargs = {
     "xy":(
-        w * SSAA_Scale * 0.01,
-        h * SSAA_Scale * 0.98 - chart_name_draw_bbox_size[1]
+        w * 0.01,
+        h * 0.98 - chart_name_draw_bbox_size[1]
     ),
     "fill":"white",
     "font":pil_font_2,
@@ -568,21 +580,54 @@ level_draw_bbox = get_bbox_draw.textbbox((0,0),text=chart_information["Level"],f
 level_draw_bbox_size = (level_draw_bbox[2] - level_draw_bbox[0],level_draw_bbox[3] - level_draw_bbox[1])
 level_draw_kwargs = {
     "xy":(
-        w * SSAA_Scale * 0.99 - level_draw_bbox_size[0],
-        h * SSAA_Scale * 0.98 - level_draw_bbox_size[1]
+        w * 0.99 - level_draw_bbox_size[0],
+        h * 0.98 - level_draw_bbox_size[1]
     ),
     "fill":"white",
     "font":pil_font_2,
     "text":chart_information["Level"]
 }
 
+#create audio
+audio_seg:AudioSegment
+note_click_audio = AudioSegment.silent(duration=audio_seg.duration_seconds * 1000)
+note_click_audio_split_time = 7.5
+note_click_audio_split_num = int(audio_seg.duration_seconds / note_click_audio_split_time) + 1
+note_click_audio_split_segs = {
+    i:AudioSegment.silent(duration=note_click_audio_split_time * 1000 + 100)
+    for i in range(note_click_audio_split_num)
+}
+note_count = 0
+for judgeLine in phigros_chart_obj.judgeLineList:
+    for note in judgeLine.notesAbove + judgeLine.notesBelow:
+        click_time = note.time * (1.875 / judgeLine.bpm)
+        click_seg = Resource["Note_Click_Audio"][str(note.type)]
+        note_click_split_index = int(click_time / note_click_audio_split_time)
+        try:
+            target_seg = note_click_audio_split_segs[note_click_split_index]
+            note_click_audio_split_segs[note_click_split_index] = target_seg.overlay(click_seg,position=click_time % note_click_audio_split_time * 1000)
+        except KeyError:
+            print(f"Warning: Can not overlay click audio {note}.")
+        note_count += 1
+        print(f"Create audio... {note_count} / {phigros_chart_obj.note_num} note.\r",end="")
+print()
+
+for i,seg in note_click_audio_split_segs.items():
+    note_click_audio = note_click_audio.overlay(seg,position=i * note_click_audio_split_time * 1000)
+    print(f"Create audio - merging {i + 1} / {len(note_click_audio_split_segs)}...\r",end="")
+audio_seg = audio_seg.overlay(note_click_audio)
+print()
+
 before_begin_frame = get_cv_video_writer_array_by_pil_image(background)
-for i in range(int(fps / 2)):
-    print(f"Before begin animation... {i + 1} / {int(fps / 2)} frame.\r",end="")
+before_begin_range_size = int(fps / 2)
+for i in range(before_begin_range_size):
+    print(f"Before begin animation... {i + 1} / {before_begin_range_size} frame.\r",end="")
     video_writer.write(before_begin_frame)
 print()
 
 begin_animation_range_size = int(fps * begin_animation_time)
+begin_animation_real_duration = (before_begin_range_size + begin_animation_range_size) / fps
+audio_seg = AudioSegment.silent(duration=begin_animation_real_duration * 1000) + audio_seg
 for i in range(begin_animation_range_size):
     begin_animation_process = (i + 1) / begin_animation_range_size
     this_frame = background.copy()
@@ -591,13 +636,13 @@ for i in range(begin_animation_range_size):
     begin_animation_judgeLine_length_half = w / 2 * gr_value #SSAA in draw
     this_frame_draw.line(
         (
-            ((w / 2 - begin_animation_judgeLine_length_half) * SSAA_Scale,(h / 2) * SSAA_Scale),
-            ((w / 2 + begin_animation_judgeLine_length_half) * SSAA_Scale,(h / 2) * SSAA_Scale)
+            ((w / 2 - begin_animation_judgeLine_length_half),(h / 2)),
+            ((w / 2 + begin_animation_judgeLine_length_half),(h / 2))
         ),
         width=int(judgeLine_width),
         fill=JUDGELINE_COLOR
     )
-    this_frame_draw.text(**score_draw_kwargs,text="0000000")
+    this_frame_draw.text(**get_score_draw_kwargs("000000"))
     # this_frame_draw.text(**combo_draw_kwargs,text="0")
     # this_frame_draw.text(**autoplay_draw_kwargs)
     this_frame_draw.text(**time_draw_kwargs,text="0:00/0:00")
@@ -605,6 +650,9 @@ for i in range(begin_animation_range_size):
     this_frame_draw.text(**level_draw_kwargs)
     print(f"Begin animation... {i + 1} / {begin_animation_range_size} frame.\r",end="")
     video_writer.write(get_cv_video_writer_array_by_pil_image(this_frame))
+
+audio_seg.export(AudioPath)
+InputAudioClip = AudioFileClip(AudioPath)
 
 print()
 del this_frame_draw
@@ -623,6 +671,7 @@ judgeLine_Configs = {
     }
     for judgeLine_item in phigros_chart_obj.judgeLineList
 }
+phigros_chart_obj.init_holdlength(PHIGROS_Y)
 
 while True:
     try:
@@ -631,9 +680,10 @@ while True:
         now_time = frame_count / fps
         this_frame = background.copy()
         this_frame_draw = ImageDraw.Draw(this_frame)
-        judgeLine_image = Image.new("RGBA",(int(w * SSAA_Scale),int(h * SSAA_Scale)),(0,0,0,0))
+        judgeLine_image = Image.new("RGBA",(int(w),int(h)),(0,0,0,0))
         notes_image = judgeLine_image.copy()
-
+        click_effect_img = judgeLine_image.copy()
+        
         judgeLine_image_draw = ImageDraw.Draw(judgeLine_image,"RGBA")
         Update_JudgeLine_Configs(
             judgeLine_Configs,
@@ -651,7 +701,7 @@ while True:
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
             ]
-            judgeLine_DrawPos = [int(item * SSAA_Scale) for item in judgeLine_DrawPos]
+            judgeLine_DrawPos = [int(item) for item in judgeLine_DrawPos]
             draw_cfg = {
                 "fill":JUDGELINE_COLOR + (int(255 * judgeLine_cfg["Disappear"]),),
                 "width":int(judgeLine_width),
@@ -661,6 +711,82 @@ while True:
                     judgeLine_DrawPos,**draw_cfg
                 )
         
+            for note_item in judgeLine.notesAbove + judgeLine.notesBelow:
+                cfg = {
+                    "note":note_item,
+                    "now_floorPosition":note_item.floorPosition * PHIGROS_Y - (judgeLine_cfg["Note_dy"] if not (note_item.type == Const.Note.HOLD and note_item.clicked) else (
+                        Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_time) / note_item.hold_length_sec))
+                    ))
+                }
+                rotatenote_at_judgeLine_pos = rotate_point(
+                    *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
+                )
+                judgeLine_to_note_rotate_angle = 90 - judgeLine_cfg["Rotate"] - (180 if note_item in judgeLine.notesAbove else 0)
+                x,y = rotate_point(
+                    *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] #why? -> (180 if t == 1 else 0)
+                )
+                judgeLine_rotate_integer = int(judgeLine_cfg["Rotate"]) % 360
+                note_type = {
+                    Const.Note.TAP:"Tap",
+                    Const.Note.DRAG:"Drag",
+                    Const.Note.HOLD:"Hold",
+                    Const.Note.FLICK:"Flick"
+                }[note_item.type]
+                if note_item.type == Const.Note.HOLD:
+                    if cfg["now_floorPosition"] + note_item.hold_length_px >= 0:
+                        holdend_x,holdend_y = rotate_point(
+                            *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] + note_item.hold_length_px
+                        )
+                    else:
+                        holdend_x,holdend_y = rotatenote_at_judgeLine_pos
+                if note_item.type != Const.Note.HOLD:
+                    this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
+                else:
+                    this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
+                    this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"][judgeLine_rotate_integer]
+                    
+                if note_item.time * this_judgeLine_T <= now_time:
+                    if abs(note_item.time * this_judgeLine_T - now_time) <= click_effect_time:
+                        will_show_effect_pos = judgeLine.get_datavar_move(note_item.time,w,h)
+                        will_show_effect_rotate = judgeLine.get_datavar_rotate(note_item.time)
+                        if is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
+                        if is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
+                        effect_pos = rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note_item.positionX * PHIGROS_X)
+                        click_effect_base_img:Image.Image
+                        click_effect_process = abs(note_item.time * this_judgeLine_T - now_time) / click_effect_time
+                        click_effect_base_img_lst = Resource["Note_Click_Effect"]["Perfect"]
+                        click_effect_base_img = click_effect_base_img_lst[int(click_effect_process * len(click_effect_base_img_lst)) - 1]
+                        click_effect_img_draw = ImageDraw.Draw(click_effect_img)
+                        click_effect_img.paste(
+                            click_effect_base_img,(
+                                int(effect_pos[0] - click_effect_base_img.width / 2),
+                                int(effect_pos[1] - click_effect_base_img.height / 2)
+                            ),mask=click_effect_base_img.split()[-1]
+                        )
+
+                if note_item.type == Const.Note.HOLD:
+                    if note_item.hold_endtime < now_time:
+                        continue
+                elif note_item.time * this_judgeLine_T < now_time:
+                    continue
+                
+                this_note_img:Image.Image
+                this_note_img_end:Image.Image
+                if not (note_item.type == Const.Note.HOLD and note_item.time * this_judgeLine_T < now_time):
+                    notes_image.paste(
+                        this_note_img,(
+                            int(x - this_note_img.width / 2),
+                            int(y - this_note_img.height / 2)
+                        ),this_note_img.split()[-1]
+                    )
+                if note_item.type == Const.Note.HOLD:
+                    notes_image.paste(
+                        this_note_img_end,(
+                            int(holdend_x - this_note_img_end.width / 2),
+                            int(holdend_y - this_note_img_end.height / 2)
+                        ),this_note_img_end.split()[-1]
+                    )
+        
         for judgeLine in phigros_chart_obj.judgeLineList:
             for note in judgeLine.notesAbove + judgeLine.notesBelow:
                 if note.time * (1.875 / judgeLine.bpm) <= now_time:
@@ -668,8 +794,9 @@ while True:
 
         merge_image(this_frame,judgeLine_image)
         merge_image(this_frame,notes_image)
-        score_text = f"{int((combo / phigros_chart_obj.note_num) + 0.5):>7}".replace(" ","0")
-        this_frame_draw.text(**score_draw_kwargs,text=score_text)
+        merge_image(this_frame,click_effect_img)
+        score_text = f"{int((combo / phigros_chart_obj.note_num * 1e6) + 0.5):>7}".replace(" ","0")
+        this_frame_draw.text(**get_score_draw_kwargs(score_text))
         if combo >= 3:
             this_frame_draw.text(**get_combo_draw_kwargs(combo),text=f"{combo}")
             this_frame_draw.text(**autoplay_draw_kwargs)
@@ -684,3 +811,5 @@ while True:
         break
 
 video_writer.release()
+VideoFileClip(WriterPath).set_audio(InputAudioClip).write_videofile(argv[2],logger=None)
+rmtree(TempDir)
