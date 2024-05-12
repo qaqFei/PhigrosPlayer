@@ -475,27 +475,26 @@ def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects.judgeLine,T:float,time:f
                 pass
         return dy
 
-def merge_image(im1:Image.Image,im2:Image.Image) -> Image.Image:
-    alpha = im2.split()[-1]
-    non_transparent_pixels = alpha.getchannel("1")
-    im1.paste(im2,(0,0),mask=non_transparent_pixels)
-    return im1
+def merge_image(base:Image.Image,img:Image.Image):
+    base.paste(img,(0,0),mask=img.split()[-1])
 
 def get_cv_video_writer_array_by_pil_image(im:Image.Image):
     return asarray(im.resize((w,h)))[:,:,::-1]
 
-fps = 60
+fps = 45
 w,h = 1920,1080
-SSAA_Scale = 1
+SSAA_Scale = 1.75
 judgeLine_width = h * 0.0075 * SSAA_Scale
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
+JUDGELINE_COLOR = (254,255,169)
+Resource = Load_Resource()
 video_writer = VideoWriter(
     argv[2],
     VideoWriter.fourcc(*"mp4v"),
     fps,
     (w,h),True
 )
-background = ImageEnhance.Brightness(chart_image.resize((w * SSAA_Scale,h * SSAA_Scale)).filter(ImageFilter.GaussianBlur((w + h) * SSAA_Scale / 300))).enhance(1.0 - chart_information["BackgroundDim"])
+background = ImageEnhance.Brightness(chart_image.resize((int(w * SSAA_Scale),int(h * SSAA_Scale))).filter(ImageFilter.GaussianBlur((w + h) * SSAA_Scale / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 background_draw = ImageDraw.Draw(background)
 pil_font_1 = ImageFont.truetype("./font.ttf",size=int((w + h) * SSAA_Scale / 175 / 0.75)) #pt -> px (pt / 0.75 = px)
 pil_font_2 = ImageFont.truetype("./font.ttf",size=int((w + h) * SSAA_Scale / 125 / 0.75))
@@ -517,16 +516,18 @@ score_draw_kwargs = {
     "font":pil_font_5
 }
 
-combo_draw_bbox = get_bbox_draw.textbbox((0,0),text="0",font=pil_font_4)
-combo_draw_bbox_size = (combo_draw_bbox[2] - combo_draw_bbox[0],combo_draw_bbox[3] - combo_draw_bbox[1])
-combo_draw_kwargs = {
-    "xy":(
-        w * SSAA_Scale / 2 - combo_draw_bbox_size[0] / 2,
-        h * SSAA_Scale * 0.001 + combo_draw_bbox_size[1] / 2
-    ),
-    "fill":"white",
-    "font":pil_font_4
-}
+def get_combo_draw_kwargs(combo:int):
+    combo_draw_bbox = get_bbox_draw.textbbox((0,0),text=f"{combo}",font=pil_font_4)
+    combo_draw_bbox_size = (combo_draw_bbox[2] - combo_draw_bbox[0],combo_draw_bbox[3] - combo_draw_bbox[1])
+    combo_draw_kwargs = {
+        "xy":(
+            w * SSAA_Scale / 2 - combo_draw_bbox_size[0] / 2,
+            h * SSAA_Scale * 0.001 + combo_draw_bbox_size[1] / 2
+        ),
+        "fill":"white",
+        "font":pil_font_4
+    }
+    return combo_draw_kwargs
 
 autoplay_draw_bbox = get_bbox_draw.textbbox((0,0),text="Autoplay",font=pil_font_3)
 autoplay_draw_bbox_size = (autoplay_draw_bbox[2] - autoplay_draw_bbox[0],autoplay_draw_bbox[3] - autoplay_draw_bbox[1])
@@ -594,16 +595,91 @@ for i in range(begin_animation_range_size):
             ((w / 2 + begin_animation_judgeLine_length_half) * SSAA_Scale,(h / 2) * SSAA_Scale)
         ),
         width=int(judgeLine_width),
-        fill="#feffa9"
+        fill=JUDGELINE_COLOR
     )
     this_frame_draw.text(**score_draw_kwargs,text="0000000")
-    this_frame_draw.text(**combo_draw_kwargs,text="0")
-    this_frame_draw.text(**autoplay_draw_kwargs)
+    # this_frame_draw.text(**combo_draw_kwargs,text="0")
+    # this_frame_draw.text(**autoplay_draw_kwargs)
     this_frame_draw.text(**time_draw_kwargs,text="0:00/0:00")
     this_frame_draw.text(**chart_name_draw_kwargs)
     this_frame_draw.text(**level_draw_kwargs)
     print(f"Begin animation... {i + 1} / {begin_animation_range_size} frame.\r",end="")
     video_writer.write(get_cv_video_writer_array_by_pil_image(this_frame))
 
+print()
+del this_frame_draw
+
+frame_count = 0
+judgeLine_Configs = {
+    judgeLine_item.__hash__():{
+        "judgeLine":judgeLine_item,
+        "Rotate":0.0,
+        "Disappear":1.0,
+        "Pos":[0,0],
+        "Speed":1.0,
+        "Note_dy":0.0,
+        "time":None
+    }
+    for judgeLine_item in phigros_chart_obj.judgeLineList
+}
+
+while True:
+    try:
+        frame_count += 1
+        combo = 0
+        now_time = frame_count / fps
+        this_frame = background.copy()
+        this_frame_draw = ImageDraw.Draw(this_frame)
+        judgeLine_image = Image.new("RGBA",(int(w * SSAA_Scale),int(h * SSAA_Scale)),(0,0,0,0))
+        notes_image = judgeLine_image.copy()
+
+        judgeLine_image_draw = ImageDraw.Draw(judgeLine_image,"RGBA")
+        Update_JudgeLine_Configs(
+            judgeLine_Configs,
+            {
+                judgeLine_item.__hash__():1.875/judgeLine_item.bpm
+                for judgeLine_item in phigros_chart_obj.judgeLineList
+            },now_time)
+        
+        for judgeLine_cfg_key in judgeLine_Configs:
+            judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
+            judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
+            this_judgeLine_T = 1.875 / judgeLine.bpm
+            judgeLine_cfg["Note_dy"] = Cal_judgeLine_NoteDy(judgeLine_cfg,this_judgeLine_T)
+            judgeLine_DrawPos = [
+                *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
+                *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
+            ]
+            judgeLine_DrawPos = [int(item * SSAA_Scale) for item in judgeLine_DrawPos]
+            draw_cfg = {
+                "fill":JUDGELINE_COLOR,
+                "width":int(judgeLine_width),
+            }
+            if judgeLine_cfg["Disappear"] > 0:
+                judgeLine_image_draw.line(
+                    judgeLine_DrawPos,**draw_cfg
+                )
+        
+        for judgeLine in phigros_chart_obj.judgeLineList:
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                if note.time * (1.875 / judgeLine.bpm) <= now_time:
+                    combo += 1
+
+        merge_image(this_frame,judgeLine_image)
+        merge_image(this_frame,notes_image)
+        score_text = f"{int((combo / phigros_chart_obj.note_num) + 0.5):>7}".replace(" ","0")
+        this_frame_draw.text(**score_draw_kwargs,text=score_text)
+        if combo >= 3:
+            this_frame_draw.text(**get_combo_draw_kwargs(combo),text=f"{combo}")
+            this_frame_draw.text(**autoplay_draw_kwargs)
+        this_frame_draw.text(**time_draw_kwargs,text=f"{Format_Time(now_time)}/{Format_Time(audio_length)}")
+        this_frame_draw.text(**chart_name_draw_kwargs)
+        this_frame_draw.text(**level_draw_kwargs)
+        video_writer.write(get_cv_video_writer_array_by_pil_image(this_frame))
+        print(f"{frame_count} frame.\r",end="")
+        if now_time >= audio_length:
+            break
+    except KeyboardInterrupt:
+        break
 
 video_writer.release()

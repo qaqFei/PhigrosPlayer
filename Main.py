@@ -790,7 +790,6 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
             judgeLine_notes_above = judgeLine.notesAbove
             judgeLine_notes_below = judgeLine.notesBelow
             def process(notes_list:list[Chart_Objects.note],t:int):
-                global key_press_count
                 nonlocal combo,score,combo_or_score_changed
                 for note_item in notes_list:
                     if note_item.clicked and (note_item.type != Const.Note.HOLD or note_item.hold_end_clicked):
