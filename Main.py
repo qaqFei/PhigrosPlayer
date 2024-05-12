@@ -739,6 +739,7 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
     combo_or_score_changed = False
     while True:
         st = time()
+        # show_start_time += randint(-25,25) / 1000 #random offset
         now_t = time() - show_start_time
         Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
         for judgeLine_cfg_key in judgeLine_Configs:
@@ -1025,6 +1026,11 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
             cv.itemconfigure("combo",text=f"{combo}")
             combo_or_score_changed = False
         time_block_render_count += 1
+        this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
+        offset_judge_range = 66.666667 #ms
+        if abs(music_offset := this_music_pos - now_t * 1000) >= offset_judge_range:
+            show_start_time -= music_offset / 1000
+            loger_queue.put(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
         if time_block_render_count >= cal_fps_block_size:
             if "-showfps" in argv:
                 try:
