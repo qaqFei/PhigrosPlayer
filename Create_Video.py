@@ -483,7 +483,7 @@ def get_cv_video_writer_array_by_pil_image(im:Image.Image):
 
 fps = 45
 w,h = 1920,1080
-SSAA_Scale = 1.75
+SSAA_Scale = 1
 judgeLine_width = h * 0.0075 * SSAA_Scale
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_COLOR = (254,255,169)
@@ -641,7 +641,7 @@ while True:
                 for judgeLine_item in phigros_chart_obj.judgeLineList
             },now_time)
         
-        for judgeLine_cfg_key in judgeLine_Configs:
+        for judgeLine_cfg_key in sorted(judgeLine_Configs,key=lambda x:judgeLine_Configs[x]["Disappear"]):
             judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
             judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
             this_judgeLine_T = 1.875 / judgeLine.bpm
@@ -652,7 +652,7 @@ while True:
             ]
             judgeLine_DrawPos = [int(item * SSAA_Scale) for item in judgeLine_DrawPos]
             draw_cfg = {
-                "fill":JUDGELINE_COLOR,
+                "fill":JUDGELINE_COLOR + (int(255 * judgeLine_cfg["Disappear"]),),
                 "width":int(judgeLine_width),
             }
             if judgeLine_cfg["Disappear"] > 0:
