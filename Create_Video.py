@@ -486,8 +486,8 @@ def merge_image(base:Image.Image,img:Image.Image):
 def get_cv_video_writer_array_by_pil_image(im:Image.Image):
     return asarray(im.resize((int(w / SSAA_Scale),int(h / SSAA_Scale))))[:,:,::-1]
 
-fps = 45
-SSAA_Scale = 1.5
+fps = 30
+SSAA_Scale = 1.35
 w,h = 1920 * SSAA_Scale,1080 * SSAA_Scale
 judgeLine_width = h * 0.0075
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
