@@ -610,6 +610,7 @@ print()
 del this_frame_draw
 
 frame_count = 0
+max_frame_count = int(audio_length * fps)
 judgeLine_Configs = {
     judgeLine_item.__hash__():{
         "judgeLine":judgeLine_item,
@@ -676,7 +677,7 @@ while True:
         this_frame_draw.text(**chart_name_draw_kwargs)
         this_frame_draw.text(**level_draw_kwargs)
         video_writer.write(get_cv_video_writer_array_by_pil_image(this_frame))
-        print(f"{frame_count} frame.\r",end="")
+        print(f"{frame_count} / {max_frame_count} frame.\r",end="")
         if now_time >= audio_length:
             break
     except KeyboardInterrupt:
