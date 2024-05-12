@@ -397,7 +397,7 @@ def Load_Resource():
             "3":AudioSegment(open("./Resources/Note_Click_Audio/Hold.wav","rb").read()),
             "4":AudioSegment(open("./Resources/Note_Click_Audio/Flick.wav","rb").read())
         },
-        # "ProcessBar":Image.new("RGB",(int(w),int(h / 125)),(145,)*3)
+        "ProcessBar":Image.new("RGB",(int(w),int(h / 125)),(145,)*3)
     }
     res_note_base_small_x = 2
     Resource["Notes_Base"] = {
