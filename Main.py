@@ -77,6 +77,9 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_
         print(f"Warning: {e}")
 print(f"Temp Dir: {temp_dir}")
 
+Image._open = Image.open
+Image.open = lambda fp,mode = "r",formats = None: [print(f"Loading Resource: {fp} ...") if temp_dir not in fp else None,Image._open(fp,mode,formats)][1]
+
 if "-clear" in argv:
     windll.kernel32.ExitProcess(0)
 
@@ -469,6 +472,7 @@ def Load_Resource():
         "Start":ImageTk.PhotoImage(Image.open("./Resources/Start.png").resize((w,h)))
     }
     res_note_base_small_x = 4
+    print("Loading Resource - resize note ...")
     Resource["Notes_Base"] = {
         "Tap":Resource["Notes_Base"]["Tap"].resize((int(Resource["Notes_Base"]["Tap"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Tap"].height / res_note_base_small_x))),
         "Tap_dub":Resource["Notes_Base"]["Tap_dub"].resize((int(Resource["Notes_Base"]["Tap_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Tap_dub"].height / res_note_base_small_x))),
@@ -482,6 +486,7 @@ def Load_Resource():
             "Hold_End":Resource["Notes_Base"]["Hold"]["Hold_End"].resize((int(Resource["Notes_Base"]["Hold"]["Hold_End"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Hold"]["Hold_End"].height / res_note_base_small_x)))
         }
     }
+    print("Loading Resource - rotate note ...")
     Resource["Notes"] = {
         "Tap":get_all_angle_img(Resource["Notes_Base"]["Tap"],Note_width,Note_height_Tap),
         "Tap_dub":get_all_angle_img(Resource["Notes_Base"]["Tap_dub"],Note_width,Note_height_Tap_dub),
@@ -495,6 +500,7 @@ def Load_Resource():
             "Hold_End":get_all_angle_img(Resource["Notes_Base"]["Hold"]["Hold_End"],Note_width,Note_height_Hold_End)
         }
     }
+    print("Loading Resource - load note img to tk ...")
     Resource["Notes"] = {
         "Tap":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Tap"].items()},
         "Tap_dub":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Tap_dub"].items()},
@@ -508,6 +514,7 @@ def Load_Resource():
             "Hold_End":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Hold"]["Hold_End"].items()}
         }
     }
+    print("Loading Resource - create processbar ...")
     ImageDraw.Draw(Resource["ProcessBar"]).rectangle((w * 0.998,0,w,int(h / 125)),fill=(255,)*3)
     Resource["ProcessBar"] = ImageTk.PhotoImage(Resource["ProcessBar"])
     print("Loading Resource Successfully.")

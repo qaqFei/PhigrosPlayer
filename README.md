@@ -25,7 +25,7 @@ python Main.py
 - ```-clear``` 让程序在清理临时目录完成后退出
 - ```-debug``` 显示定位点
 - ```-combotips <text>``` 设置连击下的提示 默认为```Autoplay```
-- ```-fps <python-eval>``` 设置帧率 默认为```120``` tip:可以使用```-fps "float('inf')"```解除帧率限制
+- ```-fps <python-eval>``` 设置帧率 默认为```120``` tip:可以使用```-fps Const.INF```解除帧率限制
 - ```-showfps``` 在标题栏显示帧率
 - ```-loop``` 循环播放
 - ```-fullscreen``` 全屏
