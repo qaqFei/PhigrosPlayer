@@ -36,20 +36,6 @@ python Main.py
 - ```-nojudgeline``` 不显示判定线
 - ```-debug-noshow-transparent-judgeline``` 在使用 ```-debug``` 时: 不显示透明度为```0```的判定线
 
-## 编写时的一些坑
-- ```tkinter.Canvas``` 的 ```create_line``` 方法 的 ```smooth``` 参数不生效 T_T
-- 为 ```note``` 的点击特效增加随机的 正方形扩散时的问题:
-    - 资源加载时间增加十几秒
-    - 渲染性能跟不上
-- 在为 ```note``` 渲染添加缓存后 发现效率更慢了...
-- 尝试使用 ```PIL.ImageTk.PhotoImage``` 为判定线 添加抗锯齿 (使用```PIL.ImageDraw```来绘制线条 再用 ```PIL.Image.Image.resize``` 方法添加抗锯齿) 时 发现:
-    - 效率实在不行
-    - 渲染不完整就下一帧了 而且无法知道是否渲染完整 所以只能增加图片大小 将原图片放在中间 然后进行渲染  后果: 效率更不行了!!!
-- 尝试使用 ```PIL.Image.Image.rotate``` 旋转 ```note``` 时 发现:
-    - 效率实在不行
-    - 锯齿明显
-    - 最后!!!! -> 在加载资源时处理旋转...
-
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途
 - 如有侵权 请联系删除: qaq_fei@163.com 或直接提issue
