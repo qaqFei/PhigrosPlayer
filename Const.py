@@ -3,3 +3,5 @@ class Note:
     DRAG = 2
     HOLD = 3
     FLICK = 4
+
+INF = float("inf")
