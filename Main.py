@@ -46,6 +46,7 @@ class Tk(_Tk):
             self.tk.call("tk","scaling",ScaleFactor / 75)
         if hidemouse:
             self.configure(cursor="none")
+
 class Toplevel(_Toplevel):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -81,6 +82,8 @@ if "-clear" in argv:
 
 debug = "-debug" in argv
 show_holdbody = "-holdbody" in argv
+show_judgeline = "-nojudgeline" not in argv
+debug_noshow_transparent_judgeline = "-debug-noshow-transparent-judgeline" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -732,15 +735,14 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
     score = "0000000"
     last_time_text = "0:00/0:00"
     deleted_start_animation_judgeLine = False
-    this_function_call_st = time()
     process_xpos = 0
     judgeLine_last_cfg_dict = {item:None for item in judgeLine_Configs.keys()}
     judgeLine_draw_ids_dict = {item:None for item in judgeLine_Configs.keys()}
-    judgeLine_last_pos_dict = {item:None for item in judgeLine_Configs.keys()}
     cal_fps_block_size = fps / 15 if fps != float("inf") else 60 / 15
     last_cal_fps_time = time()
     time_block_render_count = 0
     combo_or_score_changed = False
+    combo_widget_state = "hidden"
     while True:
         st = time()
         # show_start_time += randint(-25,25) / 1000 #random offset
@@ -760,34 +762,39 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                 "fill":Get_judgeLine_Color(),
                 "width":int(h * 0.0075 * judgeLine_cfg["Disappear"]),
                 "smooth":True,
-                "tags":["judgeLine",f"judgeLine_{judgeLine.id}"]
+                "tag":"judgeLine"
             }
             if last_cfg != (judgeLine_DrawPos,draw_cfg,judgeLine_cfg["Rotate"]):
                 will_delete_id = judgeLine_draw_ids_dict[judgeLine_cfg_key]
-                if draw_cfg["width"] != 0.0:
-                    judgeLine_draw_ids_dict.update({
-                        judgeLine_cfg_key:[
-                            cv.create_line(
-                                *judgeLine_DrawPos,**draw_cfg
-                            ),
+                this_judgeLine_draw_ids = []
+                if show_judgeline and draw_cfg["width"] != 0.0:
+                    this_judgeLine_draw_ids.append(
+                        cv.create_line(
+                            *judgeLine_DrawPos,**draw_cfg
+                        )
+                    )
+                if debug:
+                    if not (draw_cfg["width"] == 0.0 and debug_noshow_transparent_judgeline):
+                        this_judgeLine_draw_ids.append(
                             cv.create_rectangle(
                                 judgeLine_cfg["Pos"][0] - PHIGROS_X / 12.5,
                                 judgeLine_cfg["Pos"][1] - PHIGROS_X / 12.5,
                                 judgeLine_cfg["Pos"][0] + PHIGROS_X / 12.5,
                                 judgeLine_cfg["Pos"][1] + PHIGROS_X / 12.5,
-                                fill="#ee82ee",outline="",tags=draw_cfg["tags"]
-                            ) if debug else None,
+                                fill="#ee82ee",outline="",tag=draw_cfg["tag"]
+                            )
+                        )
+                        this_judgeLine_draw_ids.append(
                             cv.create_text(
                                 *rotate_point(*judgeLine_cfg["Pos"],- 90 - judgeLine_cfg["Rotate"],PHIGROS_X / 3.5),
                                 text=f"{judgeLine.id}",fill="#feffa9",
                                 font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),
-                                tags=draw_cfg["tags"]
-                            ) if debug else None
-                        ]
-                    })
-                judgeLine_last_pos_dict[judgeLine_cfg_key] = judgeLine_DrawPos
+                                tag=draw_cfg["tag"]
+                            )
+                        )
+                judgeLine_draw_ids_dict.update({judgeLine_cfg_key:this_judgeLine_draw_ids})
                 judgeLine_last_cfg_dict[judgeLine_cfg_key] = (judgeLine_DrawPos,draw_cfg,judgeLine_cfg["Rotate"])
-                if will_delete_id is not None:
+                if will_delete_id is not None and len(will_delete_id) != 0:
                     cv.delete(*will_delete_id)
             if not deleted_start_animation_judgeLine:
                 cv.delete("judgeLine_start_animation")
@@ -795,7 +802,7 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
             judgeLine_notes_above = judgeLine.notesAbove
             judgeLine_notes_below = judgeLine.notesBelow
             def process(notes_list:list[Chart_Objects.note],t:int):
-                nonlocal combo,score,combo_or_score_changed
+                nonlocal combo,score,combo_or_score_changed,combo_widget_state
                 for note_item in notes_list:
                     if note_item.clicked and (note_item.type != Const.Note.HOLD or note_item.hold_end_clicked):
                         continue
@@ -937,7 +944,7 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                                 except KeyError:
                                     pass
                     def add_note_event(event:psm.psm_event_type):
-                        nonlocal combo,score,combo_or_score_changed
+                        nonlocal combo,score,combo_or_score_changed,combo_widget_state
                         data_bak = (combo,score)
                         score_manager.add_event(event)
                         combo = score_manager.get_combo()
@@ -946,11 +953,15 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                         if data_bak != (combo,score):
                             combo_or_score_changed = True
                             if combo >= 3:
-                                cv.itemconfigure("combo",state="normal")
-                                cv.itemconfigure("combo_under_tips",state="normal")
+                                if combo_widget_state != "normal":
+                                    cv.itemconfigure("combo",state="normal")
+                                    cv.itemconfigure("combo_under_tips",state="normal")
+                                    combo_widget_state = "normal"
                             elif combo < 3:
-                                cv.itemconfigure("combo",state="hidden")
-                                cv.itemconfigure("combo_under_tips",state="hidden")
+                                if combo_widget_state != "hidden":
+                                    cv.itemconfigure("combo",state="hidden")
+                                    cv.itemconfigure("combo_under_tips",state="hidden")
+                                    combo_widget_state = "hidden"
                     def show_clickeffect(note_item:Chart_Objects.note,effect_type:typing.Literal["Perfect","Good"]):
                         will_show_effect_pos = judgeLine.get_datavar_move(note_item.time,w,h)
                         will_show_effect_rotate = judgeLine.get_datavar_rotate(note_item.time)

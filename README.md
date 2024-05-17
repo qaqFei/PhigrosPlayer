@@ -25,7 +25,7 @@ python Main.py
 - ```-clear``` 让程序在清理临时目录完成后退出
 - ```-debug``` 显示定位点
 - ```-combotips <text>``` 设置连击下的提示 默认为```Autoplay```
-- ```-fps <python-eval>``` 设置帧率 默认为```120``` tips:可以使用```-fps "float('inf')"```解除帧率限制
+- ```-fps <python-eval>``` 设置帧率 默认为```120``` tip:可以使用```-fps "float('inf')"```解除帧率限制
 - ```-showfps``` 在标题栏显示帧率
 - ```-loop``` 循环播放
 - ```-fullscreen``` 全屏
@@ -33,6 +33,8 @@ python Main.py
 - ```-nofcapline``` 去除```FC/AP```指示器 默认开启```FC/AP```指示器
 - ```-noclickeffect``` 关闭点击特效
 - ```-holdbody``` 显示```hold```的中间部分
+- ```-nojudgeline``` 不显示判定线
+- ```-debug-noshow-transparent-judgeline``` 在使用 ```-debug``` 时: 不显示透明度为```0```的判定线
 
 ## 编写时的一些坑
 - ```tkinter.Canvas``` 的 ```create_line``` 方法 的 ```smooth``` 参数不生效 T_T
