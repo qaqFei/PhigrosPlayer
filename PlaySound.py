@@ -2,7 +2,11 @@ from win32comext.directsound.directsound import DirectSoundCreate,DSBUFFERDESC,I
 from struct import unpack
 from pywintypes import WAVEFORMATEX
 from win32event import CreateEvent,WaitForSingleObject
-from functools import cache
+
+try:
+    from functools import cache
+except Exception:
+    cache = lambda f:f
 
 @cache
 def _wav_header_unpack(data):

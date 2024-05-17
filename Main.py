@@ -1,4 +1,4 @@
-from tkinter import Tk,Toplevel,Canvas
+from tkinter import Tk as _Tk,Toplevel as _Toplevel,Canvas
 from threading import Thread
 from ctypes import windll
 from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -19,8 +19,6 @@ from pygame import mixer
 import win32con
 import win32ui
 
-# try: import Chart_Objects
-# except SyntaxError: import Chart_Objects_Low_Python_Ver as Chart_Objects
 import Chart_Objects
 import Const
 import Find_Files
@@ -33,23 +31,28 @@ if "-hideconsole" in argv:
 
 hidemouse = "-hidemouse" in argv
 
-windll.shcore.SetProcessDpiAwareness(1)
-ScaleFactor = windll.shcore.GetScaleFactorForDevice(0)
-Tk_Temp = Tk
-Toplevel_Temp = Toplevel
-class Tk(Tk_Temp):
+set_tkscale_ok = False
+try:
+    windll.shcore.SetProcessDpiAwareness(1)
+    ScaleFactor = windll.shcore.GetScaleFactorForDevice(0)
+    set_tkscale_ok = True
+except Exception as e:
+    print(f"Warning: {e}")
+
+class Tk(_Tk):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
-        self.tk.call("tk","scaling",ScaleFactor / 75)
+        if set_tkscale_ok:
+            self.tk.call("tk","scaling",ScaleFactor / 75)
         if hidemouse:
             self.configure(cursor="none")
-class Toplevel(Toplevel_Temp):
+class Toplevel(_Toplevel):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
-        self.tk.call("tk","scaling",ScaleFactor / 75)
+        if set_tkscale_ok:
+            self.tk.call("tk","scaling",ScaleFactor / 75)
         if hidemouse:
             self.configure(cursor="none")
-del Tk_Temp,Toplevel_Temp
 
 selfdir = dirname(argv[0])
 if selfdir == "": selfdir = "."
@@ -518,7 +521,7 @@ def draw_ui():
     cv.create_text(w / 2,h * 0.001,text="0",anchor="n",fill="white",tags=["combo","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 70)),state="hidden")
     cv.create_text(w / 2,h * 0.055,text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],anchor="n",fill="white",tags=["combo_under_tips","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),state="hidden")
     cv.create_text(0,h * 0.00075,text="0:00/0:00",anchor="nw",fill="white",tags=["time","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 175)))
-    cv.create_text(w * 0.01,h * 0.98,text=chart_information["Name"],anchor="sw",tags=["chart_name","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
+    cv.create_text(w * 0.01,h * 0.99,text=chart_information["Name"],anchor="sw",tags=["chart_name","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
     cv.create_text(w * 0.99,h * 0.99,text=chart_information["Level"],anchor="se",tags=["level","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
 
 def Show_Start():
@@ -733,6 +736,7 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
     process_xpos = 0
     judgeLine_last_cfg_dict = {item:None for item in judgeLine_Configs.keys()}
     judgeLine_draw_ids_dict = {item:None for item in judgeLine_Configs.keys()}
+    judgeLine_last_pos_dict = {item:None for item in judgeLine_Configs.keys()}
     cal_fps_block_size = fps / 15 if fps != float("inf") else 60 / 15
     last_cal_fps_time = time()
     time_block_render_count = 0
@@ -751,15 +755,14 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
             ]
-            judgeLine_DrawPos = [int(item) for item in judgeLine_DrawPos]
             last_cfg = judgeLine_last_cfg_dict[judgeLine_cfg_key]
             draw_cfg = {
                 "fill":Get_judgeLine_Color(),
                 "width":int(h * 0.0075 * judgeLine_cfg["Disappear"]),
                 "smooth":True,
-                "tag":"judgeLine"
+                "tags":["judgeLine",f"judgeLine_{judgeLine.id}"]
             }
-            if last_cfg != (judgeLine_DrawPos,draw_cfg):
+            if last_cfg != (judgeLine_DrawPos,draw_cfg,judgeLine_cfg["Rotate"]):
                 will_delete_id = judgeLine_draw_ids_dict[judgeLine_cfg_key]
                 if draw_cfg["width"] != 0.0:
                     judgeLine_draw_ids_dict.update({
@@ -772,17 +775,18 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                                 judgeLine_cfg["Pos"][1] - PHIGROS_X / 12.5,
                                 judgeLine_cfg["Pos"][0] + PHIGROS_X / 12.5,
                                 judgeLine_cfg["Pos"][1] + PHIGROS_X / 12.5,
-                                fill="#ee82ee",outline="",tag="judgeLine"
+                                fill="#ee82ee",outline="",tags=draw_cfg["tags"]
                             ) if debug else None,
                             cv.create_text(
                                 *rotate_point(*judgeLine_cfg["Pos"],- 90 - judgeLine_cfg["Rotate"],PHIGROS_X / 3.5),
                                 text=f"{judgeLine.id}",fill="#feffa9",
                                 font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),
-                                tag="judgeLine"
+                                tags=draw_cfg["tags"]
                             ) if debug else None
                         ]
                     })
-                judgeLine_last_cfg_dict[judgeLine_cfg_key] = (judgeLine_DrawPos,draw_cfg)
+                judgeLine_last_pos_dict[judgeLine_cfg_key] = judgeLine_DrawPos
+                judgeLine_last_cfg_dict[judgeLine_cfg_key] = (judgeLine_DrawPos,draw_cfg,judgeLine_cfg["Rotate"])
                 if will_delete_id is not None:
                     cv.delete(*will_delete_id)
             if not deleted_start_animation_judgeLine:
@@ -806,7 +810,7 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                     )
                     judgeLine_to_note_rotate_angle = 90 - judgeLine_cfg["Rotate"] - (180 if t == 1 else 0)
                     x,y = rotate_point(
-                        *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] #why? -> (180 if t == 1 else 0)
+                        *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"]
                     )
                     if note_item.type == Const.Note.HOLD:
                         if cfg["now_floorPosition"] + note_item.hold_length_px >= 0:
@@ -1010,12 +1014,11 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                                 ).start()
             process(judgeLine_notes_above,1)
             process(judgeLine_notes_below,-1)
-        music_pos = time() - this_function_call_st
-        now_process_xpos = int((music_pos / audio_length) * w)
+        now_process_xpos = int((now_t / audio_length) * w)
         if now_process_xpos != process_xpos:
             process_xpos = now_process_xpos
             cv.moveto("ProcessBar",process_xpos - w,0)
-        time_text = f"{Format_Time(music_pos)}/{Format_Time(audio_length)}"
+        time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
         if time_text != last_time_text:
             last_time_text = time_text
             cv.itemconfigure("time",text=time_text)
