@@ -35,6 +35,7 @@ python Main.py
 - ```-holdbody``` 显示```hold```的中间部分
 - ```-nojudgeline``` 不显示判定线
 - ```-debug-noshow-transparent-judgeline``` 在使用 ```-debug``` 时: 不显示透明度为```0```的判定线
+- ```-judgeline-notransparent``` 让判定线的```Disappear```始终为```1.0``` 也就是说不存在透明度
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途

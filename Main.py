@@ -87,6 +87,7 @@ debug = "-debug" in argv
 show_holdbody = "-holdbody" in argv
 show_judgeline = "-nojudgeline" not in argv
 debug_noshow_transparent_judgeline = "-debug-noshow-transparent-judgeline" in argv
+judgeline_notransparent = "-judgeline-notransparent" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -652,7 +653,7 @@ def Get_judgeLine_Color() -> str:
     return score_manager.get_judgeLine_color()
 
 def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None):
-    global key_press_count,score_manager
+    global score_manager
     print("Player Start")
     root.title("Phigros Chart Player")
     score_manager = psm.Manager(phigros_chart_obj.note_num)
@@ -767,7 +768,7 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
             last_cfg = judgeLine_last_cfg_dict[judgeLine_cfg_key]
             draw_cfg = {
                 "fill":Get_judgeLine_Color(),
-                "width":int(h * 0.0075 * judgeLine_cfg["Disappear"]),
+                "width":int(h * 0.0075 * (judgeLine_cfg["Disappear"] if not judgeline_notransparent else 1.0)),
                 "smooth":True,
                 "tag":"judgeLine"
             }
