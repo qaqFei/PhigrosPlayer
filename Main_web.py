@@ -743,7 +743,6 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
                             )
                         else:
                             holdend_x,holdend_y = rotatenote_at_judgeLine_pos
-                            print(cfg["now_floorPosition"] + note_item.hold_length_px)
                         if cfg["now_floorPosition"] >= 0:
                             holdhead_pos = x,y
                         else:
@@ -865,13 +864,17 @@ root = web_canvas.WebCanvas(
     hidden=True
 )
 root.reg_event("closed",remove_font)
-w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
-root.resize(w,h)
-w_legacy,h_legacy = root.winfo_legacywindowwidth(),root.winfo_legacywindowheight()
-dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
-del w_legacy,h_legacy
-root.resize(w + dw_legacy,h + dh_legacy)
-root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
+if "-fullscreen" in argv:
+    w,h = root.winfo_screenwidth(),root.winfo_screenheight()
+    root._web.toggle_fullscreen()
+else:
+    w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+    root.resize(w,h)
+    w_legacy,h_legacy = root.winfo_legacywindowwidth(),root.winfo_legacywindowheight()
+    dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
+    del w_legacy,h_legacy
+    root.resize(w + dw_legacy,h + dh_legacy)
+    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
 print("Creating Canvas...")
 background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
