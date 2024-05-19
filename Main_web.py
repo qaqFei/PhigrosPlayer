@@ -579,9 +579,6 @@ def Show_Start():
         alpha -= step
         show_start.attributes("-alpha",alpha)
         sleep(step_time)
-    # SetParent(show_start_hwnd,0)
-    # show_start_cv.destroy()
-    # show_start.destroy()
     Thread(target=PlayerStart,daemon=True).start()
 
 def draw_ui(
@@ -865,7 +862,9 @@ root = web_canvas.WebCanvas(
     width=1,height=1,
     x=0,y=0,
     title="Phigros Chart Player",
+    hidden=True
 )
+root.reg_event("closed",remove_font)
 w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
 root.resize(w,h)
 w_legacy,h_legacy = root.winfo_legacywindowwidth(),root.winfo_legacywindowheight()
@@ -881,17 +880,12 @@ window_hwnd = root.winfo_hwnd()
 print(f"Window Hwnd: {window_hwnd}")
 window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
 SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
-process_quit = lambda:[root.destroy(),remove_font(),exec("raise SystemExit"),windll.kernel32.ExitProcess(0)]
 show_start = Tk()
 show_start.geometry(f"{w}x{h}+99999+99999")
-show_start.protocol("WM_DELETE_WINDOW",process_quit)
+show_start.protocol("WM_DELETE_WINDOW",lambda:[show_start.destroy(),root.destroy(),remove_font()])
 if not hidemouse: show_start.configure(cursor="watch")
-# root.protocol("WM_DELETE_WINDOW",process_quit)
-# show_start.bind("<FocusIn>",lambda e:root.focus_force())
-# root.focus_force()
 Resource = Load_Resource()
-Thread(target=Show_Start,daemon=True).start()
+Show_Start()
 Thread(target=loger,daemon=True).start()
-show_start.mainloop()
-while True:
-    sleep(60)
+root.loop_to_close()
+windll.kernel32.ExitProcess(0)

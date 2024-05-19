@@ -59,13 +59,14 @@ class WebCanvas:
             "x":x,
             "y":y
         }
-        if hidden:
-            self.withdraw()
+        self._destroyed = False
         self.debug = debug
         self._regims = {}
         self._JavaScript_WaitToExecute_CodeArray = []
-        threading.Thread(target=webview.start,kwargs={"debug":self.debug}).start()
+        threading.Thread(target=webview.start,kwargs={"debug":self.debug},daemon=True).start()
         self._init()
+        if hidden:
+            self.withdraw()
     
     def title(
         self,title:typing.Union[str,None]
@@ -438,7 +439,26 @@ class WebCanvas:
                     break
             if load_ok:
                 break
-            time.sleep(0.5)
+            time.sleep(0.2)
+    
+    def reg_event(
+        self,name:str,
+        callback:typing.Callable[[]]
+    ):
+        setattr(self._web.events,name,getattr(self._web.events,name) + callback)
+    
+    def loop_to_close(
+        self
+    ):
+        while True:
+            if self._destroyed:
+                return None
+            time.sleep(0.05)
+    
+    def _closed_callback(
+        self
+    ):
+        self._destroyed = True
 
     def _init(
         self
@@ -446,6 +466,7 @@ class WebCanvas:
         self._web.set_window_size(width=self._web_init_var["width"],height=self._web_init_var["height"])
         self._web.move(x=self._web_init_var["x"],y=self._web_init_var["y"])
         self._web_init_var = None
+        self._web.events.closed += self._closed_callback
         
         while True:
             self._web_hwnd = windll.user32.FindWindowW(None,self._web.title)
@@ -455,7 +476,7 @@ class WebCanvas:
         self._web_port = int(self._web._server.address.split(":")[2].split("/")[0])
         WebCanvas_FileServerHandler._canvas = self
         httpd = http.server.HTTPServer(("localhost",self._web_port + 1),WebCanvas_FileServerHandler)
-        threading.Thread(target=lambda:httpd.serve_forever(poll_interval=0.01)).start()
+        threading.Thread(target=lambda:httpd.serve_forever(poll_interval=0.01),daemon=True).start()
         
 if __name__ == "__main__":
     from sys import argv
@@ -473,5 +494,5 @@ if __name__ == "__main__":
             print(f"{i + 1} / {n}")
     wc.run_js_wait_code()
     wc.create_image("test",200,200,1920/4,1080/4)
-    import time
-    while 1:time.sleep(99999)
+    wc.loop_to_close()
+    windll.kernel32.ExitProcess(0)
