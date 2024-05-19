@@ -579,12 +579,16 @@ def Show_Start():
         alpha -= step
         show_start.attributes("-alpha",alpha)
         sleep(step_time)
+    def _f():
+        SetParent(show_start_hwnd,0)
+        show_start.destroy()
+    Thread(target=_f,daemon=True).start()
     Thread(target=PlayerStart,daemon=True).start()
 
 def draw_ui(
     process:float = 0.0,
     score:str = "0000000",
-    combo_state:bool = True,
+    combo_state:bool = False,
     combo:int = 0,
     now_time:str = "0:00/0:00",
     clear:bool = True,
@@ -595,13 +599,13 @@ def draw_ui(
     if background:
         draw_background()
     root.create_image("ProcessBar",-w + w * process,0,Resource["ProcessBar"].width,Resource["ProcessBar"].height,wait_execute=True)
-    root.create_text(text=score,x=w * 0.99,y=h * 0.005,textBaseline="top",textAlign="right",strokeStyle="white",wait_execute=True)
+    root.create_text(text=score,x=w * 0.99,y=h * 0.01,textBaseline="top",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
     if combo_state:
-        root.create_text(text=f"{combo}",x=w / 2,y=h * 0.001,textBaseline="top",textAlign="center",strokeStyle="white",wait_execute=True)
-        root.create_text(text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],x=w / 2,y=h * 0.055,textBaseline="bottom",textAlign="center",strokeStyle="white",wait_execute=True)
-    root.create_text(text=now_time,x=0,y=h * 0.00075,textBaseline="top",textAlign="left",strokeStyle="white",wait_execute=True)
-    root.create_text(text=chart_information["Name"],x=w * 0.01,y=h * 0.99,textBaseline="bottom",textAlign="left",strokeStyle="white",wait_execute=True)
-    root.create_text(text=chart_information["Level"],x=w * 0.99,y=h * 0.99,textBaseline="bottom",textAlign="right",strokeStyle="white",wait_execute=True)
+        root.create_text(text=f"{combo}",x=w / 2,y=h * 0.01,textBaseline="top",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
+        root.create_text(text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],x=w / 2,y=h * 0.1,textBaseline="bottom",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 100 / 0.75)}px sans-serif",wait_execute=True)
+    root.create_text(text=now_time,x=0,y=h * 0.01,textBaseline="top",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 175 / 0.75)}px sans-serif",wait_execute=True)
+    root.create_text(text=chart_information["Name"],x=w * 0.01,y=h * 0.99,textBaseline="bottom",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px sans-serif",wait_execute=True)
+    root.create_text(text=chart_information["Level"],x=w * 0.99,y=h * 0.99,textBaseline="bottom",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px sans-serif",wait_execute=True)
 
 def draw_background():
     root.create_image("background",0,0,w,h,wait_execute=True)
@@ -805,7 +809,7 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
             for note in judgeLine.notesAbove + judgeLine.notesBelow:
                 note_time = note.time * T
                 if note_time <= now_t:
-                    if now_t - note_time < effect_time:
+                    if now_t - note_time <= effect_time:
                         effect_process = (now_t - note_time) / effect_time
                         effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
                         effect_img_index = int(effect_process * (len(effect_img_lst) - 1))
@@ -823,6 +827,36 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
                             effect_img.width,effect_img.height,
                             wait_execute = True
                         )
+                    if note.type == Const.Note.HOLD:
+                        if note.hold_endtime + effect_time >= now_t:
+                            effect_times = []
+                            temp_time = note_time
+                            hold_effect_blocktime = (1 / judgeLine.bpm * 30)
+                            while True:
+                                temp_time += hold_effect_blocktime
+                                if temp_time >= note.hold_endtime:
+                                    break
+                                effect_times.append(temp_time)
+                            for temp_time in effect_times:
+                                if temp_time < now_t:
+                                    if now_t - temp_time <= effect_time:
+                                        effect_process = (now_t - temp_time) / effect_time
+                                        effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
+                                        effect_img_index = int(effect_process * (len(effect_img_lst) - 1))
+                                        effect_img = effect_img_lst[effect_img_index]
+                                        effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
+                                        will_show_effect_pos = judgeLine.get_datavar_move(temp_time / T,w,h)
+                                        will_show_effect_rotate = judgeLine.get_datavar_rotate(temp_time / T)
+                                        if is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
+                                        if is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
+                                        effect_pos = rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
+                                        root.create_image(
+                                            effect_imgname,
+                                            effect_pos[0] - effect_img.width / 2,
+                                            effect_pos[1] - effect_img.height / 2,
+                                            effect_img.width,effect_img.height,
+                                            wait_execute = True
+                                        )
 
         combo = Cal_Combo(now_t)
         process = int((now_t / audio_length) * w)
@@ -861,7 +895,7 @@ root = web_canvas.WebCanvas(
     width=1,height=1,
     x=0,y=0,
     title="Phigros Chart Player",
-    hidden=True
+    hidden=True,debug="-debug" in argv
 )
 root.reg_event("closed",remove_font)
 if "-fullscreen" in argv:
@@ -888,7 +922,8 @@ show_start.geometry(f"{w}x{h}+99999+99999")
 show_start.protocol("WM_DELETE_WINDOW",lambda:[show_start.destroy(),root.destroy(),remove_font()])
 if not hidemouse: show_start.configure(cursor="watch")
 Resource = Load_Resource()
-Show_Start()
+Thread(target=Show_Start,daemon=True).start()
 Thread(target=loger,daemon=True).start()
+show_start.mainloop()
 root.loop_to_close()
 windll.kernel32.ExitProcess(0)

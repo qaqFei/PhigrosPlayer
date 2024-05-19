@@ -334,7 +334,7 @@ class WebCanvas:
     ):
         text = self._process_code_string_syntax_tostring(text)
         code = self._set_style_fill_stroke(fillStyle,strokeStyle) + self._set_style_font_textAlign_textBaseline_direction(font,textAlign,textBaseline,direction) + f"\
-            ctx.strokeText(\"{text}\",{x},{y});\
+            ctx.fillText(\"{text}\",{x},{y});\
         "
         self.run_js_code(code,threading_,wait_execute)
     
