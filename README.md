@@ -1,4 +1,4 @@
-# 这是一个使用Tkinter实现的Phigros谱面的模拟器
+# 这是一个使用WebView实现的Phigros谱面的模拟器
 
 ## 安装依赖
 ```
@@ -20,25 +20,16 @@ python Main.py
 - 谱面中```Hold```无法生成对应的贴图
 - 判定线有严重的锯齿问题
 
-## 命令行参数
+## 命令行参数 (因更换WebView进行渲染 所以//nook的参数无法生效 后续会逐步实现的)
 - ```-hideconsole``` 隐藏控制台
-- ```-clear``` 让程序在清理临时目录完成后退出
-- ```-debug``` 显示定位点
+- ```-debug``` 显示定位点和Web调试工具 //nook
 - ```-combotips <text>``` 设置连击下的提示 默认为```Autoplay```
-- ```-fps <python-eval>``` 设置帧率 默认为```120``` tip:可以使用```-fps Const.INF```解除帧率限制
 - ```-showfps``` 在标题栏显示帧率
-- ```-loop``` 循环播放
 - ```-fullscreen``` 全屏
-- ```-hidemouse``` 隐藏鼠标
-- ```-nofcapline``` 去除```FC/AP```指示器 默认开启```FC/AP```指示器
-- ```-noclickeffect``` 关闭点击特效
-- ```-holdbody``` 显示```hold```的中间部分
-- ```-nojudgeline``` 不显示判定线
-- ```-debug-noshow-transparent-judgeline``` 在使用 ```-debug``` 时: 不显示透明度为```0```的判定线
-- ```-judgeline-notransparent``` 让判定线的```Disappear```始终为```1.0``` 也就是说不存在透明度
+- ```-hidemouse``` 隐藏鼠标 //nook
+- ```-nojudgeline``` 不显示判定线 //nook
+- ```-judgeline-notransparent``` 让判定线的```Disappear```始终为```1.0``` 也就是说不存在透明度 /nook
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途
 - 如有侵权 请联系删除: qaq_fei@163.com 或直接提issue
-
-###### 吐槽一句 tkinter.Canvas 效率感人

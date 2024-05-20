@@ -1,4 +1,4 @@
-from tkinter import Tk as _Tk,Toplevel as _Toplevel,Canvas
+from tkinter import Tk,Canvas
 from threading import Thread
 from ctypes import windll
 from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -25,35 +25,13 @@ import Find_Files
 import PlaySound
 import ConsoleWindow
 import psm
+import web_canvas
+
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
 
 hidemouse = "-hidemouse" in argv
-
-set_tkscale_ok = False
-try:
-    windll.shcore.SetProcessDpiAwareness(1)
-    ScaleFactor = windll.shcore.GetScaleFactorForDevice(0)
-    set_tkscale_ok = True
-except Exception as e:
-    print(f"Warning: {e}")
-
-class Tk(_Tk):
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        if set_tkscale_ok:
-            self.tk.call("tk","scaling",ScaleFactor / 75)
-        if hidemouse:
-            self.configure(cursor="none")
-
-class Toplevel(_Toplevel):
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        if set_tkscale_ok:
-            self.tk.call("tk","scaling",ScaleFactor / 75)
-        if hidemouse:
-            self.configure(cursor="none")
 
 selfdir = dirname(argv[0])
 if selfdir == "": selfdir = "."
@@ -80,14 +58,10 @@ print(f"Temp Dir: {temp_dir}")
 Image._open = Image.open
 Image.open = lambda fp,mode = "r",formats = None: [print(f"Loading Resource: {fp} ...") if temp_dir not in fp else None,Image._open(fp,mode,formats)][1]
 
-if "-clear" in argv:
-    windll.kernel32.ExitProcess(0)
-
 debug = "-debug" in argv
 show_holdbody = "-holdbody" in argv
 show_judgeline = "-nojudgeline" not in argv
 debug_noshow_transparent_judgeline = "-debug-noshow-transparent-judgeline" in argv
-judgeline_notransparent = "-judgeline-notransparent" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -233,7 +207,6 @@ else:
                 "Charter":all_inforamtion[keys]["Charter"] if "Charter" in all_inforamtion[keys] else "Unknow",
                 "BackgroundDim":float(all_inforamtion[keys]["BackgroundDim"] if "BackgroundDim" in all_inforamtion[keys] else 0.6)
             }
-        # print(keys,now_key)
     try:
         chart_information
     except NameError:
@@ -426,7 +399,7 @@ def get_all_angle_img(im:Image.Image,w:int,h:int) -> dict[int,Image.Image]:
     }
 
 def Load_Resource():
-    global ClickEffect_Size,Note_width
+    global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
     print("Loading Resource...")
     Note_width = int(PHIGROS_X * 1.5)
     Note_height_Tap = int(Note_width / 989 * 100)
@@ -455,11 +428,7 @@ def Load_Resource():
         },
         "Note_Click_Effect":{
             "Perfect":[
-                ImageTk.PhotoImage(Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png").resize((ClickEffect_Size,)*2))
-                for i in range(1,31)
-            ],
-            "Good":[
-                ImageTk.PhotoImage(Image.open(f"./Resources/Note_Click_Effect/Good/{i}.png").resize((ClickEffect_Size,)*2))
+                Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png").resize((ClickEffect_Size,)*2)
                 for i in range(1,31)
             ]
         },
@@ -470,7 +439,7 @@ def Load_Resource():
             "4":open("./Resources/Note_Click_Audio/Flick.wav","rb").read()
         },
         "ProcessBar":Image.new("RGB",(w,int(h / 125)),(145,)*3),
-        "Start":ImageTk.PhotoImage(Image.open("./Resources/Start.png").resize((w,h)))
+        "Start":Image.open("./Resources/Start.png").resize((w,h))
     }
     res_note_base_small_x = 4
     print("Loading Resource - resize note ...")
@@ -501,107 +470,55 @@ def Load_Resource():
             "Hold_End":get_all_angle_img(Resource["Notes_Base"]["Hold"]["Hold_End"],Note_width,Note_height_Hold_End)
         }
     }
-    print("Loading Resource - load note img to tk ...")
-    Resource["Notes"] = {
-        "Tap":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Tap"].items()},
-        "Tap_dub":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Tap_dub"].items()},
-        "Drag":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Drag"].items()},
-        "Drag_dub":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Drag_dub"].items()},
-        "Flick":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Flick"].items()},
-        "Flick_dub":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Flick_dub"].items()},
-        "Hold":{
-            "Hold_Head":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Hold"]["Hold_Head"].items()},
-            "Hold_Head_dub":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Hold"]["Hold_Head_dub"].items()},
-            "Hold_End":{key:ImageTk.PhotoImage(value) for key,value in Resource["Notes"]["Hold"]["Hold_End"].items()}
-        }
-    }
     print("Loading Resource - create processbar ...")
     ImageDraw.Draw(Resource["ProcessBar"]).rectangle((w * 0.998,0,w,int(h / 125)),fill=(255,)*3)
-    Resource["ProcessBar"] = ImageTk.PhotoImage(Resource["ProcessBar"])
+    Resource["ProcessBar"] = Resource["ProcessBar"]
+    for i in range(0,360):
+        root.reg_img(Resource["Notes"]["Tap"][i],f"Note_Tap_{i}")
+        root.reg_img(Resource["Notes"]["Tap_dub"][i],f"Note_Tap_dub_{i}")
+        root.reg_img(Resource["Notes"]["Drag"][i],f"Note_Drag_{i}")
+        root.reg_img(Resource["Notes"]["Drag_dub"][i],f"Note_Drag_dub_{i}")
+        root.reg_img(Resource["Notes"]["Flick"][i],f"Note_Flick_{i}")
+        root.reg_img(Resource["Notes"]["Flick_dub"][i],f"Note_Flick_dub_{i}")
+        root.reg_img(Resource["Notes"]["Hold"]["Hold_Head"][i],f"Note_Hold_Head_{i}")
+        root.reg_img(Resource["Notes"]["Hold"]["Hold_Head_dub"][i],f"Note_Hold_Head_dub_{i}")
+        root.reg_img(Resource["Notes"]["Hold"]["Hold_End"][i],f"Note_Hold_End_{i}")
+    for i in range(30):
+        root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
+    root.reg_img(Resource["ProcessBar"],"ProcessBar")
+    root.reg_img(Resource["Start"],"Start")
+    root.load_allimg()
     print("Loading Resource Successfully.")
-    if not hidemouse: root.configure(cursor="arrow")
-    if not hidemouse: show_start_toplevel.configure(cursor="arrow")
+    note_max_width = max(
+        [
+            Resource["Notes"]["Tap"][0].width,
+            Resource["Notes"]["Tap_dub"][0].width,
+            Resource["Notes"]["Drag"][0].width,
+            Resource["Notes"]["Drag_dub"][0].width,
+            Resource["Notes"]["Flick"][0].width,
+            Resource["Notes"]["Flick_dub"][0].width,
+            Resource["Notes"]["Hold"]["Hold_Head"][0].width,
+            Resource["Notes"]["Hold"]["Hold_Head_dub"][0].width,
+            Resource["Notes"]["Hold"]["Hold_End"][0].width
+        ]
+    )
+    note_max_height = max(
+        [
+            Resource["Notes"]["Tap"][0].height,
+            Resource["Notes"]["Tap_dub"][0].height,
+            Resource["Notes"]["Drag"][0].height,
+            Resource["Notes"]["Drag_dub"][0].height,
+            Resource["Notes"]["Flick"][0].height,
+            Resource["Notes"]["Flick_dub"][0].height,
+            Resource["Notes"]["Hold"]["Hold_Head"][0].height,
+            Resource["Notes"]["Hold"]["Hold_Head_dub"][0].height,
+            Resource["Notes"]["Hold"]["Hold_End"][0].height
+        ]
+    )
+    note_max_width_half = note_max_width / 2
+    note_max_height_half = note_max_height / 2
     root.deiconify()
     return Resource
-
-def draw_ui():
-    cv.delete("gui_widget")
-    cv.create_image(0,0,image=background_image,anchor="nw")
-    cv.create_image(-w,0,image=Resource["ProcessBar"],anchor="nw",tags=["ProcessBar","gui_widget"])
-    cv.create_text(w * 0.99,h * 0.005,text="0000000",anchor="ne",tags=["score","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 75)))
-    cv.create_text(w / 2,h * 0.001,text="0",anchor="n",fill="white",tags=["combo","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 70)),state="hidden")
-    cv.create_text(w / 2,h * 0.055,text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],anchor="n",fill="white",tags=["combo_under_tips","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),state="hidden")
-    cv.create_text(0,h * 0.00075,text="0:00/0:00",anchor="nw",fill="white",tags=["time","gui_widget"],font=("Source Han Sans & Saira Hybrid",int((w + h) / 175)))
-    cv.create_text(w * 0.01,h * 0.99,text=chart_information["Name"],anchor="sw",tags=["chart_name","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
-    cv.create_text(w * 0.99,h * 0.99,text=chart_information["Level"],anchor="se",tags=["level","gui_widget"],fill="white",font=("Source Han Sans & Saira Hybrid",int((w + h) / 125)))
-
-def Show_Start():
-    show_start_toplevel.overrideredirect(True)
-    show_start_cv = Canvas(show_start_toplevel,width=w,height=h,bg="white",highlightthickness=0)
-    show_start_cv.create_image(0,0,image=Resource["Start"],anchor="nw")
-    show_start_cv.pack()
-    show_start_toplevel.update()
-    show_start_toplevel_hwnd = int(show_start_toplevel.frame(),16)
-    Style = GetWindowLong(show_start_toplevel_hwnd,win32con.GWL_STYLE)
-    Style = Style &~win32con.WS_CAPTION &~win32con.WS_SYSMENU &~win32con.WS_SIZEBOX | win32con.WS_CHILD
-    SetWindowLong(show_start_toplevel_hwnd,win32con.GWL_STYLE,Style) ; del Style
-    SetParent(show_start_toplevel_hwnd,window_hwnd)
-    show_start_toplevel.geometry("+0+0")
-    gr,step_time = Get_Animation_Gr(60,1.25)
-    alpha = 0.0
-    for step in gr:
-        alpha += step
-        show_start_toplevel.attributes("-alpha",alpha)
-        sleep(step_time)
-    draw_ui()
-    sleep(0.5)
-    for step in gr:
-        alpha -= step
-        show_start_toplevel.attributes("-alpha",alpha)
-        sleep(step_time)
-    show_start_cv.destroy()
-    show_start_toplevel.destroy()
-    Thread(target=PlayerStart,daemon=True).start()
-
-def Show_Note_Click_Effect(x,y,t:typing.Literal["Perfect","Good"]):
-    if "-noclickeffect" in argv: return None
-    last_id = None
-    effect_time = 0.5
-    effect_ims = Resource["Note_Click_Effect"][t]
-    effect_step_time = effect_time / len(effect_ims)
-    def nocache_create_a_cache():
-        nonlocal last_id
-        ids = []
-        for im in effect_ims:
-            st = time()
-            id_ = cv.create_image(x,y,image=im,anchor="center")
-            if last_id is not None:
-                cv.moveto(last_id,-w,-h)
-                ids.append(last_id)
-            last_id = id_
-            sleep(effect_step_time - min(time() - st,effect_step_time))
-        cv.moveto(last_id,-w,-h)
-        ids.append(last_id)
-        clickeffect_cache.append([ids,t,False])
-    if not any([not item[2] and item[1] == t for item in clickeffect_cache]):
-        nocache_create_a_cache()
-    else:
-        try:
-            index = [item[2] for item in clickeffect_cache].index(False)
-        except ValueError:
-            nocache_create_a_cache()
-            return None
-        clickeffect_cache[index][2] = True #using
-        last_imid = None
-        for imid in clickeffect_cache[index][0]:
-            st = time()
-            cv.moveto(imid,x - ClickEffect_Size / 2,y - ClickEffect_Size / 2)
-            if last_imid is not None:
-                cv.moveto(last_imid,-w,-h)
-            last_imid = imid
-            sleep(effect_step_time - min(time() - st,effect_step_time))
-        cv.moveto(last_imid,-w,-h)
-        clickeffect_cache[index][2] = False
 
 def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:typing.Union[int,float]):
     for judgeLine_cfg_key in judgeLine_Configs:
@@ -652,62 +569,194 @@ def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects.judgeLine,T:float,time:f
 def Get_judgeLine_Color() -> str:
     return score_manager.get_judgeLine_color()
 
-def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None):
+def Show_Start():
+    global res_start_tk
+    res_start_tk = ImageTk.PhotoImage(Resource["Start"])
+    show_start.overrideredirect(True)
+    show_start_cv = Canvas(show_start,width=w,height=h,bg="white",highlightthickness=0)
+    show_start_cv.create_image(0,0,image=res_start_tk,anchor="nw")
+    show_start_cv.pack()
+    show_start.update()
+    show_start_hwnd = int(show_start.frame(),16)
+    Style = GetWindowLong(show_start_hwnd,win32con.GWL_STYLE)
+    Style = Style &~win32con.WS_CAPTION &~win32con.WS_SYSMENU &~win32con.WS_SIZEBOX | win32con.WS_CHILD
+    SetWindowLong(show_start_hwnd,win32con.GWL_STYLE,Style) ; del Style
+    SetParent(show_start_hwnd,window_hwnd)
+    show_start.geometry("+0+0")
+    gr,step_time = Get_Animation_Gr(60,1.25)
+    alpha = 0.0
+    for step in gr:
+        alpha += step
+        show_start.attributes("-alpha",alpha)
+        sleep(step_time)
+    draw_background()
+    draw_ui()
+    root.run_js_wait_code()
+    sleep(0.5)
+    for step in gr:
+        alpha -= step
+        show_start.attributes("-alpha",alpha)
+        sleep(step_time)
+    def _f():
+        SetParent(show_start_hwnd,0)
+        show_start.destroy()
+    Thread(target=_f,daemon=True).start()
+    Thread(target=PlayerStart,daemon=True).start()
+
+def draw_ui(
+    process:float = 0.0,
+    score:str = "0000000",
+    combo_state:bool = False,
+    combo:int = 0,
+    now_time:str = "0:00/0:00",
+    clear:bool = True,
+    background:bool = True
+):
+    if clear:
+        root.clear_canvas(wait_execute=True)
+    if background:
+        draw_background()
+    root.create_image("ProcessBar",-w + w * process,0,Resource["ProcessBar"].width,Resource["ProcessBar"].height,wait_execute=True)
+    root.create_text(text=score,x=w * 0.99,y=h * 0.01,textBaseline="top",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
+    if combo_state:
+        root.create_text(text=f"{combo}",x=w / 2,y=h * 0.01,textBaseline="top",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
+        root.create_text(text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],x=w / 2,y=h * 0.1,textBaseline="bottom",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 100 / 0.75)}px sans-serif",wait_execute=True)
+    root.create_text(text=now_time,x=0,y=h * 0.01,textBaseline="top",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 175 / 0.75)}px sans-serif",wait_execute=True)
+    root.create_text(text=chart_information["Name"],x=w * 0.01,y=h * 0.99,textBaseline="bottom",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px sans-serif",wait_execute=True)
+    root.create_text(text=chart_information["Level"],x=w * 0.99,y=h * 0.99,textBaseline="bottom",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px sans-serif",wait_execute=True)
+
+def draw_background():
+    root.create_image("background",0,0,w,h,wait_execute=True)
+
+def Cal_Combo(now_time:float) -> int:
+    combo = 0
+    for judgeLine in phigros_chart_obj.judgeLineList:
+        T = 1.875 / judgeLine.bpm
+        for note in judgeLine.notesAbove + judgeLine.notesBelow:
+            if note.time * T <= now_time and note.type != Const.Note.HOLD:
+                combo += 1
+            elif note.type == Const.Note.HOLD and note.hold_endtime <= now_time:
+                combo += 1
+    return combo
+
+def Note_CanRender(
+        note_item:Chart_Objects.note,
+        x:float,y:float,
+        hold_points:typing.Union[typing.Tuple[
+            typing.Tuple[float,float],
+            typing.Tuple[float,float],
+            typing.Tuple[float,float],
+            typing.Tuple[float,float]
+        ],None] = None) -> bool:
+    if hold_points is None: # type != HOLD
+        if (
+            (0 < x < w and 0 < y < h) or
+            (0 < x - note_max_width_half < w and 0 < y - note_max_height_half < h) or 
+            (0 < x - note_max_width_half < w and 0 < y + note_max_height_half < h) or
+            (0 < x + note_max_width_half < w and 0 < y - note_max_height_half < h) or
+            (0 < x + note_max_width_half < w and 0 < y + note_max_height_half < h)
+        ):
+            return True
+        return False
+    else:
+        if any((point_in_screen(point) for point in hold_points)):
+            return True
+        return any(batch_is_intersect(
+            [
+                [hold_points[0],hold_points[1]],
+                [hold_points[1],hold_points[2]],
+                [hold_points[2],hold_points[3]],
+                [hold_points[3],hold_points[0]]
+            ],
+            [
+                [(0,0),(w,0)],[(0,0),(0,h)],
+                [(w,0),(w,h)],[(0,h),(w,h)]
+            ]
+        ))
+
+def batch_is_intersect(
+    lines_group_1:typing.List[typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ]],
+    lines_group_2:typing.List[typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ]]
+) -> typing.Generator[bool,None,None]:
+    for i in lines_group_1:
+        for j in lines_group_2:
+            yield is_intersect(i,j)
+
+def is_intersect(
+    line_1:typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ],
+    line_2:typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ]
+) -> bool:
+    if (
+        max(line_1[0][0],line_1[1][0]) < min(line_2[0][0],line_2[1][0]) or
+        max(line_2[0][0],line_2[1][0]) < min(line_1[0][0],line_1[1][0]) or
+        max(line_1[0][1],line_1[1][1]) < min(line_2[0][1],line_2[1][1]) or
+        max(line_2[0][1],line_2[1][1]) < min(line_1[0][1],line_1[1][1])
+    ):
+        return False
+    else:
+        return True
+
+def point_in_screen(point:typing.Tuple[float,float]) -> bool:
+    return 0 < point[0] < w and 0 < point[1] < h
+
+def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
     global score_manager
     print("Player Start")
     root.title("Phigros Chart Player")
     score_manager = psm.Manager(phigros_chart_obj.note_num)
     def judgeLine_Animation():
         gr,step_time = Get_Animation_Gr(60,0.5)
-        last_id = None
         val = 0.0
         for step in gr:
             st = time()
             val += step
-            last_id_ = cv.create_line(
+            draw_ui()
+            root.create_line(
                 w / 2 - (val * w / 2),h / 2,
                 w / 2 + (val * w / 2),h / 2,
-                fill=Get_judgeLine_Color(),
-                width=h * 0.0075,
-                smooth=True,
-                tag="judgeLine_start_animation"
+                strokeStyle = Get_judgeLine_Color(),
+                lineWidth = h * 0.0075,
+                wait_execute = True
             )
-            if last_id is not None:
-                cv.delete(last_id)
-            last_id = last_id_
+            root.run_js_wait_code()
             sleep(step_time - min(time() - st,step_time))
     if again:
-        again_toplevel.overrideredirect(True)
-        again_toplevel.update()
-        again_toplevel_hwnd = int(again_toplevel.frame(),16)
+        again_window.overrideredirect(True)
+        again_window.update()
+        again_toplevel_hwnd = int(again_window.frame(),16)
         Style = GetWindowLong(again_toplevel_hwnd,win32con.GWL_STYLE)
         Style = Style &~win32con.WS_CAPTION &~win32con.WS_SYSMENU &~win32con.WS_SIZEBOX | win32con.WS_CHILD
         SetWindowLong(again_toplevel_hwnd,win32con.GWL_STYLE,Style) ; del Style
         SetParent(again_toplevel_hwnd,window_hwnd)
-        again_toplevel.geometry("+0+0")
-        again_toplevel.deiconify()
+        again_window.geometry("+0+0")
+        again_window.deiconify()
         root.focus_force()
         gr,step_time = Get_Animation_Gr(60,0.75)
         alpha = 0.0
         for step in gr:
             alpha += step
-            again_toplevel.attributes("-alpha",alpha)
+            again_window.attributes("-alpha",alpha)
             sleep(step_time)
-        cv.delete("note")
-        cv.delete("judgeLine")
-        cv.itemconfigure("score",text="0000000")
-        cv.itemconfigure("combo",text="0")
-        cv.itemconfigure("time",text="0:00/0:00")
-        cv.itemconfigure("combo",state="hidden")
-        cv.itemconfigure("combo_under_tips",state="hidden")
-        cv.move("ProcessBar",-w,0)
+        root.clear_canvas()
         sleep(0.2)
         Thread(target=judgeLine_Animation,daemon=True).start()
         for step in gr:
             alpha -= step
-            again_toplevel.attributes("-alpha",alpha)
+            again_window.attributes("-alpha",alpha)
             sleep(step_time)
-        again_toplevel.destroy()
+        again_window.destroy()
     else:
         judgeLine_Animation()
     
@@ -730,32 +779,16 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
     }
     mixer.music.play()
     while not mixer.music.get_busy(): pass
-    fps = 120
-    if "-fps" in argv:
-        try:
-            fps = eval(argv[argv.index("-fps") + 1])
-            if fps > 144 and fps != float("inf"):
-                fps = 144
-        except Exception:
-            fps = 120
-    ids = {}
-    combo = 0
-    score = "0000000"
-    last_time_text = "0:00/0:00"
-    deleted_start_animation_judgeLine = False
-    process_xpos = 0
-    judgeLine_last_cfg_dict = {item:None for item in judgeLine_Configs.keys()}
-    judgeLine_draw_ids_dict = {item:None for item in judgeLine_Configs.keys()}
-    cal_fps_block_size = fps / 15 if fps != float("inf") else 60 / 15
+    cal_fps_block_size = 10
     last_cal_fps_time = time()
     time_block_render_count = 0
-    combo_or_score_changed = False
-    combo_widget_state = "hidden"
     while True:
         st = time()
-        # show_start_time += randint(-25,25) / 1000 #random offset
         now_t = time() - show_start_time
         Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
+        root.clear_canvas(wait_execute=True)
+        draw_background()
+
         for judgeLine_cfg_key in judgeLine_Configs:
             judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
             judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
@@ -765,54 +798,23 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
             ]
-            last_cfg = judgeLine_last_cfg_dict[judgeLine_cfg_key]
-            draw_cfg = {
-                "fill":Get_judgeLine_Color(),
-                "width":int(h * 0.0075 * (judgeLine_cfg["Disappear"] if not judgeline_notransparent else 1.0)),
-                "smooth":True,
-                "tag":"judgeLine"
-            }
-            if last_cfg != (judgeLine_DrawPos,draw_cfg,judgeLine_cfg["Rotate"]):
-                will_delete_id = judgeLine_draw_ids_dict[judgeLine_cfg_key]
-                this_judgeLine_draw_ids = []
-                if show_judgeline and draw_cfg["width"] != 0.0:
-                    this_judgeLine_draw_ids.append(
-                        cv.create_line(
-                            *judgeLine_DrawPos,**draw_cfg
-                        )
-                    )
-                if debug:
-                    if not (draw_cfg["width"] == 0.0 and debug_noshow_transparent_judgeline):
-                        this_judgeLine_draw_ids.append(
-                            cv.create_rectangle(
-                                judgeLine_cfg["Pos"][0] - PHIGROS_X / 12.5,
-                                judgeLine_cfg["Pos"][1] - PHIGROS_X / 12.5,
-                                judgeLine_cfg["Pos"][0] + PHIGROS_X / 12.5,
-                                judgeLine_cfg["Pos"][1] + PHIGROS_X / 12.5,
-                                fill="#ee82ee",outline="",tag=draw_cfg["tag"]
-                            )
-                        )
-                        this_judgeLine_draw_ids.append(
-                            cv.create_text(
-                                *rotate_point(*judgeLine_cfg["Pos"],- 90 - judgeLine_cfg["Rotate"],PHIGROS_X / 3.5),
-                                text=f"{judgeLine.id}",fill="#feffa9",
-                                font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),
-                                tag=draw_cfg["tag"]
-                            )
-                        )
-                judgeLine_draw_ids_dict.update({judgeLine_cfg_key:this_judgeLine_draw_ids})
-                judgeLine_last_cfg_dict[judgeLine_cfg_key] = (judgeLine_DrawPos,draw_cfg,judgeLine_cfg["Rotate"])
-                if will_delete_id is not None and len(will_delete_id) != 0:
-                    cv.delete(*will_delete_id)
-            if not deleted_start_animation_judgeLine:
-                cv.delete("judgeLine_start_animation")
-                deleted_start_animation_judgeLine = True
-            judgeLine_notes_above = judgeLine.notesAbove
-            judgeLine_notes_below = judgeLine.notesBelow
+            judgeLine_strokeStyle = (254,255,169,judgeLine_cfg["Disappear"])
+            root.create_line(
+                *judgeLine_DrawPos,
+                lineWidth = h * 0.0075,
+                strokeStyle=f"rgba{judgeLine_strokeStyle}",
+                wait_execute = True
+            )
+            
             def process(notes_list:list[Chart_Objects.note],t:int):
-                nonlocal combo,score,combo_or_score_changed,combo_widget_state
                 for note_item in notes_list:
-                    if note_item.clicked and (note_item.type != Const.Note.HOLD or note_item.hold_end_clicked):
+                    this_noteitem_clicked = note_item.time * this_judgeLine_T < now_t
+                    if this_noteitem_clicked and not note_item.clicked:
+                        note_item.clicked = True
+                        Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][str(note_item.type)],),daemon=True).start()
+                    if note_item.type != Const.Note.HOLD and this_noteitem_clicked:
+                        continue
+                    elif note_item.type == Const.Note.HOLD and now_t > note_item.hold_endtime:
                         continue
                     cfg = {
                         "note":note_item,
@@ -838,215 +840,128 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                             holdhead_pos = x,y
                         else:
                             holdhead_pos = rotatenote_at_judgeLine_pos
-                        holdbody_range = [
+                        holdbody_range = (
                             rotate_point(*holdhead_pos,judgeLine_to_note_rotate_angle - 90,Note_width / 2),
                             rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_angle - 90,Note_width / 2),
                             rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_angle + 90,Note_width / 2),
                             rotate_point(*holdhead_pos,judgeLine_to_note_rotate_angle + 90,Note_width / 2),
-                        ]
-                        holdbody_kwargs = {
-                            "fill":"#0078d7",
-                            "outline":"",
-                            "tag":f"note_{note_item.id}_body"
-                        }
+                        )
                     note_type = {
                         Const.Note.TAP:"Tap",
                         Const.Note.DRAG:"Drag",
                         Const.Note.HOLD:"Hold",
                         Const.Note.FLICK:"Flick"
                     }[note_item.type]
-                    render_range = 1.2
                     if (
-                            -w * (render_range - 1.0) < x < render_range * w
-                            and -h * (render_range - 1.0) < y < render_range * h
-                        ) or note_item.rendered:
-                        if not note_item.clicked or not note_item.hold_end_clicked:
-                            if note_item.__hash__() not in ids:
-                                judgeLine_rotate_integer = int(judgeLine_cfg["Rotate"]) % 360
-                                if note_item.type != Const.Note.HOLD:
-                                    this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
-                                else:
-                                    this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
-                                    this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"][judgeLine_rotate_integer]
-                                ids.update(
-                                    {
-                                        note_item.__hash__():[cv.create_image(
-                                            x,y,
-                                            image=this_note_img,
-                                            anchor="center",tag=f"note_{note_item.id}"
-                                        ),t,
-                                        this_note_img.width(),
-                                        this_note_img.height(),
-                                        x,y,None if note_item.type != Const.Note.HOLD else [
-                                            cv.create_image(
-                                                holdend_x,holdend_y,image=this_note_img_end,
-                                                anchor="center",tag=f"note_{note_item.id}_end"
-                                            ),
-                                            this_note_img_end.width(),
-                                            this_note_img_end.height(),
-                                            holdend_x,holdend_y,
-                                            cv.create_polygon(
-                                                *holdbody_range,**holdbody_kwargs
-                                            ) if show_holdbody else None
-                                        ],judgeLine_rotate_integer]
-                                    }
-                                )
-                                if debug:
-                                    cv.create_rectangle(
-                                        x - PHIGROS_X / 12.5,y - PHIGROS_X / 12.5,
-                                        x + PHIGROS_X / 12.5,y + PHIGROS_X / 12.5,
-                                        fill="#00ff00",outline="",tag=f"note_{note_item.id}"
-                                    )
-                                    cv.create_text(
-                                        x,y - PHIGROS_X / 3.5,
-                                        text=f"{note_item}",fill="#00ffff",
-                                        font=("Source Han Sans & Saira Hybrid",int((w + h) / 100)),
-                                        tags=[f"note_{note_item.id}",f"note_{note_item.id}_debug_id"]
-                                    )
-                                loger_queue.put(f"Create New Note: {note_item}")
-                                note_item.rendered = True
-                            else:
-                                try:
-                                    data = ids[note_item.__hash__()]
-                                    judgeLine_rotate_integer = int(judgeLine_cfg["Rotate"]) % 360
-                                    if judgeLine_rotate_integer < 0: 
-                                        judgeLine_rotate_integer += 360
-                                    if judgeLine_rotate_integer < 0: 
-                                        judgeLine_rotate_integer += 360
-                                    if judgeLine_rotate_integer != data[7]:
-                                        if note_item.type != Const.Note.HOLD:
-                                            this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
-                                        else:
-                                            this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
-                                            this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"][judgeLine_rotate_integer]
-                                        cv.itemconfigure(
-                                            data[0],image=this_note_img
-                                        )
-                                        if note_item.type == Const.Note.HOLD:
-                                            cv.itemconfigure(
-                                                data[6][0],image=this_note_img_end
-                                            )
-                                        data[7] = judgeLine_rotate_integer
-                                    if data[4] != x or data[5] != y:
-                                        if not note_item.hold_end_clicked:
-                                            cv.moveto(
-                                                f"note_{note_item.id}",
-                                                x - data[2] / 2,
-                                                y - data[3] / 2
-                                            )
-                                        if note_item.type == Const.Note.HOLD:
-                                            hold_data = data[6]
-                                            cv.moveto(
-                                                f"note_{note_item.id}_end",
-                                                holdend_x - hold_data[1] / 2,
-                                                holdend_y - hold_data[2] / 2
-                                            )
-                                            if show_holdbody:
-                                                will_delete_id_holdbody = hold_data[5]
-                                                hold_data[5] = cv.create_polygon(
-                                                    *holdbody_range,**holdbody_kwargs
-                                                )
-                                                cv.delete(will_delete_id_holdbody)
-                                            hold_data[3],hold_data[4] = holdend_x,holdend_y
-                                        data[4],data[5] = x,y
-                                except KeyError:
-                                    pass
-                    def add_note_event(event:psm.psm_event_type):
-                        nonlocal combo,score,combo_or_score_changed,combo_widget_state
-                        data_bak = (combo,score)
-                        score_manager.add_event(event)
-                        combo = score_manager.get_combo()
-                        loger_queue.put(f"Destroy Note: {note_item}")
-                        score = score_manager.get_stringscore(score_manager.get_score())
-                        if data_bak != (combo,score):
-                            combo_or_score_changed = True
-                            if combo >= 3:
-                                if combo_widget_state != "normal":
-                                    cv.itemconfigure("combo",state="normal")
-                                    cv.itemconfigure("combo_under_tips",state="normal")
-                                    combo_widget_state = "normal"
-                            elif combo < 3:
-                                if combo_widget_state != "hidden":
-                                    cv.itemconfigure("combo",state="hidden")
-                                    cv.itemconfigure("combo_under_tips",state="hidden")
-                                    combo_widget_state = "hidden"
-                    def show_clickeffect(note_item:Chart_Objects.note,effect_type:typing.Literal["Perfect","Good"]):
-                        will_show_effect_pos = judgeLine.get_datavar_move(note_item.time,w,h)
-                        will_show_effect_rotate = judgeLine.get_datavar_rotate(note_item.time)
+                        Note_CanRender(note_item,x,y)
+                        if note_item.type != Const.Note.HOLD
+                        else Note_CanRender(note_item,x,y,holdbody_range)
+                    ):
+                        judgeLine_rotate_integer = int(judgeLine_cfg["Rotate"]) % 360
+                        if note_item.type != Const.Note.HOLD:
+                            this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
+                            this_note_imgname = f"Note_{note_type}" + ("_dub" if note_item.morebets else "") + f"_{judgeLine_rotate_integer}"
+                        else:
+                            this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
+                            this_note_imgname = f"Note_{note_type}" + "_Head" + ("_dub" if note_item.morebets else "") + f"_{judgeLine_rotate_integer}"
+                            this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"][judgeLine_rotate_integer]
+                            this_note_imgname_end = f"Note_{note_type}" + "_End"+ f"_{judgeLine_rotate_integer}"
+                        if not (note_item.type == Const.Note.HOLD and note_item.time * this_judgeLine_T < now_t):
+                            root.create_image(
+                                this_note_imgname,
+                                x - this_note_img.width / 2,
+                                y - this_note_img.height / 2,
+                                this_note_img.width,this_note_img.height,
+                                wait_execute = True
+                            )
+                        if note_item.type == Const.Note.HOLD:
+                            root.create_image(
+                                this_note_imgname_end,
+                                holdend_x - this_note_img_end.width / 2,
+                                holdend_y - this_note_img_end.height / 2,
+                                this_note_img_end.width,this_note_img_end.height,
+                                wait_execute = True
+                            )
+                            root.create_polygon(
+                                points=holdbody_range,
+                                fillStyle="#0078d7",
+                                strokeStyle="#00000000",
+                                wait_execute = True
+                            )
+                        note_item.rendered = True
+            process(judgeLine.notesAbove,1)
+            process(judgeLine.notesBelow,-1)
+
+        effect_time = 0.5
+        for judgeLine in phigros_chart_obj.judgeLineList:
+            T = 1.875 / judgeLine.bpm
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                note_time = note.time * T
+                if note_time <= now_t:
+                    if now_t - note_time <= effect_time:
+                        effect_process = (now_t - note_time) / effect_time
+                        effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
+                        effect_img_index = int(effect_process * (len(effect_img_lst) - 1))
+                        effect_img = effect_img_lst[effect_img_index]
+                        effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
+                        will_show_effect_pos = judgeLine.get_datavar_move(note.time,w,h)
+                        will_show_effect_rotate = judgeLine.get_datavar_rotate(note.time)
                         if is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
                         if is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
-                        Thread(
-                                target=Show_Note_Click_Effect,
-                                args=(
-                                    *rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note_item.positionX * PHIGROS_X),
-                                    effect_type
-                                )
-                               ).start()
-                    def click_note(note_item:Chart_Objects.note,event:typing.Literal["perfect","good"]):
-                        nonlocal combo,score,combo_or_score_changed
-                        if (
-                                (not note_item.clicked)
-                                and (this_judgeLine_T * note_item.time <= now_t)
-                            ):
-                                cv.delete(f"note_{note_item.id}")
-                                if note_item.type != Const.Note.HOLD:
-                                    add_note_event(event)
-                                    try:
-                                        ids.pop(note_item.__hash__())
-                                    except KeyError:
-                                        pass
-                                else:
-                                    note_item.note_last_show_hold_effect_time = time()
-                                show_clickeffect(note_item,event[0].upper() + event[1:]) #perfect -> Perfect / good -> Good
-                                Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][str(note_item.type)],),daemon=True).start()
-                                note_item.clicked = True
-                    if (
-                            (not note_item.clicked)
-                            and (this_judgeLine_T * note_item.time <= now_t)
-                        ):
-                        click_note(note_item,"perfect")
-                    elif (
-                        note_item.clicked
-                        and note_item.type == Const.Note.HOLD
-                        and note_item.hold_endtime <= now_t
-                        and not note_item.hold_end_clicked
-                    ):
-                        cv.delete(f"note_{note_item.id}_end")
-                        if show_holdbody:
-                            cv.delete(f"note_{note_item.id}_body")
-                        add_note_event("perfect")
-                        note_item.hold_end_clicked = True
-                    elif (
-                        note_item.clicked
-                        and note_item.type == Const.Note.HOLD
-                        and note_item.hold_endtime > now_t
-                        and not note_item.hold_end_clicked
-                    ):
-                        if time() - note_item.note_last_show_hold_effect_time >= (1 / judgeLine.bpm * 30):
-                            note_item.note_last_show_hold_effect_time = time()
-                            Thread(
-                                    target=Show_Note_Click_Effect,
-                                    args=(
-                                        *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X),
-                                        "Perfect"
-                                    )
-                                ).start()
-            process(judgeLine_notes_above,1)
-            process(judgeLine_notes_below,-1)
-        now_process_xpos = int((now_t / audio_length) * w)
-        if now_process_xpos != process_xpos:
-            process_xpos = now_process_xpos
-            cv.moveto("ProcessBar",process_xpos - w,0)
+                        effect_pos = rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
+                        root.create_image(
+                            effect_imgname,
+                            effect_pos[0] - effect_img.width / 2,
+                            effect_pos[1] - effect_img.height / 2,
+                            effect_img.width,effect_img.height,
+                            wait_execute = True
+                        )
+                    if note.type == Const.Note.HOLD:
+                        if note.hold_endtime + effect_time >= now_t:
+                            effect_times = []
+                            temp_time = note_time
+                            hold_effect_blocktime = (1 / judgeLine.bpm * 30)
+                            while True:
+                                temp_time += hold_effect_blocktime
+                                if temp_time >= note.hold_endtime:
+                                    break
+                                effect_times.append(temp_time)
+                            for temp_time in effect_times:
+                                if temp_time < now_t:
+                                    if now_t - temp_time <= effect_time:
+                                        effect_process = (now_t - temp_time) / effect_time
+                                        effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
+                                        effect_img_index = int(effect_process * (len(effect_img_lst) - 1))
+                                        effect_img = effect_img_lst[effect_img_index]
+                                        effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
+                                        will_show_effect_pos = judgeLine.get_datavar_move(temp_time / T,w,h)
+                                        will_show_effect_rotate = judgeLine.get_datavar_rotate(temp_time / T)
+                                        if is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
+                                        if is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
+                                        effect_pos = rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
+                                        root.create_image(
+                                            effect_imgname,
+                                            effect_pos[0] - effect_img.width / 2,
+                                            effect_pos[1] - effect_img.height / 2,
+                                            effect_img.width,effect_img.height,
+                                            wait_execute = True
+                                        )
+
+        combo = Cal_Combo(now_t)
+        process = int((now_t / audio_length) * w)
         time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
-        if time_text != last_time_text:
-            last_time_text = time_text
-            cv.itemconfigure("time",text=time_text)
+        draw_ui(
+            process=process,
+            score=score_manager.get_stringscore(combo * (1000000 / phigros_chart_obj.note_num)),
+            combo_state=combo >= 3,
+            combo=combo,
+            now_time=time_text,
+            clear=False,
+            background=False
+        )
         if not mixer.music.get_busy():
             break
-        if combo_or_score_changed:
-            cv.itemconfigure("score",text=f"{score}")
-            cv.itemconfigure("combo",text=f"{combo}")
-            combo_or_score_changed = False
+        root.run_js_wait_code()
         time_block_render_count += 1
         this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
         offset_judge_range = 66.666667 #ms
@@ -1060,55 +975,43 @@ def PlayerStart(again:bool=False,again_toplevel:typing.Union[None,Toplevel]=None
                 except ZeroDivisionError:
                     root.title(f"Phigros Chart Player - FPS: inf")
             last_cal_fps_time,time_block_render_count = time(),0
-        sleep(1 / fps - min(time() - st,1 / fps))
-    print("Player Stopped")
-    if "-loop" in argv:
-        Load_Chart_Object()
-        again_toplevel = Toplevel(root)
-        again_toplevel.geometry(f"{w}x{h}+99999+99999")
-        again_toplevel.withdraw()
-        again_toplevel.protocol("WM_DELETE_WINDOW",lambda:[root.destroy(),remove_font()])
-        if not hidemouse: again_toplevel.configure(cursor="watch")
-        again_toplevel.bind("<FocusIn>",lambda e:root.focus_force())
-        again_toplevel["bg"] = "#0078d7"
-        Thread(target=PlayerStart,args=(True,again_toplevel),daemon=True).start()
-    else:
-        sleep(1.25)
-        process_quit()
 
 print("Loading Window...")
-root = Tk()
-root.withdraw()
-root["bg"] = "black"
-root.title(f"Phigros Chart Player")
-root.iconbitmap(".\\icon.ico")
-if not hidemouse: root.configure(cursor="watch")
+# root.iconbitmap(".\\icon.ico")
+# if not hidemouse: root.configure(cursor="watch")
+root = web_canvas.WebCanvas(
+    width=1,height=1,
+    x=0,y=0,
+    title="Phigros Chart Player",
+    hidden=True,debug="-debug" in argv
+)
+root.reg_event("closed",remove_font)
 if "-fullscreen" in argv:
     w,h = root.winfo_screenwidth(),root.winfo_screenheight()
-    root.attributes("-fullscreen",True)
+    root._web.toggle_fullscreen()
 else:
     w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
-root.geometry(f"{w}x{h}+{int(root.winfo_screenwidth() / 2 - w / 2)}+{int(root.winfo_screenheight() / 2 - h / 2)}")
-root.resizable(False,False)
+    root.resize(w,h)
+    w_legacy,h_legacy = root.winfo_legacywindowwidth(),root.winfo_legacywindowheight()
+    dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
+    del w_legacy,h_legacy
+    root.resize(w + dw_legacy,h + dh_legacy)
+    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
 print("Creating Canvas...")
-cv = Canvas(root,width=w,height=h,bg="black",highlightthickness=0)
-background_image = ImageTk.PhotoImage(ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"]))
-cv.pack()
-root.update()
+background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
+root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
-window_hwnd = int(root.frame(),16)
+window_hwnd = root.winfo_hwnd()
 print(f"Window Hwnd: {window_hwnd}")
 window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
 SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
-process_quit = lambda:[root.destroy(),remove_font(),exec("raise SystemExit"),windll.kernel32.ExitProcess(0)]
-show_start_toplevel = Toplevel(root)
-show_start_toplevel.geometry(f"{w}x{h}+99999+99999")
-show_start_toplevel.protocol("WM_DELETE_WINDOW",process_quit)
-if not hidemouse: show_start_toplevel.configure(cursor="watch")
-root.protocol("WM_DELETE_WINDOW",process_quit)
-show_start_toplevel.bind("<FocusIn>",lambda e:root.focus_force())
-root.focus_force()
+show_start = Tk()
+show_start.geometry(f"{w}x{h}+99999+99999")
+show_start.protocol("WM_DELETE_WINDOW",lambda:[show_start.destroy(),root.destroy(),remove_font()])
+if not hidemouse: show_start.configure(cursor="watch")
 Resource = Load_Resource()
 Thread(target=Show_Start,daemon=True).start()
 Thread(target=loger,daemon=True).start()
-root.mainloop()
+show_start.mainloop()
+root.loop_to_close()
+windll.kernel32.ExitProcess(0)
