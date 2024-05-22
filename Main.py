@@ -965,7 +965,7 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
         time_block_render_count += 1
         this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
         offset_judge_range = 66.666667 #ms
-        if abs(music_offset := this_music_pos - now_t * 1000) >= offset_judge_range:
+        if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
             show_start_time -= music_offset / 1000
             loger_queue.put(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
         if time_block_render_count >= cal_fps_block_size:
@@ -975,6 +975,7 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
                 except ZeroDivisionError:
                     root.title(f"Phigros Chart Player - FPS: inf")
             last_cal_fps_time,time_block_render_count = time(),0
+    root.destroy()
 
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")
