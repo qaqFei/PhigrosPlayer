@@ -486,8 +486,9 @@ def Load_Resource():
     for i in range(30):
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
     root.reg_img(Resource["ProcessBar"],"ProcessBar")
-    root.reg_img(Resource["Start"],"Start")
+    # root.reg_img(Resource["Start"],"Start")
     root.load_allimg()
+    root.shutdown_fileserver()
     print("Loading Resource Successfully.")
     note_max_width = max(
         [
