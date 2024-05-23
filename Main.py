@@ -949,10 +949,9 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
                                         )
 
         combo = Cal_Combo(now_t)
-        process = int((now_t / audio_length) * w)
         time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
         draw_ui(
-            process=process,
+            process=now_t / audio_length,
             score=score_manager.get_stringscore(combo * (1000000 / phigros_chart_obj.note_num)),
             combo_state=combo >= 3,
             combo=combo,
