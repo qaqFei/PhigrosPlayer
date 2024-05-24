@@ -5,6 +5,7 @@ import typing
 import http.server
 import io
 import time
+import math
 
 from PIL import Image
 import webview
@@ -242,6 +243,22 @@ class WebCanvas:
     ):
         return f"'{self._process_code_string_syntax_tostring(code)}'"
     
+    def rotate(
+        self,
+        deg:typing.Union[int,float],
+        threading_:bool = False,
+        wait_execute:bool = False
+    ) -> None:
+        self.run_js_code(f"ctx.rotate({deg * math.pi / 180});",threading_,wait_execute)
+    
+    def translate(
+        self,
+        x:typing.Union[int,float],y:typing.Union[int,float],
+        threading_:bool = False,
+        wait_execute:bool = False
+    ) -> None:
+        self.run_js_code(f"ctx.translate({x},{y});",threading_,wait_execute)
+    
     def create_rectangle(
         self,
         x0:typing.Union[int,float],y0:typing.Union[int,float],
@@ -250,7 +267,7 @@ class WebCanvas:
         strokeStyle:typing.Union[str,None] = None,
         threading_:bool = False,
         wait_execute:bool = False
-    ):
+    ) -> None:
         code = self._set_style_fill_stroke(fillStyle,strokeStyle) + f"\
             ctx.fillRect({x0},{y0},{x1-x0},{y1-y0});\
         "
@@ -265,7 +282,7 @@ class WebCanvas:
         strokeStyle:typing.Union[str,None] = None,
         threading_:bool = False,
         wait_execute:bool = False
-    ):
+    ) -> None:
         code = self._set_style_fill_stroke(fillStyle,strokeStyle) + f"\
             ctx.lineWidth = {lineWidth};\
             ctx.beginPath();\
@@ -287,7 +304,7 @@ class WebCanvas:
         strokeStyle:typing.Union[str,None] = None,
         threading_:bool = False,
         wait_execute:bool = False
-    ):
+    ) -> None:
         code = self._set_style_fill_stroke(fillStyle,strokeStyle) + f"\
             ctx.lineWidth = {lineWidth};\
             ctx.beginPath();\
@@ -307,7 +324,7 @@ class WebCanvas:
         strokeStyle:typing.Union[str,None] = None,
         threading_:bool = False,
         wait_execute:bool = False
-    ):
+    ) -> None:
         return self.create_arc(
             x,y,r,
             0,360,
@@ -329,7 +346,7 @@ class WebCanvas:
         strokeStyle:typing.Union[str,None] = None,
         threading_:bool = False,
         wait_execute:bool = False
-    ):
+    ) -> None:
         text = self._process_code_string_syntax_tostring(text)
         code = self._set_style_fill_stroke(fillStyle,strokeStyle) + self._set_style_font_textAlign_textBaseline_direction(font,textAlign,textBaseline,direction) + f"\
             ctx.fillText(\"{text}\",{x},{y});\
@@ -342,7 +359,7 @@ class WebCanvas:
         strokeStyle:typing.Union[str,None] = None,
         threading_:bool = False,
         wait_execute:bool = False
-    ):
+    ) -> None:
         code = self._set_style_fill_stroke(fillStyle,strokeStyle) + f"\
             ctx.beginPath();\
         "
@@ -365,7 +382,7 @@ class WebCanvas:
         width:typing.Union[int,float],height:typing.Union[int,float],
         threading_:bool = False,
         wait_execute:bool = False
-    ):
+    ) -> None:
         if imgname not in self._is_loadimg:
             raise ValueError("Image not found.")
         if not self._is_loadimg[imgname]:
@@ -386,26 +403,26 @@ class WebCanvas:
         x1:typing.Union[int,float],y1:typing.Union[int,float],
         threading_:bool = False,
         wait_execute:bool = False
-    ):
+    ) -> None:
         self.run_js_code(f"ctx.clearRect({x0},{y0},{x1-x0},{y1-y0});",threading_,wait_execute)
     
     def clear_canvas(
         self,
         threading_:bool = False,
         wait_execute:bool = False
-    ):
+    ) -> None:
         self.run_js_code("ctx.clearRect(0,0,canvas_ele.width,canvas_ele.height);",threading_,wait_execute)
     
     def reg_img(
         self,im:Image.Image,
         name:str
-    ):
+    ) -> None:
         self._regims.update({name:im})
         self._is_loadimg[name] = False
     
     def load_allimg(
         self
-    ):
+    ) -> None:
         for imgname in self._regims:
             self._load_img(imgname)
         while True:
@@ -417,12 +434,12 @@ class WebCanvas:
     def reg_event(
         self,name:str,
         callback:typing.Callable[[]]
-    ):
+    ) -> None:
         setattr(self._web.events,name,getattr(self._web.events,name) + callback)
     
     def loop_to_close(
         self
-    ):
+    ) -> None:
         while True:
             if self._destroyed:
                 return None
@@ -430,17 +447,17 @@ class WebCanvas:
     
     def shutdown_fileserver(
         self
-    ):
+    ) -> None:
         self._file_server.shutdown()
     
     def _closed_callback(
         self
-    ):
+    ) -> None:
         self._destroyed = True
     
     def _load_img(
         self,imgname:str
-    ):
+    ) -> None:
         code = f"\
         if (!window.{imgname}_img){chr(123)}\
             {imgname}_img = document.createElement('img');\
@@ -459,7 +476,7 @@ class WebCanvas:
 
     def _init(
         self
-    ):
+    ) -> None:
         self._web.set_window_size(width=self._web_init_var["width"],height=self._web_init_var["height"])
         self._web.move(x=self._web_init_var["x"],y=self._web_init_var["y"])
         self._web_init_var = None

@@ -78,7 +78,7 @@ windll.gdi32.AddFontResourceW(".\\font.ttf")
 
 print("Init Pygame Mixer...")
 mixer.init()
-mixer.music.set_volume(0.5)
+mixer.music.set_volume(0.85)
 
 print("Unpack Chart...")
 popen(f".\\7z.exe e \"{argv[1]}\" -o\"{temp_dir}\" >> nul").read()
@@ -117,8 +117,7 @@ if len(chart_files_dict["audio"]) == 0:
     print("No Audio File Found.")
     windll.kernel32.ExitProcess(1)
 if len(chart_files_dict["images"]) == 0:
-    print("No Image File Found.")
-    windll.kernel32.ExitProcess(1)
+    chart_files_dict["images"].append(["default",Image.new("RGB",(16,9),"#0078d7")])
 defualt_information = {
     "Name":"Unknow",
     "Artist":"Unknow",
