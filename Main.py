@@ -869,6 +869,20 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
                             this_note_imgname = f"Note_{note_type}" + "_Head" + ("_dub" if note_item.morebets else "") + f"_{judgeLine_rotate_integer}"
                             this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"][judgeLine_rotate_integer]
                             this_note_imgname_end = f"Note_{note_type}" + "_End"+ f"_{judgeLine_rotate_integer}"
+                        if note_item.type == Const.Note.HOLD:
+                            root.create_polygon(
+                                points=holdbody_range,
+                                fillStyle="#0078d7",
+                                strokeStyle="#00000000",
+                                wait_execute = True
+                            )
+                            root.create_image(
+                                this_note_imgname_end,
+                                holdend_x - this_note_img_end.width / 2,
+                                holdend_y - this_note_img_end.height / 2,
+                                this_note_img_end.width,this_note_img_end.height,
+                                wait_execute = True
+                            )
                         if not (note_item.type == Const.Note.HOLD and note_item.time * this_judgeLine_T < now_t):
                             root.create_image(
                                 this_note_imgname,
@@ -877,20 +891,13 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
                                 this_note_img.width,this_note_img.height,
                                 wait_execute = True
                             )
-                        if note_item.type == Const.Note.HOLD:
-                            root.create_image(
-                                this_note_imgname_end,
-                                holdend_x - this_note_img_end.width / 2,
-                                holdend_y - this_note_img_end.height / 2,
-                                this_note_img_end.width,this_note_img_end.height,
-                                wait_execute = True
-                            )
-                            root.create_polygon(
-                                points=holdbody_range,
-                                fillStyle="#0078d7",
-                                strokeStyle="#00000000",
-                                wait_execute = True
-                            )
+                            if debug:
+                                root.create_rectangle(
+                                    x - PHIGROS_X / 10,y - PHIGROS_X / 10,
+                                    x + PHIGROS_X / 10,y + PHIGROS_X / 10,
+                                    fillStyle = "rgba(0, 255, 0, 0.75)",
+                                    wait_execute = True
+                                )
                         note_item.rendered = True
             process(judgeLine.notesAbove,1)
             process(judgeLine.notesBelow,-1)
