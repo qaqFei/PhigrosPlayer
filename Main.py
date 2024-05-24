@@ -636,8 +636,12 @@ def Cal_Combo(now_time:float) -> int:
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
             if note.time * T <= now_time and note.type != Const.Note.HOLD:
                 combo += 1
-            elif note.type == Const.Note.HOLD and note.hold_endtime <= now_time:
-                combo += 1
+            elif note.type == Const.Note.HOLD:
+                if note.hold_length_sec > 0.2:
+                    if note.hold_endtime - 0.2 <= now_time:
+                        combo += 1
+                elif note.time * T <= now_time:
+                    combo += 1
     return combo
 
 def Note_CanRender(
@@ -784,7 +788,6 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
     last_cal_fps_time = time()
     time_block_render_count = 0
     while True:
-        st = time()
         now_t = time() - show_start_time
         Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
         root.clear_canvas(wait_execute=True)
