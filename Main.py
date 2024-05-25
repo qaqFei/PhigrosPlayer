@@ -520,7 +520,7 @@ def Load_Resource():
     note_max_height_half = note_max_height / 2
     root.deiconify()
     return Resource
-
+ 
 def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:typing.Union[int,float]):
     for judgeLine_cfg_key in judgeLine_Configs:
         judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
