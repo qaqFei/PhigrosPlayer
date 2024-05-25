@@ -215,7 +215,7 @@ else:
         print("info.cvs Found. But cannot find information of this chart.")
         chart_information = defualt_information
         
-if "formatVerison" in phigros_chart:
+if "formatVersion" in phigros_chart:
     CHART_TYPE = Const.CHART_TYPE.PHI
 elif "META" in phigros_chart:
     CHART_TYPE = Const.CHART_TYPE.REP
