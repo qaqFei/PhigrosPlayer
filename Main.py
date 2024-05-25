@@ -594,7 +594,7 @@ def draw_ui(
         root.clear_canvas(wait_execute=True)
     if background:
         draw_background()
-    root.create_image("ProcessBar",-w + w * process,0,Resource["ProcessBar"].width,Resource["ProcessBar"].height,wait_execute=True)
+    root.create_image("ProcessBar",-w + w * process,0,w,int(h / 125),wait_execute=True)
     root.create_text(text=score,x=w * 0.99,y=h * 0.01,textBaseline="top",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
     if combo_state:
         root.create_text(text=f"{combo}",x=w / 2,y=h * 0.01,textBaseline="top",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
@@ -717,7 +717,7 @@ def PlayerStart():
                 w / 2 - (val * w / 2),h / 2,
                 w / 2 + (val * w / 2),h / 2,
                 strokeStyle = Get_judgeLine_Color(),
-                lineWidth = h * 0.0075,
+                lineWidth = JUDGELINE_WIDTH,
                 wait_execute = True
             )
             root.run_js_wait_code()
@@ -765,7 +765,7 @@ def PlayerStart():
             if judgeLine_strokeStyle[-1] != 0.0 and show_judgeline and judgeLine_can_render(judgeLine_DrawPos):
                 root.create_line(
                     *judgeLine_DrawPos,
-                    lineWidth = h * 0.0075,
+                    lineWidth = JUDGELINE_WIDTH,
                     strokeStyle=f"rgba{judgeLine_strokeStyle}",
                     wait_execute = True
                 )
@@ -962,9 +962,11 @@ else:
     root.resize(w + dw_legacy,h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
 print("Creating Canvas...")
+root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; phigros_chart_obj.init_holdlength(PHIGROS_Y)"))
 background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
+JUDGELINE_WIDTH = h * 0.0075
 window_hwnd = root.winfo_hwnd()
 print(f"Window Hwnd: {window_hwnd}")
 window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)

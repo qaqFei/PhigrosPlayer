@@ -48,8 +48,7 @@ class WebCanvas:
     ):
         self._web = webview.create_window(
             title=title,
-            url=".\\web_canvas.html",
-            resizable=False
+            url=".\\web_canvas.html"
         )
         self._web_init_var = {
             "width":width,
