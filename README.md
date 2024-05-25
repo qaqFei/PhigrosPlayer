@@ -21,12 +21,12 @@ python Main.py
 
 ## 命令行参数 (因更换WebView进行渲染 所以//nook的参数无法生效 后续会逐步实现的)
 - ```-hideconsole``` 隐藏控制台
-- ```-debug``` 显示定位点和Web调试工具 //nook
+- ```-debug``` 显示WebView调试工具
 - ```-combotips <text>``` 设置连击下的提示 默认为```Autoplay```
 - ```-showfps``` 在标题栏显示帧率
 - ```-fullscreen``` 全屏
 - ```-hidemouse``` 隐藏鼠标 //nook
-- ```-nojudgeline``` 不显示判定线 //nook
+- ```-nojudgeline``` 不显示判定线
 - ```-judgeline-notransparent``` 让判定线的```Disappear```始终为```1.0``` 也就是说不存在透明度 /nook
 
 ## 声明

@@ -336,8 +336,8 @@ class WebCanvas:
 
     def create_text(
         self,
-        text:str,
         x:typing.Union[int,float],y:typing.Union[int,float],
+        text:str,
         font:typing.Union[str,None] = None,
         textAlign:typing.Literal["start","end","left","right","center"] = "start",
         textBaseline:typing.Literal["top","hanging","middle","alphabetic","ideographic","bottom"] = "alphabetic",
@@ -449,6 +449,11 @@ class WebCanvas:
         self
     ) -> None:
         self._file_server.shutdown()
+    
+    def get_resource_path(
+        self,name:str
+    ) -> str:
+        return f"http://127.0.0.1:{self._web_port + 1}/{name}"
     
     def _closed_callback(
         self

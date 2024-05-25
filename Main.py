@@ -1,4 +1,3 @@
-from tkinter import Tk,Canvas
 from threading import Thread
 from ctypes import windll
 from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -62,6 +61,7 @@ debug = "-debug" in argv
 show_holdbody = "-holdbody" in argv
 show_judgeline = "-nojudgeline" not in argv
 debug_noshow_transparent_judgeline = "-debug-noshow-transparent-judgeline" in argv
+judgeline_notransparent = "-judgeline-notransparent" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -400,7 +400,7 @@ def get_all_angle_img(im:Image.Image,w:int,h:int) -> dict[int,Image.Image]:
 def Load_Resource():
     global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
     print("Loading Resource...")
-    Note_width = int(PHIGROS_X * 1.5)
+    Note_width = int(PHIGROS_X * 1.75)
     Note_height_Tap = int(Note_width / 989 * 100)
     Note_height_Tap_dub = int(Note_width / 1089 * 200)
     Note_height_Drag = int(Note_width / 989 * 60)
@@ -485,9 +485,10 @@ def Load_Resource():
     for i in range(30):
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
     root.reg_img(Resource["ProcessBar"],"ProcessBar")
-    # root.reg_img(Resource["Start"],"Start")
+    root.reg_img(Resource["Start"],"Start")
     root.load_allimg()
     root.shutdown_fileserver()
+    root.run_js_code("color_block_img_ele = Start_img; body_ele.appendChild(color_block_img_ele);")
     print("Loading Resource Successfully.")
     note_max_width = max(
         [
@@ -570,37 +571,14 @@ def Get_judgeLine_Color() -> str:
     return score_manager.get_judgeLine_color()
 
 def Show_Start():
-    global res_start_tk
-    res_start_tk = ImageTk.PhotoImage(Resource["Start"])
-    show_start.overrideredirect(True)
-    show_start_cv = Canvas(show_start,width=w,height=h,bg="white",highlightthickness=0)
-    show_start_cv.create_image(0,0,image=res_start_tk,anchor="nw")
-    show_start_cv.pack()
-    show_start.update()
-    show_start_hwnd = int(show_start.frame(),16)
-    Style = GetWindowLong(show_start_hwnd,win32con.GWL_STYLE)
-    Style = Style &~win32con.WS_CAPTION &~win32con.WS_SYSMENU &~win32con.WS_SIZEBOX | win32con.WS_CHILD
-    SetWindowLong(show_start_hwnd,win32con.GWL_STYLE,Style) ; del Style
-    SetParent(show_start_hwnd,window_hwnd)
-    show_start.geometry("+0+0")
-    gr,step_time = Get_Animation_Gr(60,1.25)
-    alpha = 0.0
-    for step in gr:
-        alpha += step
-        show_start.attributes("-alpha",alpha)
-        sleep(step_time)
+    root.run_js_code("show_in_animation();")
+    sleep(1.25)
     draw_background()
     draw_ui()
     root.run_js_wait_code()
     sleep(0.5)
-    for step in gr:
-        alpha -= step
-        show_start.attributes("-alpha",alpha)
-        sleep(step_time)
-    def _f():
-        SetParent(show_start_hwnd,0)
-        show_start.destroy()
-    Thread(target=_f,daemon=True).start()
+    root.run_js_code("show_out_animation();")
+    sleep(1.25)
     Thread(target=PlayerStart,daemon=True).start()
 
 def draw_ui(
@@ -712,10 +690,18 @@ def is_intersect(
     else:
         return True
 
+def judgeLine_can_render(
+    judgeLine_DrawPos:typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ]
+) -> bool:
+    return any(batch_is_intersect([[[judgeLine_DrawPos[0],judgeLine_DrawPos[1]],[judgeLine_DrawPos[2],judgeLine_DrawPos[3]]]],[[(0,0),(w,0)],[(0,0),(0,h)],[(w,0),(w,h)],[(0,h),(w,h)]]))
+
 def point_in_screen(point:typing.Tuple[float,float]) -> bool:
     return 0 < point[0] < w and 0 < point[1] < h
 
-def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
+def PlayerStart():
     global score_manager
     print("Player Start")
     root.title("Phigros Chart Player")
@@ -736,33 +722,7 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
             )
             root.run_js_wait_code()
             sleep(step_time - min(time() - st,step_time))
-    if again:
-        again_window.overrideredirect(True)
-        again_window.update()
-        again_toplevel_hwnd = int(again_window.frame(),16)
-        Style = GetWindowLong(again_toplevel_hwnd,win32con.GWL_STYLE)
-        Style = Style &~win32con.WS_CAPTION &~win32con.WS_SYSMENU &~win32con.WS_SIZEBOX | win32con.WS_CHILD
-        SetWindowLong(again_toplevel_hwnd,win32con.GWL_STYLE,Style) ; del Style
-        SetParent(again_toplevel_hwnd,window_hwnd)
-        again_window.geometry("+0+0")
-        again_window.deiconify()
-        root.focus_force()
-        gr,step_time = Get_Animation_Gr(60,0.75)
-        alpha = 0.0
-        for step in gr:
-            alpha += step
-            again_window.attributes("-alpha",alpha)
-            sleep(step_time)
-        root.clear_canvas()
-        sleep(0.2)
-        Thread(target=judgeLine_Animation,daemon=True).start()
-        for step in gr:
-            alpha -= step
-            again_window.attributes("-alpha",alpha)
-            sleep(step_time)
-        again_window.destroy()
-    else:
-        judgeLine_Animation()
+    judgeLine_Animation()
     
     phigros_chart_obj.init_holdlength(PHIGROS_Y)
 
@@ -789,7 +749,7 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
     while True:
         now_t = time() - show_start_time
         Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
-        root.clear_canvas(wait_execute=True)
+        root.clear_canvas(wait_execute = True)
         draw_background()
 
         for judgeLine_cfg_key in judgeLine_Configs:
@@ -797,17 +757,18 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
             judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
             this_judgeLine_T = T_dws[judgeLine_cfg_key]
             judgeLine_cfg["Note_dy"] = Cal_judgeLine_NoteDy(judgeLine_cfg,this_judgeLine_T)
-            judgeLine_DrawPos = [
+            judgeLine_DrawPos = (
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
-            ]
-            judgeLine_strokeStyle = (254,255,169,judgeLine_cfg["Disappear"])
-            root.create_line(
-                *judgeLine_DrawPos,
-                lineWidth = h * 0.0075,
-                strokeStyle=f"rgba{judgeLine_strokeStyle}",
-                wait_execute = True
             )
+            judgeLine_strokeStyle = (254,255,169,judgeLine_cfg["Disappear"] if not judgeline_notransparent else 1.0)
+            if judgeLine_strokeStyle[-1] != 0.0 and show_judgeline and judgeLine_can_render(judgeLine_DrawPos):
+                root.create_line(
+                    *judgeLine_DrawPos,
+                    lineWidth = h * 0.0075,
+                    strokeStyle=f"rgba{judgeLine_strokeStyle}",
+                    wait_execute = True
+                )
             
             def process(notes_list:list[Chart_Objects.note],t:int):
                 for note_item in notes_list:
@@ -891,13 +852,6 @@ def PlayerStart(again:bool=False,again_window:typing.Union[None,Tk]=None):
                                 this_note_img.width,this_note_img.height,
                                 wait_execute = True
                             )
-                            if debug:
-                                root.create_rectangle(
-                                    x - PHIGROS_X / 10,y - PHIGROS_X / 10,
-                                    x + PHIGROS_X / 10,y + PHIGROS_X / 10,
-                                    fillStyle = "rgba(0, 255, 0, 0.75)",
-                                    wait_execute = True
-                                )
                         note_item.rendered = True
             process(judgeLine.notesAbove,1)
             process(judgeLine.notesBelow,-1)
@@ -1015,13 +969,8 @@ window_hwnd = root.winfo_hwnd()
 print(f"Window Hwnd: {window_hwnd}")
 window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
 SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
-show_start = Tk()
-show_start.geometry(f"{w}x{h}+99999+99999")
-show_start.protocol("WM_DELETE_WINDOW",lambda:[show_start.destroy(),root.destroy(),remove_font()])
-if not hidemouse: show_start.configure(cursor="watch")
 Resource = Load_Resource()
 Thread(target=Show_Start,daemon=True).start()
 Thread(target=loger,daemon=True).start()
-show_start.mainloop()
 root.loop_to_close()
 windll.kernel32.ExitProcess(0)
