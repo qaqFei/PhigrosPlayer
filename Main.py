@@ -18,13 +18,16 @@ from pygame import mixer
 import win32con
 import win32ui
 
-import Chart_Objects
+import Chart_Objects_Phi
+import Chart_Objects_Rep
 import Const
 import Find_Files
 import PlaySound
 import ConsoleWindow
 import psm
 import web_canvas
+import Chart_Functions_Phi
+import Chart_Functions_Rep
 
 
 if "-hideconsole" in argv:
@@ -211,6 +214,15 @@ else:
     except NameError:
         print("info.cvs Found. But cannot find information of this chart.")
         chart_information = defualt_information
+        
+if "formatVerison" in phigros_chart:
+    CHART_TYPE = Const.CHART_TYPE.PHI
+elif "META" in phigros_chart:
+    CHART_TYPE = Const.CHART_TYPE.REP
+else:
+    print("This is what format chart???")
+    raise SystemExit
+    
 print("Loading Chart Information Successfully.")
 print("Inforamtions: ")
 print("              Name:",chart_information["Name"])
@@ -218,6 +230,7 @@ print("              Artist:",chart_information["Artist"])
 print("              Level:",chart_information["Level"])
 print("              Charter:",chart_information["Charter"])
 print("              BackgroundDim:",chart_information["BackgroundDim"])
+
 
 del chart_files,chart_files_dict
 
@@ -254,9 +267,6 @@ def loger():
 def unpack_pos(number:int) -> tuple[int,int]:
     return (number - number % 1000) // 1000,number % 1000
 
-def is_nan(x) -> bool:
-    return x != x
-
 def is_will_process_char(char:str) -> bool:
     if len(char) != 1: return False
     if ord("a") <= ord(char.lower()) <= ord("z"): return True
@@ -266,122 +276,13 @@ loger_queue = Queue()
 clickeffect_cache = []
 note_id = -1
 
-def Load_Chart_Object():
-    global phigros_chart_obj
-    print("Loading Chart Object...")
-    phigros_chart_obj = Chart_Objects.Phigros_Chart(
-        formatVersion=phigros_chart["formatVersion"],
-        offset=phigros_chart["offset"],
-        judgeLineList=[
-            Chart_Objects.judgeLine(
-                id=index,
-                bpm=judgeLine_item["bpm"],
-                notesAbove=[
-                    Chart_Objects.note(
-                        type=notesAbove_item["type"],
-                        time=notesAbove_item["time"],
-                        positionX=notesAbove_item["positionX"],
-                        holdTime=notesAbove_item["holdTime"],
-                        speed=notesAbove_item["speed"],
-                        floorPosition=notesAbove_item["floorPosition"],
-                        clicked=False,
-                        morebets=False,
-                        id=Get_A_New_NoteId(),
-                        by_judgeLine_id=Get_A_New_NoteId_By_judgeLine(judgeLine_item),
-                        rendered=False
-                    )
-                    for notesAbove_item in judgeLine_item["notesAbove"]
-                ],
-                notesBelow=[
-                    Chart_Objects.note(
-                        type=notesBelow_item["type"],
-                        time=notesBelow_item["time"],
-                        positionX=notesBelow_item["positionX"],
-                        holdTime=notesBelow_item["holdTime"],
-                        speed=notesBelow_item["speed"],
-                        floorPosition=notesBelow_item["floorPosition"],
-                        clicked=False,
-                        morebets=False,
-                        id=Get_A_New_NoteId(),
-                        by_judgeLine_id=Get_A_New_NoteId_By_judgeLine(judgeLine_item),
-                        rendered=False
-                    )
-                    for notesBelow_item in judgeLine_item["notesBelow"]
-                ],
-                speedEvents=[
-                    Chart_Objects.speedEvent(
-                        startTime=speedEvent_item["startTime"],
-                        endTime=speedEvent_item["endTime"],
-                        value=speedEvent_item["value"],
-                        floorPosition=speedEvent_item["floorPosition"] if "floorPosition" in speedEvent_item else None
-                    )
-                    for speedEvent_item in judgeLine_item["speedEvents"]
-                ],
-                judgeLineMoveEvents=[
-                    Chart_Objects.judgeLineMoveEvent(
-                        startTime=judgeLineMoveEvent_item["startTime"],
-                        endTime=judgeLineMoveEvent_item["endTime"],
-                        start=judgeLineMoveEvent_item["start"],
-                        end=judgeLineMoveEvent_item["end"],
-                        start2=judgeLineMoveEvent_item["start2"],
-                        end2=judgeLineMoveEvent_item["end2"]
-                    )
-                    for judgeLineMoveEvent_item in judgeLine_item["judgeLineMoveEvents"]
-                ] if len(judgeLine_item["judgeLineMoveEvents"]) > 0 and "start2" in judgeLine_item["judgeLineMoveEvents"][0] and "end2" in judgeLine_item["judgeLineMoveEvents"][0] else [
-                    Chart_Objects.judgeLineMoveEvent(
-                        startTime=judgeLineMoveEvent_item["startTime"],
-                        endTime=judgeLineMoveEvent_item["endTime"],
-                        start=unpack_pos(judgeLineMoveEvent_item["start"])[0] / 880,
-                        end=unpack_pos(judgeLineMoveEvent_item["end"])[0] / 880,
-                        start2=unpack_pos(judgeLineMoveEvent_item["start"])[1] / 520,
-                        end2=unpack_pos(judgeLineMoveEvent_item["end"])[1] / 520
-                    )
-                    for judgeLineMoveEvent_item in judgeLine_item["judgeLineMoveEvents"]
-                ],
-                judgeLineRotateEvents=[
-                    Chart_Objects.judgeLineRotateEvent(
-                        startTime=judgeLineRotateEvent_item["startTime"],
-                        endTime=judgeLineRotateEvent_item["endTime"],
-                        start=judgeLineRotateEvent_item["start"],
-                        end=judgeLineRotateEvent_item["end"]
-                    )
-                    for judgeLineRotateEvent_item in judgeLine_item["judgeLineRotateEvents"]
-                ],
-                judgeLineDisappearEvents=[
-                    Chart_Objects.judgeLineDisappearEvent(
-                        startTime=judgeLineDisappearEvent_item["startTime"],
-                        endTime=judgeLineDisappearEvent_item["endTime"],
-                        start=judgeLineDisappearEvent_item["start"],
-                        end=judgeLineDisappearEvent_item["end"]
-                    )
-                    for judgeLineDisappearEvent_item in judgeLine_item["judgeLineDisappearEvents"]
-                ]
-            )
-            for index,judgeLine_item in enumerate(phigros_chart["judgeLineList"])
-        ]
-    )
-    for judgeLine in phigros_chart_obj.judgeLineList:
-        judgeLine.set_master_to_notes()
-    phigros_chart_obj.cal_note_num()
-    print("Finding Chart More Bets...")
-    notes = []
-    for judgeLine in phigros_chart_obj.judgeLineList:
-        for note in judgeLine.notesAbove + judgeLine.notesBelow:
-            notes.append(note)
-    note_times = {}
-    for note in notes:
-        note:Chart_Objects.note
-        if note.time not in note_times:
-            note_times[note.time] = 1
-        else:
-            note_times[note.time] += 1
-    for note in notes:
-        if note_times[note.time] > 1:
-            note.morebets = True
-    del notes,note_times
-    print("Load Chart Object Successfully.")
-
-Load_Chart_Object()
+match CHART_TYPE:
+    case Const.CHART_TYPE.PHI:
+        phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart,Get_A_New_NoteId,Get_A_New_NoteId_By_judgeLine,unpack_pos)
+    case Const.CHART_TYPE.REP:
+        rep_chart_obj = Chart_Functions_Rep.Load_Chart_Object(phigros_chart,Get_A_New_NoteId,Get_A_New_NoteId_By_judgeLine)
+        print(rep_chart_obj)
+        raise SystemExit
 
 def rotate_image(im:Image.Image,angle:float) -> Image.Image:
     imsize = int((im.width ** 2 + im.height ** 2) ** 0.5) + 1
@@ -520,52 +421,11 @@ def Load_Resource():
     note_max_height_half = note_max_height / 2
     root.deiconify()
     return Resource
- 
-def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:typing.Union[int,float]):
-    for judgeLine_cfg_key in judgeLine_Configs:
-        judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
-        judgeLine_cfg["time"] = now_t / T_dws[judgeLine_cfg_key]
-        judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
-        rotate_var = judgeLine.get_datavar_rotate(judgeLine_cfg["time"])
-        disappear_var = judgeLine.get_datavar_disappear(judgeLine_cfg["time"])
-        move_var = judgeLine.get_datavar_move(judgeLine_cfg["time"],w,h)
-        speed_var = judgeLine.get_datavar_speed(judgeLine_cfg["time"])
-        if not is_nan(rotate_var): judgeLine_cfg["Rotate"] = rotate_var
-        if not is_nan(disappear_var): judgeLine_cfg["Disappear"] = disappear_var
-        if not is_nan(move_var): judgeLine_cfg["Pos"] = move_var
-        if not is_nan(speed_var): judgeLine_cfg["Speed"] = speed_var
 
 def Format_Time(t:typing.Union[int,float]) -> str:
     m,s = t // 60,t % 60
     m,s = int(m),int(s)
     return f"{m}:{s:>2}".replace(" ","0")
-
-def Cal_judgeLine_NoteDy(judgeLine_cfg,T:float) -> float:
-    judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
-    if judgeLine.speedEvents == []: return 0
-    return Cal_judgeLine_NoteDy_ByTime(judgeLine,T,judgeLine_cfg["time"])
-
-def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects.judgeLine,T:float,time:float) -> float:
-    dy = 0
-    if judgeLine.speedEvents[0].floorPosition is not None:
-        for speed_event in judgeLine.speedEvents:
-            if speed_event.startTime <= time <= speed_event.endTime:
-                dy = speed_event.floorPosition * PHIGROS_Y + (
-                    time - speed_event.startTime
-                ) * T * speed_event.value * PHIGROS_Y
-                return dy
-        last_speed_event = sorted(judgeLine.speedEvents,key=lambda x:x.startTime)[-1]
-        dy = last_speed_event.floorPosition * PHIGROS_Y + (time - last_speed_event.endTime) * T * last_speed_event.value * PHIGROS_Y
-        return dy
-    else:
-        for speed_event in judgeLine.speedEvents:
-            if speed_event.startTime < time and speed_event.endTime < time:
-                dy += (speed_event.endTime - speed_event.startTime) * T * speed_event.value * PHIGROS_Y
-            elif speed_event.startTime <= time <= speed_event.endTime:
-                dy += (time - speed_event.startTime) * T * speed_event.value * PHIGROS_Y
-            else:
-                pass
-        return dy
 
 def Get_judgeLine_Color() -> str:
     return score_manager.get_judgeLine_color()
@@ -579,7 +439,11 @@ def Show_Start():
     sleep(0.5)
     root.run_js_code("show_out_animation();")
     sleep(1.25)
-    Thread(target=PlayerStart,daemon=True).start()
+    match CHART_TYPE:
+        case Const.CHART_TYPE.PHI:
+            Thread(target=PlayerStart_Phi,daemon=True).start()
+        case Const.CHART_TYPE.REP:
+            Thread(target=PlayerStart_Rep,daemon=True).start()
 
 def draw_ui(
     process:float = 0.0,
@@ -606,23 +470,7 @@ def draw_ui(
 def draw_background():
     root.create_image("background",0,0,w,h,wait_execute=True)
 
-def Cal_Combo(now_time:float) -> int:
-    combo = 0
-    for judgeLine in phigros_chart_obj.judgeLineList:
-        T = 1.875 / judgeLine.bpm
-        for note in judgeLine.notesAbove + judgeLine.notesBelow:
-            if note.time * T <= now_time and note.type != Const.Note.HOLD:
-                combo += 1
-            elif note.type == Const.Note.HOLD:
-                if note.hold_length_sec > 0.2:
-                    if note.hold_endtime - 0.2 <= now_time:
-                        combo += 1
-                elif note.time * T <= now_time:
-                    combo += 1
-    return combo
-
 def Note_CanRender(
-        note_item:Chart_Objects.note,
         x:float,y:float,
         hold_points:typing.Union[typing.Tuple[
             typing.Tuple[float,float],
@@ -701,7 +549,7 @@ def judgeLine_can_render(
 def point_in_screen(point:typing.Tuple[float,float]) -> bool:
     return 0 < point[0] < w and 0 < point[1] < h
 
-def PlayerStart():
+def PlayerStart_Phi():
     global score_manager
     print("Player Start")
     root.title("Phigros Chart Player")
@@ -748,15 +596,15 @@ def PlayerStart():
     time_block_render_count = 0
     while True:
         now_t = time() - show_start_time
-        Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
+        Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
         root.clear_canvas(wait_execute = True)
         draw_background()
 
         for judgeLine_cfg_key in judgeLine_Configs:
             judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
-            judgeLine:Chart_Objects.judgeLine = judgeLine_cfg["judgeLine"]
+            judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
             this_judgeLine_T = T_dws[judgeLine_cfg_key]
-            judgeLine_cfg["Note_dy"] = Cal_judgeLine_NoteDy(judgeLine_cfg,this_judgeLine_T)
+            judgeLine_cfg["Note_dy"] = Chart_Functions_Phi.Cal_judgeLine_NoteDy(judgeLine_cfg,this_judgeLine_T)
             judgeLine_DrawPos = (
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
                 *rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
@@ -770,7 +618,7 @@ def PlayerStart():
                     wait_execute = True
                 )
             
-            def process(notes_list:list[Chart_Objects.note],t:int):
+            def process(notes_list:list[Chart_Objects_Phi.note],t:int):
                 for note_item in notes_list:
                     this_noteitem_clicked = note_item.time * this_judgeLine_T < now_t
                     if this_noteitem_clicked and not note_item.clicked:
@@ -783,7 +631,7 @@ def PlayerStart():
                     cfg = {
                         "note":note_item,
                         "now_floorPosition":note_item.floorPosition * PHIGROS_Y - (judgeLine_cfg["Note_dy"] if not (note_item.type == Const.Note.HOLD and note_item.clicked) else (
-                            Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
+                            Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
                         ))
                     }
                     rotatenote_at_judgeLine_pos = rotate_point(
@@ -817,9 +665,9 @@ def PlayerStart():
                         Const.Note.FLICK:"Flick"
                     }[note_item.type]
                     if (
-                        Note_CanRender(note_item,x,y)
+                        Note_CanRender(x,y)
                         if note_item.type != Const.Note.HOLD
-                        else Note_CanRender(note_item,x,y,holdbody_range)
+                        else Note_CanRender(x,y,holdbody_range)
                     ):
                         judgeLine_rotate_integer = int(judgeLine_cfg["Rotate"]) % 360
                         if note_item.type != Const.Note.HOLD:
@@ -870,8 +718,8 @@ def PlayerStart():
                         effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
                         will_show_effect_pos = judgeLine.get_datavar_move(note.time,w,h)
                         will_show_effect_rotate = judgeLine.get_datavar_rotate(note.time)
-                        if is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
-                        if is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
+                        if Chart_Functions_Phi.is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
+                        if Chart_Functions_Phi.is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
                         effect_pos = rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
                         root.create_image(
                             effect_imgname,
@@ -900,8 +748,8 @@ def PlayerStart():
                                         effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
                                         will_show_effect_pos = judgeLine.get_datavar_move(temp_time / T,w,h)
                                         will_show_effect_rotate = judgeLine.get_datavar_rotate(temp_time / T)
-                                        if is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
-                                        if is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
+                                        if Chart_Functions_Phi.is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
+                                        if Chart_Functions_Phi.is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
                                         effect_pos = rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
                                         root.create_image(
                                             effect_imgname,
@@ -911,7 +759,7 @@ def PlayerStart():
                                             wait_execute = True
                                         )
 
-        combo = Cal_Combo(now_t)
+        combo = Chart_Functions_Phi.Cal_Combo(now_t)
         time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
         draw_ui(
             process=now_t / audio_length,
@@ -940,6 +788,9 @@ def PlayerStart():
             last_cal_fps_time,time_block_render_count = time(),0
     root.destroy()
 
+def PlayerStart_Rep():
+    pass
+
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")
 # if not hidemouse: root.configure(cursor="watch")
@@ -967,6 +818,11 @@ background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(Imag
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
+Chart_Functions_Phi.Init(
+    phigros_chart_obj_=phigros_chart_obj,
+    PHIGROS_X_=PHIGROS_X,PHIGROS_Y_=PHIGROS_Y,
+    w_=w,h_=h
+)
 window_hwnd = root.winfo_hwnd()
 print(f"Window Hwnd: {window_hwnd}")
 window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
