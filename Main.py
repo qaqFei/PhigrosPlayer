@@ -813,7 +813,7 @@ else:
     root.resize(w + dw_legacy,h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
 print("Creating Canvas...")
-root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; phigros_chart_obj.init_holdlength(PHIGROS_Y)"))
+root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Chart_Functions_Phi.w,Chart_Functions_Phi.h,Chart_Functions_Phi.PHIGROS_X,Chart_Functions_Phi.PHIGROS_Y = w,h,PHIGROS_X,PHIGROS_Y; phigros_chart_obj.init_holdlength(PHIGROS_Y)"))
 background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
