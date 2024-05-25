@@ -428,7 +428,7 @@ def Format_Time(t:typing.Union[int,float]) -> str:
     return f"{m}:{s:>2}".replace(" ","0")
 
 def Get_judgeLine_Color() -> str:
-    return score_manager.get_judgeLine_color()
+    return "#feffa9"
 
 def Show_Start():
     root.run_js_code("show_in_animation();")
@@ -549,11 +549,13 @@ def judgeLine_can_render(
 def point_in_screen(point:typing.Tuple[float,float]) -> bool:
     return 0 < point[0] < w and 0 < point[1] < h
 
+def get_stringscore(score:float) -> str:
+    score_integer = int(score + 0.5)
+    return f"{score_integer:>7}".replace(" ","0")
+
 def PlayerStart_Phi():
-    global score_manager
     print("Player Start")
     root.title("Phigros Chart Player")
-    score_manager = psm.Manager(phigros_chart_obj.note_num)
     def judgeLine_Animation():
         gr,step_time = Get_Animation_Gr(60,0.5)
         val = 0.0
@@ -763,7 +765,7 @@ def PlayerStart_Phi():
         time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
         draw_ui(
             process=now_t / audio_length,
-            score=score_manager.get_stringscore(combo * (1000000 / phigros_chart_obj.note_num)),
+            score=get_stringscore(combo * (1000000 / phigros_chart_obj.note_num)),
             combo_state=combo >= 3,
             combo=combo,
             now_time=time_text,
@@ -789,7 +791,72 @@ def PlayerStart_Phi():
     root.destroy()
 
 def PlayerStart_Rep():
-    pass
+    print("Player Start")
+    root.title("Phigros Chart Player")
+    def judgeLine_Animation():
+        gr,step_time = Get_Animation_Gr(60,0.5)
+        val = 0.0
+        for step in gr:
+            st = time()
+            val += step
+            draw_ui()
+            root.create_line(
+                w / 2 - (val * w / 2),h / 2,
+                w / 2 + (val * w / 2),h / 2,
+                strokeStyle = Get_judgeLine_Color(),
+                lineWidth = JUDGELINE_WIDTH,
+                wait_execute = True
+            )
+            root.run_js_wait_code()
+            sleep(step_time - min(time() - st,step_time))
+    judgeLine_Animation()
+    
+    show_start_time = time()
+    now_t = 0
+    mixer.music.play()
+    while not mixer.music.get_busy(): pass
+    cal_fps_block_size = 10
+    last_cal_fps_time = time()
+    time_block_render_count = 0
+    while True:
+        now_t = time() - show_start_time
+        root.clear_canvas(wait_execute = True)
+        draw_background()
+        
+        fd = Chart_Functions_Rep.Get_FrameData(rep_chart_obj,now_t)
+        print(fd)
+
+        effect_time = 0.5
+
+        # combo = Chart_Functions_Rep.Cal_Combo(now_t)
+        combo = 0
+        time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
+        draw_ui(
+            process=now_t / audio_length,
+            score=get_stringscore(combo * (1000000 / phigros_chart_obj.note_num)),
+            combo_state=combo >= 3,
+            combo=combo,
+            now_time=time_text,
+            clear=False,
+            background=False
+        )
+        if not mixer.music.get_busy():
+            break
+        root.run_js_wait_code()
+        time_block_render_count += 1
+        this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
+        offset_judge_range = 66.666667 #ms
+        if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
+            show_start_time -= music_offset / 1000
+            loger_queue.put(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
+        if time_block_render_count >= cal_fps_block_size:
+            if "-showfps" in argv:
+                try:
+                    root.title(f"Phigros Chart Player - FPS: {(time_block_render_count / (time() - last_cal_fps_time)) : .2f}")
+                except ZeroDivisionError:
+                    root.title(f"Phigros Chart Player - FPS: inf")
+            last_cal_fps_time,time_block_render_count = time(),0
+    root.destroy()
 
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")

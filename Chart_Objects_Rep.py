@@ -32,6 +32,9 @@ class LineEvent:
     start:float
     end:float
     easingType:typing.Union[int,None]
+    
+    def Get_Value(self,process:float) -> float:
+        return self.start + (self.end - self.start) * process
 
 @dataclass
 class EventLayer:
@@ -78,3 +81,17 @@ class Rep_Chart:
     META:MetaData
     BPMList:typing.List[BPMEvent]
     JudgeLineList:typing.List[JudgeLine]
+
+@dataclass
+class JudgeLine_FrameData:
+    speed:float
+    x:float
+    y:float
+
+@dataclass
+class FrameData:
+    bpm:float
+    beat_time:float
+    JudgeLine_Data:typing.List[JudgeLine_FrameData]
+    
+del typing,dataclass

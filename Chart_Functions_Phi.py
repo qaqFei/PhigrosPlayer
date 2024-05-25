@@ -31,7 +31,6 @@ def Cal_Combo(now_time:float) -> int:
                     combo += 1
     return combo
 
-
 def Cal_judgeLine_NoteDy(judgeLine_cfg,T:float) -> float:
     judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
     if judgeLine.speedEvents == []: return 0

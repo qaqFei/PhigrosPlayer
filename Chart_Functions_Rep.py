@@ -1,5 +1,20 @@
 import Chart_Objects_Rep
 
+def Get_FrameData(rep_obj:Chart_Objects_Rep.Rep_Chart,now_t:float) -> Chart_Objects_Rep.FrameData:
+    fd = Chart_Objects_Rep.FrameData(
+        bpm = 0.0,
+        beat_time = 0.0,
+        JudgeLine_Data = []
+    )
+    
+    for BPMEvent in rep_obj.BPMList:
+        if BPMEvent.startTime <= now_t:
+            fd.bpm = BPMEvent.bpm
+    
+    fd.beat_time = 60 / fd.bpm
+    
+    return fd
+
 def Load_Chart_Object(phigros_chart,Get_A_New_NoteId,Get_A_New_NoteId_By_judgeLine):
     rep_chart_obj = Chart_Objects_Rep.Rep_Chart(
         META = Chart_Objects_Rep.MetaData(
