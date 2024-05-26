@@ -10,6 +10,7 @@
         padding:0;
         border:0;
         margin:0;
+        cursor:auto;
     }
 
     img{
@@ -24,10 +25,6 @@
 
     canvas{
         z-index: 1;
-    }
-
-    html{
-        cursor:auto;
     }
 </style>
 
@@ -54,7 +51,7 @@
     }
 
     function hide_mouse() {
-        html_ele.style.cursor = "none";
+        body_ele.style.cursor = "none";
     }
 
     function change_color_block_opacity(opacity) {
