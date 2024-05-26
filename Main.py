@@ -4,7 +4,6 @@ from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT
 from os.path import exists,abspath,dirname
 from sys import argv
 from time import time,sleep
-from math import cos,sin,radians,pi
 from json import loads
 from queue import Queue
 from shutil import rmtree
@@ -12,23 +11,22 @@ from tempfile import gettempdir
 import typing
 import csv
 
-from PIL import Image,ImageTk,ImageDraw,ImageFilter,ImageEnhance
-from win32gui import GetWindowLong,SetWindowLong,SetParent
+from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
+from win32gui import GetWindowLong,SetWindowLong
 from pygame import mixer
 import win32con
 import win32ui
 
 import Chart_Objects_Phi
-import Chart_Objects_Rep
+# import Chart_Objects_Rep
+import Chart_Functions_Phi
+import Chart_Functions_Rep
 import Const
 import Find_Files
 import PlaySound
 import ConsoleWindow
 import web_canvas
-import Chart_Functions_Phi
-import Chart_Functions_Rep
 import Tool_Functions
-
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
@@ -588,7 +586,7 @@ def PlayerStart_Phi():
                     wait_execute = True
                 )
             
-            def process(notes_list:list[Chart_Objects_Phi.note],t:int):
+            def process(notes_list:typing.List[Chart_Objects_Phi.note],t:int):
                 for note_item in notes_list:
                     this_noteitem_clicked = note_item.time * this_judgeLine_T < now_t
                     if this_noteitem_clicked and not note_item.clicked:
