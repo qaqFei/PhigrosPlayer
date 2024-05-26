@@ -63,7 +63,7 @@ show_holdbody = "-holdbody" in argv
 show_judgeline = "-nojudgeline" not in argv
 debug_noshow_transparent_judgeline = "-debug-noshow-transparent-judgeline" in argv
 judgeline_notransparent = "-judgeline-notransparent" in argv
-clickeffect_randomblock = "-clickeffect-randomblock" in argv
+clickeffect_randomblock = "-noclickeffect-randomblock" not in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
