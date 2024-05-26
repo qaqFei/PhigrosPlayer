@@ -860,7 +860,7 @@ root = web_canvas.WebCanvas(
     title="Phigros Chart Player",
     hidden=True,debug="-debug" in argv
 )
-if not hidemouse:
+if hidemouse:
     root.run_js_code("hide_mouse();")
 root.reg_event("closed",remove_font)
 if "-fullscreen" in argv:
