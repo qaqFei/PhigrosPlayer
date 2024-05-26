@@ -2,6 +2,7 @@ import typing
 
 import Chart_Objects_Phi
 import Const
+import Tool_Functions
 
 def Init(
     phigros_chart_obj_:Chart_Objects_Phi.Phigros_Chart,
@@ -75,7 +76,7 @@ def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:typing.Union[int,floa
         if not is_nan(move_var): judgeLine_cfg["Pos"] = move_var
         if not is_nan(speed_var): judgeLine_cfg["Speed"] = speed_var
 
-def Load_Chart_Object(phigros_chart,Get_A_New_NoteId,Get_A_New_NoteId_By_judgeLine,unpack_pos):
+def Load_Chart_Object(phigros_chart):
     print("Loading Chart Object...")
     phigros_chart_obj = Chart_Objects_Phi.Phigros_Chart(
         formatVersion=phigros_chart["formatVersion"],
@@ -94,8 +95,8 @@ def Load_Chart_Object(phigros_chart,Get_A_New_NoteId,Get_A_New_NoteId_By_judgeLi
                         floorPosition=notesAbove_item["floorPosition"],
                         clicked=False,
                         morebets=False,
-                        id=Get_A_New_NoteId(),
-                        by_judgeLine_id=Get_A_New_NoteId_By_judgeLine(judgeLine_item),
+                        id=Tool_Functions.Get_A_New_NoteId(),
+                        by_judgeLine_id=Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         rendered=False
                     )
                     for notesAbove_item in judgeLine_item["notesAbove"]
@@ -110,8 +111,8 @@ def Load_Chart_Object(phigros_chart,Get_A_New_NoteId,Get_A_New_NoteId_By_judgeLi
                         floorPosition=notesBelow_item["floorPosition"],
                         clicked=False,
                         morebets=False,
-                        id=Get_A_New_NoteId(),
-                        by_judgeLine_id=Get_A_New_NoteId_By_judgeLine(judgeLine_item),
+                        id=Tool_Functions.Get_A_New_NoteId(),
+                        by_judgeLine_id=Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         rendered=False
                     )
                     for notesBelow_item in judgeLine_item["notesBelow"]
@@ -139,10 +140,10 @@ def Load_Chart_Object(phigros_chart,Get_A_New_NoteId,Get_A_New_NoteId_By_judgeLi
                     Chart_Objects_Phi.judgeLineMoveEvent(
                         startTime=judgeLineMoveEvent_item["startTime"],
                         endTime=judgeLineMoveEvent_item["endTime"],
-                        start=unpack_pos(judgeLineMoveEvent_item["start"])[0] / 880,
-                        end=unpack_pos(judgeLineMoveEvent_item["end"])[0] / 880,
-                        start2=unpack_pos(judgeLineMoveEvent_item["start"])[1] / 520,
-                        end2=unpack_pos(judgeLineMoveEvent_item["end"])[1] / 520
+                        start=Tool_Functions.unpack_pos(judgeLineMoveEvent_item["start"])[0] / 880,
+                        end=Tool_Functions.unpack_pos(judgeLineMoveEvent_item["end"])[0] / 880,
+                        start2=Tool_Functions.unpack_pos(judgeLineMoveEvent_item["start"])[1] / 520,
+                        end2=Tool_Functions.unpack_pos(judgeLineMoveEvent_item["end"])[1] / 520
                     )
                     for judgeLineMoveEvent_item in judgeLine_item["judgeLineMoveEvents"]
                 ],
