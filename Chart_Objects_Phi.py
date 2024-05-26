@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import typing
 
 import Const
+import Tool_Functions
 
 NAN = float("NaN")
 
@@ -19,12 +20,13 @@ class note:
     id:int
     rendered:bool
     by_judgeLine_id:int
+    effect_random_blocks:typing.Tuple[int,int,int,int]
     master:typing.Union[judgeLine,None] = None
     hold_end_clicked:bool = False
     note_last_show_hold_effect_time:float = 0.0
     is_will_click:bool = False
     hold_click_type:typing.Union[None,typing.Literal["Perfect","Good"]] = None
-
+    
     def __eq__(self,oth):
         try:
             return self.id == oth.id
@@ -47,6 +49,16 @@ class note:
         self.hold_length_sec = self.holdTime * (1.875 / self.master.bpm)
         self.hold_length_px = (self.speed * self.hold_length_sec) * PHIGROS_Y
         self.hold_endtime = self.time * (1.875 / self.master.bpm) + self.hold_length_sec
+        
+        #do other... hehehehe
+        self.effect_times = []
+        hold_starttime = self.time * (1.875 / self.master.bpm)
+        hold_effect_blocktime = (1 / self.master.bpm * 30)
+        while True:
+            hold_starttime += hold_effect_blocktime
+            if hold_starttime >= self.hold_endtime:
+                break
+            self.effect_times.append((hold_starttime,Tool_Functions.get_effect_random_blocks()))
 
 @dataclass
 class speedEvent:

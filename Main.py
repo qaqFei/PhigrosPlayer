@@ -65,6 +65,7 @@ show_holdbody = "-holdbody" in argv
 show_judgeline = "-nojudgeline" not in argv
 debug_noshow_transparent_judgeline = "-debug-noshow-transparent-judgeline" in argv
 judgeline_notransparent = "-judgeline-notransparent" in argv
+clickeffect_randomblock = "-clickeffect-randomblock" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -538,6 +539,7 @@ def PlayerStart_Phi():
             )
             root.run_js_wait_code()
             sleep(step_time - min(time() - st,step_time))
+        
     judgeLine_Animation()
     
     phigros_chart_obj.init_holdlength(PHIGROS_Y)
@@ -678,14 +680,15 @@ def PlayerStart_Phi():
             for note in judgeLine.notesAbove + judgeLine.notesBelow:
                 note_time = note.time * T
                 if note_time <= now_t:
-                    if now_t - note_time <= effect_time:
-                        effect_process = (now_t - note_time) / effect_time
+                    
+                    def process(et,t,effect_random_blocks):
+                        effect_process = (now_t - et) / effect_time
                         effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
                         effect_img_index = int(effect_process * (len(effect_img_lst) - 1))
                         effect_img = effect_img_lst[effect_img_index]
                         effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
-                        will_show_effect_pos = judgeLine.get_datavar_move(note.time,w,h)
-                        will_show_effect_rotate = judgeLine.get_datavar_rotate(note.time)
+                        will_show_effect_pos = judgeLine.get_datavar_move(t,w,h)
+                        will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
                         if Chart_Functions_Phi.is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
                         if Chart_Functions_Phi.is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
                         effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
@@ -696,36 +699,30 @@ def PlayerStart_Phi():
                             effect_img.width,effect_img.height,
                             wait_execute = True
                         )
+                        if clickeffect_randomblock:
+                            for index,random_deg in enumerate(effect_random_blocks):
+                                effect_random_point = Tool_Functions.rotate_point(
+                                    *effect_pos,random_deg + index * 90,
+                                    ClickEffect_Size * Tool_Functions.ease_out(effect_process) / 1.3
+                                )
+                                root.create_rectangle(
+                                    effect_random_point[0] - EFFECT_RANDOM_BLOCK_SIZE,
+                                    effect_random_point[1] - EFFECT_RANDOM_BLOCK_SIZE,
+                                    effect_random_point[0] + EFFECT_RANDOM_BLOCK_SIZE,
+                                    effect_random_point[1] + EFFECT_RANDOM_BLOCK_SIZE,
+                                    fillStyle = f"rgb{(254,255,169,1.0 - effect_process)}",
+                                    wait_execute = True
+                                )
+                                
+                    if now_t - note_time <= effect_time:
+                        process(note_time,note.time,note.effect_random_blocks)
+                    
                     if note.type == Const.Note.HOLD:
                         if note.hold_endtime + effect_time >= now_t:
-                            effect_times = []
-                            temp_time = note_time
-                            hold_effect_blocktime = (1 / judgeLine.bpm * 30)
-                            while True:
-                                temp_time += hold_effect_blocktime
-                                if temp_time >= note.hold_endtime:
-                                    break
-                                effect_times.append(temp_time)
-                            for temp_time in effect_times:
+                            for temp_time,hold_effect_random_blocks in note.effect_times:
                                 if temp_time < now_t:
                                     if now_t - temp_time <= effect_time:
-                                        effect_process = (now_t - temp_time) / effect_time
-                                        effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
-                                        effect_img_index = int(effect_process * (len(effect_img_lst) - 1))
-                                        effect_img = effect_img_lst[effect_img_index]
-                                        effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
-                                        will_show_effect_pos = judgeLine.get_datavar_move(temp_time / T,w,h)
-                                        will_show_effect_rotate = judgeLine.get_datavar_rotate(temp_time / T)
-                                        if Chart_Functions_Phi.is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
-                                        if Chart_Functions_Phi.is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
-                                        effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
-                                        root.create_image(
-                                            effect_imgname,
-                                            effect_pos[0] - effect_img.width / 2,
-                                            effect_pos[1] - effect_img.height / 2,
-                                            effect_img.width,effect_img.height,
-                                            wait_execute = True
-                                        )
+                                        process(temp_time,temp_time / T,hold_effect_random_blocks)
 
         combo = Chart_Functions_Phi.Cal_Combo(now_t)
         time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
@@ -857,13 +854,14 @@ def Re_Init():
 
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")
-# if not hidemouse: root.configure(cursor="watch")
 root = web_canvas.WebCanvas(
     width=1,height=1,
     x=0,y=0,
     title="Phigros Chart Player",
     hidden=True,debug="-debug" in argv
 )
+if not hidemouse:
+    root.run_js_code("hide_mouse();")
 root.reg_event("closed",remove_font)
 if "-fullscreen" in argv:
     w,h = root.winfo_screenwidth(),root.winfo_screenheight()
@@ -877,11 +875,12 @@ else:
     root.resize(w + dw_legacy,h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
 print("Creating Canvas...")
-root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h"))
+root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
 background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
+EFFECT_RANDOM_BLOCK_SIZE = h * 0.013
 window_hwnd = root.winfo_hwnd()
 print(f"Window Hwnd: {window_hwnd}")
 window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)

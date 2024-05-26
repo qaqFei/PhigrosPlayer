@@ -1,4 +1,6 @@
 from math import cos,sin,radians,pi
+from random import randint
+import typing
 
 note_id = -1
 
@@ -28,3 +30,9 @@ def Get_A_New_NoteId():
 
 def unpack_pos(number:int) -> tuple[int,int]:
     return (number - number % 1000) // 1000,number % 1000
+
+def ease_out(x:float) -> float:
+    return sin(x * (pi / 2))
+
+def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
+    return tuple((randint(1,90) for _ in range(4)))

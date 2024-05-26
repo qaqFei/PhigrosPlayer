@@ -25,6 +25,10 @@
     canvas{
         z-index: 1;
     }
+
+    html{
+        cursor:auto;
+    }
 </style>
 
 <script type="text/javascript">
@@ -47,6 +51,10 @@
             eval(JavaScript_WaitToExecute_CodeArray[i]);
         }
         JavaScript_WaitToExecute_CodeArray = new Array();
+    }
+
+    function hide_mouse() {
+        html_ele.style.cursor = "none";
     }
 
     function change_color_block_opacity(opacity) {

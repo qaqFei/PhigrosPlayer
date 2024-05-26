@@ -159,7 +159,6 @@ def Get_FrameData(
     return fd
 
 def Load_Chart_Object(phigros_chart):
-    
     rep_chart_obj = Chart_Objects_Rep.Rep_Chart(
         META = Chart_Objects_Rep.MetaData(
             RPEVersion = phigros_chart["META"]["RPEVersion"],
@@ -255,7 +254,7 @@ def Load_Chart_Object(phigros_chart):
                             ) for LineEvent_item in EventLayer_item["alphaEvents"]
                         ] if "alphaEvents" in EventLayer_item and EventLayer_item["alphaEvents"] is not None else None,
                     )
-                    for EventLayer_item in judgeLine_item["eventLayers"]
+                    for EventLayer_item in judgeLine_item["eventLayers"] if EventLayer_item is not None
                 ],
                 extended = Chart_Objects_Rep.Extended(
                     scaleXEvents = [
@@ -315,7 +314,7 @@ def Load_Chart_Object(phigros_chart):
                         visibleTime = Note_item["visibleTime"]
                     )
                     for Note_item in judgeLine_item["notes"]
-                ]
+                ] if "notes" in judgeLine_item else []
             )
             for judgeLine_item in phigros_chart["judgeLineList"]
         ]

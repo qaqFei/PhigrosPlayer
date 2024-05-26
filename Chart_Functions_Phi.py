@@ -1,3 +1,4 @@
+from random import randint
 import typing
 
 import Chart_Objects_Phi
@@ -97,7 +98,8 @@ def Load_Chart_Object(phigros_chart):
                         morebets=False,
                         id=Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id=Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
-                        rendered=False
+                        rendered=False,
+                        effect_random_blocks=Tool_Functions.get_effect_random_blocks()
                     )
                     for notesAbove_item in judgeLine_item["notesAbove"]
                 ],
@@ -113,7 +115,8 @@ def Load_Chart_Object(phigros_chart):
                         morebets=False,
                         id=Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id=Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
-                        rendered=False
+                        rendered=False,
+                        effect_random_blocks=Tool_Functions.get_effect_random_blocks()
                     )
                     for notesBelow_item in judgeLine_item["notesBelow"]
                 ],
