@@ -29,6 +29,7 @@ python Main.py
 - ```-nojudgeline``` 不显示判定线
 - ```-judgeline-notransparent``` 让判定线的```Disappear```始终为```1.0``` 也就是说不存在透明度
 - ```-noclickeffect-randomblock``` 禁用打击效果的随机扩散方块
+- ```-loop``` 循环播放
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途

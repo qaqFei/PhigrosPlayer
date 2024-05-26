@@ -64,6 +64,7 @@ show_judgeline = "-nojudgeline" not in argv
 debug_noshow_transparent_judgeline = "-debug-noshow-transparent-judgeline" in argv
 judgeline_notransparent = "-judgeline-notransparent" in argv
 clickeffect_randomblock = "-noclickeffect-randomblock" not in argv
+loop = "-loop" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -748,7 +749,10 @@ def PlayerStart_Phi():
                 except ZeroDivisionError:
                     root.title(f"Phigros Chart Player - FPS: inf")
             last_cal_fps_time,time_block_render_count = time(),0
-    root.destroy()
+    if loop:
+        PlayerStart_Phi()
+    else:
+        root.destroy()
 
 def PlayerStart_Rep():
     print("Player Start")
