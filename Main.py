@@ -276,7 +276,7 @@ def Load_Resource():
     Note_height_Hold_Head = int(Note_width / 989 * 50)
     Note_height_Hold_Head_dub = int(Note_width / 1058 * 97)
     Note_height_Hold_End = int(Note_width / 989 * 50)
-    ClickEffect_Size = int(Note_width*1.5)
+    ClickEffect_Size = int(Note_width * 1.5)
     Resource = {
         "Notes_Base":{
             "Tap":Image.open("./Resources/Notes/Tap.png"),
@@ -384,7 +384,6 @@ def Load_Resource():
     )
     note_max_width_half = note_max_width / 2
     note_max_height_half = note_max_height / 2
-    root.deiconify()
     return Resource
 
 def Format_Time(t:typing.Union[int,float]) -> str:
@@ -856,7 +855,7 @@ root = web_canvas.WebCanvas(
     width=1,height=1,
     x=0,y=0,
     title="Phigros Chart Player",
-    hidden=True,debug="-debug" in argv
+    debug="-debug" in argv
 )
 if hidemouse:
     root.run_js_code("hide_mouse();")
