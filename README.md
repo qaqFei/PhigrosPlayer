@@ -25,7 +25,7 @@ python Main.py
 - ```-combotips <text>``` 设置连击下的提示 默认为```Autoplay```
 - ```-showfps``` 在标题栏显示帧率
 - ```-fullscreen``` 全屏
-- ```-hidemouse``` 隐藏鼠标 //nook
+- ```-hidemouse``` 隐藏鼠标
 - ```-nojudgeline``` 不显示判定线
 - ```-judgeline-notransparent``` 让判定线的```Disappear```始终为```1.0``` 也就是说不存在透明度
 - ```-clickeffect-randomblock``` 启用打击效果的随机扩散方块
