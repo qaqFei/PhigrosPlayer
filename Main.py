@@ -266,7 +266,13 @@ def get_all_angle_img(im:Image.Image,w:int,h:int) -> dict[int,Image.Image]:
 
 def Load_Resource():
     global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
+    global WaitLoading,LoadSuccess
     print("Loading Resource...")
+    WaitLoading = mixer.Sound("./Resources/WaitLoading.mp3")
+    LoadSuccess = mixer.Sound("./Resources/LoadSuccess.wav")
+    Thread(target=WaitLoading_FadeIn,daemon=True).start()
+    LoadSuccess.set_volume(0.75)
+    WaitLoading.play(-1)
     Note_width = int(PHIGROS_X * 1.75)
     Note_height_Tap = int(Note_width / 989 * 100)
     Note_height_Tap_dub = int(Note_width / 1089 * 200)
@@ -395,8 +401,16 @@ def Format_Time(t:typing.Union[int,float]) -> str:
 def Get_judgeLine_Color() -> str:
     return "#feffa9"
 
+def WaitLoading_FadeIn():
+    for i in range(1,50+1):
+        WaitLoading.set_volume(i / 100)
+        sleep(2 / 50)
+
 def Show_Start():
+    global WaitLoading,LoadSuccess
+    WaitLoading.fadeout(450)
     root.run_js_code("show_in_animation();")
+    LoadSuccess.play()
     sleep(1.25)
     draw_background()
     draw_ui()
@@ -409,6 +423,7 @@ def Show_Start():
             Thread(target=PlayerStart_Phi,daemon=True).start()
         case Const.CHART_TYPE.REP:
             Thread(target=PlayerStart_Rep,daemon=True).start()
+    del WaitLoading,LoadSuccess
 
 def draw_ui(
     process:float = 0.0,
