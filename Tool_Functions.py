@@ -1,8 +1,12 @@
 from math import cos,sin,radians,pi
 from random import randint
+from sys import argv
 import typing
 
 note_id = -1
+random_block_num = 4
+if "-random-block-num" in argv:
+    random_block_num = eval(argv[argv.index("-random-block-num") + 1])
 
 def Get_Animation_Gr(fps:float,t:float):
     gr_x = int(fps * t) + 1
@@ -35,4 +39,4 @@ def ease_out(x:float) -> float:
     return sin(x * (pi / 2))
 
 def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
-    return tuple((randint(1,90) for _ in range(4)))
+    return tuple((randint(1,90) for _ in range(random_block_num)))
