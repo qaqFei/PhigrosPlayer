@@ -625,9 +625,10 @@ def PlayerStart_Phi():
                         *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"]
                     )
                     if note_item.type == Const.Note.HOLD:
-                        if cfg["now_floorPosition"] + note_item.hold_length_px >= 0:
+                        note_hold_draw_length = cfg["now_floorPosition"] + note_item.hold_length_px
+                        if note_hold_draw_length >= 0:
                             holdend_x,holdend_y = Tool_Functions.rotate_point(
-                                *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"] + note_item.hold_length_px
+                                *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,note_hold_draw_length
                             )
                         else:
                             holdend_x,holdend_y = rotatenote_at_judgeLine_pos

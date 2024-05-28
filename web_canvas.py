@@ -386,12 +386,13 @@ class WebCanvas:
             raise ValueError("Image not found.")
         if not self._is_loadimg[imgname]:
             self._load_img(imgname)
+        jsvarname = self.get_img_jsvarname(imgname)
         code = f"\
-            if ({imgname}_img.complete){chr(123)}\
-                ctx.drawImage({imgname}_img,{x},{y},{width},{height});\
+            if ({jsvarname}.complete){chr(123)}\
+                ctx.drawImage({jsvarname},{x},{y},{width},{height});\
             {chr(125)}\
             else{chr(123)}\
-                {imgname}_img_onloadfuncs.push([{x},{y},{width},{height}]);\
+                {jsvarname}_onloadfuncs.push([{x},{y},{width},{height}]);\
             {chr(125)}\
         "
         self.run_js_code(code,threading_,wait_execute)
@@ -412,6 +413,12 @@ class WebCanvas:
     ) -> None:
         self.run_js_code("ctx.clearRect(0,0,canvas_ele.width,canvas_ele.height);",threading_,wait_execute)
     
+    def get_img_jsvarname(
+        self,
+        imname:str
+    ):
+        return f"{imname}_img"
+    
     def reg_img(
         self,im:Image.Image,
         name:str
@@ -425,7 +432,7 @@ class WebCanvas:
         for imgname in self._regims:
             self._load_img(imgname)
         while True:
-            complete_list:typing.List[bool] = self.run_js_code("["+",".join([f"{item}_img.complete" for item in self._regims])+"]")
+            complete_list:typing.List[bool] = self.run_js_code("["+",".join([f"{self.get_img_jsvarname(item)}.complete" for item in self._regims])+"]")
             if list(set(complete_list)) == [True]:
                 break
             time.sleep(0.2)
@@ -462,15 +469,16 @@ class WebCanvas:
     def _load_img(
         self,imgname:str
     ) -> None:
+        jsvarname = self.get_img_jsvarname(imgname)
         code = f"\
-        if (!window.{imgname}_img){chr(123)}\
-            {imgname}_img = document.createElement('img');\
-            {imgname}_img.src = 'http://127.0.0.1:{self._web_port + 1}/{imgname}';\
-            {imgname}_img.loading = \"eager\";\
-            {imgname}_img_onloadfuncs = new Array();\
-            {imgname}_img.onload = function(){chr(123)}\
-                for (code of {imgname}_img_onloadfuncs){chr(123)}\
-                    ctx.drawImage({imgname}_img,code[0],code[1],code[2],code[3]);\
+        if (!window.{jsvarname}){chr(123)}\
+            {jsvarname} = document.createElement('img');\
+            {jsvarname}.src = 'http://127.0.0.1:{self._web_port + 1}/{imgname}';\
+            {jsvarname}.loading = \"eager\";\
+            {jsvarname}_onloadfuncs = new Array();\
+            {jsvarname}.onload = function(){chr(123)}\
+                for (code of {jsvarname}_onloadfuncs){chr(123)}\
+                    ctx.drawImage({jsvarname},code[0],code[1],code[2],code[3]);\
                 {chr(125)}\
             {chr(125)}\
         {chr(125)}\
