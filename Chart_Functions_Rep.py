@@ -26,6 +26,8 @@ def Get_FrameData(
             typing.Tuple[float,float]
         ],None]],bool]
 ) -> Chart_Objects_Rep.FrameData:
+    raise NotImplementedError
+
     fd = Chart_Objects_Rep.FrameData(
         bpm = 0.0,
         beat_time = 0.0,

@@ -35,6 +35,7 @@
     body_ele.appendChild(canvas_ele);
     ctx = canvas_ele.getContext("2d");
     JavaScript_WaitToExecute_CodeArray = new Array();
+    resize_task = false;
     
     function resizeCanvas() {
         canvas_ele.width = window.innerWidth;
@@ -93,7 +94,28 @@
         }
     }
 
+    CanvasRenderingContext2D.prototype._clearRect = CanvasRenderingContext2D.prototype.clearRect;
+
+    CanvasRenderingContext2D.prototype.clearRect = function(a,b,c,d) {
+        if (resize_task) {
+            resizeCanvas();
+        }
+        else {
+            this._clearRect(a,b,c,d);
+        }
+    }
+
+    CanvasRenderingContext2D.prototype.drawRotateImage = function(im,x,y,width,height,deg) { // draw at the position center
+        this.save();
+        this.translate(x,y);
+        this.rotate(deg * Math.PI / 180);
+        this.drawImage(im,-width / 2,-height / 2,width,height);
+        this.restore();
+    }
+
     resizeCanvas()
 
-    window.addEventListener("resize",resizeCanvas);
+    window.addEventListener("resize",function(){
+        resize_task = true;
+    });
 </script>

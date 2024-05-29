@@ -250,20 +250,6 @@ match CHART_TYPE:
     case Const.CHART_TYPE.REP:
         rep_chart_obj = Chart_Functions_Rep.Load_Chart_Object(phigros_chart)
 
-def rotate_image(im:Image.Image,angle:float) -> Image.Image:
-    imsize = int((im.width ** 2 + im.height ** 2) ** 0.5) + 1
-    new_im = Image.new("RGBA",(imsize,)*2,(0,0,0,0))
-    new_im.paste(im,(
-        int(imsize / 2 - im.width / 2),
-        int(imsize / 2 - im.height / 2)
-    ))
-    return new_im.rotate(angle)
-
-def get_all_angle_img(im:Image.Image,w:int,h:int) -> dict[int,Image.Image]:
-    return {
-        angle:rotate_image(im,angle).resize((int((w ** 2 + h ** 2) ** 0.5),)*2) for angle in range(0,360)
-    }
-
 def Load_Resource():
     global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
     global WaitLoading,LoadSuccess
@@ -285,17 +271,17 @@ def Load_Resource():
     Note_height_Hold_End = int(Note_width / 989 * 50)
     ClickEffect_Size = int(Note_width * 1.5)
     Resource = {
-        "Notes_Base":{
-            "Tap":Image.open("./Resources/Notes/Tap.png"),
-            "Tap_dub":Image.open("./Resources/Notes/Tap_dub.png"),
-            "Drag":Image.open("./Resources/Notes/Drag.png"),
-            "Drag_dub":Image.open("./Resources/Notes/Drag_dub.png"),
-            "Flick":Image.open("./Resources/Notes/Flick.png"),
-            "Flick_dub":Image.open("./Resources/Notes/Flick_dub.png"),
+        "Notes":{
+            "Tap":Image.open("./Resources/Notes/Tap.png").resize((Note_width,Note_height_Tap)),
+            "Tap_dub":Image.open("./Resources/Notes/Tap_dub.png").resize((Note_width,Note_height_Tap_dub)),
+            "Drag":Image.open("./Resources/Notes/Drag.png").resize((Note_width,Note_height_Drag)),
+            "Drag_dub":Image.open("./Resources/Notes/Drag_dub.png").resize((Note_width,Note_height_Drag_dub)),
+            "Flick":Image.open("./Resources/Notes/Flick.png").resize((Note_width,Note_height_Flick)),
+            "Flick_dub":Image.open("./Resources/Notes/Flick_dub.png").resize((Note_width,Note_height_Flick_dub)),
             "Hold":{
-                "Hold_Head":Image.open("./Resources/Notes/Hold_Head.png"),
-                "Hold_Head_dub":Image.open("./Resources/Notes/Hold_Head_dub.png"),
-                "Hold_End":Image.open("./Resources/Notes/Hold_End.png")
+                "Hold_Head":Image.open("./Resources/Notes/Hold_Head.png").resize((Note_width,Note_height_Hold_Head)),
+                "Hold_Head_dub":Image.open("./Resources/Notes/Hold_Head_dub.png").resize((Note_width,Note_height_Hold_Head_dub)),
+                "Hold_End":Image.open("./Resources/Notes/Hold_End.png").resize((Note_width,Note_height_Hold_End))
             }
         },
         "Note_Click_Effect":{
@@ -313,48 +299,18 @@ def Load_Resource():
         "ProcessBar":Image.new("RGB",(w,int(h / 125)),(145,)*3),
         "Start":Image.open("./Resources/Start.png").resize((w,h))
     }
-    res_note_base_small_x = 4
-    print("Loading Resource - resize note ...")
-    Resource["Notes_Base"] = {
-        "Tap":Resource["Notes_Base"]["Tap"].resize((int(Resource["Notes_Base"]["Tap"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Tap"].height / res_note_base_small_x))),
-        "Tap_dub":Resource["Notes_Base"]["Tap_dub"].resize((int(Resource["Notes_Base"]["Tap_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Tap_dub"].height / res_note_base_small_x))),
-        "Drag":Resource["Notes_Base"]["Drag"].resize((int(Resource["Notes_Base"]["Drag"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Drag"].height / res_note_base_small_x))),
-        "Drag_dub":Resource["Notes_Base"]["Drag_dub"].resize((int(Resource["Notes_Base"]["Drag_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Drag_dub"].height / res_note_base_small_x))),
-        "Flick":Resource["Notes_Base"]["Flick"].resize((int(Resource["Notes_Base"]["Flick"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Flick"].height / res_note_base_small_x))),
-        "Flick_dub":Resource["Notes_Base"]["Flick_dub"].resize((int(Resource["Notes_Base"]["Flick_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Flick_dub"].height / res_note_base_small_x))),
-        "Hold":{
-            "Hold_Head":Resource["Notes_Base"]["Hold"]["Hold_Head"].resize((int(Resource["Notes_Base"]["Hold"]["Hold_Head"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Hold"]["Hold_Head"].height / res_note_base_small_x))),
-            "Hold_Head_dub":Resource["Notes_Base"]["Hold"]["Hold_Head_dub"].resize((int(Resource["Notes_Base"]["Hold"]["Hold_Head_dub"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Hold"]["Hold_Head_dub"].height / res_note_base_small_x))),
-            "Hold_End":Resource["Notes_Base"]["Hold"]["Hold_End"].resize((int(Resource["Notes_Base"]["Hold"]["Hold_End"].width / res_note_base_small_x),int(Resource["Notes_Base"]["Hold"]["Hold_End"].height / res_note_base_small_x)))
-        }
-    }
-    print("Loading Resource - rotate note ...")
-    Resource["Notes"] = {
-        "Tap":get_all_angle_img(Resource["Notes_Base"]["Tap"],Note_width,Note_height_Tap),
-        "Tap_dub":get_all_angle_img(Resource["Notes_Base"]["Tap_dub"],Note_width,Note_height_Tap_dub),
-        "Drag":get_all_angle_img(Resource["Notes_Base"]["Drag"],Note_width,Note_height_Drag),
-        "Drag_dub":get_all_angle_img(Resource["Notes_Base"]["Drag_dub"],Note_width,Note_height_Drag_dub),
-        "Flick":get_all_angle_img(Resource["Notes_Base"]["Flick"],Note_width,Note_height_Flick),
-        "Flick_dub":get_all_angle_img(Resource["Notes_Base"]["Flick_dub"],Note_width,Note_height_Flick_dub),
-        "Hold":{
-            "Hold_Head":get_all_angle_img(Resource["Notes_Base"]["Hold"]["Hold_Head"],Note_width,Note_height_Hold_Head),
-            "Hold_Head_dub":get_all_angle_img(Resource["Notes_Base"]["Hold"]["Hold_Head_dub"],Note_width,Note_height_Hold_Head_dub),
-            "Hold_End":get_all_angle_img(Resource["Notes_Base"]["Hold"]["Hold_End"],Note_width,Note_height_Hold_End)
-        }
-    }
     print("Loading Resource - create processbar ...")
     ImageDraw.Draw(Resource["ProcessBar"]).rectangle((w * 0.998,0,w,int(h / 125)),fill=(255,)*3)
     Resource["ProcessBar"] = Resource["ProcessBar"]
-    for i in range(0,360):
-        root.reg_img(Resource["Notes"]["Tap"][i],f"Note_Tap_{i}")
-        root.reg_img(Resource["Notes"]["Tap_dub"][i],f"Note_Tap_dub_{i}")
-        root.reg_img(Resource["Notes"]["Drag"][i],f"Note_Drag_{i}")
-        root.reg_img(Resource["Notes"]["Drag_dub"][i],f"Note_Drag_dub_{i}")
-        root.reg_img(Resource["Notes"]["Flick"][i],f"Note_Flick_{i}")
-        root.reg_img(Resource["Notes"]["Flick_dub"][i],f"Note_Flick_dub_{i}")
-        root.reg_img(Resource["Notes"]["Hold"]["Hold_Head"][i],f"Note_Hold_Head_{i}")
-        root.reg_img(Resource["Notes"]["Hold"]["Hold_Head_dub"][i],f"Note_Hold_Head_dub_{i}")
-        root.reg_img(Resource["Notes"]["Hold"]["Hold_End"][i],f"Note_Hold_End_{i}")
+    root.reg_img(Resource["Notes"]["Tap"],"Note_Tap")
+    root.reg_img(Resource["Notes"]["Tap_dub"],"Note_Tap_dub")
+    root.reg_img(Resource["Notes"]["Drag"],"Note_Drag")
+    root.reg_img(Resource["Notes"]["Drag_dub"],"Note_Drag_dub")
+    root.reg_img(Resource["Notes"]["Flick"],"Note_Flick")
+    root.reg_img(Resource["Notes"]["Flick_dub"],"Note_Flick_dub")
+    root.reg_img(Resource["Notes"]["Hold"]["Hold_Head"],"Note_Hold_Head")
+    root.reg_img(Resource["Notes"]["Hold"]["Hold_Head_dub"],"Note_Hold_Head_dub")
+    root.reg_img(Resource["Notes"]["Hold"]["Hold_End"],"Note_Hold_End")
     for i in range(30):
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
     root.reg_img(Resource["ProcessBar"],"ProcessBar")
@@ -365,28 +321,28 @@ def Load_Resource():
     print("Loading Resource Successfully.")
     note_max_width = max(
         [
-            Resource["Notes"]["Tap"][0].width,
-            Resource["Notes"]["Tap_dub"][0].width,
-            Resource["Notes"]["Drag"][0].width,
-            Resource["Notes"]["Drag_dub"][0].width,
-            Resource["Notes"]["Flick"][0].width,
-            Resource["Notes"]["Flick_dub"][0].width,
-            Resource["Notes"]["Hold"]["Hold_Head"][0].width,
-            Resource["Notes"]["Hold"]["Hold_Head_dub"][0].width,
-            Resource["Notes"]["Hold"]["Hold_End"][0].width
+            Resource["Notes"]["Tap"].width,
+            Resource["Notes"]["Tap_dub"].width,
+            Resource["Notes"]["Drag"].width,
+            Resource["Notes"]["Drag_dub"].width,
+            Resource["Notes"]["Flick"].width,
+            Resource["Notes"]["Flick_dub"].width,
+            Resource["Notes"]["Hold"]["Hold_Head"].width,
+            Resource["Notes"]["Hold"]["Hold_Head_dub"].width,
+            Resource["Notes"]["Hold"]["Hold_End"].width
         ]
     )
     note_max_height = max(
         [
-            Resource["Notes"]["Tap"][0].height,
-            Resource["Notes"]["Tap_dub"][0].height,
-            Resource["Notes"]["Drag"][0].height,
-            Resource["Notes"]["Drag_dub"][0].height,
-            Resource["Notes"]["Flick"][0].height,
-            Resource["Notes"]["Flick_dub"][0].height,
-            Resource["Notes"]["Hold"]["Hold_Head"][0].height,
-            Resource["Notes"]["Hold"]["Hold_Head_dub"][0].height,
-            Resource["Notes"]["Hold"]["Hold_End"][0].height
+            Resource["Notes"]["Tap"].height,
+            Resource["Notes"]["Tap_dub"].height,
+            Resource["Notes"]["Drag"].height,
+            Resource["Notes"]["Drag_dub"].height,
+            Resource["Notes"]["Flick"].height,
+            Resource["Notes"]["Flick_dub"].height,
+            Resource["Notes"]["Hold"]["Hold_Head"].height,
+            Resource["Notes"]["Hold"]["Hold_Head_dub"].height,
+            Resource["Notes"]["Hold"]["Hold_End"].height
         ]
     )
     note_max_width_half = note_max_width / 2
@@ -653,15 +609,15 @@ def PlayerStart_Phi():
                         if note_item.type != Const.Note.HOLD
                         else Note_CanRender(x,y,holdbody_range)
                     ):
-                        judgeLine_rotate_integer = int(judgeLine_cfg["Rotate"]) % 360
+                        judgeLine_rotate_integer = - int(judgeLine_cfg["Rotate"]) % 360
                         if note_item.type != Const.Note.HOLD:
-                            this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
-                            this_note_imgname = f"Note_{note_type}" + ("_dub" if note_item.morebets else "") + f"_{judgeLine_rotate_integer}"
+                            this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")]
+                            this_note_imgname = f"Note_{note_type}" + ("_dub" if note_item.morebets else "")
                         else:
-                            this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")][judgeLine_rotate_integer]
-                            this_note_imgname = f"Note_{note_type}" + "_Head" + ("_dub" if note_item.morebets else "") + f"_{judgeLine_rotate_integer}"
-                            this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"][judgeLine_rotate_integer]
-                            this_note_imgname_end = f"Note_{note_type}" + "_End"+ f"_{judgeLine_rotate_integer}"
+                            this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")]
+                            this_note_imgname = f"Note_{note_type}" + "_Head" + ("_dub" if note_item.morebets else "")
+                            this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"]
+                            this_note_imgname_end = f"Note_{note_type}" + "_End"
                         if note_item.type == Const.Note.HOLD:
                             root.create_polygon(
                                 points=holdbody_range,
@@ -669,20 +625,28 @@ def PlayerStart_Phi():
                                 strokeStyle="#00000000",
                                 wait_execute = True
                             )
-                            root.create_image(
-                                this_note_imgname_end,
-                                holdend_x - this_note_img_end.width / 2,
-                                holdend_y - this_note_img_end.height / 2,
-                                this_note_img_end.width,this_note_img_end.height,
-                                wait_execute = True
+                            root.run_js_code(
+                                f"ctx.drawRotateImage(\
+                                    {root.get_img_jsvarname(this_note_imgname_end)},\
+                                    {holdend_x},\
+                                    {holdend_y},\
+                                    {this_note_img_end.width},\
+                                    {this_note_img_end.height},\
+                                    {judgeLine_rotate_integer}\
+                                );",
+                                add_code_array = True
                             )
                         if not (note_item.type == Const.Note.HOLD and note_item.time * this_judgeLine_T < now_t):
-                            root.create_image(
-                                this_note_imgname,
-                                x - this_note_img.width / 2,
-                                y - this_note_img.height / 2,
-                                this_note_img.width,this_note_img.height,
-                                wait_execute = True
+                            root.run_js_code( #more about this function at js define CanvasRenderingContext2D.prototype.drawRotateImage
+                                f"ctx.drawRotateImage(\
+                                    {root.get_img_jsvarname(this_note_imgname)},\
+                                    {x},\
+                                    {y},\
+                                    {this_note_img.width},\
+                                    {this_note_img.height},\
+                                    {judgeLine_rotate_integer}\
+                                );",
+                                add_code_array = True #eq wait_exec true
                             )
                         note_item.rendered = True
             process(judgeLine.notesAbove,1)
@@ -771,6 +735,8 @@ def PlayerStart_Phi():
         root.destroy()
 
 def PlayerStart_Rep():
+    raise NotImplementedError
+
     print("Player Start")
     root.title("Phigros Chart Player")
     def judgeLine_Animation():
