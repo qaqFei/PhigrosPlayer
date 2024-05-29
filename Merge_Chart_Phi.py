@@ -7,8 +7,9 @@ if len(argv) < 4:
 with open(argv[1],"r") as f:
     chart = load(f)
 
-with open(argv[2],"r") as f:
-    chart["judgeLineList"] += load(f)["judgeLineList"]
+for filename in argv[2:-1]:
+    with open(filename,"r") as f:
+        chart["judgeLineList"] += load(f)["judgeLineList"]
 
-with open(argv[3],"w") as f:
+with open(argv[-1],"w") as f:
     f.write(dumps(chart))
