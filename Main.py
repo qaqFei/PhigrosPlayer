@@ -244,11 +244,10 @@ loger_queue = Queue()
 clickeffect_cache = []
 note_id = -1
 
-match CHART_TYPE:
-    case Const.CHART_TYPE.PHI:
-        phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart)
-    case Const.CHART_TYPE.REP:
-        rep_chart_obj = Chart_Functions_Rep.Load_Chart_Object(phigros_chart)
+if CHART_TYPE == Const.CHART_TYPE.PHI:
+    phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart)
+elif CHART_TYPE == Const.CHART_TYPE.REP:
+    rep_chart_obj = Chart_Functions_Rep.Load_Chart_Object(phigros_chart)
 
 def Load_Resource():
     global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
@@ -259,30 +258,19 @@ def Load_Resource():
     Thread(target=WaitLoading_FadeIn,daemon=True).start()
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
-    Note_width = int(PHIGROS_X * 1.75)
-    Note_height_Tap = int(Note_width / 989 * 100)
-    Note_height_Tap_dub = int(Note_width / 1089 * 200)
-    Note_height_Drag = int(Note_width / 989 * 60)
-    Note_height_Drag_dub = int(Note_width / 1089 * 160)
-    Note_height_Flick = int(Note_width / 989 * 200)
-    Note_height_Flick_dub = int(Note_width / 1089 * 300)
-    Note_height_Hold_Head = int(Note_width / 989 * 50)
-    Note_height_Hold_Head_dub = int(Note_width / 1058 * 97)
-    Note_height_Hold_End = int(Note_width / 989 * 50)
+    Note_width = int(PHIGROS_X * 1.75 * (eval(argv[argv.index("-scale-note") + 1]) if "-scale-note" in argv else 1.0))
     ClickEffect_Size = int(Note_width * 1.5)
     Resource = {
         "Notes":{
-            "Tap":Image.open("./Resources/Notes/Tap.png").resize((Note_width,Note_height_Tap)),
-            "Tap_dub":Image.open("./Resources/Notes/Tap_dub.png").resize((Note_width,Note_height_Tap_dub)),
-            "Drag":Image.open("./Resources/Notes/Drag.png").resize((Note_width,Note_height_Drag)),
-            "Drag_dub":Image.open("./Resources/Notes/Drag_dub.png").resize((Note_width,Note_height_Drag_dub)),
-            "Flick":Image.open("./Resources/Notes/Flick.png").resize((Note_width,Note_height_Flick)),
-            "Flick_dub":Image.open("./Resources/Notes/Flick_dub.png").resize((Note_width,Note_height_Flick_dub)),
-            "Hold":{
-                "Hold_Head":Image.open("./Resources/Notes/Hold_Head.png").resize((Note_width,Note_height_Hold_Head)),
-                "Hold_Head_dub":Image.open("./Resources/Notes/Hold_Head_dub.png").resize((Note_width,Note_height_Hold_Head_dub)),
-                "Hold_End":Image.open("./Resources/Notes/Hold_End.png").resize((Note_width,Note_height_Hold_End))
-            }
+            "Tap":Image.open("./Resources/Notes/Tap.png"),
+            "Tap_dub":Image.open("./Resources/Notes/Tap_dub.png"),
+            "Drag":Image.open("./Resources/Notes/Drag.png"),
+            "Drag_dub":Image.open("./Resources/Notes/Drag_dub.png"),
+            "Flick":Image.open("./Resources/Notes/Flick.png"),
+            "Flick_dub":Image.open("./Resources/Notes/Flick_dub.png"),
+            "Hold_Head":Image.open("./Resources/Notes/Hold_Head.png"),
+            "Hold_Head_dub":Image.open("./Resources/Notes/Hold_Head_dub.png"),
+            "Hold_End":Image.open("./Resources/Notes/Hold_End.png")
         },
         "Note_Click_Effect":{
             "Perfect":[
@@ -299,7 +287,10 @@ def Load_Resource():
         "ProcessBar":Image.new("RGB",(w,int(h / 125)),(145,)*3),
         "Start":Image.open("./Resources/Start.png").resize((w,h))
     }
-    print("Loading Resource - create processbar ...")
+    
+    for key,value in Resource["Notes"].items():
+        Resource["Notes"][key] = value.resize((Note_width,int(Note_width / value.width * value.height)))
+    
     ImageDraw.Draw(Resource["ProcessBar"]).rectangle((w * 0.998,0,w,int(h / 125)),fill=(255,)*3)
     Resource["ProcessBar"] = Resource["ProcessBar"]
     root.reg_img(Resource["Notes"]["Tap"],"Note_Tap")
@@ -308,9 +299,9 @@ def Load_Resource():
     root.reg_img(Resource["Notes"]["Drag_dub"],"Note_Drag_dub")
     root.reg_img(Resource["Notes"]["Flick"],"Note_Flick")
     root.reg_img(Resource["Notes"]["Flick_dub"],"Note_Flick_dub")
-    root.reg_img(Resource["Notes"]["Hold"]["Hold_Head"],"Note_Hold_Head")
-    root.reg_img(Resource["Notes"]["Hold"]["Hold_Head_dub"],"Note_Hold_Head_dub")
-    root.reg_img(Resource["Notes"]["Hold"]["Hold_End"],"Note_Hold_End")
+    root.reg_img(Resource["Notes"]["Hold_Head"],"Note_Hold_Head")
+    root.reg_img(Resource["Notes"]["Hold_Head_dub"],"Note_Hold_Head_dub")
+    root.reg_img(Resource["Notes"]["Hold_End"],"Note_Hold_End")
     for i in range(30):
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
     root.reg_img(Resource["ProcessBar"],"ProcessBar")
@@ -327,9 +318,9 @@ def Load_Resource():
             Resource["Notes"]["Drag_dub"].width,
             Resource["Notes"]["Flick"].width,
             Resource["Notes"]["Flick_dub"].width,
-            Resource["Notes"]["Hold"]["Hold_Head"].width,
-            Resource["Notes"]["Hold"]["Hold_Head_dub"].width,
-            Resource["Notes"]["Hold"]["Hold_End"].width
+            Resource["Notes"]["Hold_Head"].width,
+            Resource["Notes"]["Hold_Head_dub"].width,
+            Resource["Notes"]["Hold_End"].width
         ]
     )
     note_max_height = max(
@@ -340,9 +331,9 @@ def Load_Resource():
             Resource["Notes"]["Drag_dub"].height,
             Resource["Notes"]["Flick"].height,
             Resource["Notes"]["Flick_dub"].height,
-            Resource["Notes"]["Hold"]["Hold_Head"].height,
-            Resource["Notes"]["Hold"]["Hold_Head_dub"].height,
-            Resource["Notes"]["Hold"]["Hold_End"].height
+            Resource["Notes"]["Hold_Head"].height,
+            Resource["Notes"]["Hold_Head_dub"].height,
+            Resource["Notes"]["Hold_End"].height
         ]
     )
     note_max_width_half = note_max_width / 2
@@ -374,11 +365,10 @@ def Show_Start():
     sleep(0.5)
     root.run_js_code("show_out_animation();")
     sleep(1.25)
-    match CHART_TYPE:
-        case Const.CHART_TYPE.PHI:
-            Thread(target=PlayerStart_Phi,daemon=True).start()
-        case Const.CHART_TYPE.REP:
-            Thread(target=PlayerStart_Rep,daemon=True).start()
+    if CHART_TYPE == Const.CHART_TYPE.PHI:
+        Thread(target=PlayerStart_Phi,daemon=True).start()
+    elif CHART_TYPE == Const.CHART_TYPE.REP:
+        Thread(target=PlayerStart_Rep,daemon=True).start()
     del WaitLoading,LoadSuccess
 
 def draw_ui(
@@ -580,6 +570,7 @@ def PlayerStart_Phi():
                     x,y = Tool_Functions.rotate_point(
                         *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"]
                     )
+                    x,y = int(x),int(y)
                     if note_item.type == Const.Note.HOLD:
                         note_hold_draw_length = cfg["now_floorPosition"] + note_item.hold_length_px
                         if note_hold_draw_length >= 0:
@@ -588,6 +579,7 @@ def PlayerStart_Phi():
                             )
                         else:
                             holdend_x,holdend_y = rotatenote_at_judgeLine_pos
+                        holdend_x,holdend_y = int(holdend_x),int(holdend_y)
                         if cfg["now_floorPosition"] >= 0:
                             holdhead_pos = x,y
                         else:
@@ -614,9 +606,9 @@ def PlayerStart_Phi():
                             this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")]
                             this_note_imgname = f"Note_{note_type}" + ("_dub" if note_item.morebets else "")
                         else:
-                            this_note_img = Resource["Notes"]["Hold"][note_type + "_Head" + ("_dub" if note_item.morebets else "")]
+                            this_note_img = Resource["Notes"][note_type + "_Head" + ("_dub" if note_item.morebets else "")]
                             this_note_imgname = f"Note_{note_type}" + "_Head" + ("_dub" if note_item.morebets else "")
-                            this_note_img_end = Resource["Notes"]["Hold"][note_type + "_End"]
+                            this_note_img_end = Resource["Notes"][note_type + "_End"]
                             this_note_imgname_end = f"Note_{note_type}" + "_End"
                         if note_item.type == Const.Note.HOLD:
                             root.create_polygon(
@@ -820,20 +812,19 @@ def PlayerStart_Rep():
     root.destroy()
 
 def Re_Init():
-    match CHART_TYPE:
-        case Const.CHART_TYPE.PHI:
-            (
-                Chart_Functions_Phi.w,
-                Chart_Functions_Phi.h,
-                Chart_Functions_Phi.PHIGROS_X,
-                Chart_Functions_Phi.PHIGROS_Y
-            ) = w,h,PHIGROS_X,PHIGROS_Y
-            phigros_chart_obj.init_holdlength(PHIGROS_Y)
-        case Const.CHART_TYPE.REP:
-            (
-                Chart_Functions_Rep.w,
-                Chart_Functions_Rep.h
-            ) = w,h
+    if CHART_TYPE == Const.CHART_TYPE.PHI:
+        (
+            Chart_Functions_Phi.w,
+            Chart_Functions_Phi.h,
+            Chart_Functions_Phi.PHIGROS_X,
+            Chart_Functions_Phi.PHIGROS_Y
+        ) = w,h,PHIGROS_X,PHIGROS_Y
+        phigros_chart_obj.init_holdlength(PHIGROS_Y)
+    elif CHART_TYPE == Const.CHART_TYPE.REP:
+        (
+            Chart_Functions_Rep.w,
+            Chart_Functions_Rep.h
+        ) = w,h
 
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")
@@ -863,24 +854,23 @@ background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(Imag
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
-EFFECT_RANDOM_BLOCK_SIZE = h * 0.013
 window_hwnd = root.winfo_hwnd()
 print(f"Window Hwnd: {window_hwnd}")
 window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
 SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
 Resource = Load_Resource()
-match CHART_TYPE:
-    case Const.CHART_TYPE.PHI:
-        Chart_Functions_Phi.Init(
-            phigros_chart_obj_ = phigros_chart_obj,
-            PHIGROS_X_ = PHIGROS_X,PHIGROS_Y_ = PHIGROS_Y,
-            w_ = w,h_ = h
-        )
-    case Const.CHART_TYPE.REP:
-        Chart_Functions_Rep.Init(
-            w_ = w,h_ = h,
-            Resource_ = Resource
-        )
+EFFECT_RANDOM_BLOCK_SIZE = Note_width / 13.5
+if CHART_TYPE == Const.CHART_TYPE.PHI:
+    Chart_Functions_Phi.Init(
+        phigros_chart_obj_ = phigros_chart_obj,
+        PHIGROS_X_ = PHIGROS_X,PHIGROS_Y_ = PHIGROS_Y,
+        w_ = w,h_ = h
+    )
+elif CHART_TYPE == Const.CHART_TYPE.REP:
+    Chart_Functions_Rep.Init(
+        w_ = w,h_ = h,
+        Resource_ = Resource
+    )
 Thread(target=Show_Start,daemon=True).start()
 Thread(target=loger,daemon=True).start()
 root.loop_to_close()

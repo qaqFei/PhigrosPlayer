@@ -106,11 +106,16 @@
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im,x,y,width,height,deg) { // draw at the position center
-        this.save();
-        this.translate(x,y);
-        this.rotate(deg * Math.PI / 180);
-        this.drawImage(im,-width / 2,-height / 2,width,height);
-        this.restore();
+        if (deg != 0){
+            this.save();
+            this.translate(x,y);
+            this.rotate(deg * Math.PI / 180);
+            this.drawImage(im,parseInt(-width / 2),parseInt(-height / 2),width,height);
+            this.restore();
+        }
+        else {
+            this.drawImage(im,parseInt(x - width / 2),parseInt(y - height / 2),width,height);
+        }
     }
 
     resizeCanvas()
