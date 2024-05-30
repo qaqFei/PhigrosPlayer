@@ -662,13 +662,6 @@ def PlayerStart_Phi():
                         if Chart_Functions_Phi.is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
                         if Chart_Functions_Phi.is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
                         effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
-                        root.create_image(
-                            effect_imgname,
-                            effect_pos[0] - effect_img.width / 2,
-                            effect_pos[1] - effect_img.height / 2,
-                            effect_img.width,effect_img.height,
-                            wait_execute = True
-                        )
                         if clickeffect_randomblock:
                             for index,random_deg in enumerate(effect_random_blocks):
                                 effect_random_point = Tool_Functions.rotate_point(
@@ -683,6 +676,13 @@ def PlayerStart_Phi():
                                     fillStyle = f"rgb{(254,255,169,1.0 - effect_process)}",
                                     wait_execute = True
                                 )
+                        root.create_image(
+                            effect_imgname,
+                            effect_pos[0] - effect_img.width / 2,
+                            effect_pos[1] - effect_img.height / 2,
+                            effect_img.width,effect_img.height,
+                            wait_execute = True
+                        )
                                 
                     if now_t - note_time <= effect_time:
                         process(note_time,note.time,note.effect_random_blocks)
