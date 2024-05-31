@@ -270,7 +270,10 @@ def Load_Resource():
             "Flick_dub":Image.open("./Resources/Notes/Flick_dub.png"),
             "Hold_Head":Image.open("./Resources/Notes/Hold_Head.png"),
             "Hold_Head_dub":Image.open("./Resources/Notes/Hold_Head_dub.png"),
-            "Hold_End":Image.open("./Resources/Notes/Hold_End.png")
+            "Hold_End":Image.open("./Resources/Notes/Hold_End.png"),
+            "Hold_End_dub":Image.open("./Resources/Notes/Hold_End_dub.png"),
+            "Hold_Body":Image.open("./Resources/Notes/Hold_Body.png"),
+            "Hold_Body_dub":Image.open("./Resources/Notes/Hold_Body_dub.png")
         },
         "Note_Click_Effect":{
             "Perfect":[
@@ -290,18 +293,10 @@ def Load_Resource():
     
     for key,value in Resource["Notes"].items():
         Resource["Notes"][key] = value.resize((Note_width,int(Note_width / value.width * value.height)))
+        root.reg_img(Resource["Notes"][key],f"Note_{key}")
     
     ImageDraw.Draw(Resource["ProcessBar"]).rectangle((w * 0.998,0,w,int(h / 125)),fill=(255,)*3)
     Resource["ProcessBar"] = Resource["ProcessBar"]
-    root.reg_img(Resource["Notes"]["Tap"],"Note_Tap")
-    root.reg_img(Resource["Notes"]["Tap_dub"],"Note_Tap_dub")
-    root.reg_img(Resource["Notes"]["Drag"],"Note_Drag")
-    root.reg_img(Resource["Notes"]["Drag_dub"],"Note_Drag_dub")
-    root.reg_img(Resource["Notes"]["Flick"],"Note_Flick")
-    root.reg_img(Resource["Notes"]["Flick_dub"],"Note_Flick_dub")
-    root.reg_img(Resource["Notes"]["Hold_Head"],"Note_Hold_Head")
-    root.reg_img(Resource["Notes"]["Hold_Head_dub"],"Note_Hold_Head_dub")
-    root.reg_img(Resource["Notes"]["Hold_End"],"Note_Hold_End")
     for i in range(30):
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
     root.reg_img(Resource["ProcessBar"],"ProcessBar")
@@ -570,7 +565,6 @@ def PlayerStart_Phi():
                     x,y = Tool_Functions.rotate_point(
                         *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"]
                     )
-                    x,y = int(x),int(y)
                     if note_item.type == Const.Note.HOLD:
                         note_hold_draw_length = cfg["now_floorPosition"] + note_item.hold_length_px
                         if note_hold_draw_length >= 0:
@@ -579,7 +573,6 @@ def PlayerStart_Phi():
                             )
                         else:
                             holdend_x,holdend_y = rotatenote_at_judgeLine_pos
-                        holdend_x,holdend_y = int(holdend_x),int(holdend_y)
                         if cfg["now_floorPosition"] >= 0:
                             holdhead_pos = x,y
                         else:
@@ -608,26 +601,10 @@ def PlayerStart_Phi():
                         else:
                             this_note_img = Resource["Notes"][note_type + "_Head" + ("_dub" if note_item.morebets else "")]
                             this_note_imgname = f"Note_{note_type}" + "_Head" + ("_dub" if note_item.morebets else "")
-                            this_note_img_end = Resource["Notes"][note_type + "_End"]
-                            this_note_imgname_end = f"Note_{note_type}" + "_End"
-                        if note_item.type == Const.Note.HOLD:
-                            root.create_polygon(
-                                points=holdbody_range,
-                                fillStyle="#0078d7",
-                                strokeStyle="#00000000",
-                                wait_execute = True
-                            )
-                            root.run_js_code(
-                                f"ctx.drawRotateImage(\
-                                    {root.get_img_jsvarname(this_note_imgname_end)},\
-                                    {holdend_x},\
-                                    {holdend_y},\
-                                    {this_note_img_end.width},\
-                                    {this_note_img_end.height},\
-                                    {judgeLine_rotate_integer}\
-                                );",
-                                add_code_array = True
-                            )
+                            this_note_img_body = Resource["Notes"][note_type + "_Body" + ("_dub" if note_item.morebets else "")]
+                            this_note_imgname_body = f"Note_{note_type}" + "_Body" + ("_dub" if note_item.morebets else "")
+                            this_note_img_end = Resource["Notes"][note_type + "_End" + ("_dub" if note_item.morebets else "")]
+                            this_note_imgname_end = f"Note_{note_type}" + "_End" + ("_dub" if note_item.morebets else "")
                         if not (note_item.type == Const.Note.HOLD and note_item.time * this_judgeLine_T < now_t):
                             root.run_js_code( #more about this function at js define CanvasRenderingContext2D.prototype.drawRotateImage
                                 f"ctx.drawRotateImage(\
@@ -639,6 +616,44 @@ def PlayerStart_Phi():
                                     {judgeLine_rotate_integer}\
                                 );",
                                 add_code_array = True #eq wait_exec true
+                            )
+                        if note_item.type == Const.Note.HOLD:
+                            # root.create_polygon(
+                            #     points=holdbody_range,
+                            #     fillStyle="#0078d7",
+                            #     strokeStyle="#00000000",
+                            #     wait_execute = True
+                            # )
+                            if note_item.clicked:
+                                holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
+                                holdbody_length = Tool_Functions.calpointlength(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / (1 if note_item.morebets else 2)
+                            else:
+                                holdbody_x,holdbody_y = Tool_Functions.rotate_point(
+                                    *holdhead_pos,judgeLine_to_note_rotate_angle,this_note_img.height / 2
+                                )
+                                holdbody_length = Tool_Functions.calpointlength(holdhead_pos,(holdend_x,holdend_y)) - this_note_img_end.height / (1 if note_item.morebets else 2)
+                            holdbody_length -= 0.5
+                            root.run_js_code(
+                                f"ctx.drawRotateImage(\
+                                    {root.get_img_jsvarname(this_note_imgname_end)},\
+                                    {holdend_x},\
+                                    {holdend_y},\
+                                    {this_note_img_end.width},\
+                                    {this_note_img_end.height},\
+                                    {judgeLine_rotate_integer}\
+                                );",
+                                add_code_array = True
+                            )
+                            root.run_js_code(
+                                f"ctx.drawAnchorESRotateImage(\
+                                    {root.get_img_jsvarname(this_note_imgname_body)},\
+                                    {holdbody_x},\
+                                    {holdbody_y},\
+                                    {this_note_img_body.width},\
+                                    {holdbody_length},\
+                                    {judgeLine_rotate_integer}\
+                                );",
+                                add_code_array = True
                             )
                         note_item.rendered = True
             process(judgeLine.notesAbove,1)

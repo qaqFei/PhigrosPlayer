@@ -1,7 +1,7 @@
-from math import cos,sin,radians,pi
 from random import randint
 from sys import argv
 import typing
+import math
 
 note_id = -1
 random_block_num = 4
@@ -10,14 +10,14 @@ if "-random-block-num" in argv:
 
 def Get_Animation_Gr(fps:float,t:float):
     gr_x = int(fps * t) + 1
-    gr = [cos(x / gr_x) + 1 for x in range(int(gr_x * pi))]
+    gr = [math.cos(x / gr_x) + 1 for x in range(int(gr_x * math.pi))]
     gr_sum = sum(gr)
     step_time = t / len(gr)
     return [item / gr_sum for item in gr],step_time
 
 def rotate_point(x,y,θ,r):
-    xo = r * cos(radians(θ))
-    yo = r * sin(radians(θ))
+    xo = r * math.cos(math.radians(θ))
+    yo = r * math.sin(math.radians(θ))
     return x + xo,y + yo
 
 def Get_A_New_NoteId_By_judgeLine(judgeLine_item:dict):
@@ -36,7 +36,10 @@ def unpack_pos(number:int) -> tuple[int,int]:
     return (number - number % 1000) // 1000,number % 1000
 
 def ease_out(x:float) -> float:
-    return sin(x * (pi / 2))
+    return math.sin(x * (math.pi / 2))
 
 def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
     return tuple((randint(1,90) for _ in range(random_block_num)))
+
+def calpointlength(p1,p2):
+    return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
