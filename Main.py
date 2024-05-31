@@ -626,13 +626,13 @@ def PlayerStart_Phi():
                             # )
                             if note_item.clicked:
                                 holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
-                                holdbody_length = Tool_Functions.calpointlength(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / (1 if note_item.morebets else 2)
+                                holdbody_length = Tool_Functions.calpointlength(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / 2
                             else:
                                 holdbody_x,holdbody_y = Tool_Functions.rotate_point(
                                     *holdhead_pos,judgeLine_to_note_rotate_angle,this_note_img.height / 2
                                 )
-                                holdbody_length = Tool_Functions.calpointlength(holdhead_pos,(holdend_x,holdend_y)) - this_note_img_end.height / (1 if note_item.morebets else 2)
-                            holdbody_length -= 0.5
+                                holdbody_length = Tool_Functions.calpointlength(holdhead_pos,(holdend_x,holdend_y)) - this_note_img.height / 2 - this_note_img_end.height / 2
+                            holdbody_length += 0.5
                             root.run_js_code(
                                 f"ctx.drawRotateImage(\
                                     {root.get_img_jsvarname(this_note_imgname_end)},\
