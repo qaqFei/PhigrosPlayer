@@ -180,7 +180,6 @@ class Phigros_Chart:
                 note._cal_holdlength(PHIGROS_Y)
     
     def _specification_events(self,event:typing.Union[
-        typing.List[speedEvent],
         typing.List[judgeLineMoveEvent],
         typing.List[judgeLineDisappearEvent],
         typing.List[judgeLineRotateEvent]
@@ -212,7 +211,6 @@ class Phigros_Chart:
         event[-1].endTime = 9999999.0
     
     def _is_specification_events(self,event:typing.Union[
-        typing.List[speedEvent],
         typing.List[judgeLineMoveEvent],
         typing.List[judgeLineDisappearEvent],
         typing.List[judgeLineRotateEvent]
@@ -225,7 +223,6 @@ class Phigros_Chart:
         
     def specification(self):
         for judgeLine in self.judgeLineList:
-            self._specification_events(judgeLine.speedEvents)
             self._specification_events(judgeLine.judgeLineMoveEvents)
             self._specification_events(judgeLine.judgeLineDisappearEvents)
             self._specification_events(judgeLine.judgeLineRotateEvents)
