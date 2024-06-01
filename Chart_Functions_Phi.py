@@ -190,5 +190,7 @@ def Load_Chart_Object(phigros_chart):
         if note_times[note.time] > 1:
             note.morebets = True
     del notes,note_times
+    
+    phigros_chart_obj.specification()
     print("Load Chart Object Successfully.")
     return phigros_chart_obj

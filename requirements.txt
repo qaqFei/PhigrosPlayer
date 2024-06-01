@@ -2,4 +2,3 @@ Pillow
 pywin32
 pygame
 pywebview
-pyautogui

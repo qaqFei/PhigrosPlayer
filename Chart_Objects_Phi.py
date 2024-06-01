@@ -5,8 +5,6 @@ import typing
 import Const
 import Tool_Functions
 
-NAN = float("NaN")
-
 @dataclass
 class note:
     type:typing.Literal[1,2,3,4]
@@ -26,6 +24,8 @@ class note:
     note_last_show_hold_effect_time:float = 0.0
     is_will_click:bool = False
     hold_click_type:typing.Union[None,typing.Literal["Perfect","Good"]] = None
+    show_effected = False
+    show_effected_hold = False
     
     def __eq__(self,oth):
         try:
@@ -126,7 +126,7 @@ class judgeLine:
                     return rotate_event.start + (rotate_event.end - rotate_event.start) * ((now_time - rotate_event.startTime) / (rotate_event.endTime - rotate_event.startTime))
                 except ZeroDivisionError:
                     return rotate_event.start
-        return NAN
+        return 0.0 #never
     
     def get_datavar_disappear(self,now_time):
         for disappear_event in self.judgeLineDisappearEvents:
@@ -135,7 +135,7 @@ class judgeLine:
                     return disappear_event.start + (disappear_event.end - disappear_event.start) * ((now_time - disappear_event.startTime) / (disappear_event.endTime - disappear_event.startTime)) 
                 except ZeroDivisionError:
                     return disappear_event.start
-        return NAN
+        return 0.0 #never
     
     def get_datavar_move(self,now_time,w,h):
         for move_event in self.judgeLineMoveEvents:
@@ -150,13 +150,13 @@ class judgeLine:
                     r = [move_event.start * w,move_event.start2 * h]
                 r[1] = h - r[1]
                 return r
-        return NAN
+        return [w * 0.5,h * 0.5] #never
 
     def get_datavar_speed(self,now_time):
         for speed_event in self.speedEvents:
             if speed_event.startTime <= now_time <= speed_event.endTime:
                return speed_event.value
-        return NAN
+        return 1.0 #never
 
 @dataclass
 class Phigros_Chart:
@@ -178,6 +178,57 @@ class Phigros_Chart:
                 note._cal_holdlength(PHIGROS_Y)
             for note in judgeLine.notesBelow:
                 note._cal_holdlength(PHIGROS_Y)
+    
+    def _specification_events(self,event:typing.Union[
+        typing.List[speedEvent],
+        typing.List[judgeLineMoveEvent],
+        typing.List[judgeLineDisappearEvent],
+        typing.List[judgeLineRotateEvent]
+    ]):
+        if not event: #empty
+            return
+        
+        event.sort(key=lambda x:x.startTime)
+        
+        for e in event:
+            if e.startTime > e.endTime:
+                e.endTime = e.startTime
+                e.start = e.end
+                if hasattr(e,"start2"):
+                    e.start2 = e.end2
+
+        while True:
+            for index,e in enumerate(event):
+                start = e.startTime
+                if index != len(event) - 1:
+                    end = event[index + 1].startTime
+                else:
+                    end = 9999999.0
+                e.startTime,e.endTime = start,end
+            if self._is_specification_events(event):
+                break
+        
+        event[0].startTime = 0.0
+        event[-1].endTime = 9999999.0
+    
+    def _is_specification_events(self,event:typing.Union[
+        typing.List[speedEvent],
+        typing.List[judgeLineMoveEvent],
+        typing.List[judgeLineDisappearEvent],
+        typing.List[judgeLineRotateEvent]
+    ]) -> bool:
+        for index,e in enumerate(event):
+            if index != len(event) - 1:
+                if e.endTime != event[index + 1].startTime:
+                    return False
+        return True
+        
+    def specification(self):
+        for judgeLine in self.judgeLineList:
+            self._specification_events(judgeLine.speedEvents)
+            self._specification_events(judgeLine.judgeLineMoveEvents)
+            self._specification_events(judgeLine.judgeLineDisappearEvents)
+            self._specification_events(judgeLine.judgeLineRotateEvents)
     
     def get_all_note(self) -> list[note]:
        return [j for i in self.judgeLineList for j in i.notesAbove + i.notesBelow]

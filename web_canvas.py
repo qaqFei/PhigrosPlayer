@@ -9,10 +9,10 @@ import math
 
 from PIL import Image
 import webview
-import pyautogui
 
 current_thread = threading.current_thread
-screen_size = pyautogui.size()
+screen_width = windll.user32.GetSystemMetrics(0)
+screen_height = windll.user32.GetSystemMetrics(1)
 
 class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
     _canvas:WebCanvas
@@ -77,12 +77,12 @@ class WebCanvas:
     def winfo_screenwidth(
         self
     ) -> int:
-        return screen_size.width
+        return screen_width
     
     def winfo_screenheight(
         self
     ) -> int:
-        return screen_size.height
+        return screen_height
     
     def winfo_width(
         self

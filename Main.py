@@ -519,6 +519,7 @@ def PlayerStart_Phi():
     last_cal_fps_time = time()
     time_block_render_count = 0
     while True:
+        frame_data_calst = time()
         now_t = time() - show_start_time
         Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
         root.clear_canvas(wait_execute = True)
@@ -544,20 +545,26 @@ def PlayerStart_Phi():
             
             def process(notes_list:typing.List[Chart_Objects_Phi.note],t:int):
                 for note_item in notes_list:
-                    this_noteitem_clicked = note_item.time * this_judgeLine_T < now_t
+                    this_note_sectime = note_item.time * this_judgeLine_T
+                    this_noteitem_clicked = this_note_sectime < now_t
+                    this_note_ishold = note_item.type == Const.Note.HOLD
+                    
                     if this_noteitem_clicked and not note_item.clicked:
                         note_item.clicked = True
                         Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][{Const.Note.TAP:"Tap",Const.Note.DRAG:"Drag",Const.Note.HOLD:"Hold",Const.Note.FLICK:"Flick"}[note_item.type]],),daemon=True).start()
-                    if note_item.type != Const.Note.HOLD and this_noteitem_clicked:
+                        
+                    if not this_note_ishold and this_noteitem_clicked:
                         continue
-                    elif note_item.type == Const.Note.HOLD and now_t > note_item.hold_endtime:
+                    elif this_note_ishold and now_t > note_item.hold_endtime:
                         continue
+                    
                     cfg = {
                         "note":note_item,
                         "now_floorPosition":note_item.floorPosition * PHIGROS_Y - (judgeLine_cfg["Note_dy"] if not (note_item.type == Const.Note.HOLD and note_item.clicked) else (
                             Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
                         ))
                     }
+                    
                     rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
                         *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
                     )
@@ -565,7 +572,8 @@ def PlayerStart_Phi():
                     x,y = Tool_Functions.rotate_point(
                         *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"]
                     )
-                    if note_item.type == Const.Note.HOLD:
+                    
+                    if this_note_ishold:
                         note_hold_draw_length = cfg["now_floorPosition"] + note_item.hold_length_px
                         if note_hold_draw_length >= 0:
                             holdend_x,holdend_y = Tool_Functions.rotate_point(
@@ -583,29 +591,39 @@ def PlayerStart_Phi():
                             Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_angle + 90,Note_width / 2),
                             Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_angle + 90,Note_width / 2),
                         )
+                        
                     note_type = {
                         Const.Note.TAP:"Tap",
                         Const.Note.DRAG:"Drag",
                         Const.Note.HOLD:"Hold",
                         Const.Note.FLICK:"Flick"
                     }[note_item.type]
+                    
                     if (
                         Note_CanRender(x,y)
-                        if note_item.type != Const.Note.HOLD
+                        if not this_note_ishold
                         else Note_CanRender(x,y,holdbody_range)
                     ):
-                        judgeLine_rotate_integer = - int(judgeLine_cfg["Rotate"]) % 360
+                        judgeLine_rotate_integer = - judgeLine_cfg["Rotate"] % 360
+                        dub_text = "_dub" if note_item.morebets else ""
                         if note_item.type != Const.Note.HOLD:
-                            this_note_img = Resource["Notes"][note_type + ("_dub" if note_item.morebets else "")]
-                            this_note_imgname = f"Note_{note_type}" + ("_dub" if note_item.morebets else "")
+                            this_note_img_keyname = f"{note_type}{dub_text}"
+                            this_note_img = Resource["Notes"][this_note_img_keyname]
+                            this_note_imgname = f"Note_{this_note_img_keyname}"
                         else:
-                            this_note_img = Resource["Notes"][note_type + "_Head" + ("_dub" if note_item.morebets else "")]
-                            this_note_imgname = f"Note_{note_type}" + "_Head" + ("_dub" if note_item.morebets else "")
-                            this_note_img_body = Resource["Notes"][note_type + "_Body" + ("_dub" if note_item.morebets else "")]
-                            this_note_imgname_body = f"Note_{note_type}" + "_Body" + ("_dub" if note_item.morebets else "")
-                            this_note_img_end = Resource["Notes"][note_type + "_End" + ("_dub" if note_item.morebets else "")]
-                            this_note_imgname_end = f"Note_{note_type}" + "_End" + ("_dub" if note_item.morebets else "")
-                        if not (note_item.type == Const.Note.HOLD and note_item.time * this_judgeLine_T < now_t):
+                            this_note_img_keyname = f"{note_type}_Head{dub_text}"
+                            this_note_img = Resource["Notes"][this_note_img_keyname]
+                            this_note_imgname = f"Note_{this_note_img_keyname}"
+                            
+                            this_note_img_body_keyname = f"{note_type}_Body{dub_text}"
+                            this_note_img_body = Resource["Notes"][this_note_img_body_keyname]
+                            this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
+                            
+                            this_note_img_end_keyname = f"{note_type}_End{dub_text}"
+                            this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
+                            this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
+                            
+                        if not (this_note_ishold and this_note_sectime < now_t):
                             root.run_js_code( #more about this function at js define CanvasRenderingContext2D.prototype.drawRotateImage
                                 f"ctx.drawRotateImage(\
                                     {root.get_img_jsvarname(this_note_imgname)},\
@@ -617,13 +635,8 @@ def PlayerStart_Phi():
                                 );",
                                 add_code_array = True #eq wait_exec true
                             )
-                        if note_item.type == Const.Note.HOLD:
-                            # root.create_polygon(
-                            #     points=holdbody_range,
-                            #     fillStyle="#0078d7",
-                            #     strokeStyle="#00000000",
-                            #     wait_execute = True
-                            # )
+                            
+                        if this_note_ishold:
                             if note_item.clicked:
                                 holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
                                 holdbody_length = Tool_Functions.calpointlength(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / 2
@@ -633,6 +646,7 @@ def PlayerStart_Phi():
                                 )
                                 holdbody_length = Tool_Functions.calpointlength(holdhead_pos,(holdend_x,holdend_y)) - this_note_img.height / 2 - this_note_img_end.height / 2
                             holdbody_length += 0.5
+                            
                             root.run_js_code(
                                 f"ctx.drawRotateImage(\
                                     {root.get_img_jsvarname(this_note_imgname_end)},\
@@ -655,7 +669,6 @@ def PlayerStart_Phi():
                                 );",
                                 add_code_array = True
                             )
-                        note_item.rendered = True
             process(judgeLine.notesAbove,1)
             process(judgeLine.notesBelow,-1)
 
@@ -664,8 +677,14 @@ def PlayerStart_Phi():
             T = 1.875 / judgeLine.bpm
             for note in judgeLine.notesAbove + judgeLine.notesBelow:
                 note_time = note.time * T
+                note_ishold = note.type == Const.Note.HOLD
+                
+                if not note_ishold and note.show_effected:
+                    continue
+                elif note_ishold and note.show_effected_hold:
+                    continue
+                
                 if note_time <= now_t:
-                    
                     def process(et,t,effect_random_blocks):
                         effect_process = (now_t - et) / effect_time
                         effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
@@ -674,8 +693,6 @@ def PlayerStart_Phi():
                         effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
                         will_show_effect_pos = judgeLine.get_datavar_move(t,w,h)
                         will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
-                        if Chart_Functions_Phi.is_nan(will_show_effect_pos): will_show_effect_pos = judgeLine_cfg["Pos"]
-                        if Chart_Functions_Phi.is_nan(will_show_effect_rotate): will_show_effect_rotate = judgeLine_cfg["Rotate"]
                         effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
                         if clickeffect_randomblock:
                             for index,random_deg in enumerate(effect_random_blocks):
@@ -701,13 +718,19 @@ def PlayerStart_Phi():
                                 
                     if now_t - note_time <= effect_time:
                         process(note_time,note.time,note.effect_random_blocks)
+                    else:
+                        note.show_effected = True
                     
-                    if note.type == Const.Note.HOLD:
+                    if note_ishold:
+                        is_processed = False
                         if note.hold_endtime + effect_time >= now_t:
                             for temp_time,hold_effect_random_blocks in note.effect_times:
                                 if temp_time < now_t:
                                     if now_t - temp_time <= effect_time:
                                         process(temp_time,temp_time / T,hold_effect_random_blocks)
+                                        is_processed = True
+                        if not is_processed and note.hold_endtime + effect_time < now_t:
+                            note.show_effected_hold = True
 
         combo = Chart_Functions_Phi.Cal_Combo(now_t)
         time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
@@ -722,7 +745,10 @@ def PlayerStart_Phi():
         )
         if not mixer.music.get_busy():
             break
+        st_render = time()
+        print("cal_frame_data_time:",time() - frame_data_calst)
         root.run_js_wait_code()
+        print("render time:",time() - st_render)
         time_block_render_count += 1
         this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
         offset_judge_range = 66.666667 #ms
