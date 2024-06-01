@@ -149,8 +149,8 @@ class judgeLine:
                 except ZeroDivisionError:
                     r = [move_event.start * w,move_event.start2 * h]
                 r[1] = h - r[1]
-                return r
-        return [w * 0.5,h * 0.5] #never
+                return tuple(r)
+        return (w * 0.5,h * 0.5) #never
 
     def get_datavar_speed(self,now_time):
         for speed_event in self.speedEvents:
@@ -229,5 +229,31 @@ class Phigros_Chart:
     
     def get_all_note(self) -> list[note]:
        return [j for i in self.judgeLineList for j in i.notesAbove + i.notesBelow]
+
+@dataclass
+class RenderTask:
+    func:typing.Callable
+    args:typing.Iterable
+    kwargs:typing.Mapping
+
+@dataclass
+class FrameRenderTask:
+    RenderTasks:list[RenderTask]
+    ExTask:list
+    
+    def __call__(
+        self,
+        func:typing.Callable,
+        *args:typing.Iterable,
+        **kwargs:typing.Mapping
+    ):
+        self.RenderTasks.append(RenderTask(func,args,kwargs))
+    
+    def ExecTask(
+        self
+    ):
+        for t in self.RenderTasks:
+            t.func(*t.args,**t.kwargs)
+        self.RenderTasks.clear()
 
 del typing,dataclass

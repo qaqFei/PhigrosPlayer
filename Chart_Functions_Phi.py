@@ -71,10 +71,10 @@ def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:typing.Union[int,floa
         disappear_var = judgeLine.get_datavar_disappear(judgeLine_cfg["time"])
         move_var = judgeLine.get_datavar_move(judgeLine_cfg["time"],w,h)
         speed_var = judgeLine.get_datavar_speed(judgeLine_cfg["time"])
-        if not is_nan(rotate_var): judgeLine_cfg["Rotate"] = rotate_var
-        if not is_nan(disappear_var): judgeLine_cfg["Disappear"] = disappear_var
-        if not is_nan(move_var): judgeLine_cfg["Pos"] = move_var
-        if not is_nan(speed_var): judgeLine_cfg["Speed"] = speed_var
+        judgeLine_cfg["Rotate"] = rotate_var
+        judgeLine_cfg["Disappear"] = disappear_var
+        judgeLine_cfg["Pos"] = move_var
+        judgeLine_cfg["Speed"] = speed_var
 
 def Load_Chart_Object(phigros_chart):
     print("Loading Chart Object...")

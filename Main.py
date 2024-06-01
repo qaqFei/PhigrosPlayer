@@ -65,6 +65,7 @@ debug_noshow_transparent_judgeline = "-debug-noshow-transparent-judgeline" in ar
 judgeline_notransparent = "-judgeline-notransparent" in argv
 clickeffect_randomblock = "-noclickeffect-randomblock" not in argv
 loop = "-loop" in argv
+lfdaot = "-lfdaot" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     dlg = win32ui.CreateFileDialog(1)
@@ -476,6 +477,282 @@ def get_stringscore(score:float) -> str:
     score_integer = int(score + 0.5)
     return f"{score_integer:>7}".replace(" ","0")
 
+def GetFrameRenderTask_Phi(
+    now_t:float,
+    judgeLine_Configs:typing.Dict[
+        int,
+        typing.Dict[
+            str,
+            typing.Union[
+                Chart_Objects_Phi.judgeLine,
+                int,
+                float,
+                typing.Tuple[
+                    typing.Union[int,float],typing.Union[int,float]
+                ]
+            ]
+        ]
+    ],
+    T_dws:typing.Dict[int,float],
+    show_start_time:float
+):
+    Task = Chart_Objects_Phi.FrameRenderTask([],[])
+    Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
+    Task(root.clear_canvas,wait_execute = True)
+    Task(draw_background)
+
+    for judgeLine_cfg_key in judgeLine_Configs:
+        judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
+        judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
+        this_judgeLine_T = T_dws[judgeLine_cfg_key]
+        judgeLine_cfg["Note_dy"] = Chart_Functions_Phi.Cal_judgeLine_NoteDy(judgeLine_cfg,this_judgeLine_T)
+        judgeLine_DrawPos = (
+            *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
+            *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
+        )
+        judgeLine_strokeStyle = (254,255,169,judgeLine_cfg["Disappear"] if not judgeline_notransparent else 1.0)
+        if judgeLine_strokeStyle[-1] != 0.0 and show_judgeline and judgeLine_can_render(judgeLine_DrawPos):
+            Task(
+                root.create_line,
+                *judgeLine_DrawPos,
+                lineWidth = JUDGELINE_WIDTH,
+                strokeStyle=f"rgba{judgeLine_strokeStyle}",
+                wait_execute = True
+            )
+        
+        def process(notes_list:typing.List[Chart_Objects_Phi.note],t:int):
+            for note_item in notes_list:
+                this_note_sectime = note_item.time * this_judgeLine_T
+                this_noteitem_clicked = this_note_sectime < now_t
+                this_note_ishold = note_item.type == Const.Note.HOLD
+                
+                if this_noteitem_clicked and not note_item.clicked:
+                    note_item.clicked = True
+                    Task(
+                        Thread(
+                            target = PlaySound.Play,
+                            args = (
+                                Resource["Note_Click_Audio"][{Const.Note.TAP:"Tap",Const.Note.DRAG:"Drag",Const.Note.HOLD:"Hold",Const.Note.FLICK:"Flick"}[note_item.type]],
+                            ),
+                            daemon=True
+                        ).start
+                    )
+                    
+                if not this_note_ishold and this_noteitem_clicked:
+                    continue
+                elif this_note_ishold and now_t > note_item.hold_endtime:
+                    continue
+                
+                cfg = {
+                    "note":note_item,
+                    "now_floorPosition":note_item.floorPosition * PHIGROS_Y - (judgeLine_cfg["Note_dy"] if not (note_item.type == Const.Note.HOLD and note_item.clicked) else (
+                        Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
+                    ))
+                }
+                
+                rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
+                    *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
+                )
+                judgeLine_AORB_deg = 180 if t == -1 else 0
+                judgeLine_to_note_rotate_deg = - judgeLine_cfg["Rotate"] + judgeLine_AORB_deg - 90
+                x,y = Tool_Functions.rotate_point(
+                    *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,cfg["now_floorPosition"]
+                )
+                
+                if this_note_ishold:
+                    note_hold_draw_length = cfg["now_floorPosition"] + note_item.hold_length_px
+                    if note_hold_draw_length >= 0:
+                        holdend_x,holdend_y = Tool_Functions.rotate_point(
+                            *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_hold_draw_length
+                        )
+                    else:
+                        holdend_x,holdend_y = rotatenote_at_judgeLine_pos
+                    if cfg["now_floorPosition"] >= 0:
+                        holdhead_pos = x,y
+                    else:
+                        holdhead_pos = rotatenote_at_judgeLine_pos
+                    holdbody_range = (
+                        Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
+                        Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
+                        Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
+                        Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
+                    )
+                    
+                note_type = {
+                    Const.Note.TAP:"Tap",
+                    Const.Note.DRAG:"Drag",
+                    Const.Note.HOLD:"Hold",
+                    Const.Note.FLICK:"Flick"
+                }[note_item.type]
+                
+                if (
+                    Note_CanRender(x,y)
+                    if not this_note_ishold
+                    else Note_CanRender(x,y,holdbody_range)
+                ):
+                    judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
+                    dub_text = "_dub" if note_item.morebets else ""
+                    if note_item.type != Const.Note.HOLD:
+                        this_note_img_keyname = f"{note_type}{dub_text}"
+                        this_note_img = Resource["Notes"][this_note_img_keyname]
+                        this_note_imgname = f"Note_{this_note_img_keyname}"
+                    else:
+                        this_note_img_keyname = f"{note_type}_Head{dub_text}"
+                        this_note_img = Resource["Notes"][this_note_img_keyname]
+                        this_note_imgname = f"Note_{this_note_img_keyname}"
+                        
+                        this_note_img_body_keyname = f"{note_type}_Body{dub_text}"
+                        this_note_img_body = Resource["Notes"][this_note_img_body_keyname]
+                        this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
+                        
+                        this_note_img_end_keyname = f"{note_type}_End{dub_text}"
+                        this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
+                        this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
+                        
+                    if not (this_note_ishold and this_note_sectime < now_t):
+                        # more about this function(ctx.drawRotateImage) at js define CanvasRenderingContext2D.prototype.drawRotateImage
+                        Task(
+                            root.run_js_code,
+                            f"ctx.drawRotateImage(\
+                                {root.get_img_jsvarname(this_note_imgname)},\
+                                {x},\
+                                {y},\
+                                {this_note_img.width},\
+                                {this_note_img.height},\
+                                {judgeLine_rotate}\
+                            );",
+                            add_code_array = True #eq wait_exec true
+                        )
+                        
+                    if this_note_ishold:
+                        if note_item.clicked:
+                            holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
+                            holdbody_length = Tool_Functions.calpointlength(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / 2
+                        else:
+                            holdbody_x,holdbody_y = Tool_Functions.rotate_point(
+                                *holdhead_pos,judgeLine_to_note_rotate_deg,this_note_img.height / 2
+                            )
+                            holdbody_length = Tool_Functions.calpointlength(holdhead_pos,(holdend_x,holdend_y)) - this_note_img.height / 2 - this_note_img_end.height / 2
+                        holdbody_length += 0.5
+                        
+                        Task(
+                            root.run_js_code,
+                            f"ctx.drawRotateImage(\
+                                {root.get_img_jsvarname(this_note_imgname_end)},\
+                                {holdend_x},\
+                                {holdend_y},\
+                                {this_note_img_end.width},\
+                                {this_note_img_end.height},\
+                                {judgeLine_rotate}\
+                            );",
+                            add_code_array = True
+                        )
+                        Task(
+                            root.run_js_code,
+                            f"ctx.drawAnchorESRotateImage(\
+                                {root.get_img_jsvarname(this_note_imgname_body)},\
+                                {holdbody_x},\
+                                {holdbody_y},\
+                                {this_note_img_body.width},\
+                                {holdbody_length},\
+                                {judgeLine_rotate}\
+                            );",
+                            add_code_array = True
+                        )
+        process(judgeLine.notesAbove,1)
+        process(judgeLine.notesBelow,-1)
+
+    effect_time = 0.5
+    for judgeLine in phigros_chart_obj.judgeLineList:
+        T = 1.875 / judgeLine.bpm
+        for note in judgeLine.notesAbove + judgeLine.notesBelow:
+            note_time = note.time * T
+            note_ishold = note.type == Const.Note.HOLD
+            
+            if not note_ishold and note.show_effected:
+                continue
+            elif note_ishold and note.show_effected_hold:
+                continue
+            
+            if note_time <= now_t:
+                def process(et,t,effect_random_blocks):
+                    effect_process = (now_t - et) / effect_time
+                    effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
+                    effect_img_index = int(effect_process * (len(effect_img_lst) - 1))
+                    effect_img = effect_img_lst[effect_img_index]
+                    effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
+                    will_show_effect_pos = judgeLine.get_datavar_move(t,w,h)
+                    will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
+                    effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
+                    if clickeffect_randomblock:
+                        for index,random_deg in enumerate(effect_random_blocks):
+                            effect_random_point = Tool_Functions.rotate_point(
+                                *effect_pos,random_deg + index * 90,
+                                ClickEffect_Size * Tool_Functions.ease_out(effect_process) / 1.25
+                            )
+                            block_size = EFFECT_RANDOM_BLOCK_SIZE
+                            if effect_process > 0.5:
+                                block_size -= (effect_process - 0.5) * EFFECT_RANDOM_BLOCK_SIZE
+                            Task(
+                                root.create_rectangle,
+                                effect_random_point[0] - block_size,
+                                effect_random_point[1] - block_size,
+                                effect_random_point[0] + block_size,
+                                effect_random_point[1] + block_size,
+                                fillStyle = f"rgb{(254,255,169,1.0 - effect_process)}",
+                                wait_execute = True
+                            )
+                    Task(
+                        root.create_image,
+                        effect_imgname,
+                        effect_pos[0] - effect_img.width / 2,
+                        effect_pos[1] - effect_img.height / 2,
+                        effect_img.width,effect_img.height,
+                        wait_execute = True
+                    )
+                            
+                if now_t - note_time <= effect_time:
+                    process(note_time,note.time,note.effect_random_blocks)
+                else:
+                    note.show_effected = True
+                
+                if note_ishold:
+                    is_processed = False
+                    if note.hold_endtime + effect_time >= now_t:
+                        for temp_time,hold_effect_random_blocks in note.effect_times:
+                            if temp_time < now_t:
+                                if now_t - temp_time <= effect_time:
+                                    process(temp_time,temp_time / T,hold_effect_random_blocks)
+                                    is_processed = True
+                    if not is_processed and note.hold_endtime + effect_time < now_t:
+                        note.show_effected_hold = True
+
+    combo = Chart_Functions_Phi.Cal_Combo(now_t)
+    time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
+    Task(
+        draw_ui,
+        process=now_t / audio_length,
+        score=get_stringscore(combo * (1000000 / phigros_chart_obj.note_num)),
+        combo_state=combo >= 3,
+        combo=combo,
+        now_time=time_text,
+        clear=False,
+        background=False
+    )
+    
+    if not lfdaot:
+        if not mixer.music.get_busy():
+            Task.ExTask.append(("break",))
+        this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
+        offset_judge_range = 10.0 #ms
+        if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
+            Task.ExTask.append(("set","show_start_time",show_start_time - music_offset / 1000))
+            loger_queue.put(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
+    
+    Task(root.run_js_wait_code)
+        
+    return Task
+
 def PlayerStart_Phi():
     print("Player Start")
     root.title("Phigros Chart Player")
@@ -508,262 +785,89 @@ def PlayerStart_Phi():
             "judgeLine":judgeLine_item,
             "Rotate":0.0,
             "Disappear":1.0,
-            "Pos":[0,0],
+            "Pos":(0,0),
             "Speed":1.0,
             "Note_dy":0.0,
             "time":None
         }
         for judgeLine_item in phigros_chart_obj.judgeLineList
     }
-    mixer.music.play()
-    while not mixer.music.get_busy(): pass
-    cal_fps_block_size = 10
-    last_cal_fps_time = time()
-    time_block_render_count = 0
-    while True:
-        now_t = time() - show_start_time
-        Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
-        root.clear_canvas(wait_execute = True)
-        draw_background()
-
-        for judgeLine_cfg_key in judgeLine_Configs:
-            judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
-            judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
-            this_judgeLine_T = T_dws[judgeLine_cfg_key]
-            judgeLine_cfg["Note_dy"] = Chart_Functions_Phi.Cal_judgeLine_NoteDy(judgeLine_cfg,this_judgeLine_T)
-            judgeLine_DrawPos = (
-                *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
-                *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
+    
+    if not lfdaot:
+        mixer.music.play()
+        while not mixer.music.get_busy(): pass
+    
+    if not lfdaot:
+        while True:
+            now_t = time() - show_start_time
+            Task = GetFrameRenderTask_Phi(
+                now_t,
+                judgeLine_Configs,
+                T_dws,
+                show_start_time
             )
-            judgeLine_strokeStyle = (254,255,169,judgeLine_cfg["Disappear"] if not judgeline_notransparent else 1.0)
-            if judgeLine_strokeStyle[-1] != 0.0 and show_judgeline and judgeLine_can_render(judgeLine_DrawPos):
-                root.create_line(
-                    *judgeLine_DrawPos,
-                    lineWidth = JUDGELINE_WIDTH,
-                    strokeStyle=f"rgba{judgeLine_strokeStyle}",
-                    wait_execute = True
-                )
+            Task.ExecTask()
             
-            def process(notes_list:typing.List[Chart_Objects_Phi.note],t:int):
-                for note_item in notes_list:
-                    this_note_sectime = note_item.time * this_judgeLine_T
-                    this_noteitem_clicked = this_note_sectime < now_t
-                    this_note_ishold = note_item.type == Const.Note.HOLD
-                    
-                    if this_noteitem_clicked and not note_item.clicked:
-                        note_item.clicked = True
-                        Thread(target=PlaySound.Play,args=(Resource["Note_Click_Audio"][{Const.Note.TAP:"Tap",Const.Note.DRAG:"Drag",Const.Note.HOLD:"Hold",Const.Note.FLICK:"Flick"}[note_item.type]],),daemon=True).start()
-                        
-                    if not this_note_ishold and this_noteitem_clicked:
-                        continue
-                    elif this_note_ishold and now_t > note_item.hold_endtime:
-                        continue
-                    
-                    cfg = {
-                        "note":note_item,
-                        "now_floorPosition":note_item.floorPosition * PHIGROS_Y - (judgeLine_cfg["Note_dy"] if not (note_item.type == Const.Note.HOLD and note_item.clicked) else (
-                            Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
-                        ))
-                    }
-                    
-                    rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
-                        *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
-                    )
-                    judgeLine_AORB_deg = 180 if t == -1 else 0
-                    judgeLine_to_note_rotate_deg = - judgeLine_cfg["Rotate"] + judgeLine_AORB_deg - 90
-                    x,y = Tool_Functions.rotate_point(
-                        *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,cfg["now_floorPosition"]
-                    )
-                    
-                    if this_note_ishold:
-                        note_hold_draw_length = cfg["now_floorPosition"] + note_item.hold_length_px
-                        if note_hold_draw_length >= 0:
-                            holdend_x,holdend_y = Tool_Functions.rotate_point(
-                                *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_hold_draw_length
-                            )
-                        else:
-                            holdend_x,holdend_y = rotatenote_at_judgeLine_pos
-                        if cfg["now_floorPosition"] >= 0:
-                            holdhead_pos = x,y
-                        else:
-                            holdhead_pos = rotatenote_at_judgeLine_pos
-                        holdbody_range = (
-                            Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
-                            Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
-                            Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
-                            Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
-                        )
-                        
-                    note_type = {
-                        Const.Note.TAP:"Tap",
-                        Const.Note.DRAG:"Drag",
-                        Const.Note.HOLD:"Hold",
-                        Const.Note.FLICK:"Flick"
-                    }[note_item.type]
-                    
-                    if (
-                        Note_CanRender(x,y)
-                        if not this_note_ishold
-                        else Note_CanRender(x,y,holdbody_range)
-                    ):
-                        judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
-                        dub_text = "_dub" if note_item.morebets else ""
-                        if note_item.type != Const.Note.HOLD:
-                            this_note_img_keyname = f"{note_type}{dub_text}"
-                            this_note_img = Resource["Notes"][this_note_img_keyname]
-                            this_note_imgname = f"Note_{this_note_img_keyname}"
-                        else:
-                            this_note_img_keyname = f"{note_type}_Head{dub_text}"
-                            this_note_img = Resource["Notes"][this_note_img_keyname]
-                            this_note_imgname = f"Note_{this_note_img_keyname}"
-                            
-                            this_note_img_body_keyname = f"{note_type}_Body{dub_text}"
-                            this_note_img_body = Resource["Notes"][this_note_img_body_keyname]
-                            this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
-                            
-                            this_note_img_end_keyname = f"{note_type}_End{dub_text}"
-                            this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
-                            this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
-                            
-                        if not (this_note_ishold and this_note_sectime < now_t):
-                            root.run_js_code( #more about this function at js define CanvasRenderingContext2D.prototype.drawRotateImage
-                                f"ctx.drawRotateImage(\
-                                    {root.get_img_jsvarname(this_note_imgname)},\
-                                    {x},\
-                                    {y},\
-                                    {this_note_img.width},\
-                                    {this_note_img.height},\
-                                    {judgeLine_rotate}\
-                                );",
-                                add_code_array = True #eq wait_exec true
-                            )
-                            
-                        if this_note_ishold:
-                            if note_item.clicked:
-                                holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
-                                holdbody_length = Tool_Functions.calpointlength(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / 2
-                            else:
-                                holdbody_x,holdbody_y = Tool_Functions.rotate_point(
-                                    *holdhead_pos,judgeLine_to_note_rotate_deg,this_note_img.height / 2
-                                )
-                                holdbody_length = Tool_Functions.calpointlength(holdhead_pos,(holdend_x,holdend_y)) - this_note_img.height / 2 - this_note_img_end.height / 2
-                            holdbody_length += 0.5
-                            
-                            root.run_js_code(
-                                f"ctx.drawRotateImage(\
-                                    {root.get_img_jsvarname(this_note_imgname_end)},\
-                                    {holdend_x},\
-                                    {holdend_y},\
-                                    {this_note_img_end.width},\
-                                    {this_note_img_end.height},\
-                                    {judgeLine_rotate}\
-                                );",
-                                add_code_array = True
-                            )
-                            root.run_js_code(
-                                f"ctx.drawAnchorESRotateImage(\
-                                    {root.get_img_jsvarname(this_note_imgname_body)},\
-                                    {holdbody_x},\
-                                    {holdbody_y},\
-                                    {this_note_img_body.width},\
-                                    {holdbody_length},\
-                                    {judgeLine_rotate}\
-                                );",
-                                add_code_array = True
-                            )
-            process(judgeLine.notesAbove,1)
-            process(judgeLine.notesBelow,-1)
-
-        effect_time = 0.5
-        for judgeLine in phigros_chart_obj.judgeLineList:
-            T = 1.875 / judgeLine.bpm
-            for note in judgeLine.notesAbove + judgeLine.notesBelow:
-                note_time = note.time * T
-                note_ishold = note.type == Const.Note.HOLD
-                
-                if not note_ishold and note.show_effected:
-                    continue
-                elif note_ishold and note.show_effected_hold:
-                    continue
-                
-                if note_time <= now_t:
-                    def process(et,t,effect_random_blocks):
-                        effect_process = (now_t - et) / effect_time
-                        effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
-                        effect_img_index = int(effect_process * (len(effect_img_lst) - 1))
-                        effect_img = effect_img_lst[effect_img_index]
-                        effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
-                        will_show_effect_pos = judgeLine.get_datavar_move(t,w,h)
-                        will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
-                        effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
-                        if clickeffect_randomblock:
-                            for index,random_deg in enumerate(effect_random_blocks):
-                                effect_random_point = Tool_Functions.rotate_point(
-                                    *effect_pos,random_deg + index * 90,
-                                    ClickEffect_Size * Tool_Functions.ease_out(effect_process) / 1.25
-                                )
-                                block_size = EFFECT_RANDOM_BLOCK_SIZE
-                                if effect_process > 0.5:
-                                    block_size -= (effect_process - 0.5) * EFFECT_RANDOM_BLOCK_SIZE
-                                root.create_rectangle(
-                                    effect_random_point[0] - block_size,
-                                    effect_random_point[1] - block_size,
-                                    effect_random_point[0] + block_size,
-                                    effect_random_point[1] + block_size,
-                                    fillStyle = f"rgb{(254,255,169,1.0 - effect_process)}",
-                                    wait_execute = True
-                                )
-                        root.create_image(
-                            effect_imgname,
-                            effect_pos[0] - effect_img.width / 2,
-                            effect_pos[1] - effect_img.height / 2,
-                            effect_img.width,effect_img.height,
-                            wait_execute = True
-                        )
-                                
-                    if now_t - note_time <= effect_time:
-                        process(note_time,note.time,note.effect_random_blocks)
-                    else:
-                        note.show_effected = True
-                    
-                    if note_ishold:
-                        is_processed = False
-                        if note.hold_endtime + effect_time >= now_t:
-                            for temp_time,hold_effect_random_blocks in note.effect_times:
-                                if temp_time < now_t:
-                                    if now_t - temp_time <= effect_time:
-                                        process(temp_time,temp_time / T,hold_effect_random_blocks)
-                                        is_processed = True
-                        if not is_processed and note.hold_endtime + effect_time < now_t:
-                            note.show_effected_hold = True
-
-        combo = Chart_Functions_Phi.Cal_Combo(now_t)
-        time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
-        draw_ui(
-            process=now_t / audio_length,
-            score=get_stringscore(combo * (1000000 / phigros_chart_obj.note_num)),
-            combo_state=combo >= 3,
-            combo=combo,
-            now_time=time_text,
-            clear=False,
-            background=False
-        )
-        if not mixer.music.get_busy():
-            break
-        root.run_js_wait_code()
-        time_block_render_count += 1
-        this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
-        offset_judge_range = 66.666667 #ms
-        if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
-            show_start_time -= music_offset / 1000
-            loger_queue.put(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
-        if time_block_render_count >= cal_fps_block_size:
-            if "-showfps" in argv:
-                try:
-                    root.title(f"Phigros Chart Player - FPS: {(time_block_render_count / (time() - last_cal_fps_time)) : .2f}")
-                except ZeroDivisionError:
-                    root.title(f"Phigros Chart Player - FPS: inf")
-            last_cal_fps_time,time_block_render_count = time(),0
+            break_flag = False # !!anchor <duplicate code> - meta - task_extask
+            
+            for ext in Task.ExTask:
+                if ext[0] == "break":
+                    break_flag = True
+                elif ext[0] == "set":
+                    locals()[ext[1]] = ext[2]
+            
+            if break_flag:
+                break
+    else:
+        lfdaot_tasks = {}
+        frame_speed = 45
+        frame_count = 0
+        frame_time = 1 / frame_speed
+        allframe_num = int(audio_length / frame_time)
+        while True:
+            if frame_count * frame_time > audio_length:
+                break
+            
+            lfdaot_tasks.update({frame_count:GetFrameRenderTask_Phi(
+                frame_count * frame_time,
+                judgeLine_Configs,
+                T_dws,
+                show_start_time
+            )})
+            
+            frame_count += 1
+            
+            print(f"\rLoadFrameData: {frame_count} / {allframe_num}",end="")
+        
+        mixer.music.play()
+        while not mixer.music.get_busy(): pass
+        
+        while True:
+            now_t = mixer.music.get_pos() / 1000
+            play_fcount = int(now_t / frame_time)
+            try:
+                Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[play_fcount]
+            except KeyError:
+                continue
+            
+            if not Task.RenderTasks: #empty
+                continue
+            
+            Task.ExecTask()
+            
+            break_flag = False # !!anchor <duplicate code> - duplicate - task_extask
+            
+            for ext in Task.ExTask:
+                if ext[0] == "break":
+                    break_flag = True
+                elif ext[0] == "set":
+                    locals()[ext[1]] = ext[2]
+            
+            if break_flag:
+                break
+            
+            sleep(frame_time / 2)
+        
     if loop:
         LoadChartObject()
         PlayerStart_Phi()

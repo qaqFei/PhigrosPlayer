@@ -32,6 +32,7 @@ python Main.py
 - ```-loop``` 循环播放
 - ```-random-block-num <integer-value>``` 设置打击效果的随机扩散方块数量 默认为4
 - ```-scale-note <number-value>``` 缩放```Note```
+- ```-lfdaot``` 提前加载帧数据 / Load frame data ahead of time
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途
