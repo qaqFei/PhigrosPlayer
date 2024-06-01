@@ -243,11 +243,13 @@ def loger():
 loger_queue = Queue()
 clickeffect_cache = []
 note_id = -1
-
-if CHART_TYPE == Const.CHART_TYPE.PHI:
-    phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart)
-elif CHART_TYPE == Const.CHART_TYPE.REP:
-    rep_chart_obj = Chart_Functions_Rep.Load_Chart_Object(phigros_chart)
+def LoadChartObject():
+    global phigros_chart_obj,rep_chart_obj
+    if CHART_TYPE == Const.CHART_TYPE.PHI:
+        phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart)
+    elif CHART_TYPE == Const.CHART_TYPE.REP:
+        rep_chart_obj = Chart_Functions_Rep.Load_Chart_Object(phigros_chart)
+LoadChartObject()
 
 def Load_Resource():
     global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
@@ -567,16 +569,17 @@ def PlayerStart_Phi():
                     rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
                         *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
                     )
-                    judgeLine_to_note_rotate_angle = 90 - judgeLine_cfg["Rotate"] - (180 if t == 1 else 0)
+                    judgeLine_AORB_deg = 180 if t == -1 else 0
+                    judgeLine_to_note_rotate_deg = - judgeLine_cfg["Rotate"] + judgeLine_AORB_deg - 90
                     x,y = Tool_Functions.rotate_point(
-                        *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,cfg["now_floorPosition"]
+                        *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,cfg["now_floorPosition"]
                     )
                     
                     if this_note_ishold:
                         note_hold_draw_length = cfg["now_floorPosition"] + note_item.hold_length_px
                         if note_hold_draw_length >= 0:
                             holdend_x,holdend_y = Tool_Functions.rotate_point(
-                                *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_angle,note_hold_draw_length
+                                *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_hold_draw_length
                             )
                         else:
                             holdend_x,holdend_y = rotatenote_at_judgeLine_pos
@@ -585,10 +588,10 @@ def PlayerStart_Phi():
                         else:
                             holdhead_pos = rotatenote_at_judgeLine_pos
                         holdbody_range = (
-                            Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_angle - 90,Note_width / 2),
-                            Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_angle - 90,Note_width / 2),
-                            Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_angle + 90,Note_width / 2),
-                            Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_angle + 90,Note_width / 2),
+                            Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
+                            Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
+                            Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
+                            Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
                         )
                         
                     note_type = {
@@ -603,7 +606,7 @@ def PlayerStart_Phi():
                         if not this_note_ishold
                         else Note_CanRender(x,y,holdbody_range)
                     ):
-                        judgeLine_rotate_integer = - judgeLine_cfg["Rotate"] % 360
+                        judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
                         dub_text = "_dub" if note_item.morebets else ""
                         if note_item.type != Const.Note.HOLD:
                             this_note_img_keyname = f"{note_type}{dub_text}"
@@ -630,7 +633,7 @@ def PlayerStart_Phi():
                                     {y},\
                                     {this_note_img.width},\
                                     {this_note_img.height},\
-                                    {judgeLine_rotate_integer}\
+                                    {judgeLine_rotate}\
                                 );",
                                 add_code_array = True #eq wait_exec true
                             )
@@ -641,7 +644,7 @@ def PlayerStart_Phi():
                                 holdbody_length = Tool_Functions.calpointlength(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / 2
                             else:
                                 holdbody_x,holdbody_y = Tool_Functions.rotate_point(
-                                    *holdhead_pos,judgeLine_to_note_rotate_angle,this_note_img.height / 2
+                                    *holdhead_pos,judgeLine_to_note_rotate_deg,this_note_img.height / 2
                                 )
                                 holdbody_length = Tool_Functions.calpointlength(holdhead_pos,(holdend_x,holdend_y)) - this_note_img.height / 2 - this_note_img_end.height / 2
                             holdbody_length += 0.5
@@ -653,7 +656,7 @@ def PlayerStart_Phi():
                                     {holdend_y},\
                                     {this_note_img_end.width},\
                                     {this_note_img_end.height},\
-                                    {judgeLine_rotate_integer}\
+                                    {judgeLine_rotate}\
                                 );",
                                 add_code_array = True
                             )
@@ -664,7 +667,7 @@ def PlayerStart_Phi():
                                     {holdbody_y},\
                                     {this_note_img_body.width},\
                                     {holdbody_length},\
-                                    {judgeLine_rotate_integer}\
+                                    {judgeLine_rotate}\
                                 );",
                                 add_code_array = True
                             )
@@ -762,6 +765,7 @@ def PlayerStart_Phi():
                     root.title(f"Phigros Chart Player - FPS: inf")
             last_cal_fps_time,time_block_render_count = time(),0
     if loop:
+        LoadChartObject()
         PlayerStart_Phi()
     else:
         root.destroy()
