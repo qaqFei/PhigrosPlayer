@@ -1,5 +1,6 @@
 from __future__ import annotations
 from ctypes import windll
+from os.path import abspath
 import threading
 import typing
 import http.server
@@ -48,7 +49,7 @@ class WebCanvas:
     ):
         self._web = webview.create_window(
             title=title,
-            url=".\\web_canvas.html"
+            url=abspath(".\\web_canvas.html")
         )
         self._web_init_var = {
             "width":width,

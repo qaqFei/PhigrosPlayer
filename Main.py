@@ -519,7 +519,6 @@ def PlayerStart_Phi():
     last_cal_fps_time = time()
     time_block_render_count = 0
     while True:
-        frame_data_calst = time()
         now_t = time() - show_start_time
         Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
         root.clear_canvas(wait_execute = True)
@@ -698,13 +697,16 @@ def PlayerStart_Phi():
                             for index,random_deg in enumerate(effect_random_blocks):
                                 effect_random_point = Tool_Functions.rotate_point(
                                     *effect_pos,random_deg + index * 90,
-                                    ClickEffect_Size * Tool_Functions.ease_out(effect_process) / 1.3
+                                    ClickEffect_Size * Tool_Functions.ease_out(effect_process) / 1.25
                                 )
+                                block_size = EFFECT_RANDOM_BLOCK_SIZE
+                                if effect_process > 0.5:
+                                    block_size -= (effect_process - 0.5) * EFFECT_RANDOM_BLOCK_SIZE
                                 root.create_rectangle(
-                                    effect_random_point[0] - EFFECT_RANDOM_BLOCK_SIZE,
-                                    effect_random_point[1] - EFFECT_RANDOM_BLOCK_SIZE,
-                                    effect_random_point[0] + EFFECT_RANDOM_BLOCK_SIZE,
-                                    effect_random_point[1] + EFFECT_RANDOM_BLOCK_SIZE,
+                                    effect_random_point[0] - block_size,
+                                    effect_random_point[1] - block_size,
+                                    effect_random_point[0] + block_size,
+                                    effect_random_point[1] + block_size,
                                     fillStyle = f"rgb{(254,255,169,1.0 - effect_process)}",
                                     wait_execute = True
                                 )
@@ -745,10 +747,7 @@ def PlayerStart_Phi():
         )
         if not mixer.music.get_busy():
             break
-        st_render = time()
-        print("cal_frame_data_time:",time() - frame_data_calst)
         root.run_js_wait_code()
-        print("render time:",time() - st_render)
         time_block_render_count += 1
         this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
         offset_judge_range = 66.666667 #ms

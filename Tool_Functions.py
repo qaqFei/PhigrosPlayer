@@ -36,7 +36,7 @@ def unpack_pos(number:int) -> tuple[int,int]:
     return (number - number % 1000) // 1000,number % 1000
 
 def ease_out(x:float) -> float:
-    return math.sin(x * (math.pi / 2))
+    return math.sqrt(1.0 - (1.0 - x) ** 2)
 
 def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
     return tuple((randint(1,90) for _ in range(random_block_num)))
