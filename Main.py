@@ -66,6 +66,7 @@ judgeline_notransparent = "-judgeline-notransparent" in argv
 clickeffect_randomblock = "-noclickeffect-randomblock" not in argv
 loop = "-loop" in argv
 lfdaot = "-lfdaot" in argv
+lfdoat_file = "-lfdaot-file" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     argv = [argv[0]] + [dialog.openfile()] + argv[0:]
@@ -523,18 +524,20 @@ def GetFrameRenderTask_Phi(
                 this_note_sectime = note_item.time * this_judgeLine_T
                 this_noteitem_clicked = this_note_sectime < now_t
                 this_note_ishold = note_item.type == Const.Note.HOLD
+                note_type = {
+                    Const.Note.TAP:"Tap",
+                    Const.Note.DRAG:"Drag",
+                    Const.Note.HOLD:"Hold",
+                    Const.Note.FLICK:"Flick"
+                }[note_item.type]
                 
                 if this_noteitem_clicked and not note_item.clicked:
                     note_item.clicked = True
-                    Task(
-                        Thread(
-                            target = PlaySound.Play,
-                            args = (
-                                Resource["Note_Click_Audio"][{Const.Note.TAP:"Tap",Const.Note.DRAG:"Drag",Const.Note.HOLD:"Hold",Const.Note.FLICK:"Flick"}[note_item.type]],
-                            ),
-                            daemon=True
-                        ).start
-                    )
+                    Task.ExTask.append((
+                        "thread-call",
+                        "PlaySound.Play",
+                        f'(Resource["Note_Click_Audio"][{repr(note_type)}],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
+                    ))
                     
                 if not this_note_ishold and this_noteitem_clicked:
                     continue
@@ -575,13 +578,6 @@ def GetFrameRenderTask_Phi(
                         Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
                         Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
                     )
-                    
-                note_type = {
-                    Const.Note.TAP:"Tap",
-                    Const.Note.DRAG:"Drag",
-                    Const.Note.HOLD:"Hold",
-                    Const.Note.FLICK:"Flick"
-                }[note_item.type]
                 
                 if (
                     Note_CanRender(x,y)
@@ -806,13 +802,11 @@ def PlayerStart_Phi():
             )
             Task.ExecTask()
             
-            break_flag = False # !!anchor <duplicate code> - meta - task_extask
-            
-            for ext in Task.ExTask:
-                if ext[0] == "break":
-                    break_flag = True
-                elif ext[0] == "set":
-                    locals()[ext[1]] = ext[2]
+            break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
+                locals(),
+                Task.ExTask,
+                eval
+            )
             
             if break_flag:
                 break
@@ -822,78 +816,125 @@ def PlayerStart_Phi():
         frame_count = 0
         frame_time = 1 / frame_speed
         allframe_num = int(audio_length / frame_time) + 1
-        while True:
-            if frame_count * frame_time > audio_length:
-                break
-            
-            lfdaot_tasks.update({frame_count:GetFrameRenderTask_Phi(
-                frame_count * frame_time,
-                judgeLine_Configs,
-                T_dws,
-                show_start_time
-            )})
-            
-            frame_count += 1
-            
-            print(f"\rLoadFrameData: {frame_count} / {allframe_num}",end="")
         
-        fn = dialog.savefile(
-            fn = "Chart.lfdaot"
-        )
-        
-        if fn != "":
-            data = {
-                "meta":{
-                    "frame_speed":frame_speed,
-                    "frame_num":len(lfdaot_tasks)
-                },
-                "data":[]
-            }
-            for Task in lfdaot_tasks.values():
-                Task_data = {
-                    "render":[],
-                    "ex":[]
+        if lfdaot and not lfdoat_file: #eq if not lfdoat_file
+            while True:
+                if frame_count * frame_time > audio_length:
+                    break
+                
+                lfdaot_tasks.update({frame_count:GetFrameRenderTask_Phi(
+                    frame_count * frame_time,
+                    judgeLine_Configs,
+                    T_dws,
+                    show_start_time
+                )})
+                
+                frame_count += 1
+                
+                print(f"\rLoadFrameData: {frame_count} / {allframe_num}",end="")
+            
+            fn = dialog.savefile(
+                fn = "Chart.lfdaot"
+            )
+            
+            if fn != "":
+                data = {
+                    "meta":{
+                        "frame_speed":frame_speed,
+                        "frame_num":len(lfdaot_tasks)
+                    },
+                    "data":[]
                 }
-                for rendertask in Task.RenderTasks:
-                    Task_data["render"].append({
-                        "func_name":rendertask.func.__code__.co_name,
-                        "args":list(rendertask.args),
-                        "kwargs":dict(rendertask.kwargs)
-                    })
-                for ex in Task.ExTask:
-                    Task_data["ex"].append(list(ex))
-                data["data"].append(Task_data)
-            with open(fn,"w") as f:
-                f.write(json.dumps(data).replace(" ",""))
+                for Task in lfdaot_tasks.values():
+                    Task_data = {
+                        "render":[],
+                        "ex":[]
+                    }
+                    for rendertask in Task.RenderTasks:
+                        Task_data["render"].append({
+                            "func_name":rendertask.func.__code__.co_name,
+                            "args":list(rendertask.args),
+                            "kwargs":rendertask.kwargs
+                        })
+                    for ex in Task.ExTask:
+                        Task_data["ex"].append(list(ex))
+                    data["data"].append(Task_data)
+                with open(fn,"w") as f:
+                    f.write(json.dumps(data).replace(" ",""))
+        else: #-lfdaot-file
+            fp = argv[argv.index("-lfdaot-file") + 1]
+            with open(fp,"r",encoding="utf-8") as f:
+                data = json.load(f)
+            frame_speed = data["meta"]["frame_speed"]
+            allframe_num = data["meta"]["frame_num"]
+            Task_function_mapping = {
+                func_name:getattr(root,func_name)
+                for func_name in dir(root)
+            }
+            Task_function_mapping.update({
+                "draw_background":draw_background,
+                "draw_ui":draw_ui
+            })
+            for index,Task_data in enumerate(data["data"]):
+                lfdaot_tasks.update({
+                    index:Chart_Objects_Phi.FrameRenderTask(
+                        RenderTasks = [
+                            Chart_Objects_Phi.RenderTask(
+                                func = Task_function_mapping[render_task_data["func_name"]],
+                                args = tuple(render_task_data["args"]),
+                                kwargs = render_task_data["kwargs"]
+                            )
+                            for render_task_data in Task_data["render"]
+                        ],
+                        ExTask = tuple(Task_data["ex"])
+                    )
+                })
         
         mixer.music.play()
         while not mixer.music.get_busy(): pass
         
+        last_music_play_fcount = None
         while True:
+            render_st = time()
             now_t = mixer.music.get_pos() / 1000
-            play_fcount = int(now_t / frame_time)
+            music_play_fcount = int(now_t / frame_time)
+            will_process_extask = []
             try:
-                Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[play_fcount]
+                Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
             except KeyError:
                 continue
             
+            if last_music_play_fcount is not None:
+                for fcount in range(last_music_play_fcount,music_play_fcount):
+                    try:
+                        Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[fcount]
+                        will_process_extask.append(Task.ExTask)
+                    except KeyError:
+                        pass
+        
             if not Task.RenderTasks: #empty
                 continue
             
+            last_music_play_fcount = music_play_fcount
+            
             Task.ExecTask()
             
-            break_flag = False # !!anchor <duplicate code> - duplicate - task_extask
+            break_flag_top = False
             
-            for ext in Task.ExTask:
-                if ext[0] == "break":
-                    break_flag = True
-                elif ext[0] == "set":
-                    locals()[ext[1]] = ext[2]
+            for ExTask in will_process_extask + [Task.ExTask]:
+                break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
+                    locals(),
+                    ExTask,
+                    lambda x:eval(x)
+                )
+                
+                if break_flag:
+                    break_flag_top = True
             
-            if break_flag:
+            if break_flag_top:
                 break
             
-            sleep(frame_time / 2)
+            sleep(max(0,frame_time - (time() - render_st)))
         
     if loop:
         LoadChartObject()

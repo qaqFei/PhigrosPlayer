@@ -1,3 +1,4 @@
+from threading import Thread
 import typing
 
 import Chart_Objects_Phi
@@ -75,6 +76,19 @@ def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:typing.Union[int,floa
         judgeLine_cfg["Disappear"] = disappear_var
         judgeLine_cfg["Pos"] = move_var
         judgeLine_cfg["Speed"] = speed_var
+
+def FrameData_ProcessExTask(local_vars,ExTask,eval_func):
+    break_flag = False
+    
+    for ext in ExTask:
+        if ext[0] == "break":
+            break_flag = True
+        elif ext[0] == "set":
+            locals()[ext[1]] = ext[2]
+        elif ext[0] == "thread-call":
+            Thread(target=eval_func(ext[1]),args=eval_func(ext[2]),daemon=True).start()
+    
+    return break_flag
 
 def Load_Chart_Object(phigros_chart):
     print("Loading Chart Object...")

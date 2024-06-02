@@ -239,7 +239,7 @@ class RenderTask:
 @dataclass
 class FrameRenderTask:
     RenderTasks:list[RenderTask]
-    ExTask:list
+    ExTask:tuple
     
     def __call__(
         self,

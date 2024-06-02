@@ -32,7 +32,8 @@ python Main.py
 - ```-loop``` 循环播放
 - ```-random-block-num <integer-value>``` 设置打击效果的随机扩散方块数量 默认为4
 - ```-scale-note <number-value>``` 缩放```Note```
-- ```-lfdaot``` 提前加载帧数据 / Load frame data ahead of time
+- ```-lfdaot``` 提前加载帧数据 / Load frame data ahead of time |tips: ```-lfdaot```默认会生成.lfdaot文件 可供```-lfdaot-file```使用
+- ```-lfdaot-file <path-string-value>``` 在 ```-lfdaot``` 的基础上, 不计算谱面数据 而是使用传入的文件数据
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途
