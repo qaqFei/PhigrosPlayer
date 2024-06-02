@@ -11,7 +11,7 @@ import typing
 import csv
 import json
 
-from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
+from PIL import Image,ImageFilter,ImageEnhance
 from win32gui import GetWindowLong,SetWindowLong
 from pygame import mixer
 import win32con
@@ -289,19 +289,15 @@ def Load_Resource():
             "Hold":open("./Resources/Note_Click_Audio/Hold.wav","rb").read(),
             "Flick":open("./Resources/Note_Click_Audio/Flick.wav","rb").read()
         },
-        "ProcessBar":Image.new("RGB",(w,int(h / 125)),(145,)*3),
-        "Start":Image.open("./Resources/Start.png").resize((w,h))
+        "Start":Image.open("./Resources/Start.png")
     }
     
     for key,value in Resource["Notes"].items():
         Resource["Notes"][key] = value.resize((Note_width,int(Note_width / value.width * value.height)))
         root.reg_img(Resource["Notes"][key],f"Note_{key}")
     
-    ImageDraw.Draw(Resource["ProcessBar"]).rectangle((w * 0.998,0,w,int(h / 125)),fill=(255,)*3)
-    Resource["ProcessBar"] = Resource["ProcessBar"]
     for i in range(30):
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
-    root.reg_img(Resource["ProcessBar"],"ProcessBar")
     root.reg_img(Resource["Start"],"Start")
     root.load_allimg()
     root.shutdown_fileserver()
@@ -381,7 +377,8 @@ def draw_ui(
         root.clear_canvas(wait_execute=True)
     if background:
         draw_background()
-    root.create_image("ProcessBar",-w + w * process,0,w,int(h / 125),wait_execute=True)
+    root.create_rectangle(0,0,w * process,h / 125,fillStyle="rgba(145, 145, 145, 0.85)",wait_execute=True)
+    root.create_rectangle(w * process - w * 0.002,0,w * process,h / 125,fillStyle="rgba(255, 255, 255, 0.9)",wait_execute=True)
     root.create_text(text=score,x=w * 0.99,y=h * 0.01,textBaseline="top",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
     if combo_state:
         root.create_text(text=f"{combo}",x=w / 2,y=h * 0.01,textBaseline="top",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
@@ -685,15 +682,15 @@ def GetFrameRenderTask_Phi(
                                 ClickEffect_Size * Tool_Functions.ease_out(effect_process) / 1.25
                             )
                             block_size = EFFECT_RANDOM_BLOCK_SIZE
-                            if effect_process > 0.5:
-                                block_size -= (effect_process - 0.5) * EFFECT_RANDOM_BLOCK_SIZE
+                            if effect_process > 0.65:
+                                block_size -= (effect_process - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
                             Task(
                                 root.create_rectangle,
                                 effect_random_point[0] - block_size,
                                 effect_random_point[1] - block_size,
                                 effect_random_point[0] + block_size,
                                 effect_random_point[1] + block_size,
-                                fillStyle = f"rgb{(254,255,169,1.0 - effect_process)}",
+                                fillStyle = f"rgb{(254,255,169,(1.0 - effect_process) * 0.85)}",
                                 wait_execute = True
                             )
                     Task(
@@ -1081,7 +1078,7 @@ print(f"Window Hwnd: {window_hwnd}")
 window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
 SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
 Resource = Load_Resource()
-EFFECT_RANDOM_BLOCK_SIZE = Note_width / 13.5
+EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
 if CHART_TYPE == Const.CHART_TYPE.PHI:
     Chart_Functions_Phi.Init(
         phigros_chart_obj_ = phigros_chart_obj,
