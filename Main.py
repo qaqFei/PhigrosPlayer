@@ -1056,22 +1056,21 @@ if hidemouse:
     root.run_js_code("hide_mouse();")
 root.reg_event("closed",remove_font)
 
-if "-size" not in argv:
-    if "-fullscreen" in argv:
-        w,h = root.winfo_screenwidth(),root.winfo_screenheight()
-        root._web.toggle_fullscreen()
-    else:
-        w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
-        root.resize(w,h)
-        w_legacy,h_legacy = root.winfo_legacywindowwidth(),root.winfo_legacywindowheight()
-        dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
-        del w_legacy,h_legacy
-        root.resize(w + dw_legacy,h + dh_legacy)
-        root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
-    root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
+if "-fullscreen" in argv:
+    w,h = root.winfo_screenwidth(),root.winfo_screenheight()
+    root._web.toggle_fullscreen()
 else:
-    w,h = int(eval(argv[argv.index("-size") + 1])),int(eval(argv[argv.index("-size") + 2]))
+    if "-size" not in argv:
+        w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+    else:
+        w,h = int(eval(argv[argv.index("-size") + 1])),int(eval(argv[argv.index("-size") + 2]))
     root.resize(w,h)
+    w_legacy,h_legacy = root.winfo_legacywindowwidth(),root.winfo_legacywindowheight()
+    dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
+    del w_legacy,h_legacy
+    root.resize(w + dw_legacy,h + dh_legacy)
+    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
+root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
     
 background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
