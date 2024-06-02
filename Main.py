@@ -4,18 +4,17 @@ from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT
 from os.path import exists,abspath,dirname
 from sys import argv
 from time import time,sleep
-from json import loads
 from queue import Queue
 from shutil import rmtree
 from tempfile import gettempdir
 import typing
 import csv
+import json
 
 from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
 from win32gui import GetWindowLong,SetWindowLong
 from pygame import mixer
 import win32con
-import win32ui
 
 import Chart_Objects_Phi
 # import Chart_Objects_Rep
@@ -27,6 +26,7 @@ import PlaySound
 import ConsoleWindow
 import web_canvas
 import Tool_Functions
+import dialog
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
@@ -68,9 +68,7 @@ loop = "-loop" in argv
 lfdaot = "-lfdaot" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
-    dlg = win32ui.CreateFileDialog(1)
-    dlg.DoModal()
-    argv = [argv[0]] + [dlg.GetPathName()] + argv[0:]
+    argv = [argv[0]] + [dialog.openfile()] + argv[0:]
     if argv[1] == "":
         windll.kernel32.ExitProcess(1)
 
@@ -108,7 +106,7 @@ for item in chart_files:
         except Exception:
             try:
                 with open(item,"r",encoding="utf-8") as f:
-                    chart_files_dict["charts"].append([item,loads(f.read())])
+                    chart_files_dict["charts"].append([item,json.load(f)])
                     name = item.replace(temp_dir+"\\","")
                     print(f"Add Resource (chart): {name}")
             except Exception:
@@ -820,10 +818,10 @@ def PlayerStart_Phi():
                 break
     else:
         lfdaot_tasks = {}
-        frame_speed = 45
+        frame_speed = 60
         frame_count = 0
         frame_time = 1 / frame_speed
-        allframe_num = int(audio_length / frame_time)
+        allframe_num = int(audio_length / frame_time) + 1
         while True:
             if frame_count * frame_time > audio_length:
                 break
@@ -838,6 +836,35 @@ def PlayerStart_Phi():
             frame_count += 1
             
             print(f"\rLoadFrameData: {frame_count} / {allframe_num}",end="")
+        
+        fn = dialog.savefile(
+            fn = "Chart.lfdaot"
+        )
+        
+        if fn != "":
+            data = {
+                "meta":{
+                    "frame_speed":frame_speed,
+                    "frame_num":len(lfdaot_tasks)
+                },
+                "data":[]
+            }
+            for Task in lfdaot_tasks.values():
+                Task_data = {
+                    "render":[],
+                    "ex":[]
+                }
+                for rendertask in Task.RenderTasks:
+                    Task_data["render"].append({
+                        "func_name":rendertask.func.__code__.co_name,
+                        "args":list(rendertask.args),
+                        "kwargs":dict(rendertask.kwargs)
+                    })
+                for ex in Task.ExTask:
+                    Task_data["ex"].append(list(ex))
+                data["data"].append(Task_data)
+            with open(fn,"w") as f:
+                f.write(json.dumps(data).replace(" ",""))
         
         mixer.music.play()
         while not mixer.music.get_busy(): pass
@@ -977,10 +1004,11 @@ def Re_Init():
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")
 root = web_canvas.WebCanvas(
-    width=1,height=1,
-    x=0,y=0,
-    title="Phigros Chart Player",
-    debug="-debug" in argv
+    width = 1,height = 1,
+    x = 0,y = 0,
+    title = "Phigros Chart Player",
+    debug = "-debug" in argv,
+    resizable = True if not lfdaot else False
 )
 if hidemouse:
     root.run_js_code("hide_mouse();")
@@ -996,7 +1024,6 @@ else:
     del w_legacy,h_legacy
     root.resize(w + dw_legacy,h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
-print("Creating Canvas...")
 root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
 background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")

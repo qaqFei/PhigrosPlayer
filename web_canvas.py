@@ -45,11 +45,15 @@ class WebCanvas:
         x:int,y:int,
         hidden:bool = False,
         debug:bool = False,
-        title:str = "WebCanvas"
+        title:str = "WebCanvas",
+        resizable:bool = True,
+        web_kwargs:typing.Mapping = {}
     ):
         self._web = webview.create_window(
             title=title,
-            url=abspath(".\\web_canvas.html")
+            url=abspath(".\\web_canvas.html"),
+            resizable = resizable,
+            **web_kwargs
         )
         self._web_init_var = {
             "width":width,
