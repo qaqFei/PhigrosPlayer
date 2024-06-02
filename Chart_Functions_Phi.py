@@ -84,7 +84,7 @@ def FrameData_ProcessExTask(local_vars,ExTask,eval_func):
         if ext[0] == "break":
             break_flag = True
         elif ext[0] == "set":
-            locals()[ext[1]] = ext[2]
+            local_vars[ext[1]] = ext[2]
         elif ext[0] == "thread-call":
             Thread(target=eval_func(ext[1]),args=eval_func(ext[2]),daemon=True).start()
     

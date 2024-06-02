@@ -22,7 +22,7 @@ import Chart_Functions_Phi
 import Chart_Functions_Rep
 import Const
 import Find_Files
-import PlaySound
+import PlaySound #using at eval
 import ConsoleWindow
 import web_canvas
 import Tool_Functions
@@ -738,7 +738,7 @@ def GetFrameRenderTask_Phi(
         if not mixer.music.get_busy():
             Task.ExTask.append(("break",))
         this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
-        offset_judge_range = 10.0 #ms
+        offset_judge_range = (1000 / 60) * 4
         if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
             Task.ExTask.append(("set","show_start_time",show_start_time - music_offset / 1000))
             loger_queue.put(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
@@ -805,7 +805,7 @@ def PlayerStart_Phi():
             break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
                 locals(),
                 Task.ExTask,
-                eval
+                lambda x:eval(x)
             )
             
             if break_flag:
@@ -841,7 +841,8 @@ def PlayerStart_Phi():
                 data = {
                     "meta":{
                         "frame_speed":frame_speed,
-                        "frame_num":len(lfdaot_tasks)
+                        "frame_num":len(lfdaot_tasks),
+                        "size":[w,h]
                     },
                     "data":[]
                 }
@@ -1054,18 +1055,24 @@ root = web_canvas.WebCanvas(
 if hidemouse:
     root.run_js_code("hide_mouse();")
 root.reg_event("closed",remove_font)
-if "-fullscreen" in argv:
-    w,h = root.winfo_screenwidth(),root.winfo_screenheight()
-    root._web.toggle_fullscreen()
+
+if "-size" not in argv:
+    if "-fullscreen" in argv:
+        w,h = root.winfo_screenwidth(),root.winfo_screenheight()
+        root._web.toggle_fullscreen()
+    else:
+        w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+        root.resize(w,h)
+        w_legacy,h_legacy = root.winfo_legacywindowwidth(),root.winfo_legacywindowheight()
+        dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
+        del w_legacy,h_legacy
+        root.resize(w + dw_legacy,h + dh_legacy)
+        root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
+    root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
 else:
-    w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+    w,h = int(eval(argv[argv.index("-size") + 1])),int(eval(argv[argv.index("-size") + 2]))
     root.resize(w,h)
-    w_legacy,h_legacy = root.winfo_legacywindowwidth(),root.winfo_legacywindowheight()
-    dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
-    del w_legacy,h_legacy
-    root.resize(w + dw_legacy,h + dh_legacy)
-    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
-root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
+    
 background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h

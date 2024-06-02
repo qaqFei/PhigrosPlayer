@@ -508,22 +508,3 @@ class WebCanvas:
         WebCanvas_FileServerHandler._canvas = self
         self._file_server = http.server.HTTPServer(("localhost",self._web_port + 1),WebCanvas_FileServerHandler)
         threading.Thread(target=lambda:self._file_server.serve_forever(poll_interval=0),daemon=True).start()
-        
-if __name__ == "__main__":
-    from sys import argv
-    import random
-    wc = WebCanvas(1920 // 2,1080 // 2,100,100,debug=True)
-    n = 100
-    wc.reg_img(Image.open(argv[1]).resize((int(1920 / 4),int(1080 / 4))),"test")
-    for i in range(n):
-        wc.create_rectangle(random.randint(0,50),random.randint(0,50),random.randint(51,100),random.randint(51,100),fillStyle=f"rgb{(random.randint(0,255),random.randint(0,255),random.randint(0,255))}",wait_execute=True)
-        wc.create_line(random.randint(0,250),random.randint(0,250),random.randint(0,250),random.randint(0,250),lineWidth=random.randint(0,12),strokeStyle=f"rgb{(random.randint(0,255),random.randint(0,255),random.randint(0,255))}",wait_execute=True)
-        wc.create_arc(random.randint(0,150),random.randint(0,150),random.randint(0,25),0,random.randint(0,360),lineWidth=random.randint(0,12),strokeStyle=f"rgb{(random.randint(0,255),random.randint(0,255),random.randint(0,255))}",wait_execute=True)
-        wc.create_circle(random.randint(150,350),random.randint(150,350),random.randint(0,25),lineWidth=random.randint(0,12),strokeStyle=f"rgb{(random.randint(0,255),random.randint(0,255),random.randint(0,255))}",wait_execute=True)
-        wc.create_text("\"`'Hello World!'`\"",random.randint(150,350),random.randint(150,350),wait_execute=True)
-        if (i + 1) % int(n / 10) == 0:
-            print(f"{i + 1} / {n}")
-    wc.run_js_wait_code()
-    wc.create_image("test",200,200,1920/4,1080/4)
-    wc.loop_to_close()
-    windll.kernel32.ExitProcess(0)
