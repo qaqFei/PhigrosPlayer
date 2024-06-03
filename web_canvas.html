@@ -95,17 +95,6 @@
         }
     }
 
-    function updata_canvas_imgdata(url) {
-        lfdaot_render_fcount ++;
-        fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: `${lfdaot_render_fcount},${ctx.getImageData(0,0,canvas_ele.width,canvas_ele.height).data.toString()}`
-        })
-    }
-
     CanvasRenderingContext2D.prototype._clearRect = CanvasRenderingContext2D.prototype.clearRect;
 
     CanvasRenderingContext2D.prototype.clearRect = function(a,b,c,d) {
