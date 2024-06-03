@@ -4,7 +4,6 @@ from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT
 from os.path import exists,abspath,dirname
 from sys import argv
 from time import time,sleep
-from queue import Queue
 from shutil import rmtree
 from tempfile import gettempdir
 import typing
@@ -234,13 +233,6 @@ print("              BackgroundDim:",chart_information["BackgroundDim"])
 
 del chart_files,chart_files_dict
 
-def loger():
-    while True:
-        while not loger_queue.empty():
-            print(loger_queue.get())
-        sleep(0.01)
-
-loger_queue = Queue()
 clickeffect_cache = []
 note_id = -1
 def LoadChartObject():
@@ -738,7 +730,7 @@ def GetFrameRenderTask_Phi(
         offset_judge_range = (1000 / 60) * 4
         if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
             Task.ExTask.append(("set","show_start_time",show_start_time - music_offset / 1000))
-            loger_queue.put(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
+            print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
     
     Task(root.run_js_wait_code)
         
@@ -887,6 +879,8 @@ def PlayerStart_Phi():
                         ExTask = tuple(Task_data["ex"])
                     )
                 })
+            if data["size"] != [w,h]:
+                print("Warning: The size of the lfdaot file is not the same as the size of the window.")
         
         mixer.music.play()
         while not mixer.music.get_busy(): pass
@@ -1015,7 +1009,7 @@ def PlayerStart_Rep():
         offset_judge_range = 66.666667 #ms
         if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
             show_start_time -= music_offset / 1000
-            loger_queue.put(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
+            print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
         if time_block_render_count >= cal_fps_block_size:
             if "-showfps" in argv:
                 try:
@@ -1091,6 +1085,5 @@ elif CHART_TYPE == Const.CHART_TYPE.REP:
         Resource_ = Resource
     )
 Thread(target=Show_Start,daemon=True).start()
-Thread(target=loger,daemon=True).start()
 root.loop_to_close()
 windll.kernel32.ExitProcess(0)
