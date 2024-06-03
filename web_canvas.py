@@ -21,6 +21,9 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-type", "image/png")
+        self.send_header("Access-Control-Allow-Origin","*")
+        self.send_header("Access-Control-Allow-Methods","*")
+        self.send_header("Access-Control-Allow-Headers","Authorization, Content-Type")
         self.end_headers()
         try:
             im = self._canvas._regims[self.path[1:]]
@@ -478,6 +481,7 @@ class WebCanvas:
         code = f"\
         if (!window.{jsvarname}){chr(123)}\
             {jsvarname} = document.createElement('img');\
+            {jsvarname}.crossOrigin = \"Anonymous\";\
             {jsvarname}.src = 'http://127.0.0.1:{self._web_port + 1}/{imgname}';\
             {jsvarname}.loading = \"eager\";\
             {jsvarname}_onloadfuncs = new Array();\

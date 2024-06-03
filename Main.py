@@ -879,7 +879,7 @@ def PlayerStart_Phi():
                         ExTask = tuple(Task_data["ex"])
                     )
                 })
-            if data["size"] != [w,h]:
+            if data["meta"]["size"] != [w,h]:
                 print("Warning: The size of the lfdaot file is not the same as the size of the window.")
         
         mixer.music.play()

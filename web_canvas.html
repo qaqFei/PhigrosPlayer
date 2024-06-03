@@ -36,6 +36,7 @@
     ctx = canvas_ele.getContext("2d");
     JavaScript_WaitToExecute_CodeArray = new Array();
     resize_task = false;
+    lfdaot_render_fcount = 0;
     
     function resizeCanvas() {
         canvas_ele.width = window.innerWidth;
@@ -92,6 +93,17 @@
         else{
             show_out_animation(false,new Date().getTime() / 1000);
         }
+    }
+
+    function updata_canvas_imgdata(url) {
+        lfdaot_render_fcount ++;
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: `${lfdaot_render_fcount},${ctx.getImageData(0,0,canvas_ele.width,canvas_ele.height).data.toString()}`
+        })
     }
 
     CanvasRenderingContext2D.prototype._clearRect = CanvasRenderingContext2D.prototype.clearRect;
