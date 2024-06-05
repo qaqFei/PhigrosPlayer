@@ -682,7 +682,7 @@ def GetFrameRenderTask_Phi(
                                 effect_random_point[1] - block_size,
                                 effect_random_point[0] + block_size,
                                 effect_random_point[1] + block_size,
-                                fillStyle = f"rgb{(254,255,169,(1.0 - effect_process) * 0.85)}",
+                                fillStyle = f"rgba{(254,255,169,(1.0 - effect_process) * 0.85)}",
                                 wait_execute = True
                             )
                     Task(
