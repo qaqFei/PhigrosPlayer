@@ -33,6 +33,7 @@ python Main.py
 - ```-lfdaot``` 提前加载帧数据 / Load frame data ahead of time |tips: ```-lfdaot```默认会生成.lfdaot文件 可供```-lfdaot-file```使用
 - ```-lfdaot-file <path-string-value>``` 在 ```-lfdaot``` 的基础上, 不计算谱面数据 而是使用传入的文件数据
 - ```-size <integer-value> <integer-size>``` 指定窗口大小
+- ```-noclicksound``` 禁用打击音效
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途

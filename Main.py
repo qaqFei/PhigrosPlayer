@@ -30,15 +30,14 @@ import dialog
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
 
+if "-noclicksound" in argv:
+    PlaySound.Play = lambda *args,**kwargs:None
+
 hidemouse = "-hidemouse" in argv
 
 selfdir = dirname(argv[0])
 if selfdir == "": selfdir = "."
 chdir(selfdir)
-
-if exists(".//__pycache__"):
-    try: rmtree(".//__pycache__")
-    except Exception: pass
 
 if not exists(".\\7z.exe") or not exists(".\\7z.dll"):
     print("7z.exe or 7z.dll Not Found.")
