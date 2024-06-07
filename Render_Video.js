@@ -1,7 +1,8 @@
-const { CanvasRenderingContext2D, createCanvas, loadImage } = require("canvas");
+const { CanvasRenderingContext2D, createCanvas, loadImage, Canvas } = require("canvas");
 const fs = require("fs");
 const { LoadResources } = require("./res.js");
 const pywebcanvas_api = require("./pywebcanvas_api.js");
+const { randomInt } = require("crypto");
 const argv = process.argv.splice(2);
 
 const lfdaot_fp = argv[0];
@@ -93,6 +94,12 @@ function Init_Api() {
     );
 }
 
+CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
+CanvasRenderingContext2D.prototype.drawImage = function(im,x,y,width,height) {
+    if (width <= 0 || height <= 0) return;
+    this._drawImage(im,x,y,width,height);
+}
+
 async function main(){
     res = await LoadResources();
 
@@ -100,7 +107,7 @@ async function main(){
         background_image = await loadImage(background_fp);
     }
     catch (error) {
-        console.log("Your background image file name cannot has chinese string.");
+        console.log("Your background image file path cannot has chinese string.");
         process.exit();
     }
 
@@ -108,24 +115,15 @@ async function main(){
     Init_Api();
 
     render_frame_count = 0;
-    init_frame_count = 0;
+    
     for (frame_data of lfdaot_object["data"]) {
-
-        // if (init_frame_count > 295) { //wtf???
-        //     Init_Canvas();
-        //     Init_Api();
-        //     init_frame_count = 0;
-        // }
-
         for (render_tasks of frame_data["render"]) {
             arg_string = args_kwargs_parser(render_tasks["args"],render_tasks["kwargs"]);
             callfunc_eval = `render_function_mapping.${render_tasks["func_name"]}(${arg_string});`;
-            console.log(callfunc_eval);
             eval(callfunc_eval);
         }
         await outFrame(`${output_fp}/${render_frame_count}.png`);
         render_frame_count ++;
-        init_frame_count ++;
         console.log(`render frame ${render_frame_count}/${frame_num}`);
     }
 }

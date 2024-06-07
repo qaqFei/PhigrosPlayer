@@ -899,7 +899,9 @@ def PlayerStart_Phi():
                 for fcount in range(last_music_play_fcount,music_play_fcount):
                     try:
                         Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[fcount]
-                        will_process_extask.append(Task.ExTask)
+                        if Task.ExTask is not None:
+                            will_process_extask.append(Task.ExTask)
+                            Task.ExTask = None
                     except KeyError:
                         pass
         
@@ -912,7 +914,10 @@ def PlayerStart_Phi():
             
             break_flag_top = False
             
-            for ExTask in will_process_extask + [Task.ExTask]:
+            if Task.ExTask is not None:
+                will_process_extask.append(Task.ExTask)
+                Task.ExTask = None
+            for ExTask in will_process_extask:
                 break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
                     locals(),
                     ExTask,
