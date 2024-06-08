@@ -113,6 +113,9 @@ class judgeLine:
     def __repr__(self):
         return f"JudgeLine-{self.id}"
     
+    def _cal_T(self):
+        self.T = 1.875 / self.bpm
+    
     def set_master_to_notes(self):
         for note in self.notesAbove:
             note.master = self
@@ -167,7 +170,7 @@ class Phigros_Chart:
     def init(self):
         for judgeLine in self.judgeLineList:
             #cal T
-            judgeLine.T = 1.875 / judgeLine.bpm
+            judgeLine._cal_T()
             
             #set_master_to_notes
             judgeLine.set_master_to_notes()
