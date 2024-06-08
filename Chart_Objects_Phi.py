@@ -224,7 +224,7 @@ class Phigros_Chart:
             if self._is_specification_events(event):
                 break
         
-        event[0].startTime = 0.0
+        event[0].startTime = -9999999.0
         event[-1].endTime = 9999999.0
     
     def _is_specification_events(self,event:typing.Union[
