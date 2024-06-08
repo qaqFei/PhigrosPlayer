@@ -71,12 +71,6 @@ if len(argv) < 2 or not exists(argv[1]):
     if argv[1] == "":
         windll.kernel32.ExitProcess(1)
 
-print("Loading Font...")
-def remove_font():
-    while windll.gdi32.RemoveFontResourceW(".\\font.ttf"): pass
-remove_font()
-windll.gdi32.AddFontResourceW(".\\font.ttf")
-
 print("Init Pygame Mixer...")
 mixer.init()
 mixer.music.set_volume(0.85)
@@ -110,7 +104,8 @@ for item in chart_files:
                     print(f"Add Resource (chart): {name}")
             except Exception:
                 name = item.replace(temp_dir+"\\","")
-                print(f"Warning: Unknown Resource Type. Path = {name}")
+                if name not in ["info.csv"]:
+                    print(f"Warning: Unknown Resource Type. Path = {name}")
 if len(chart_files_dict["charts"]) == 0:
     print("No Chart File Found.")
     windll.kernel32.ExitProcess(1)
@@ -328,9 +323,6 @@ def Format_Time(t:typing.Union[int,float]) -> str:
     m,s = t // 60,t % 60
     m,s = int(m),int(s)
     return f"{m}:{s:>2}".replace(" ","0")
-
-def Get_judgeLine_Color() -> str:
-    return "#feffa9"
 
 def WaitLoading_FadeIn():
     for i in range(1,50+1):
@@ -629,18 +621,20 @@ def GetFrameRenderTask_Phi(
                             );",
                             add_code_array = True
                         )
-                        Task(
-                            root.run_js_code,
-                            f"ctx.drawAnchorESRotateImage(\
-                                {root.get_img_jsvarname(this_note_imgname_body)},\
-                                {holdbody_x},\
-                                {holdbody_y},\
-                                {this_note_img_body.width},\
-                                {holdbody_length},\
-                                {judgeLine_rotate}\
-                            );",
-                            add_code_array = True
-                        )
+                        
+                        if holdbody_length > 0.0:
+                            Task(
+                                root.run_js_code,
+                                f"ctx.drawAnchorESRotateImage(\
+                                    {root.get_img_jsvarname(this_note_imgname_body)},\
+                                    {holdbody_x},\
+                                    {holdbody_y},\
+                                    {this_note_img_body.width},\
+                                    {holdbody_length},\
+                                    {judgeLine_rotate}\
+                                );",
+                                add_code_array = True
+                            )
         process(judgeLine.notesAbove,1)
         process(judgeLine.notesBelow,-1)
 
@@ -668,6 +662,9 @@ def GetFrameRenderTask_Phi(
                     effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
                     if clickeffect_randomblock:
                         for index,random_deg in enumerate(effect_random_blocks):
+                            block_alpha = (1.0 - effect_process) * 0.85
+                            if block_alpha <= 0.0:
+                                continue
                             effect_random_point = Tool_Functions.rotate_point(
                                 *effect_pos,random_deg + index * 90,
                                 ClickEffect_Size * Tool_Functions.ease_out(effect_process) / 1.25
@@ -681,7 +678,7 @@ def GetFrameRenderTask_Phi(
                                 effect_random_point[1] - block_size,
                                 effect_random_point[0] + block_size,
                                 effect_random_point[1] + block_size,
-                                fillStyle = f"rgba{(254,255,169,(1.0 - effect_process) * 0.85)}",
+                                fillStyle = f"rgba{(254,255,169,block_alpha)}",
                                 wait_execute = True
                             )
                     Task(
@@ -748,7 +745,7 @@ def PlayerStart_Phi():
             root.create_line(
                 w / 2 - (val * w / 2),h / 2,
                 w / 2 + (val * w / 2),h / 2,
-                strokeStyle = Get_judgeLine_Color(),
+                strokeStyle = Const.JUDGELINE_PERFECT_COLOR,
                 lineWidth = JUDGELINE_WIDTH,
                 wait_execute = True
             )
@@ -801,6 +798,8 @@ def PlayerStart_Phi():
     else:
         lfdaot_tasks = {}
         frame_speed = 60
+        if "-lfdaot-frame-speed" in argv:
+            frame_speed = eval(argv[argv.index("-lfdaot-frame-speed") + 1])
         frame_count = 0
         frame_time = 1 / frame_speed
         allframe_num = int(audio_length / frame_time) + 1
@@ -941,88 +940,6 @@ def PlayerStart_Phi():
 def PlayerStart_Rep():
     raise NotImplementedError
 
-    print("Player Start")
-    root.title("Phigros Chart Player")
-    def judgeLine_Animation():
-        gr,step_time = Tool_Functions.Get_Animation_Gr(60,0.5)
-        val = 0.0
-        for step in gr:
-            st = time()
-            val += step
-            draw_ui()
-            root.create_line(
-                w / 2 - (val * w / 2),h / 2,
-                w / 2 + (val * w / 2),h / 2,
-                strokeStyle = Get_judgeLine_Color(),
-                lineWidth = JUDGELINE_WIDTH,
-                wait_execute = True
-            )
-            root.run_js_wait_code()
-            sleep(step_time - min(time() - st,step_time))
-    judgeLine_Animation()
-    
-    show_start_time = time()
-    now_t = 0
-    mixer.music.play()
-    while not mixer.music.get_busy(): pass
-    cal_fps_block_size = 10
-    last_cal_fps_time = time()
-    time_block_render_count = 0
-    while True:
-        now_t = time() - show_start_time
-        root.clear_canvas(wait_execute = True)
-        draw_background()
-        
-        fd = Chart_Functions_Rep.Get_FrameData(rep_chart_obj,now_t,Note_CanRender)
-        
-        for JudgeLine_Data in fd.JudgeLine_Data:
-            judgeLine_strokeStyle = (254,255,169,JudgeLine_Data.EventLayer_Data.alphaValue if not judgeline_notransparent else 1.0)
-            if judgeLine_strokeStyle[-1] != 0.0:
-                root.create_line(
-                    *JudgeLine_Data.draw_pos,
-                    lineWidth = JUDGELINE_WIDTH,
-                    strokeStyle=f"rgba{judgeLine_strokeStyle}",
-                    wait_execute = True
-                )
-        
-        for Note_Data in fd.Note_Data:
-            root.create_image(
-                Note_Data.imname,
-                Note_Data.x - Note_Data.im.width / 2,Note_Data.y - Note_Data.im.height / 2,
-                Note_Data.im.width,Note_Data.im.height,
-                wait_execute = True
-            )
-        
-        # combo = Chart_Functions_Rep.Cal_Combo(now_t)
-        combo = 0
-        time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
-        draw_ui(
-            process=now_t / audio_length,
-            score=get_stringscore(combo * (1000000 / rep_chart_obj.numOfNotes)),
-            combo_state=combo >= 3,
-            combo=combo,
-            now_time=time_text,
-            clear=False,
-            background=False
-        )
-        if not mixer.music.get_busy():
-            break
-        root.run_js_wait_code()
-        time_block_render_count += 1
-        this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
-        offset_judge_range = 66.666667 #ms
-        if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
-            show_start_time -= music_offset / 1000
-            print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
-        if time_block_render_count >= cal_fps_block_size:
-            if "-showfps" in argv:
-                try:
-                    root.title(f"Phigros Chart Player - FPS: {(time_block_render_count / (time() - last_cal_fps_time)) : .2f}")
-                except ZeroDivisionError:
-                    root.title(f"Phigros Chart Player - FPS: inf")
-            last_cal_fps_time,time_block_render_count = time(),0
-    root.destroy()
-
 def Re_Init():
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         (
@@ -1049,8 +966,6 @@ root = web_canvas.WebCanvas(
 )
 if hidemouse:
     root.run_js_code("hide_mouse();")
-root.reg_event("closed",remove_font)
-
 if "-fullscreen" in argv:
     w,h = root.winfo_screenwidth(),root.winfo_screenheight()
     root._web.toggle_fullscreen()

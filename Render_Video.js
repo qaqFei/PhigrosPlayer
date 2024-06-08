@@ -77,11 +77,10 @@ function args_kwargs_parser(args,kwargs) {
     return r_str;
 }
 
-async function outFrame(fp) {
+function outFrame(fp) {
     return new Promise((resolve,reject) => {
         const out = fs.createWriteStream(fp);
-        const stream = canvas.createPNGStream();
-        stream.pipe(out);
+        canvas.createPNGStream().pipe(out);
         out.on("finish", resolve);
     })
 }
@@ -117,13 +116,14 @@ async function main(){
     render_frame_count = 0;
     
     for (frame_data of lfdaot_object["data"]) {
+        callfunc_eval = "";
         for (render_tasks of frame_data["render"]) {
             arg_string = args_kwargs_parser(render_tasks["args"],render_tasks["kwargs"]);
-            callfunc_eval = `render_function_mapping.${render_tasks["func_name"]}(${arg_string});`;
-            eval(callfunc_eval);
+            callfunc_eval += `render_function_mapping.${render_tasks["func_name"]}(${arg_string});`;
         }
-        await outFrame(`${output_fp}/${render_frame_count}.png`);
+        eval(callfunc_eval);
         render_frame_count ++;
+        await outFrame(`${output_fp}/${render_frame_count}.png`);
         console.log(`render frame ${render_frame_count}/${frame_num}`);
     }
 }

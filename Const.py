@@ -19,3 +19,4 @@ class REP_CONST:
 
 INF = float("inf")
 NAN = float("nan")
+JUDGELINE_PERFECT_COLOR = "#feffa9"

@@ -33,15 +33,15 @@ function clear_canvas() {
 
 function create_line(
     x1, y1, x2, y2,
-    optinos = {}
+    options = {}
 ) {
-    now_options = Object.assign(
+    var now_options = Object.assign(
         {
             fillStyle:null,
             strokeStyle:null,
             lineWidth:1
         },
-        optinos
+        options
     )
     _ctx.save()
     _ctx.beginPath();
@@ -60,9 +60,9 @@ function create_line(
 
 function create_text(
     x, y,text,
-    optinos = {}
+    options = {}
 ) {
-    now_options = Object.assign(
+    var now_options = Object.assign(
         {
             font:null,
             textAlign:"start",
@@ -71,7 +71,7 @@ function create_text(
             fillStyle:null,
             strokeStyle:null,
         },
-        optinos
+        options
     )
     _ctx.save()
     _ctx.textAlign = now_options.textAlign;
@@ -99,15 +99,15 @@ function create_image(
 
 function create_rectangle(
     x0, y0, x1, y1,
-    optinos = {}
+    options = {}
 ) {
-    now_options = Object.assign(
+    var now_options = Object.assign(
         {
             fillStyle:null,
             strokeStyle:null,
             lineWidth:1
         },
-        optinos
+        options
     )
     _ctx.save();
     if (now_options.strokeStyle != null){
@@ -126,9 +126,9 @@ function draw_background() {
 }
 
 function draw_ui(
-    optinos = {}
+    options = {}
 ) {
-    now_options = Object.assign(
+    var now_options = Object.assign(
         {
             process:0.0,
             score:"0000000",
@@ -138,7 +138,7 @@ function draw_ui(
             clear:true,
             background:true
         },
-        optinos
+        options
     )
     if (now_options.clear) {
         clear_canvas();
