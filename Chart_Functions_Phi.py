@@ -21,53 +21,34 @@ def Init(
 def Cal_Combo(now_time:float) -> int:
     combo = 0
     for judgeLine in phigros_chart_obj.judgeLineList:
-        T = 1.875 / judgeLine.bpm
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
-            if note.time * T <= now_time and note.type != Const.Note.HOLD:
+            if note.time * judgeLine.T <= now_time and note.type != Const.Note.HOLD:
                 combo += 1
             elif note.type == Const.Note.HOLD:
                 if note.hold_length_sec > 0.2:
                     if note.hold_endtime - 0.2 <= now_time:
                         combo += 1
-                elif note.time * T <= now_time:
+                elif note.time * judgeLine.T <= now_time:
                     combo += 1
     return combo
 
-def Cal_judgeLine_NoteDy(judgeLine_cfg,T:float) -> float:
-    judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
-    if judgeLine.speedEvents == []: return 0
-    return Cal_judgeLine_NoteDy_ByTime(judgeLine,T,judgeLine_cfg["time"])
-
 def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects_Phi.judgeLine,T:float,time:float) -> float:
-    dy = 0
-    if judgeLine.speedEvents[0].floorPosition is not None:
-        for speed_event in judgeLine.speedEvents:
-            if speed_event.startTime <= time <= speed_event.endTime:
-                dy = speed_event.floorPosition * PHIGROS_Y + (
-                    time - speed_event.startTime
-                ) * T * speed_event.value * PHIGROS_Y
-                return dy
-        last_speed_event = sorted(judgeLine.speedEvents,key=lambda x:x.startTime)[-1]
-        dy = last_speed_event.floorPosition * PHIGROS_Y + (time - last_speed_event.endTime) * T * last_speed_event.value * PHIGROS_Y
-        return dy
-    else:
-        for speed_event in judgeLine.speedEvents:
-            if speed_event.startTime < time and speed_event.endTime < time:
-                dy += (speed_event.endTime - speed_event.startTime) * T * speed_event.value * PHIGROS_Y
-            elif speed_event.startTime <= time <= speed_event.endTime:
-                dy += (time - speed_event.startTime) * T * speed_event.value * PHIGROS_Y
-            else:
-                pass
-        return dy
- 
-def is_nan(x) -> bool:
-    return x != x
+    if not judgeLine.speedEvents: return 0.0
+    for speed_event in judgeLine.speedEvents:
+        if speed_event.startTime <= time <= speed_event.endTime:
+            dy = speed_event.floorPosition + (
+                time - speed_event.startTime
+            ) * T * speed_event.value
+            return dy * PHIGROS_Y
+    last_speed_event = judgeLine.speedEvents[-1]
+    dy = last_speed_event.floorPosition + (time - last_speed_event.endTime) * T * last_speed_event.value
+    return dy * PHIGROS_Y
 
-def Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t:typing.Union[int,float]):
+def Update_JudgeLine_Configs(judgeLine_Configs,now_t:typing.Union[int,float]):
     for judgeLine_cfg_key in judgeLine_Configs:
         judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
-        judgeLine_cfg["time"] = now_t / T_dws[judgeLine_cfg_key]
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
+        judgeLine_cfg["time"] = now_t / judgeLine.T
         rotate_var = judgeLine.get_datavar_rotate(judgeLine_cfg["time"])
         disappear_var = judgeLine.get_datavar_disappear(judgeLine_cfg["time"])
         move_var = judgeLine.get_datavar_move(judgeLine_cfg["time"],w,h)
@@ -185,9 +166,6 @@ def Load_Chart_Object(phigros_chart):
             for index,judgeLine_item in enumerate(phigros_chart["judgeLineList"])
         ]
     )
-    for judgeLine in phigros_chart_obj.judgeLineList:
-        judgeLine.set_master_to_notes()
-    phigros_chart_obj.cal_note_num()
     print("Finding Chart More Bets...")
     notes = []
     for judgeLine in phigros_chart_obj.judgeLineList:
@@ -205,6 +183,6 @@ def Load_Chart_Object(phigros_chart):
             note.morebets = True
     del notes,note_times
     
-    phigros_chart_obj.specification()
+    phigros_chart_obj.init()
     print("Load Chart Object Successfully.")
     return phigros_chart_obj

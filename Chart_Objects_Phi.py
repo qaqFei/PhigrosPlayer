@@ -46,13 +46,13 @@ class note:
         return f"{self.master.id}+{self.by_judgeLine_id}{note_t}"
     
     def _cal_holdlength(self,PHIGROS_Y):
-        self.hold_length_sec = self.holdTime * (1.875 / self.master.bpm)
+        self.hold_length_sec = self.holdTime * self.master.T
         self.hold_length_px = (self.speed * self.hold_length_sec) * PHIGROS_Y
-        self.hold_endtime = self.time * (1.875 / self.master.bpm) + self.hold_length_sec
+        self.hold_endtime = self.time * self.master.T + self.hold_length_sec
         
         #do other... hehehehe
         self.effect_times = []
-        hold_starttime = self.time * (1.875 / self.master.bpm)
+        hold_starttime = self.time * self.master.T
         hold_effect_blocktime = (1 / self.master.bpm * 30)
         while True:
             hold_starttime += hold_effect_blocktime
@@ -163,14 +163,28 @@ class Phigros_Chart:
     formatVersion:int
     offset:typing.Union[int,float]
     judgeLineList:list[judgeLine]
-
-    def cal_note_num(self):
-        self.note_num = 0
+    
+    def init(self):
         for judgeLine in self.judgeLineList:
-            for _ in judgeLine.notesAbove:
-                self.note_num += 1
-            for _ in judgeLine.notesBelow:
-                self.note_num += 1
+            #cal T
+            judgeLine.T = 1.875 / judgeLine.bpm
+            
+            #set_master_to_notes
+            judgeLine.set_master_to_notes()
+            
+            #specification_events
+            self._specification_events(judgeLine.judgeLineMoveEvents)
+            self._specification_events(judgeLine.judgeLineDisappearEvents)
+            self._specification_events(judgeLine.judgeLineRotateEvents)
+            
+            #init_speed_floorposition
+            last_speedEvent_floorPosition = 0.0
+            for speedEvent in judgeLine.speedEvents:
+                speedEvent.floorPosition = last_speedEvent_floorPosition
+                last_speedEvent_floorPosition += (speedEvent.endTime - speedEvent.startTime) * speedEvent.value * judgeLine.T
+        
+        #cal_note_num
+        self.note_num = sum([len(judgeLine.notesAbove) + len(judgeLine.notesBelow) for judgeLine in self.judgeLineList])
     
     def init_holdlength(self,PHIGROS_Y):
         for judgeLine in self.judgeLineList:
@@ -220,12 +234,6 @@ class Phigros_Chart:
                 if e.endTime != event[index + 1].startTime:
                     return False
         return True
-        
-    def specification(self):
-        for judgeLine in self.judgeLineList:
-            self._specification_events(judgeLine.judgeLineMoveEvents)
-            self._specification_events(judgeLine.judgeLineDisappearEvents)
-            self._specification_events(judgeLine.judgeLineRotateEvents)
     
     def get_all_note(self) -> list[note]:
        return [j for i in self.judgeLineList for j in i.notesAbove + i.notesBelow]

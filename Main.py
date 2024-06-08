@@ -472,19 +472,18 @@ def GetFrameRenderTask_Phi(
             ]
         ]
     ],
-    T_dws:typing.Dict[int,float],
     show_start_time:float
 ):
     Task = Chart_Objects_Phi.FrameRenderTask([],[])
-    Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,T_dws,now_t)
+    Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,now_t)
     Task(root.clear_canvas,wait_execute = True)
     Task(draw_background)
 
     for judgeLine_cfg_key in judgeLine_Configs:
         judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
-        this_judgeLine_T = T_dws[judgeLine_cfg_key]
-        judgeLine_cfg["Note_dy"] = Chart_Functions_Phi.Cal_judgeLine_NoteDy(judgeLine_cfg,this_judgeLine_T)
+        this_judgeLine_T = judgeLine.T
+        judgeLine_cfg["Note_dy"] = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,judgeLine_cfg["time"])
         judgeLine_DrawPos = (
             *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
             *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
@@ -601,12 +600,12 @@ def GetFrameRenderTask_Phi(
                     if this_note_ishold:
                         if note_item.clicked:
                             holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
-                            holdbody_length = Tool_Functions.calpointlength(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / 2
+                            holdbody_length = Tool_Functions.point_length(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / 2
                         else:
                             holdbody_x,holdbody_y = Tool_Functions.rotate_point(
                                 *holdhead_pos,judgeLine_to_note_rotate_deg,this_note_img.height / 2
                             )
-                            holdbody_length = Tool_Functions.calpointlength(holdhead_pos,(holdend_x,holdend_y)) - this_note_img.height / 2 - this_note_img_end.height / 2
+                            holdbody_length = Tool_Functions.point_length(holdhead_pos,(holdend_x,holdend_y)) - this_note_img.height / 2 - this_note_img_end.height / 2
                         holdbody_length += 0.5
                         
                         Task(
@@ -640,9 +639,8 @@ def GetFrameRenderTask_Phi(
 
     effect_time = 0.5
     for judgeLine in phigros_chart_obj.judgeLineList:
-        T = 1.875 / judgeLine.bpm
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
-            note_time = note.time * T
+            note_time = note.time * judgeLine.T
             note_ishold = note.type == Const.Note.HOLD
             
             if not note_ishold and note.show_effected:
@@ -701,7 +699,7 @@ def GetFrameRenderTask_Phi(
                         for temp_time,hold_effect_random_blocks in note.effect_times:
                             if temp_time < now_t:
                                 if now_t - temp_time <= effect_time:
-                                    process(temp_time,temp_time / T,hold_effect_random_blocks)
+                                    process(temp_time,temp_time / judgeLine.T,hold_effect_random_blocks)
                                     is_processed = True
                     if not is_processed and note.hold_endtime + effect_time < now_t:
                         note.show_effected_hold = True
@@ -758,7 +756,6 @@ def PlayerStart_Phi():
 
     show_start_time = time()
     now_t = 0
-    T_dws = {judgeLine_item.__hash__():1.875/judgeLine_item.bpm for judgeLine_item in phigros_chart_obj.judgeLineList}
     judgeLine_Configs = {
         judgeLine_item.__hash__():{
             "judgeLine":judgeLine_item,
@@ -782,7 +779,6 @@ def PlayerStart_Phi():
             Task = GetFrameRenderTask_Phi(
                 now_t,
                 judgeLine_Configs,
-                T_dws,
                 show_start_time
             )
             Task.ExecTask()
@@ -812,7 +808,6 @@ def PlayerStart_Phi():
                 lfdaot_tasks.update({frame_count:GetFrameRenderTask_Phi(
                     frame_count * frame_time,
                     judgeLine_Configs,
-                    T_dws,
                     show_start_time
                 )})
                 
@@ -955,6 +950,9 @@ def Re_Init():
             Chart_Functions_Rep.h
         ) = w,h
 
+def jit_compile():
+    pass# Tool_Functions.rotate_point(0,0,0,0)
+
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")
 root = web_canvas.WebCanvas(
@@ -1003,6 +1001,7 @@ elif CHART_TYPE == Const.CHART_TYPE.REP:
         w_ = w,h_ = h,
         Resource_ = Resource
     )
+jit_compile()
 Thread(target=Show_Start,daemon=True).start()
 root.loop_to_close()
 windll.kernel32.ExitProcess(0)
