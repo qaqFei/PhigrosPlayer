@@ -10,7 +10,7 @@ import typing
 import csv
 import json
 
-from PIL import Image,ImageFilter,ImageEnhance
+from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
 from win32gui import GetWindowLong,SetWindowLong
 from pygame import mixer
 import win32con
@@ -141,9 +141,9 @@ if len(chart_files_dict["images"]) > 1:
         name = chart_file[0].split("/")[-1].split("\\")[-1]
         print(f"{index}. {name}")
     chart_image_index = int(input("请选择谱面图片: "))-1
-    chart_image = chart_files_dict["images"][chart_image_index][1]
+    chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
 else:
-    chart_image = chart_files_dict["images"][chart_image_index][1]
+    chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
 chart_image_filepath = chart_files_dict["images"][chart_image_index][0]
 if len(chart_files_dict["audio"]) > 1:
     for index,chart_file in enumerate(chart_files_dict["audio"]):
@@ -239,7 +239,7 @@ def LoadChartObject():
 LoadChartObject()
 
 def Load_Resource():
-    global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
+    global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half,animation_image
     global WaitLoading,LoadSuccess
     print("Loading Resource...")
     WaitLoading = mixer.Sound("./Resources/WaitLoading.mp3")
@@ -279,6 +279,28 @@ def Load_Resource():
         "Start":Image.open("./Resources/Start.png")
     }
     
+    animation_image = chart_image.copy()
+    animation_image = animation_image.convert("RGBA")
+    animation_image_imdraw = ImageDraw.Draw(animation_image)
+    animation_image_imdraw.polygon(
+        [
+            (0,0),
+            (0,animation_image.height),
+            (animation_image.width * 0.1,0),
+            (0,0)
+        ],
+        fill = "#00000000"
+    )
+    animation_image_imdraw.polygon(
+        [
+            (animation_image.width,0),
+            (animation_image.width,animation_image.height),
+            (animation_image.width * (1 - 0.1),animation_image.height),
+            (animation_image.width,0)
+        ],
+        fill = "#00000000"
+    )
+    
     for key,value in Resource["Notes"].items():
         Resource["Notes"][key] = value.resize((Note_width,int(Note_width / value.width * value.height)))
         root.reg_img(Resource["Notes"][key],f"Note_{key}")
@@ -286,6 +308,7 @@ def Load_Resource():
     for i in range(30):
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
     root.reg_img(Resource["Start"],"Start")
+    root.reg_img(animation_image,"begin_animation_image")
     with open("./Resources/font.ttf","rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
     root.load_allimg()
@@ -484,7 +507,6 @@ def GetFrameRenderTask_Phi(
     Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,now_t)
     Task(root.clear_canvas,wait_execute = True)
     Task(draw_background)
-
     
     if render_range_more:
         Task(
@@ -818,6 +840,53 @@ def GetFrameRenderTask_Phi(
 def PlayerStart_Phi():
     print("Player Start")
     root.title("Phigros Chart Player")
+    def Begin_Animation():
+        animation_time = 3.5
+        animation_st = time()
+        while True:
+            now_process = (time() - animation_st) / animation_time
+            if now_process >= 1.0:
+                break
+            
+            root.clear_canvas(wait_execute = True)
+            all_ease_value = Tool_Functions.begin_animation_eases.im_ease(now_process)
+            background_ease_value = Tool_Functions.begin_animation_eases.background_ease(now_process)
+            im_size = 1 / 3
+            
+            root.create_polygon(
+                [
+                    (0,0),
+                    (0,h),
+                    (background_ease_value * w,h),
+                    (w * 0.1 + background_ease_value * w,0),
+                    (0,0),
+                ],
+                fillStyle = "rgba(0, 0, 0, 0.5)",
+                strokeStyle = "rgba(0, 0, 0, 0)",
+                wait_execute = True
+            )
+            
+            root.run_js_code(
+                f"ctx.translate({all_ease_value * w / 1.5},0.0);",
+                add_code_array = True
+            )
+            
+            root.create_image(
+                "begin_animation_image",
+                w * 0.65 - w * im_size * 0.5, h * 0.5 - h * im_size * 0.5,
+                width = w * im_size, height = h * im_size,
+                wait_execute = True
+            )
+            
+            root.run_js_code(
+                f"ctx.translate(-{all_ease_value * w / 1.5},0.0);",
+                add_code_array = True
+            )
+            
+            root.run_js_wait_code()
+            sleep(1 / 120)
+            
+    
     def judgeLine_Animation():
         gr,step_time = Tool_Functions.Get_Animation_Gr(60,0.5)
         val = 0.0
@@ -834,7 +903,8 @@ def PlayerStart_Phi():
             )
             root.run_js_wait_code()
             sleep(step_time - min(time() - st,step_time))
-        
+    
+    # Begin_Animation()
     judgeLine_Animation()
     
     phigros_chart_obj.init_holdlength(PHIGROS_Y)

@@ -46,3 +46,15 @@ def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
 
 def point_length(p1,p2):
     return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+
+class begin_animation_eases:
+    def im_ease(x):
+        a = max(0, 1.4 * x - 0.25)
+        b = min(a, 1.0)
+        return b ** 3
+    
+    def background_ease(x):
+        k = 4
+        a = max(0, x)
+        b = min(a, 1 / k)
+        return (k ** 2 * b) ** 2 / (k ** 2)
