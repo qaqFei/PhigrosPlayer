@@ -37,6 +37,7 @@
     JavaScript_WaitToExecute_CodeArray = new Array();
     resize_task = false;
     lfdaot_render_fcount = 0;
+    render_range_more_scale = false;
     
     function resizeCanvas() {
         canvas_ele.width = window.innerWidth;
@@ -107,6 +108,7 @@
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im,x,y,width,height,deg) { // draw at the position center
+        if (render_range_more_scale) x /= 2;y /= 2;width /= 2;height /= 2;
         if (!!deg){
             this.save();
             this.translate(x,y);
@@ -120,6 +122,7 @@
     }
 
     CanvasRenderingContext2D.prototype.drawAnchorESRotateImage = function(im,x,y,width,height,deg) {
+        if (render_range_more_scale) x /= 2;y /= 2;width /= 2;height /= 2;
         if (!!deg){
             this.save();
             this.translate(x,y);

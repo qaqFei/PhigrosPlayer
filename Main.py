@@ -65,6 +65,7 @@ clickeffect_randomblock = "-noclickeffect-randomblock" not in argv
 loop = "-loop" in argv
 lfdaot = "-lfdaot" in argv
 lfdoat_file = "-lfdaot-file" in argv
+render_range_more = "-render-range-more" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     argv = [argv[0]] + [dialog.openfile()] + argv[0:]
@@ -479,6 +480,13 @@ def GetFrameRenderTask_Phi(
     Task(root.clear_canvas,wait_execute = True)
     Task(draw_background)
 
+    
+    if render_range_more:
+        Task(
+            root.run_js_code,
+            f"ctx.translate({w / 4},{h / 4});",
+            add_code_array = True
+        )
     for judgeLine_cfg_key in judgeLine_Configs:
         judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
@@ -489,14 +497,27 @@ def GetFrameRenderTask_Phi(
             *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
         )
         judgeLine_strokeStyle = (254,255,169,judgeLine_cfg["Disappear"] if not judgeline_notransparent else 1.0)
-        if judgeLine_strokeStyle[-1] != 0.0 and show_judgeline and judgeLine_can_render(judgeLine_DrawPos):
-            Task(
-                root.create_line,
-                *judgeLine_DrawPos,
-                lineWidth = JUDGELINE_WIDTH,
-                strokeStyle=f"rgba{judgeLine_strokeStyle}",
-                wait_execute = True
-            )
+        if judgeLine_strokeStyle[-1] > 0.0 and show_judgeline:
+            if judgeLine_can_render(judgeLine_DrawPos) or render_range_more:
+                if render_range_more:
+                    Task(
+                        root.run_js_code,
+                        "ctx.scale(0.5,0.5);",
+                        add_code_array = True
+                    )
+                Task(
+                    root.create_line,
+                    *judgeLine_DrawPos,
+                    lineWidth = JUDGELINE_WIDTH,
+                    strokeStyle=f"rgba{judgeLine_strokeStyle}",
+                    wait_execute = True
+                )
+                if render_range_more:
+                    Task(
+                        root.run_js_code,
+                        "ctx.scale(2.0,2.0);",
+                        add_code_array = True
+                    )
         
         def process(notes_list:typing.List[Chart_Objects_Phi.note],t:int):
             for note_item in notes_list:
@@ -558,11 +579,25 @@ def GetFrameRenderTask_Phi(
                         Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
                     )
                 
-                if (
-                    Note_CanRender(x,y)
-                    if not this_note_ishold
-                    else Note_CanRender(x,y,holdbody_range)
-                ):
+                if not render_range_more:
+                    note_iscan_render = (
+                        Note_CanRender(x,y)
+                        if not this_note_ishold
+                        else Note_CanRender(x,y,holdbody_range)
+                    )
+                else:
+                    note_iscan_render = (
+                        Note_CanRender(x / 2 + w / 4,y / 2 + h / 4)
+                        if not this_note_ishold
+                        else Note_CanRender(x / 2 + w / 4,y / 2 + h / 4,[
+                            (holdbody_range[0][0] / 2 + w / 4,holdbody_range[0][1] / 2 + h / 2),
+                            (holdbody_range[1][0] / 2 + w / 4,holdbody_range[1][1] / 2 + h / 2),
+                            (holdbody_range[2][0] / 2 + w / 4,holdbody_range[2][1] / 2 + h / 2),
+                            (holdbody_range[3][0] / 2 + w / 4,holdbody_range[3][1] / 2 + h / 2)
+                        ])
+                    )
+                
+                if note_iscan_render:
                     judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
                     dub_text = "_dub" if note_item.morebets else ""
                     if note_item.type != Const.Note.HOLD:
@@ -637,6 +672,13 @@ def GetFrameRenderTask_Phi(
         process(judgeLine.notesAbove,1)
         process(judgeLine.notesBelow,-1)
 
+    
+    if render_range_more:
+        Task(
+            root.run_js_code,
+            "ctx.scale(0.5,0.5);",
+            add_code_array = True
+        )
     effect_time = 0.5
     for judgeLine in phigros_chart_obj.judgeLineList:
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
@@ -703,6 +745,44 @@ def GetFrameRenderTask_Phi(
                                     is_processed = True
                     if not is_processed and note.hold_endtime + effect_time < now_t:
                         note.show_effected_hold = True
+    if render_range_more:
+        Task(
+            root.run_js_code,
+            "ctx.scale(2.0,2.0);",
+            add_code_array = True
+        )
+    
+    if render_range_more:
+        Task(
+            root.run_js_code,
+            f"ctx.translate(-{w / 4},-{h / 4});",
+            add_code_array = True
+        )
+    
+    if render_range_more:
+        line_poses = [
+            # w / 4, h / 4,
+            (w * 0.75, h / 4),
+            (w * 0.75, h * 0.75),
+            (w / 4, h * 0.75),
+            (w / 4, h / 4)
+        ]
+        Task(
+            root.run_js_code,
+            f"ctx.lineWidth = {JUDGELINE_WIDTH}; ctx.strokeStyle = \"{Const.RENDER_RANGE_MORE_FRAME_LINE_COLOR}\"; ctx.beginPath(); ctx.moveTo({w / 4},{h / 4});",
+            add_code_array = True
+        )
+        for line_pos in line_poses:
+            Task(
+                root.run_js_code,
+                f"ctx.lineTo({line_pos[0]},{line_pos[1]});",
+                add_code_array = True
+            )
+        Task(
+            root.run_js_code,
+            "ctx.closePath(); ctx.stroke();",
+            add_code_array = True
+        )
 
     combo = Chart_Functions_Phi.Cal_Combo(now_t)
     time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
@@ -979,6 +1059,9 @@ else:
     root.resize(w + dw_legacy,h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
 root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
+
+if render_range_more:
+    root.run_js_code("render_range_more_scale = true;")
     
 background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
