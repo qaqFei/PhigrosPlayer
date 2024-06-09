@@ -18,7 +18,6 @@ python Main.py
 - ```-hideconsole``` 隐藏控制台
 - ```-debug``` 显示WebView调试工具
 - ```-combotips <string-value>``` 设置连击下的提示 默认为```Autoplay```
-- ```-showfps``` 在标题栏显示帧率
 - ```-fullscreen``` 全屏
 - ```-hidemouse``` 隐藏鼠标
 - ```-nojudgeline``` 不显示判定线
@@ -32,7 +31,7 @@ python Main.py
 - ```-size <integer-value> <integer-value>``` 指定窗口大小
 - ```-noclicksound``` 禁用打击音效
 - ```-lfdaot-frame-speed <integer-value>``` 设置在使用 ```-lfdaot``` 时生成 ```.lfdaot``` 文件的帧率 tip: 在使用 ```-lfdaot-file``` 时无效
-- ```-render-range-more``` 渲染4倍的界面 正常渲染界面位于中心
+- ```-render-range-more``` 扩展渲染范围
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途
