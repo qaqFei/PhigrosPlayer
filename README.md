@@ -32,7 +32,7 @@ python Main.py
 - ```-size <integer-value> <integer-value>``` 指定窗口大小
 - ```-noclicksound``` 禁用打击音效
 - ```-lfdaot-frame-speed <integer-value>``` 设置在使用 ```-lfdaot``` 时生成 ```.lfdaot``` 文件的帧率 tip: 在使用 ```-lfdaot-file``` 时无效
-- ```-render-range-more``` 渲染2倍的界面 正常渲染界面位于中心
+- ```-render-range-more``` 渲染4倍的界面 正常渲染界面位于中心
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途
