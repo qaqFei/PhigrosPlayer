@@ -286,9 +286,14 @@ def Load_Resource():
     for i in range(30):
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
     root.reg_img(Resource["Start"],"Start")
+    with open("./Resources/font.ttf","rb") as f:
+        root.reg_res(f.read(),"PhigrosFont")
     root.load_allimg()
-    root.shutdown_fileserver()
     root.run_js_code("color_block_img_ele = Start_img; body_ele.appendChild(color_block_img_ele);")
+    root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
+    while not root.run_js_code("font_loaded;"):
+        sleep(0.1)
+    root.shutdown_fileserver()
     print("Loading Resource Successfully.")
     note_max_width = max(
         [
@@ -363,13 +368,13 @@ def draw_ui(
         draw_background()
     root.create_rectangle(0,0,w * process,h / 125,fillStyle="rgba(145, 145, 145, 0.85)",wait_execute=True)
     root.create_rectangle(w * process - w * 0.002,0,w * process,h / 125,fillStyle="rgba(255, 255, 255, 0.9)",wait_execute=True)
-    root.create_text(text=score,x=w * 0.99,y=h * 0.01,textBaseline="top",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
+    root.create_text(text=score,x=w * 0.99,y=h * 0.01,textBaseline="top",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px PhigrosFont",wait_execute=True)
     if combo_state:
-        root.create_text(text=f"{combo}",x=w / 2,y=h * 0.01,textBaseline="top",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px sans-serif",wait_execute=True)
-        root.create_text(text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],x=w / 2,y=h * 0.1,textBaseline="bottom",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 100 / 0.75)}px sans-serif",wait_execute=True)
-    root.create_text(text=now_time,x=0,y=h * 0.01,textBaseline="top",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 175 / 0.75)}px sans-serif",wait_execute=True)
-    root.create_text(text=chart_information["Name"],x=w * 0.01,y=h * 0.99,textBaseline="bottom",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px sans-serif",wait_execute=True)
-    root.create_text(text=chart_information["Level"],x=w * 0.99,y=h * 0.99,textBaseline="bottom",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px sans-serif",wait_execute=True)
+        root.create_text(text=f"{combo}",x=w / 2,y=h * 0.01,textBaseline="top",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px PhigrosFont",wait_execute=True)
+        root.create_text(text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],x=w / 2,y=h * 0.1,textBaseline="bottom",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 100 / 0.75)}px PhigrosFont",wait_execute=True)
+    root.create_text(text=now_time,x=0,y=h * 0.01,textBaseline="top",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 175 / 0.75)}px PhigrosFont",wait_execute=True)
+    root.create_text(text=chart_information["Name"],x=w * 0.01,y=h * 0.99,textBaseline="bottom",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px PhigrosFont",wait_execute=True)
+    root.create_text(text=chart_information["Level"],x=w * 0.99,y=h * 0.99,textBaseline="bottom",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px PhigrosFont",wait_execute=True)
 
 def draw_background():
     root.create_image("background",0,0,w,h,wait_execute=True)

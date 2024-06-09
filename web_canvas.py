@@ -25,14 +25,16 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods","*")
         self.send_header("Access-Control-Allow-Headers","Authorization, Content-Type")
         self.end_headers()
-        try:
-            im = self._canvas._regims[self.path[1:]]
-        except KeyError:
-            self.wfile.write(b"Not Found")
-            return
-        temp_btyeio = io.BytesIO()
-        im.save(temp_btyeio,"png")
-        self.wfile.write(temp_btyeio.getvalue())
+        if self.path[1:] in self._canvas._regims:
+            im:Image.Image = self._canvas._regims[self.path[1:]]
+            temp_btyeio = io.BytesIO()
+            im.save(temp_btyeio,"png")
+            self.wfile.write(temp_btyeio.getvalue())
+        elif self.path[1:] in self._canvas._regres:
+            data:bytes = self._canvas._regres[self.path[1:]]
+            self.wfile.write(data)
+        else:
+            self.wfile.write(bytes())
 
 def ban_threadtest_current_thread():
     obj = current_thread()
@@ -67,6 +69,7 @@ class WebCanvas:
         self._destroyed = False
         self.debug = debug
         self._regims = {}
+        self._regres = {}
         self._is_loadimg = {}
         self._JavaScript_WaitToExecute_CodeArray = []
         threading.Thread(target=webview.start,kwargs={"debug":self.debug},daemon=True).start()
@@ -433,6 +436,12 @@ class WebCanvas:
     ) -> None:
         self._regims.update({name:im})
         self._is_loadimg[name] = False
+    
+    def reg_res(
+        self,res_data:bytes,
+        name:str
+    ) -> None:
+        self._regres.update({name:res_data})
     
     def load_allimg(
         self

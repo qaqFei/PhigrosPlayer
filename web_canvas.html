@@ -38,6 +38,7 @@
     resize_task = false;
     lfdaot_render_fcount = 0;
     render_range_more_scale = false;
+    font_loaded = false;
     
     function resizeCanvas() {
         canvas_ele.width = window.innerWidth;
@@ -94,6 +95,13 @@
         else{
             show_out_animation(false,new Date().getTime() / 1000);
         }
+    }
+
+    function loadFont(family,url) {
+        var font = new FontFace(family, `url(${url})`);
+        font.load().then(function() {
+            font_loaded = true;
+        })
     }
 
     CanvasRenderingContext2D.prototype._clearRect = CanvasRenderingContext2D.prototype.clearRect;
