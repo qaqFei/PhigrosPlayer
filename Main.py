@@ -1031,7 +1031,7 @@ def Re_Init():
         ) = w,h
 
 def jit_compile():
-    pass# Tool_Functions.rotate_point(0,0,0,0)
+    Tool_Functions.rotate_point(0,0,0,0)
 
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")
