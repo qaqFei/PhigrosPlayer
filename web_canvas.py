@@ -36,6 +36,28 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
         else:
             self.wfile.write(bytes())
 
+class JsApi:
+    def __init__(self) -> None:
+        self.things = {}
+    
+    def __repr__(self):
+        return "JsApi"
+    
+    def get_thing(self,name:str):
+        return self.things[name]
+    
+    def set_thing(self,name:str,value:typing.Any):
+        self.things[name] = value
+    
+    def get_attr(self,name:str):
+        return getattr(self,name)
+    
+    def set_attr(self,name:str,value:typing.Any):
+        setattr(self,name,value)
+    
+    def call_attr(self,name:str,*args,**kwargs):
+        return getattr(self,name)(*args,**kwargs)
+
 def ban_threadtest_current_thread():
     obj = current_thread()
     obj.name = "MainThread"
@@ -54,10 +76,12 @@ class WebCanvas:
         resizable:bool = True,
         web_kwargs:typing.Mapping = {}
     ):
+        self.jsapi = JsApi()
         self._web = webview.create_window(
             title=title,
             url=abspath(".\\web_canvas.html"),
             resizable = resizable,
+            js_api=self.jsapi,
             **web_kwargs
         )
         self._web_init_var = {
@@ -197,6 +221,12 @@ class WebCanvas:
         self,code:str
     ):
         self._JavaScript_WaitToExecute_CodeArray.append(code)
+    
+    def add_thing_to_javascript(
+        self,
+        name:str,value:typing.Any
+    ):
+        self.jsapi.things.update({name:value})
     
     def _set_style_fill_stroke(
         self,

@@ -9,11 +9,14 @@ from tempfile import gettempdir
 import typing
 import csv
 import json
+import base64
 
 from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
 from win32gui import GetWindowLong,SetWindowLong
 from pygame import mixer
 import win32con
+import cv2
+import numpy
 
 import Chart_Objects_Phi
 # import Chart_Objects_Rep
@@ -67,6 +70,7 @@ lfdaot = "-lfdaot" in argv
 lfdoat_file = "-lfdaot-file" in argv
 render_range_more = "-render-range-more" in argv
 render_range_more_scale = 2.0 if "-render-range-more-scale" not in argv else eval(argv[argv.index("-render-range-more-scale")+1])
+lfdaot_render_video = "-lfdaot-render-video" in argv
 
 if len(argv) < 2 or not exists(argv[1]):
     argv = [argv[0]] + [dialog.openfile()] + argv[0:]
@@ -1059,11 +1063,11 @@ def PlayerStart_Phi():
                 
                 print(f"\rLoadFrameData: {frame_count} / {allframe_num}",end="")
             
-            fn = dialog.savefile(
+            lfdaot_fp = dialog.savefile(
                 fn = "Chart.lfdaot"
             )
             
-            if fn != "":
+            if lfdaot_fp != "":
                 data = {
                     "meta":{
                         "frame_speed":frame_speed,
@@ -1088,12 +1092,15 @@ def PlayerStart_Phi():
                     for ex in Task.ExTask:
                         Task_data["ex"].append(list(ex))
                     data["data"].append(Task_data)
-                with open(fn,"w") as f:
+                with open(lfdaot_fp,"w") as f:
                     f.write(json.dumps(data).replace(" ",""))
         else: #-lfdaot-file
             fp = argv[argv.index("-lfdaot-file") + 1]
             with open(fp,"r",encoding="utf-8") as f:
                 data = json.load(f)
+            if data["meta"]["render_range_more"]:
+                root.run_js_code("render_range_more = true;")
+                root.run_js_code(f"render_range_more_scale = {data["meta"]["render_range_more_scale"]};")
             frame_speed = data["meta"]["frame_speed"]
             allframe_num = data["meta"]["frame_num"]
             Task_function_mapping = {
@@ -1121,56 +1128,91 @@ def PlayerStart_Phi():
             if data["meta"]["size"] != [w,h]:
                 print("Warning: The size of the lfdaot file is not the same as the size of the window.")
         
-        mixer.music.play()
-        while not mixer.music.get_busy(): pass
+        if not lfdaot_render_video:
+            mixer.music.play()
+            while not mixer.music.get_busy(): pass
         
-        last_music_play_fcount = None
-        while True:
-            render_st = time()
-            now_t = mixer.music.get_pos() / 1000
-            music_play_fcount = int(now_t / frame_time)
-            will_process_extask = []
-            try:
-                Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
-            except KeyError:
-                continue
-            
-            if last_music_play_fcount is not None:
-                for fcount in range(last_music_play_fcount,music_play_fcount):
-                    try:
-                        Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[fcount]
-                        if Task.ExTask is not None:
-                            will_process_extask.append(Task.ExTask)
-                            Task.ExTask = None
-                    except KeyError:
-                        pass
-        
-            if not Task.RenderTasks: #empty
-                continue
-            
-            last_music_play_fcount = music_play_fcount
-            
-            Task.ExecTask()
-            
-            break_flag_top = False
-            
-            if Task.ExTask is not None:
-                will_process_extask.append(Task.ExTask)
-                Task.ExTask = None
-            for ExTask in will_process_extask:
-                break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
-                    locals(),
-                    ExTask,
-                    lambda x:eval(x)
-                )
+            last_music_play_fcount = None
+            while True:
+                render_st = time()
+                now_t = mixer.music.get_pos() / 1000
+                music_play_fcount = int(now_t / frame_time)
+                will_process_extask = []
+                try:
+                    Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
+                except KeyError:
+                    continue
                 
-                if break_flag:
-                    break_flag_top = True
+                if last_music_play_fcount is not None:
+                    for fcount in range(last_music_play_fcount,music_play_fcount):
+                        try:
+                            Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[fcount]
+                            if Task.ExTask is not None:
+                                will_process_extask.append(Task.ExTask)
+                                Task.ExTask = None
+                        except KeyError:
+                            pass
             
-            if break_flag_top:
-                break
+                if not Task.RenderTasks: #empty
+                    continue
+                
+                last_music_play_fcount = music_play_fcount
+                
+                Task.ExecTask()
+                
+                break_flag_top = False
+                
+                if Task.ExTask is not None:
+                    will_process_extask.append(Task.ExTask)
+                    Task.ExTask = None
+                for ExTask in will_process_extask:
+                    break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
+                        locals(),
+                        ExTask,
+                        lambda x:eval(x)
+                    )
+                    
+                    if break_flag:
+                        break_flag_top = True
+                
+                if break_flag_top:
+                    break
+                
+                sleep(max(0,frame_time - (time() - render_st)))
+        else: # -lfdaot-render-video
+            video_fp = dialog.savefile(
+                fn = "lfdaot_render_video.mp4"
+            )
+            Lfdaot_VideoWriter = cv2.VideoWriter(
+                video_fp,
+                cv2.VideoWriter.fourcc(*"mp4v"),
+                frame_speed,(w,h),
+                True
+            )
             
-            sleep(max(0,frame_time - (time() - render_st)))
+            if video_fp != "":
+                uploadFrame_finish = False
+                def uploadFrame(dataUrl):
+                    nonlocal uploadFrame_finish
+                    
+                    base64_data = dataUrl[dataUrl.find(",") + 1:]
+                    img_data = base64.b64decode(base64_data)
+                    img_array = numpy.frombuffer(img_data,dtype=numpy.uint8)
+                    img = cv2.imdecode(img_array,cv2.IMREAD_COLOR)
+                    
+                    Lfdaot_VideoWriter.write(img)
+                    uploadFrame_finish = True
+                
+                root.jsapi.uploadFrame = uploadFrame
+                
+                for Task in lfdaot_tasks.values():
+                    Task.ExecTask()
+                    uploadFrame_finish = False
+                    root.run_js_code("uploadFrame();")
+                    while not uploadFrame_finish:
+                        sleep(1 / 240)
+                
+                Lfdaot_VideoWriter.release()
         
     if loop:
         LoadChartObject()
