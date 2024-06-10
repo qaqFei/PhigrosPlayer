@@ -741,8 +741,8 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname)},\
                                 {x},\
                                 {y},\
-                                {this_note_img.width},\
-                                {this_note_img.height},\
+                                {Note_width},\
+                                {Note_width / this_note_img.width * this_note_img.height},\
                                 {judgeLine_rotate}\
                             );",
                             add_code_array = True #eq wait_exec true
@@ -765,8 +765,8 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname_end)},\
                                 {holdend_x},\
                                 {holdend_y},\
-                                {this_note_img_end.width},\
-                                {this_note_img_end.height},\
+                                {Note_width},\
+                                {Note_width / this_note_img_end.width * this_note_img_end.height},\
                                 {judgeLine_rotate}\
                             );",
                             add_code_array = True
@@ -779,7 +779,7 @@ def GetFrameRenderTask_Phi(
                                     {root.get_img_jsvarname(this_note_imgname_body)},\
                                     {holdbody_x},\
                                     {holdbody_y},\
-                                    {this_note_img_body.width},\
+                                    {Note_width},\
                                     {holdbody_length},\
                                     {judgeLine_rotate}\
                                 );",
@@ -1068,6 +1068,8 @@ def PlayerStart_Phi():
                     "meta":{
                         "frame_speed":frame_speed,
                         "frame_num":len(lfdaot_tasks),
+                        "render_range_more":render_range_more,
+                        "render_range_more_scale":render_range_more_scale,
                         "size":[w,h]
                     },
                     "data":[]

@@ -235,7 +235,7 @@ kwarg_size_x_entry.configure(state = "disabled")
 kwarg_size_connect_label.configure(state = "disabled")
 kwarg_size_y_entry.configure(state = "disabled")
 
-kwarg_lfdaot_frame_speed_var = StringVar(value="1.0") # -lfdaot-frame-speed
+kwarg_lfdaot_frame_speed_var = StringVar(value="60.0") # -lfdaot-frame-speed
 kwarg_lfdaot_frame_speed_label = Label(kwargs_LabelFrame,text=TEXT.KWARGS.LFDAOT_FRAME_SPEED)
 kwarg_lfdaot_frame_speed_entry = Entry(kwargs_LabelFrame,textvariable=kwarg_lfdaot_frame_speed_var)
 kwarg_lfdaot_frame_speed_label.grid(row=5,column=0)

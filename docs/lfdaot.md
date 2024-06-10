@@ -11,6 +11,8 @@
         "meta": {
             "frame_speed": 60, // 文件的播放帧率
             "frame_num": 6000, // 文件包含的总帧数 (len(data))
+            "render_range_more": false, // 见README.md的参数: -render-range-more
+            "render_range_more_scale": 2.0, // 见README.md的参数: -render-range-more-scale
             "size": [1920, 1080] // 文件的分辨率
         },
         "data": [ // 数据 每一帧为一个 object
