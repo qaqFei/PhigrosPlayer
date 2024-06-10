@@ -160,18 +160,18 @@ def Get_FrameData(
                     fd.Note_Data.append(FrameData_Note)
     return fd
 
-def Load_Chart_Object(phigros_chart):
+def Load_Chart_Object(chart):
     rep_chart_obj = Chart_Objects_Rep.Rep_Chart(
         META = Chart_Objects_Rep.MetaData(
-            RPEVersion = phigros_chart["META"]["RPEVersion"],
-            offset = phigros_chart["META"]["offset"],
-            name = phigros_chart["META"]["name"],
-            id = phigros_chart["META"]["id"],
-            song = phigros_chart["META"]["song"],
-            background = phigros_chart["META"]["background"],
-            composer = phigros_chart["META"]["composer"],
-            charter = phigros_chart["META"]["charter"],
-            level = phigros_chart["META"]["level"]
+            RPEVersion = chart["META"]["RPEVersion"],
+            offset = chart["META"]["offset"],
+            name = chart["META"]["name"],
+            id = chart["META"]["id"],
+            song = chart["META"]["song"],
+            background = chart["META"]["background"],
+            composer = chart["META"]["composer"],
+            charter = chart["META"]["charter"],
+            level = chart["META"]["level"]
         ),
         BPMList = [
             Chart_Objects_Rep.BPMEvent(
@@ -180,7 +180,7 @@ def Load_Chart_Object(phigros_chart):
                 ),
                 bpm = BPMEvent_item["bpm"]
             )
-            for BPMEvent_item in phigros_chart["BPMList"]
+            for BPMEvent_item in chart["BPMList"]
         ],
         JudgeLineList = [
             Chart_Objects_Rep.JudgeLine(
@@ -318,7 +318,7 @@ def Load_Chart_Object(phigros_chart):
                     for Note_item in judgeLine_item["notes"]
                 ] if "notes" in judgeLine_item else []
             )
-            for judgeLine_item in phigros_chart["judgeLineList"]
+            for judgeLine_item in chart["judgeLineList"]
         ]
     )
     rep_chart_obj.Init()
