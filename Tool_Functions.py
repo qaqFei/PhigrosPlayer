@@ -69,3 +69,7 @@ class begin_animation_eases:
         a = max(0, x)
         b = min(a, 1 / k)
         return (k ** 2 * b) ** 2 / (k ** 2)
+
+rotate_point(0.1,3.2,2.4,2.6)
+point_length((234.45,22.34),(346.8,2.4))
+linear_interpolation(0.5,0.1,1.1,-5.1,2.4)
