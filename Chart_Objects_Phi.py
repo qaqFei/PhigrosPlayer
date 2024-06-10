@@ -125,34 +125,22 @@ class judgeLine:
     def get_datavar_rotate(self,now_time):
         for rotate_event in self.judgeLineRotateEvents:
             if rotate_event.startTime <= now_time <= rotate_event.endTime:
-                try:
-                    return rotate_event.start + (rotate_event.end - rotate_event.start) * ((now_time - rotate_event.startTime) / (rotate_event.endTime - rotate_event.startTime))
-                except ZeroDivisionError:
-                    return rotate_event.start
+                return Tool_Functions.linear_interpolation(now_time,rotate_event.startTime,rotate_event.endTime,rotate_event.start,rotate_event.end)
         return 0.0 #never
     
     def get_datavar_disappear(self,now_time):
         for disappear_event in self.judgeLineDisappearEvents:
             if disappear_event.startTime <= now_time <= disappear_event.endTime:
-                try:
-                    return disappear_event.start + (disappear_event.end - disappear_event.start) * ((now_time - disappear_event.startTime) / (disappear_event.endTime - disappear_event.startTime)) 
-                except ZeroDivisionError:
-                    return disappear_event.start
+                return Tool_Functions.linear_interpolation(now_time,disappear_event.startTime,disappear_event.endTime,disappear_event.start,disappear_event.end)
         return 0.0 #never
     
     def get_datavar_move(self,now_time,w,h):
         for move_event in self.judgeLineMoveEvents:
             if move_event.startTime <= now_time <= move_event.endTime:
-                try:
-                    r = [
-                        move_event.start + (move_event.end - move_event.start) * ((now_time - move_event.startTime) / (move_event.endTime - move_event.startTime)),
-                        move_event.start2 + (move_event.end2 - move_event.start2) * ((now_time - move_event.startTime) / (move_event.endTime - move_event.startTime))
-                    ]
-                    r = [r[0] * w,r[1] * h]
-                except ZeroDivisionError:
-                    r = [move_event.start * w,move_event.start2 * h]
-                r[1] = h - r[1]
-                return tuple(r)
+                return (
+                    Tool_Functions.linear_interpolation(now_time,move_event.startTime,move_event.endTime,move_event.start,move_event.end) * w,
+                    h - Tool_Functions.linear_interpolation(now_time,move_event.startTime,move_event.endTime,move_event.start2,move_event.end2) * h
+                )
         return (w * 0.5,h * 0.5) #never
 
     def get_datavar_speed(self,now_time):

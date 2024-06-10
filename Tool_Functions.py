@@ -17,7 +17,7 @@ def Get_Animation_Gr(fps:float,t:float):
     step_time = t / len(gr)
     return [item / gr_sum for item in gr],step_time
 
-@jit(nopython=True)
+@jit
 def rotate_point(x,y,θ,r):
     xo = r * math.cos(math.radians(θ))
     yo = r * math.sin(math.radians(θ))
@@ -44,8 +44,19 @@ def ease_out(x:float) -> float:
 def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
     return tuple((randint(1,90) for _ in range(random_block_num)))
 
+@jit
 def point_length(p1,p2):
-    return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+    return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
+
+@jit
+def linear_interpolation(
+    t:float,
+    st:float,
+    et:float,
+    sv:float,
+    ev:float) -> float:
+    if t == st: return sv
+    return (t - st) / (et - st) * (ev - sv) + sv
 
 class begin_animation_eases:
     def im_ease(x):

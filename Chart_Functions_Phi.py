@@ -51,8 +51,8 @@ def Update_JudgeLine_Configs(judgeLine_Configs,now_t:typing.Union[int,float]):
         judgeLine_cfg["time"] = now_t / judgeLine.T
         rotate_var = judgeLine.get_datavar_rotate(judgeLine_cfg["time"])
         disappear_var = judgeLine.get_datavar_disappear(judgeLine_cfg["time"])
-        move_var = judgeLine.get_datavar_move(judgeLine_cfg["time"],w,h)
         speed_var = judgeLine.get_datavar_speed(judgeLine_cfg["time"])
+        move_var = judgeLine.get_datavar_move(judgeLine_cfg["time"],w,h)
         judgeLine_cfg["Rotate"] = rotate_var
         judgeLine_cfg["Disappear"] = disappear_var
         judgeLine_cfg["Pos"] = move_var
