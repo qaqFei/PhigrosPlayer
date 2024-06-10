@@ -267,7 +267,7 @@ def Load_Resource():
         },
         "Note_Click_Effect":{
             "Perfect":[
-                Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png").resize((ClickEffect_Size,)*2)
+                Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png")
                 for i in range(1,31)
             ]
         },
@@ -303,7 +303,8 @@ def Load_Resource():
     )
     
     for key,value in Resource["Notes"].items():
-        Resource["Notes"][key] = value.resize((Note_width,int(Note_width / value.width * value.height)))
+        if value.width > Note_width:
+            Resource["Notes"][key] = value.resize((Note_width,int(Note_width / value.width * value.height)))
         root.reg_img(Resource["Notes"][key],f"Note_{key}")
     
     for i in range(30):
@@ -839,9 +840,9 @@ def GetFrameRenderTask_Phi(
                     Task(
                         root.create_image,
                         effect_imgname,
-                        effect_pos[0] - effect_img.width / 2,
-                        effect_pos[1] - effect_img.height / 2,
-                        effect_img.width,effect_img.height,
+                        effect_pos[0] - ClickEffect_Size / 2,
+                        effect_pos[1] - ClickEffect_Size / 2,
+                        ClickEffect_Size,ClickEffect_Size,
                         wait_execute = True
                     )
                             
