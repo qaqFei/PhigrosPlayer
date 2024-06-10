@@ -32,6 +32,7 @@ python Main.py
 - ```-noclicksound``` 禁用打击音效
 - ```-lfdaot-frame-speed <integer-value>``` 设置在使用 ```-lfdaot``` 时生成 ```.lfdaot``` 文件的帧率 tip: 在使用 ```-lfdaot-file``` 时无效
 - ```-render-range-more``` 扩展渲染范围
+- ```-render-range-more-scale <number-value>``` 扩展渲染范围的缩放 默认为2.0
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途

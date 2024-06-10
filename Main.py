@@ -66,6 +66,7 @@ loop = "-loop" in argv
 lfdaot = "-lfdaot" in argv
 lfdoat_file = "-lfdaot-file" in argv
 render_range_more = "-render-range-more" in argv
+render_range_more_scale = 2.0 if "-render-range-more-scale" not in argv else eval(argv[argv.index("-render-range-more-scale")+1])
 
 if len(argv) < 2 or not exists(argv[1]):
     argv = [argv[0]] + [dialog.openfile()] + argv[0:]
@@ -386,18 +387,96 @@ def draw_ui(
     background:bool = True
 ):
     if clear:
-        root.clear_canvas(wait_execute=True)
+        root.clear_canvas(wait_execute = True)
     if background:
         draw_background()
-    root.create_rectangle(0,0,w * process,h / 125,fillStyle="rgba(145, 145, 145, 0.85)",wait_execute=True)
-    root.create_rectangle(w * process - w * 0.002,0,w * process,h / 125,fillStyle="rgba(255, 255, 255, 0.9)",wait_execute=True)
-    root.create_text(text=score,x=w * 0.99,y=h * 0.01,textBaseline="top",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px PhigrosFont",wait_execute=True)
+        
+    root.create_rectangle(
+        0, 0,
+        w * process, h / 125,
+        fillStyle = "rgba(145, 145, 145, 0.85)",
+        wait_execute = True
+    )
+    
+    root.create_rectangle(
+        w * process - w * 0.002, 0,
+        w * process, h / 125,
+        fillStyle = "rgba(255, 255, 255, 0.9)",
+        wait_execute = True
+    )
+    
+    root.create_text(
+        text = score,
+        x = w * 0.99,
+        y = h * 0.01,
+        textBaseline = "top",
+        textAlign = "right",
+        strokeStyle = "white",
+        fillStyle = "white",
+        font = f"{int((w + h) / 75 / 0.75)}px PhigrosFont",
+        wait_execute = True
+    )
+    
     if combo_state:
-        root.create_text(text=f"{combo}",x=w / 2,y=h * 0.01,textBaseline="top",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 75 / 0.75)}px PhigrosFont",wait_execute=True)
-        root.create_text(text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],x=w / 2,y=h * 0.1,textBaseline="bottom",textAlign="center",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 100 / 0.75)}px PhigrosFont",wait_execute=True)
-    root.create_text(text=now_time,x=0,y=h * 0.01,textBaseline="top",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 175 / 0.75)}px PhigrosFont",wait_execute=True)
-    root.create_text(text=chart_information["Name"],x=w * 0.01,y=h * 0.99,textBaseline="bottom",textAlign="left",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px PhigrosFont",wait_execute=True)
-    root.create_text(text=chart_information["Level"],x=w * 0.99,y=h * 0.99,textBaseline="bottom",textAlign="right",strokeStyle="white",fillStyle="white",font=f"{int((w + h) / 125 / 0.75)}px PhigrosFont",wait_execute=True)
+        root.create_text(
+            text = f"{combo}",
+            x = w / 2,
+            y = h * 0.01,
+            textBaseline = "top",
+            textAlign = "center",
+            strokeStyle = "white",
+            fillStyle = "white",
+            font = f"{int((w + h) / 75 / 0.75)}px PhigrosFont",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],
+            x = w / 2,
+            y = h * 0.1,
+            textBaseline = "bottom",
+            textAlign = "center",
+            strokeStyle = "white",
+            fillStyle = "white",
+            font = f"{int((w + h) / 100 / 0.75)}px PhigrosFont",
+            wait_execute = True
+        )
+        
+    root.create_text(
+        text = now_time,
+        x = 0,
+        y = h * 0.01,
+        textBaseline = "top",
+        textAlign = "left",
+        strokeStyle = "white",
+        fillStyle = "white",
+        font = f"{int((w + h) / 175 / 0.75)}px PhigrosFont",
+        wait_execute = True
+    )
+    
+    root.create_text(
+        text = chart_information["Name"],
+        x = w * 0.01,
+        y = h * 0.99,
+        textBaseline = "bottom",
+        textAlign = "left",
+        strokeStyle = "white",
+        fillStyle = "white",
+        font = f"{int((w + h) / 125 / 0.75)}px PhigrosFont",
+        wait_execute = True
+    )
+    
+    root.create_text(
+        text = chart_information["Level"],
+        x = w * 0.99,
+        y = h * 0.99,
+        textBaseline = "bottom",
+        textAlign = "right",
+        strokeStyle = "white",
+        fillStyle = "white",
+        font = f"{int((w + h) / 125 / 0.75)}px PhigrosFont",
+        wait_execute = True
+    )
 
 def draw_background():
     root.create_image("background",0,0,w,h,wait_execute=True)
@@ -509,9 +588,13 @@ def GetFrameRenderTask_Phi(
     Task(draw_background)
     
     if render_range_more:
+        fr_x = w / 2 - w / render_range_more_scale / 2
+        fr_y = h / 2 - h / render_range_more_scale / 2
+    
+    if render_range_more:
         Task(
             root.run_js_code,
-            f"ctx.translate({w / 4},{h / 4});",
+            f"ctx.translate({fr_x},{fr_y});",
             add_code_array = True
         )
     for judgeLine_cfg_key in judgeLine_Configs:
@@ -529,7 +612,7 @@ def GetFrameRenderTask_Phi(
                 if render_range_more:
                     Task(
                         root.run_js_code,
-                        "ctx.scale(0.5,0.5);",
+                        f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
                         add_code_array = True
                     )
                 Task(
@@ -542,7 +625,7 @@ def GetFrameRenderTask_Phi(
                 if render_range_more:
                     Task(
                         root.run_js_code,
-                        "ctx.scale(2.0,2.0);",
+                        f"ctx.scale({render_range_more_scale},{render_range_more_scale});",
                         add_code_array = True
                     )
         
@@ -614,13 +697,18 @@ def GetFrameRenderTask_Phi(
                     )
                 else:
                     note_iscan_render = (
-                        Note_CanRender(x / 2 + w / 4,y / 2 + h / 4)
+                        Note_CanRender(
+                            x / render_range_more_scale + fr_x,
+                            y / render_range_more_scale + fr_y
+                        )
                         if not this_note_ishold
-                        else Note_CanRender(x / 2 + w / 4,y / 2 + h / 4,[
-                            (holdbody_range[0][0] / 2 + w / 4,holdbody_range[0][1] / 2 + h / 2),
-                            (holdbody_range[1][0] / 2 + w / 4,holdbody_range[1][1] / 2 + h / 2),
-                            (holdbody_range[2][0] / 2 + w / 4,holdbody_range[2][1] / 2 + h / 2),
-                            (holdbody_range[3][0] / 2 + w / 4,holdbody_range[3][1] / 2 + h / 2)
+                        else Note_CanRender(
+                            x / render_range_more_scale + fr_x,
+                            y / render_range_more_scale + fr_y,[
+                            (holdbody_range[0][0] / render_range_more_scale + fr_x,holdbody_range[0][1] / render_range_more_scale + fr_y),
+                            (holdbody_range[1][0] / render_range_more_scale + fr_x,holdbody_range[1][1] / render_range_more_scale + fr_y),
+                            (holdbody_range[2][0] / render_range_more_scale + fr_x,holdbody_range[2][1] / render_range_more_scale + fr_y),
+                            (holdbody_range[3][0] / render_range_more_scale + fr_x,holdbody_range[3][1] / render_range_more_scale + fr_y)
                         ])
                     )
                 
@@ -703,7 +791,7 @@ def GetFrameRenderTask_Phi(
     if render_range_more:
         Task(
             root.run_js_code,
-            "ctx.scale(0.5,0.5);",
+            f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
             add_code_array = True
         )
     effect_time = 0.5
@@ -775,28 +863,28 @@ def GetFrameRenderTask_Phi(
     if render_range_more:
         Task(
             root.run_js_code,
-            "ctx.scale(2.0,2.0);",
+            f"ctx.scale({render_range_more_scale},{render_range_more_scale});",
             add_code_array = True
         )
     
     if render_range_more:
         Task(
             root.run_js_code,
-            f"ctx.translate(-{w / 4},-{h / 4});",
+            f"ctx.translate(-{fr_x},-{fr_y});",
             add_code_array = True
         )
     
     if render_range_more:
         line_poses = [
-            # w / 4, h / 4,
-            (w * 0.75, h / 4),
-            (w * 0.75, h * 0.75),
-            (w / 4, h * 0.75),
-            (w / 4, h / 4)
+            # (fr_x,fr_y),
+            (fr_x + w / render_range_more_scale,fr_y),
+            (fr_x + w / render_range_more_scale,fr_y + h / render_range_more_scale),
+            (fr_x,fr_y + h / render_range_more_scale),
+            (fr_x,fr_y)
         ]
         Task(
             root.run_js_code,
-            f"ctx.lineWidth = {JUDGELINE_WIDTH}; ctx.strokeStyle = \"{Const.RENDER_RANGE_MORE_FRAME_LINE_COLOR}\"; ctx.beginPath(); ctx.moveTo({w / 4},{h / 4});",
+            f"ctx.lineWidth = {JUDGELINE_WIDTH / render_range_more_scale}; ctx.strokeStyle = \"{Const.RENDER_RANGE_MORE_FRAME_LINE_COLOR}\"; ctx.beginPath(); ctx.moveTo({fr_x},{fr_y});",
             add_code_array = True
         )
         for line_pos in line_poses:
@@ -1136,7 +1224,8 @@ else:
 root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
 
 if render_range_more:
-    root.run_js_code("render_range_more_scale = true;")
+    root.run_js_code("render_range_more = true;")
+    root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
     
 background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")

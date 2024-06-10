@@ -57,6 +57,10 @@ def setsize_callback():
     kwarg_size_connect_label.configure(state = state)
     kwarg_size_y_entry.configure(state = state)
 
+def render_range_more_callback():
+    state = "normal" if render_range_more_checkbutton_var.get() else "disabled"
+    kwarg_render_range_more_scale_entry.configure(state = state)
+    
 def kwarg_lfdaot_file_choose_callback():
     fp = askopenfilename(
             filetypes = [
@@ -115,13 +119,14 @@ def Launch():
         if kwarg_lfdaot_file_entry.get() != "":
             if exists(kwarg_lfdaot_file_entry.get()) and isfile(kwarg_lfdaot_file_entry.get()):
                 launch_args.append(f"-lfdaot-file \"{kwarg_lfdaot_file_entry.get()}\"")
-        launch_args.append(f"--lfdaot-frame-speed \"{kwarg_lfdaot_frame_speed_entry.get()}\"")
+        launch_args.append(f"-lfdaot-frame-speed \"{kwarg_lfdaot_frame_speed_entry.get()}\"")
     
     if noclicksound_checkbutton_var.get():
         launch_args.append("-noclicksound")
     
     if render_range_more_checkbutton_var.get():
         launch_args.append("-render-range-more")
+        launch_args.append(f"-render-range-more-scale \"{kwarg_render_range_more_scale_entry.get()}\"")
     
     if setsize_checkbutton_var.get():
         launch_args.append("-size")
@@ -132,7 +137,6 @@ def Launch():
     launch_args.append(f"-scale-note \"{kwarg_scale_note_entry.get()}\"")
     
     launch_command += " ".join(launch_args)
-    print(launch_command)
     popen(launch_command)
 
 root = Tk()
@@ -179,7 +183,7 @@ noclicksound_checkbutton_var = BooleanVar(value=False) # -noclicksound
 noclicksound_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.NOCLICKSOUND,variable=noclicksound_checkbutton_var)
 noclicksound_checkbutton.grid(row=2,column=1)
 render_range_more_checkbutton_var = BooleanVar(value=False) # -render-range-more
-render_range_more_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.RRM,variable=render_range_more_checkbutton_var)
+render_range_more_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.RRM,variable=render_range_more_checkbutton_var,command=render_range_more_callback)
 render_range_more_checkbutton.grid(row=2,column=2)
 setsize_checkbutton_var = BooleanVar(value=False) # -size
 setsize_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.SETSIZE,variable=setsize_checkbutton_var,command=setsize_callback)
@@ -233,6 +237,13 @@ kwarg_lfdaot_frame_speed_entry = Entry(kwargs_LabelFrame,textvariable=kwarg_lfda
 kwarg_lfdaot_frame_speed_label.grid(row=5,column=0)
 kwarg_lfdaot_frame_speed_entry.grid(row=5,column=1)
 kwarg_lfdaot_frame_speed_entry.configure(state = "disabled")
+
+kwarg_render_range_more_scale_var = StringVar(value="2.0") # -render-range-more-scale
+kwarg_render_range_more_scale_label = Label(kwargs_LabelFrame,text=TEXT.KWARGS.RENDER_RANGE_MORE_SCALE)
+kwarg_render_range_more_scale_entry = Entry(kwargs_LabelFrame,textvariable=kwarg_render_range_more_scale_var)
+kwarg_render_range_more_scale_label.grid(row=6,column=0)
+kwarg_render_range_more_scale_entry.grid(row=6,column=1)
+kwarg_render_range_more_scale_entry.configure(state = "disabled")
 
 Launch_Button = Button(root,text=TEXT.LAUNCH_BUTTON_TEXT,command=Launch)
 Launch_Button.grid(row=3,column=0,columnspan=5000,padx=12,pady=5,sticky="w")

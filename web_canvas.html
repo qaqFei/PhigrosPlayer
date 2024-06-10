@@ -37,7 +37,8 @@
     JavaScript_WaitToExecute_CodeArray = new Array();
     resize_task = false;
     lfdaot_render_fcount = 0;
-    render_range_more_scale = false;
+    render_range_more = false;
+    render_range_more_scale = 2.0;
     font_loaded = false;
     
     function resizeCanvas() {
@@ -99,7 +100,8 @@
 
     function loadFont(family,url) {
         var font = new FontFace(family, `url(${url})`);
-        font.load().then(function() {
+        font.load().then(function(rfont) {
+            document.fonts.add(rfont);
             font_loaded = true;
         })
     }
@@ -116,7 +118,7 @@
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im,x,y,width,height,deg) { // draw at the position center
-        if (render_range_more_scale) {x /= 2;y /= 2;width /= 2;height /= 2;}
+        if (render_range_more) {x /= render_range_more_scale;y /= render_range_more_scale;width /= render_range_more_scale;height /= render_range_more_scale;}
         if (!!deg){
             this.save();
             this.translate(x,y);
@@ -130,7 +132,7 @@
     }
 
     CanvasRenderingContext2D.prototype.drawAnchorESRotateImage = function(im,x,y,width,height,deg) {
-        if (render_range_more_scale) {x /= 2;y /= 2;width /= 2;height /= 2;}
+        if (render_range_more) {x /= render_range_more_scale;y /= render_range_more_scale;width /= render_range_more_scale;height /= render_range_more_scale;}
         if (!!deg){
             this.save();
             this.translate(x,y);
