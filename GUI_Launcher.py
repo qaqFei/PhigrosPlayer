@@ -5,6 +5,7 @@ from tkinter.messagebox import showerror
 from os import chdir,popen
 from os.path import exists,isfile,dirname
 from sys import argv
+import ctypes
 
 import GUI_Const
 
@@ -23,6 +24,9 @@ else:
 TEXT = GUI_Const.CHINESE
 if "-english" in argv:
     TEXT = GUI_Const.ENGLISH
+
+def hook_dropfiles_first(hwnd,callback):
+    globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"] = ctypes.WINFUNCTYPE(*(ctypes.c_uint64,)*5)(lambda hwnd,msg,wp,lp: [callback([ctypes.windll.shell32.DragQueryFileW(ctypes.c_uint64(wp),0,szFile := ctypes.create_unicode_buffer(260),ctypes.sizeof(szFile)),szFile.value][1]) if msg == 0x233 else None,ctypes.windll.user32.CallWindowProcW(*map(ctypes.c_uint64,(lptr,hwnd,msg,wp,lp)))][1]);ctypes.windll.shell32.DragAcceptFiles(hwnd,True);lptr = ctypes.windll.user32.GetWindowLongPtrA(hwnd,-4);ctypes.windll.user32.SetWindowLongPtrA(hwnd,-4,globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"])
 
 def OpenFile():
     fp = askopenfilename(
@@ -248,5 +252,7 @@ kwarg_render_range_more_scale_entry.configure(state = "disabled")
 Launch_Button = Button(root,text=TEXT.LAUNCH_BUTTON_TEXT,command=Launch)
 Launch_Button.grid(row=3,column=0,columnspan=5000,padx=12,pady=5,sticky="w")
 
+root.update()
+hook_dropfiles_first(root.winfo_id(),lambda file:([file_input_entry.delete(0,"end"),file_input_entry.insert(0,file)] if isfile(file) else None))
 root.deiconify()
 root.mainloop()
