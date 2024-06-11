@@ -11,7 +11,7 @@ python Main.py
 ```
 
 ## 兼容性
-- 目前只支持Phigros的官谱 且只支持```formatVersion```为```1```或```3```的谱面 (正在逐步支持 ```Re:PhiEdit``` 谱面  还要好久...)
+- 目前只支持Phigros的官谱 且只支持```formatVersion```为```1```或```3```的谱面 (正在逐步支持 ```Re:PhiEdit``` 谱面  还要好久... 可能的选择: rpe2phi.py)
 - 目前只能读取谱面中的```info.csv```
 
 ## 命令行参数 (大部分 仅对phigros官谱生效)
@@ -33,6 +33,7 @@ python Main.py
 - ```-lfdaot-frame-speed <integer-value>``` 设置在使用 ```-lfdaot``` 时生成 ```.lfdaot``` 文件的帧率 tip: 在使用 ```-lfdaot-file``` 时无效
 - ```-render-range-more``` 扩展渲染范围
 - ```-render-range-more-scale <number-value>``` 扩展渲染范围的缩放 默认为2.0
+- ```-lfdaot-render-video``` 在在使用 ```-lfdaot``` 和 ```-lfdaot-file``` 时导出一个视频 视频路径会在加载完成 ```.lfdaot``` 文件时 弹出文件选择框时确定
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途

@@ -8,7 +8,7 @@ import Chart_Functions_Rep
 with open(argv[1],"r",encoding="utf-8") as f:
     rpe_obj = Chart_Functions_Rep.Load_Chart_Object(json.loads(f.read()))
 
-tween = [
+ease_funcs = [
   lambda t: t, # 0 - Linear
   lambda t: 1 - math.cos(t * math.pi / 2), # 1 - EaseInSine
   lambda t: math.sin(t * math.pi / 2), # 2 - EaseOutSine
@@ -55,7 +55,7 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                 et = Event.endTime.value
                 sv = Event.start / 255.0
                 ev = Event.end / 255.0
-                ease_func = tween[Event.easingType] if Event.easingType <= len(tween) - 1 else tween[0]
+                ease_func = ease_funcs[Event.easingType] if Event.easingType <= len(ease_funcs) - 1 else ease_funcs[0]
                 events = []
                 for i in range(split_event_length):
                     est = (et - st) / split_event_length * i + st
@@ -76,7 +76,7 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                 et = Event.endTime.value
                 sv = - Event.start
                 ev = - Event.end
-                ease_func = tween[Event.easingType] if Event.easingType <= len(tween) - 1 else tween[0]
+                ease_func = ease_funcs[Event.easingType] if Event.easingType <= len(ease_funcs) - 1 else ease_funcs[0]
                 events = []
                 for i in range(split_event_length):
                     est = (et - st) / split_event_length * i + st

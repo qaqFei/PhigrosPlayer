@@ -51,6 +51,7 @@ def OpenFile():
 
 def lfdaot_callback():
     state = "normal" if lfdaot_checkbutton_var.get() else "disabled"
+    lfdaot_render_video_checkbutton.configure(state = state)
     kwarg_lfdaot_file_entry.configure(state = state)
     kwarg_lfdaot_file_choose_button.configure(state = state)
     kwarg_lfdaot_frame_speed_entry.configure(state = state)
@@ -136,6 +137,9 @@ def Launch():
         launch_args.append("-size")
         launch_args.append(f"\"{kwarg_size_x_entry.get()}\" \"{kwarg_size_y_entry.get()}\"")
     
+    if lfdaot_render_video_checkbutton_var.get():
+        launch_args.append("-lfdaot-render-video")
+    
     launch_args.append(f"-combotips \"{kwarg_combotips_entry.get()}\"")
     launch_args.append(f"-random-block-num \"{kwarg_random_block_num_entry.get()}\"")
     launch_args.append(f"-scale-note \"{kwarg_scale_note_entry.get()}\"")
@@ -164,34 +168,38 @@ kwargs_LabelFrame.grid(row=2,column=0,columnspan=5000,padx=12,sticky="w")
 
 debug_checkbutton_var = BooleanVar(value=False) # -debug
 debug_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.DEBUG,variable=debug_checkbutton_var)
-debug_checkbutton.grid(row=0,column=0)
+debug_checkbutton.grid(sticky="w",row=0,column=0)
 fullscreen_checkbutton_var = BooleanVar(value=False) # -fullscreen
 fullscreen_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.FULLSCREEN,variable=fullscreen_checkbutton_var)
-fullscreen_checkbutton.grid(row=0,column=1)
+fullscreen_checkbutton.grid(sticky="w",row=0,column=1)
 nojudgeline_checkbutton_var = BooleanVar(value=False) # -nojudgeline
 nojudgeline_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.NOJUDGELINE,variable=nojudgeline_checkbutton_var)
-nojudgeline_checkbutton.grid(row=0,column=2)
+nojudgeline_checkbutton.grid(sticky="w",row=0,column=2)
 judgeline_notransparent_checkbutton_var = BooleanVar(value=False) # -judgeline-notransparent
 judgeline_notransparent_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.JUDGELINE_NOTRANSPARENT,variable=judgeline_notransparent_checkbutton_var)
-judgeline_notransparent_checkbutton.grid(row=1,column=0)
+judgeline_notransparent_checkbutton.grid(sticky="w",row=1,column=0)
 noclickeffect_randomblock_checkbutton_var = BooleanVar(value=False) # -noclickeffect-randomblock
 noclickeffect_randomblock_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.NOCLICKEFFECT_RANDOMBLOCK,variable=noclickeffect_randomblock_checkbutton_var)
-noclickeffect_randomblock_checkbutton.grid(row=1,column=1)
+noclickeffect_randomblock_checkbutton.grid(sticky="w",row=1,column=1)
 loop_checkbutton_var = BooleanVar(value=False) # -loop
 loop_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.LOOP,variable=loop_checkbutton_var)
-loop_checkbutton.grid(row=1,column=2)
+loop_checkbutton.grid(sticky="w",row=1,column=2)
 lfdaot_checkbutton_var = BooleanVar(value=False) # -lfdaot
 lfdaot_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.LFDAOT,variable=lfdaot_checkbutton_var,command=lfdaot_callback)
-lfdaot_checkbutton.grid(row=2,column=0)
+lfdaot_checkbutton.grid(sticky="w",row=2,column=0)
 noclicksound_checkbutton_var = BooleanVar(value=False) # -noclicksound
 noclicksound_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.NOCLICKSOUND,variable=noclicksound_checkbutton_var)
-noclicksound_checkbutton.grid(row=2,column=1)
+noclicksound_checkbutton.grid(sticky="w",row=2,column=1)
 render_range_more_checkbutton_var = BooleanVar(value=False) # -render-range-more
 render_range_more_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.RRM,variable=render_range_more_checkbutton_var,command=render_range_more_callback)
-render_range_more_checkbutton.grid(row=2,column=2)
+render_range_more_checkbutton.grid(sticky="w",row=2,column=2)
 setsize_checkbutton_var = BooleanVar(value=False) # -size
 setsize_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.SETSIZE,variable=setsize_checkbutton_var,command=setsize_callback)
-setsize_checkbutton.grid(row=3,column=0)
+setsize_checkbutton.grid(sticky="w",row=3,column=0)
+lfdaot_render_video_checkbutton_var = BooleanVar(value=False) # -lfdaot-render-video
+lfdaot_render_video_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.LFDAOT_RENDER_VIDEO,variable=lfdaot_render_video_checkbutton_var)
+lfdaot_render_video_checkbutton.grid(sticky="w",row=4,column=0,columnspan=500)
+lfdaot_render_video_checkbutton.configure(state = "disabled")
 
 kwarg_combotips_var = StringVar(value="Autoplay") # -combotips
 kwarg_combotips_label = Label(kwargs_LabelFrame,text=TEXT.KWARGS.COMBOTIPS)

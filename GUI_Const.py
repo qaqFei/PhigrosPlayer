@@ -25,6 +25,7 @@ class CHINESE:
         NOCLICKSOUND = "禁用打击音效"
         RRM = "扩展渲染范围"
         SETSIZE = "设置窗口尺寸"
+        LFDAOT_RENDER_VIDEO = "在提前加载帧数据基础上并使用谱面渲染数据文件时是否导出一个视频"
     
     class KWARGS:
         COMBOTIPS = "Combo提示文本: "
@@ -62,6 +63,7 @@ class ENGLISH:
         NOCLICKSOUND = "Disable Click Sound"
         RRM = "Extend Render Range"
         SETSIZE = "Set Window Size"
+        LFDAOT_RENDER_VIDEO = "Export Video When Load Frame Data Ahead of Time and Use Frame Data Ahead of Time File"
     
     class KWARGS:
         COMBOTIPS = "Combo Tips Text: "
