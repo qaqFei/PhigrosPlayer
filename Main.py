@@ -10,6 +10,7 @@ import typing
 import csv
 import json
 import base64
+import cProfile
 
 from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
 from win32gui import GetWindowLong,SetWindowLong
@@ -755,13 +756,13 @@ def GetFrameRenderTask_Phi(
                     if this_note_ishold:
                         if note_item.clicked:
                             holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
-                            holdbody_length = Tool_Functions.point_length(rotatenote_at_judgeLine_pos,(holdend_x,holdend_y)) - this_note_img_end.height / 2
+                            holdbody_length = Tool_Functions.point_length(*rotatenote_at_judgeLine_pos,holdend_x,holdend_y) - this_note_img_end.height / 2
                         else:
                             holdbody_x,holdbody_y = Tool_Functions.rotate_point(
                                 *holdhead_pos,judgeLine_to_note_rotate_deg,this_note_img.height / 2
                             )
-                            holdbody_length = Tool_Functions.point_length(holdhead_pos,(holdend_x,holdend_y)) - this_note_img.height / 2 - this_note_img_end.height / 2
-                        holdbody_length += 0.5
+                            holdbody_length = Tool_Functions.point_length(*holdhead_pos,holdend_x,holdend_y) - this_note_img.height / 2 - this_note_img_end.height / 2
+                        holdbody_length += 0.25
                         
                         Task(
                             root.run_js_code,
@@ -813,9 +814,7 @@ def GetFrameRenderTask_Phi(
             if note_time <= now_t:
                 def process(et,t,effect_random_blocks):
                     effect_process = (now_t - et) / effect_time
-                    effect_img_lst = Resource["Note_Click_Effect"]["Perfect"]
-                    effect_img_index = int(effect_process * (len(effect_img_lst) - 1))
-                    effect_img = effect_img_lst[effect_img_index]
+                    effect_img_index = int(effect_process * (30 - 1))
                     effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
                     will_show_effect_pos = judgeLine.get_datavar_move(t,w,h)
                     will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
@@ -1238,9 +1237,6 @@ def Re_Init():
             Chart_Functions_Rep.h
         ) = w,h
 
-def jit_compile():
-    Tool_Functions.rotate_point(0,0,0,0)
-
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")
 root = web_canvas.WebCanvas(
@@ -1266,7 +1262,7 @@ else:
     del w_legacy,h_legacy
     root.resize(w + dw_legacy,h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
-root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y;print(args); args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
+root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
 
 if render_range_more:
     root.run_js_code("render_range_more = true;")
@@ -1293,7 +1289,6 @@ elif CHART_TYPE == Const.CHART_TYPE.REP:
         w_ = w,h_ = h,
         Resource_ = Resource
     )
-jit_compile()
 Thread(target=Show_Start,daemon=True).start()
 root.loop_to_close()
 windll.kernel32.ExitProcess(0)

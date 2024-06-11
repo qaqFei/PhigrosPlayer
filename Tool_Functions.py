@@ -3,7 +3,7 @@ from sys import argv
 import typing
 import math
 
-from numba import jit
+import numba
 
 note_id = -1
 random_block_num = 4
@@ -17,8 +17,7 @@ def Get_Animation_Gr(fps:float,t:float):
     step_time = t / len(gr)
     return [item / gr_sum for item in gr],step_time
 
-@jit
-def rotate_point(x,y,θ,r):
+def rotate_point(x,y,θ,r) -> float:
     xo = r * math.cos(math.radians(θ))
     yo = r * math.sin(math.radians(θ))
     return x + xo,y + yo
@@ -44,17 +43,18 @@ def ease_out(x:float) -> float:
 def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
     return tuple((randint(1,90) for _ in range(random_block_num)))
 
-@jit
-def point_length(p1,p2):
-    return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
+@numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32))
+def point_length(p1x,p1y,p2x,p2y) -> float:
+    return ((p1x - p2x) ** 2 + (p1y - p2y) ** 2) ** 0.5
 
-@jit
+@numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
 def linear_interpolation(
     t:float,
     st:float,
     et:float,
     sv:float,
-    ev:float) -> float:
+    ev:float
+) -> float:
     if t == st: return sv
     return (t - st) / (et - st) * (ev - sv) + sv
 
@@ -70,6 +70,5 @@ class begin_animation_eases:
         b = min(a, 1 / k)
         return (k ** 2 * b) ** 2 / (k ** 2)
 
-rotate_point(0.1,3.2,2.4,2.6)
-point_length((234.45,22.34),(346.8,2.4))
-linear_interpolation(0.5,0.1,1.1,-5.1,2.4)
+linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
+point_length(123.456,456.789,114.514,314.159)
