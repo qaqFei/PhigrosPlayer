@@ -731,7 +731,6 @@ def GetFrameRenderTask_Phi(
                         this_note_imgname = f"Note_{this_note_img_keyname}"
                         
                         this_note_img_body_keyname = f"{note_type}_Body{dub_text}"
-                        this_note_img_body = Resource["Notes"][this_note_img_body_keyname]
                         this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
                         
                         this_note_img_end_keyname = f"{note_type}_End{dub_text}"
@@ -1190,26 +1189,24 @@ def PlayerStart_Phi():
             )
             
             if video_fp != "":
-                uploadFrame_finish = False
                 def uploadFrame(dataUrl):
-                    nonlocal uploadFrame_finish
-                    
                     base64_data = dataUrl[dataUrl.find(",") + 1:]
                     img_data = base64.b64decode(base64_data)
                     img_array = numpy.frombuffer(img_data,dtype=numpy.uint8)
                     img = cv2.imdecode(img_array,cv2.IMREAD_COLOR)
                     
                     Lfdaot_VideoWriter.write(img)
-                    uploadFrame_finish = True
                 
                 root.jsapi.uploadFrame = uploadFrame
                 
                 for Task in lfdaot_tasks.values():
                     Task.ExecTask()
-                    uploadFrame_finish = False
                     root.run_js_code("uploadFrame();")
-                    while not uploadFrame_finish:
-                        sleep(1 / 240)
+                
+                root.run_js_code("uploadFrame_addQueue = true;")
+                
+                while not root.run_js_code("uploadFrame_finish"):
+                    sleep(0.1)
                 
                 Lfdaot_VideoWriter.release()
         
@@ -1221,10 +1218,6 @@ def PlayerStart_Phi():
 
 def PlayerStart_Rep():
     raise NotImplementedError
-
-def Change_Render_Range_More_Scale(x):
-    global render_range_more_scale
-    render_range_more_scale = x
 
 def Re_Init():
     if CHART_TYPE == Const.CHART_TYPE.PHI:
@@ -1267,7 +1260,6 @@ else:
     root.resize(w + dw_legacy,h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
 root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
-root.jsapi.Change_Render_Range_More_Scale = Change_Render_Range_More_Scale
 
 if render_range_more:
     root.run_js_code("render_range_more = true;")

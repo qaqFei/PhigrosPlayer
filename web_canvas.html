@@ -40,6 +40,15 @@
     render_range_more = false;
     render_range_more_scale = 2.0;
     font_loaded = false;
+    uploadFrame_addQueue = false;
+    uploadFrame_finish = false;
+
+    class Queue {
+        constructor() {this.items = []}
+        put(element) {this.items.push(element)}
+        get() {return this.items.shift()}
+        empty() {return this.items.length === 0}
+    }
     
     function resizeCanvas() {
         canvas_ele.width = window.innerWidth;
@@ -106,9 +115,33 @@
         })
     }
 
+    async function async_sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function process_uploadFrame() {
+        while (true) {
+            await async_sleep(1000 / 60);
+            if (! window.uploadFrame_Queue.empty()) {
+                dataUrl = window.uploadFrame_Queue.get();
+                pywebview.api.call_attr("uploadFrame",dataUrl);
+            }
+            else {
+                if (uploadFrame_addQueue) {
+                    uploadFrame_finish = true;
+                }
+            }
+        }
+    }
+
     function uploadFrame() {
+        if (! window.uploadFrame_Queue) {
+            window.uploadFrame_Queue = new Queue();
+            process_uploadFrame();
+        }
+
         dataUrl = canvas_ele.toDataURL("image/png");
-        pywebview.api.call_attr("uploadFrame",dataUrl);
+        window.uploadFrame_Queue.put(dataUrl);
     }
 
     CanvasRenderingContext2D.prototype._clearRect = CanvasRenderingContext2D.prototype.clearRect;
@@ -155,25 +188,4 @@
     window.addEventListener("resize",function(){
         resize_task = true;
     });
-
-    document.onkeydown = function (e) {
-        console.log(e)
-        if (! render_range_more) return;
-        if (! (e.key == "1" || e.key == "2")) return;
-        if (! e.altKey) return;
-        if (e.key == "1") {
-            render_range_more_scale *= 1.1;
-        }
-        else if (e.key == "2") {
-            rrms = render_range_more_scale * 0.9;
-            if (rrms <= 1.0) {
-                render_range_more_scale = 1.0;
-            }
-            else {
-                render_range_more_scale = rrms;
-            }
-        }
-        pywebview.api.call_attr("Change_Render_Range_More_Scale",render_range_more_scale);
-        ctx.reset();
-    }
 </script>
