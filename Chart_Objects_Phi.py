@@ -13,10 +13,9 @@ class note:
     holdTime:typing.Union[int,float]
     speed:typing.Union[int,float]
     floorPosition:typing.Union[int,float]
-    clicked:bool
-    morebets:bool
+    clicked:bool = False
+    morebets:bool = False
     id:int
-    rendered:bool
     by_judgeLine_id:int
     effect_random_blocks:typing.Tuple[int,int,int,int]
     master:typing.Union[judgeLine,None] = None
@@ -27,7 +26,7 @@ class note:
     show_effected = False
     show_effected_hold = False
     
-    def __eq__(self,oth):
+    def __eq__(self,oth:note):
         try:
             return self.id == oth.id
         except AttributeError:

@@ -20,9 +20,7 @@ import cv2
 import numpy
 
 import Chart_Objects_Phi
-# import Chart_Objects_Rep
 import Chart_Functions_Phi
-import Chart_Functions_Rep
 import Const
 import Find_Files
 import PlaySound #using at eval
@@ -214,14 +212,14 @@ else:
     except NameError:
         print("info.cvs Found. But cannot find information of this chart.")
         chart_information = defualt_information
-        
+
 if "formatVersion" in phigros_chart:
     CHART_TYPE = Const.CHART_TYPE.PHI
 elif "META" in phigros_chart:
     CHART_TYPE = Const.CHART_TYPE.REP
 else:
     print("This is what format chart???")
-    raise SystemExit
+    windll.kernel32.ExitProcess(1)
     
 print("Loading Chart Information Successfully.")
 print("Inforamtions: ")
@@ -241,7 +239,8 @@ def LoadChartObject():
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart)
     elif CHART_TYPE == Const.CHART_TYPE.REP:
-        rep_chart_obj = Chart_Functions_Rep.Load_Chart_Object(phigros_chart)
+        print("Please run rpe2phi.py.")
+        windll.kernel32.ExitProcess(1)
 LoadChartObject()
 
 def Load_Resource():
@@ -377,10 +376,7 @@ def Show_Start():
     sleep(0.5)
     root.run_js_code("show_out_animation();")
     sleep(1.25)
-    if CHART_TYPE == Const.CHART_TYPE.PHI:
-        Thread(target=PlayerStart_Phi,daemon=True).start()
-    elif CHART_TYPE == Const.CHART_TYPE.REP:
-        Thread(target=PlayerStart_Rep,daemon=True).start()
+    Thread(target=PlayerStart_Phi,daemon=True).start()
     del WaitLoading,LoadSuccess
 
 def draw_ui(
@@ -1216,23 +1212,14 @@ def PlayerStart_Phi():
     else:
         root.destroy()
 
-def PlayerStart_Rep():
-    raise NotImplementedError
-
 def Re_Init():
-    if CHART_TYPE == Const.CHART_TYPE.PHI:
-        (
-            Chart_Functions_Phi.w,
-            Chart_Functions_Phi.h,
-            Chart_Functions_Phi.PHIGROS_X,
-            Chart_Functions_Phi.PHIGROS_Y
-        ) = w,h,PHIGROS_X,PHIGROS_Y
-        phigros_chart_obj.init_holdlength(PHIGROS_Y)
-    elif CHART_TYPE == Const.CHART_TYPE.REP:
-        (
-            Chart_Functions_Rep.w,
-            Chart_Functions_Rep.h
-        ) = w,h
+    (
+        Chart_Functions_Phi.w,
+        Chart_Functions_Phi.h,
+        Chart_Functions_Phi.PHIGROS_X,
+        Chart_Functions_Phi.PHIGROS_Y
+    ) = w,h,PHIGROS_X,PHIGROS_Y
+    phigros_chart_obj.init_holdlength(PHIGROS_Y)
 
 print("Loading Window...")
 # root.iconbitmap(".\\icon.ico")
@@ -1275,17 +1262,11 @@ window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
 SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
-if CHART_TYPE == Const.CHART_TYPE.PHI:
-    Chart_Functions_Phi.Init(
-        phigros_chart_obj_ = phigros_chart_obj,
-        PHIGROS_X_ = PHIGROS_X,PHIGROS_Y_ = PHIGROS_Y,
-        w_ = w,h_ = h
-    )
-elif CHART_TYPE == Const.CHART_TYPE.REP:
-    Chart_Functions_Rep.Init(
-        w_ = w,h_ = h,
-        Resource_ = Resource
-    )
+Chart_Functions_Phi.Init(
+    phigros_chart_obj_ = phigros_chart_obj,
+    PHIGROS_X_ = PHIGROS_X,PHIGROS_Y_ = PHIGROS_Y,
+    w_ = w,h_ = h
+)
 Thread(target=Show_Start,daemon=True).start()
 root.loop_to_close()
 windll.kernel32.ExitProcess(0)

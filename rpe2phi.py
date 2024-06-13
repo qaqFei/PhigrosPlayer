@@ -6,7 +6,7 @@ import math
 import Chart_Functions_Rep
 
 with open(argv[1],"r",encoding="utf-8") as f:
-    rpe_obj = Chart_Functions_Rep.Load_Chart_Object(json.loads(f.read()))
+    rpe_obj = Chart_Functions_Rep.Load_Chart_Object(json.load(f))
 
 ease_funcs = [
   lambda t: t, # 0 - Linear
