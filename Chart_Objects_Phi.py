@@ -13,11 +13,11 @@ class note:
     holdTime:typing.Union[int,float]
     speed:typing.Union[int,float]
     floorPosition:typing.Union[int,float]
-    clicked:bool = False
-    morebets:bool = False
     id:int
     by_judgeLine_id:int
     effect_random_blocks:typing.Tuple[int,int,int,int]
+    clicked:bool = False
+    morebets:bool = False
     master:typing.Union[judgeLine,None] = None
     hold_end_clicked:bool = False
     note_last_show_hold_effect_time:float = 0.0
