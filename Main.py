@@ -599,11 +599,10 @@ def GetFrameRenderTask_Phi(
             f"ctx.translate({fr_x},{fr_y});",
             add_code_array = True
         )
-    for judgeLine_cfg_key in judgeLine_Configs:
-        judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
+    for judgeLine_cfg in judgeLine_Configs.values():
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
         this_judgeLine_T = judgeLine.T
-        judgeLine_cfg["Note_dy"] = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,judgeLine_cfg["time"])
+        judgeLine_note_dy = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,judgeLine_cfg["time"])
         judgeLine_DrawPos = (
             *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
             *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
@@ -656,31 +655,32 @@ def GetFrameRenderTask_Phi(
                 elif this_note_ishold and now_t > note_item.hold_endtime:
                     continue
                 
-                cfg = {
-                    "note":note_item,
-                    "now_floorPosition":note_item.floorPosition * PHIGROS_Y - (judgeLine_cfg["Note_dy"] if not (note_item.type == Const.Note.HOLD and note_item.clicked) else (
-                        Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,note_item.time) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
-                    ))
-                }
+                note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (
+                        judgeLine_note_dy
+                        if not (this_note_ishold and note_item.clicked) else (
+                        Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(
+                            judgeLine,this_judgeLine_T,note_item.time
+                        ) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
+                    )
+                )
                 
                 rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
                     *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
                 )
-                judgeLine_AORB_deg = 180 if t == -1 else 0
-                judgeLine_to_note_rotate_deg = - judgeLine_cfg["Rotate"] + judgeLine_AORB_deg - 90
+                judgeLine_to_note_rotate_deg = - judgeLine_cfg["Rotate"] +( 180 if t == -1 else 0) - 90
                 x,y = Tool_Functions.rotate_point(
-                    *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,cfg["now_floorPosition"]
+                    *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_now_floorPosition
                 )
                 
                 if this_note_ishold:
-                    note_hold_draw_length = cfg["now_floorPosition"] + note_item.hold_length_px
+                    note_hold_draw_length = note_now_floorPosition + note_item.hold_length_px
                     if note_hold_draw_length >= 0:
                         holdend_x,holdend_y = Tool_Functions.rotate_point(
                             *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_hold_draw_length
                         )
                     else:
                         holdend_x,holdend_y = rotatenote_at_judgeLine_pos
-                    if cfg["now_floorPosition"] >= 0:
+                    if note_now_floorPosition >= 0:
                         holdhead_pos = x,y
                     else:
                         holdhead_pos = rotatenote_at_judgeLine_pos
@@ -734,7 +734,6 @@ def GetFrameRenderTask_Phi(
                         this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
                         
                     if not (this_note_ishold and this_note_sectime < now_t):
-                        # more about this function(ctx.drawRotateImage) at js define CanvasRenderingContext2D.prototype.drawRotateImage
                         Task(
                             root.run_js_code,
                             f"ctx.drawRotateImage(\
@@ -751,13 +750,12 @@ def GetFrameRenderTask_Phi(
                     if this_note_ishold:
                         if note_item.clicked:
                             holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
-                            holdbody_length = Tool_Functions.point_length(*rotatenote_at_judgeLine_pos,holdend_x,holdend_y) - this_note_img_end.height / 2
+                            holdbody_length = note_hold_draw_length - this_note_img_end.height / 2
                         else:
                             holdbody_x,holdbody_y = Tool_Functions.rotate_point(
                                 *holdhead_pos,judgeLine_to_note_rotate_deg,this_note_img.height / 2
                             )
-                            holdbody_length = Tool_Functions.point_length(*holdhead_pos,holdend_x,holdend_y) - this_note_img.height / 2 - this_note_img_end.height / 2
-                        holdbody_length += 0.25
+                            holdbody_length = note_item.hold_length_px - this_note_img.height / 2 - this_note_img_end.height / 2
                         
                         Task(
                             root.run_js_code,
@@ -809,8 +807,6 @@ def GetFrameRenderTask_Phi(
             if note_time <= now_t:
                 def process(et,t,effect_random_blocks):
                     effect_process = (now_t - et) / effect_time
-                    effect_img_index = int(effect_process * (30 - 1))
-                    effect_imgname = f"Note_Click_Effect_Perfect_{effect_img_index + 1}"
                     will_show_effect_pos = judgeLine.get_datavar_move(t,w,h)
                     will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
                     effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
@@ -837,7 +833,7 @@ def GetFrameRenderTask_Phi(
                             )
                     Task(
                         root.create_image,
-                        effect_imgname,
+                        f"Note_Click_Effect_Perfect_{int(effect_process * (30 - 1)) + 1}",
                         effect_pos[0] - ClickEffect_Size / 2,
                         effect_pos[1] - ClickEffect_Size / 2,
                         ClickEffect_Size,ClickEffect_Size,
@@ -851,13 +847,14 @@ def GetFrameRenderTask_Phi(
                 
                 if note_ishold:
                     is_processed = False
-                    if note.hold_endtime + effect_time >= now_t:
+                    efct_et = note.hold_endtime + effect_time
+                    if efct_et >= now_t:
                         for temp_time,hold_effect_random_blocks in note.effect_times:
                             if temp_time < now_t:
                                 if now_t - temp_time <= effect_time:
                                     process(temp_time,temp_time / judgeLine.T,hold_effect_random_blocks)
                                     is_processed = True
-                    if not is_processed and note.hold_endtime + effect_time < now_t:
+                    if not is_processed and efct_et < now_t:
                         note.show_effected_hold = True
     if render_range_more:
         Task(
@@ -1005,7 +1002,6 @@ def PlayerStart_Phi():
             "Disappear":1.0,
             "Pos":(0,0),
             "Speed":1.0,
-            "Note_dy":0.0,
             "time":None
         }
         for judgeLine_item in phigros_chart_obj.judgeLineList
@@ -1190,7 +1186,6 @@ def PlayerStart_Phi():
                     img_data = base64.b64decode(base64_data)
                     img_array = numpy.frombuffer(img_data,dtype=numpy.uint8)
                     img = cv2.imdecode(img_array,cv2.IMREAD_COLOR)
-                    
                     Lfdaot_VideoWriter.write(img)
                 
                 root.jsapi.uploadFrame = uploadFrame

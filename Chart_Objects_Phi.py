@@ -237,7 +237,7 @@ class RenderTask:
 @dataclass
 class FrameRenderTask:
     RenderTasks:list[RenderTask]
-    ExTask:typing.Union[tuple,None]
+    ExTask:typing.List[tuple]
     
     def __call__(
         self,

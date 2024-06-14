@@ -43,10 +43,6 @@ def ease_out(x:float) -> float:
 def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
     return tuple((randint(1,90) for _ in range(random_block_num)))
 
-@numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32))
-def point_length(p1x,p1y,p2x,p2y) -> float:
-    return ((p1x - p2x) ** 2 + (p1y - p2y) ** 2) ** 0.5
-
 @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
 def linear_interpolation(
     t:float,
@@ -71,4 +67,3 @@ class begin_animation_eases:
         return (k ** 2 * b) ** 2 / (k ** 2)
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
-point_length(123.456,456.789,114.514,314.159)

@@ -44,19 +44,14 @@ def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects_Phi.judgeLine,T:float,ti
     dy = last_speed_event.floorPosition + (time - last_speed_event.endTime) * T * last_speed_event.value
     return dy * PHIGROS_Y
 
-def Update_JudgeLine_Configs(judgeLine_Configs,now_t:typing.Union[int,float]):
-    for judgeLine_cfg_key in judgeLine_Configs:
-        judgeLine_cfg = judgeLine_Configs[judgeLine_cfg_key]
+def Update_JudgeLine_Configs(judgeLine_Configs:typing.Dict,now_t:typing.Union[int,float]):
+    for judgeLine_cfg in judgeLine_Configs.values():
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
         judgeLine_cfg["time"] = now_t / judgeLine.T
-        rotate_var = judgeLine.get_datavar_rotate(judgeLine_cfg["time"])
-        disappear_var = judgeLine.get_datavar_disappear(judgeLine_cfg["time"])
-        speed_var = judgeLine.get_datavar_speed(judgeLine_cfg["time"])
-        move_var = judgeLine.get_datavar_move(judgeLine_cfg["time"],w,h)
-        judgeLine_cfg["Rotate"] = rotate_var
-        judgeLine_cfg["Disappear"] = disappear_var
-        judgeLine_cfg["Pos"] = move_var
-        judgeLine_cfg["Speed"] = speed_var
+        judgeLine_cfg["Rotate"] = judgeLine.get_datavar_rotate(judgeLine_cfg["time"])
+        judgeLine_cfg["Disappear"] = judgeLine.get_datavar_disappear(judgeLine_cfg["time"])
+        judgeLine_cfg["Pos"] = judgeLine.get_datavar_move(judgeLine_cfg["time"],w,h)
+        judgeLine_cfg["Speed"] = judgeLine.get_datavar_speed(judgeLine_cfg["time"])
 
 def FrameData_ProcessExTask(local_vars,ExTask,eval_func):
     break_flag = False
