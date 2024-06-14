@@ -11,7 +11,7 @@ python Main.py
 ```
 
 ## 兼容性
-- 目前只支持Phigros的官谱 且只支持```formatVersion```为```1```或```3```的谱面 (正在逐步支持 ```Re:PhiEdit``` 谱面  还要好久... 可能的选择: rpe2phi.py)
+- 目前只支持Phigros的官谱 且只支持```formatVersion```为```1```或```3```的谱面 (正在s逐步支持 ```Re:PhiEdit``` 谱面  还要好久... 可能的选择: rpe2phi.py)
 - 目前只能读取谱面中的```info.csv```
 
 ## 命令行参数 (大部分 仅对phigros官谱生效)
@@ -34,7 +34,7 @@ python Main.py
 - ```-render-range-more``` 扩展渲染范围
 - ```-render-range-more-scale <number-value>``` 扩展渲染范围的缩放 默认为2.0
 - ```-lfdaot-render-video``` 在在使用 ```-lfdaot``` 和 ```-lfdaot-file``` 时导出一个视频 视频路径会在加载完成 ```.lfdaot``` 文件时 弹出文件选择框时确定
-- ```-ease-event-interpolation``` 在事件插值时使用缓动 tip: 适用于几乎不存在缓动的谱面 否则可能会出现在细小的线性事件中进行缓动的插值 从而导致判定线出现移动或旋转卡顿
+- ```-ease-event-interpolation``` 在事件插值时使用缓动 tip: 适用于几乎不存在缓动的谱面 否则可能会出现在细小的线性事件中进行缓动插值 从而导致判定线出现移动或旋转卡顿
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途
