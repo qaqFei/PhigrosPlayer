@@ -130,15 +130,15 @@ class judgeLine:
     def get_datavar_disappear(self,now_time):
         for disappear_event in self.judgeLineDisappearEvents:
             if disappear_event.startTime <= now_time <= disappear_event.endTime:
-                return Tool_Functions.linear_interpolation(now_time,disappear_event.startTime,disappear_event.endTime,disappear_event.start,disappear_event.end)
+                return Tool_Functions.interpolation_phi(now_time,disappear_event.startTime,disappear_event.endTime,disappear_event.start,disappear_event.end)
         return 0.0 #never
     
     def get_datavar_move(self,now_time,w,h):
         for move_event in self.judgeLineMoveEvents:
             if move_event.startTime <= now_time <= move_event.endTime:
                 return (
-                    Tool_Functions.linear_interpolation(now_time,move_event.startTime,move_event.endTime,move_event.start,move_event.end) * w,
-                    h - Tool_Functions.linear_interpolation(now_time,move_event.startTime,move_event.endTime,move_event.start2,move_event.end2) * h
+                    Tool_Functions.interpolation_phi(now_time,move_event.startTime,move_event.endTime,move_event.start,move_event.end) * w,
+                    h - Tool_Functions.interpolation_phi(now_time,move_event.startTime,move_event.endTime,move_event.start2,move_event.end2) * h
                 )
         return (w * 0.5,h * 0.5) #never
 

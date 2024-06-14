@@ -10,7 +10,6 @@ import typing
 import csv
 import json
 import base64
-import cProfile
 
 from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
 from win32gui import GetWindowLong,SetWindowLong

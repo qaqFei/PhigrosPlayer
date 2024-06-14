@@ -54,6 +54,30 @@ def linear_interpolation(
     if t == st: return sv
     return (t - st) / (et - st) * (ev - sv) + sv
 
+if "-ease-event-interpolation" in argv:
+    @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
+    def interpolation_phi(
+        t:float,
+        st:float,
+        et:float,
+        sv:float,
+        ev:float
+    ) -> float:
+        if t == st: return sv
+        p = (t - st) / (et - st)
+        return ((1 - (1 - p) ** 2) ** 0.5) * (ev - sv) + sv
+else:
+    @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
+    def interpolation_phi(
+        t:float,
+        st:float,
+        et:float,
+        sv:float,
+        ev:float
+    ) -> float:
+        if t == st: return sv
+        return (t - st) / (et - st) * (ev - sv) + sv
+
 class begin_animation_eases:
     def im_ease(x):
         a = max(0, 1.4 * x - 0.25)
@@ -67,3 +91,4 @@ class begin_animation_eases:
         return (k ** 2 * b) ** 2 / (k ** 2)
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
+interpolation_phi(0.5,0.1,0.8,-114.514,314.159)
