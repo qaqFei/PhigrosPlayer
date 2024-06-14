@@ -124,13 +124,13 @@ class judgeLine:
     def get_datavar_rotate(self,now_time):
         for rotate_event in self.judgeLineRotateEvents:
             if rotate_event.startTime <= now_time <= rotate_event.endTime:
-                return Tool_Functions.linear_interpolation(now_time,rotate_event.startTime,rotate_event.endTime,rotate_event.start,rotate_event.end)
+                return Tool_Functions.interpolation_phi(now_time,rotate_event.startTime,rotate_event.endTime,rotate_event.start,rotate_event.end)
         return 0.0 #never
     
     def get_datavar_disappear(self,now_time):
         for disappear_event in self.judgeLineDisappearEvents:
             if disappear_event.startTime <= now_time <= disappear_event.endTime:
-                return Tool_Functions.interpolation_phi(now_time,disappear_event.startTime,disappear_event.endTime,disappear_event.start,disappear_event.end)
+                return Tool_Functions.linear_interpolation(now_time,disappear_event.startTime,disappear_event.endTime,disappear_event.start,disappear_event.end)
         return 0.0 #never
     
     def get_datavar_move(self,now_time,w,h):
