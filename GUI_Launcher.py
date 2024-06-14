@@ -119,6 +119,9 @@ def Launch():
     if loop_checkbutton_var.get():
         launch_args.append("-loop")
     
+    if ease_event_interpolation_checkbutton_var.get():
+        launch_args.append("-ease-event-interpolation")
+    
     if lfdaot_checkbutton_var.get():
         launch_args.append("-lfdaot")
         if kwarg_lfdaot_file_entry.get() != "":
@@ -200,6 +203,9 @@ lfdaot_render_video_checkbutton_var = BooleanVar(value=False) # -lfdaot-render-v
 lfdaot_render_video_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.LFDAOT_RENDER_VIDEO,variable=lfdaot_render_video_checkbutton_var)
 lfdaot_render_video_checkbutton.grid(sticky="w",row=4,column=0,columnspan=500)
 lfdaot_render_video_checkbutton.configure(state = "disabled")
+ease_event_interpolation_checkbutton_var = BooleanVar(value=False) # -ease-event-interpolation
+ease_event_interpolation_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.EASE_EVENT_INTERPOLATION,variable=ease_event_interpolation_checkbutton_var)
+ease_event_interpolation_checkbutton.grid(sticky="w",row=5,column=0)
 
 kwarg_combotips_var = StringVar(value="Autoplay") # -combotips
 kwarg_combotips_label = Label(kwargs_LabelFrame,text=TEXT.KWARGS.COMBOTIPS)

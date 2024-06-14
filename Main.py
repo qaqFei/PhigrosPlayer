@@ -22,7 +22,7 @@ import Chart_Objects_Phi
 import Chart_Functions_Phi
 import Const
 import Find_Files
-import PlaySound #using at eval
+import PlaySound
 import ConsoleWindow
 import web_canvas
 import Tool_Functions
@@ -121,7 +121,7 @@ if len(chart_files_dict["images"]) == 0:
 defualt_information = {
     "Name":"Unknow",
     "Artist":"Unknow",
-    "Level":"Unknow",
+    "Level":"SP Lv.?",
     "Charter":"Unknow",
     "BackgroundDim":0.6
 }
@@ -239,7 +239,7 @@ def LoadChartObject():
         phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart)
     elif CHART_TYPE == Const.CHART_TYPE.REP:
         print("Please run rpe2phi.py.")
-        windll.kernel32.ExitProcess(1)
+        windll.kernel32.ExitProcess(0)
 LoadChartObject()
 
 def Load_Resource():
@@ -370,7 +370,7 @@ def Show_Start():
     LoadSuccess.play()
     sleep(1.25)
     draw_background()
-    draw_ui()
+    draw_ui(animationing=True)
     root.run_js_wait_code()
     sleep(0.5)
     root.run_js_code("show_out_animation();")
@@ -385,13 +385,18 @@ def draw_ui(
     combo:int = 0,
     now_time:str = "0:00/0:00",
     clear:bool = True,
-    background:bool = True
+    background:bool = True,
+    animationing:bool = False,
+    dy:float = 0.0
 ):
     if clear:
         root.clear_canvas(wait_execute = True)
     if background:
         draw_background()
-        
+    
+    if animationing:
+        root.run_js_code(f"ctx.translate(0,{- h / 18 + dy});",add_code_array=True)
+    
     root.create_rectangle(
         0, 0,
         w * process, h / 125,
@@ -455,6 +460,9 @@ def draw_ui(
         wait_execute = True
     )
     
+    if animationing:
+        root.run_js_code(f"ctx.translate(0,-2 * {- h / 18 + dy});",add_code_array=True)
+    
     root.create_text(
         text = chart_information["Name"],
         x = w * 0.01,
@@ -478,6 +486,9 @@ def draw_ui(
         font = f"{int((w + h) / 125 / 0.75)}px PhigrosFont",
         wait_execute = True
     )
+    
+    if animationing:
+        root.run_js_code(f"ctx.translate(0,{- h / 18 + dy});",add_code_array=True)
 
 def draw_background():
     root.create_image("background",0,0,w,h,wait_execute=True)
@@ -968,15 +979,14 @@ def PlayerStart_Phi():
             
             root.run_js_wait_code()
             sleep(1 / 120)
-            
     
-    def judgeLine_Animation():
-        gr,step_time = Tool_Functions.Get_Animation_Gr(60,0.5)
+    def ChartStart_Animation():
+        gr,step_time = Tool_Functions.Get_Animation_Gr(60,1.0)
         val = 0.0
         for step in gr:
             st = time()
             val += step
-            draw_ui()
+            draw_ui(animationing=True,dy = h / 18 * val)
             root.create_line(
                 w / 2 - (val * w / 2),h / 2,
                 w / 2 + (val * w / 2),h / 2,
@@ -988,7 +998,7 @@ def PlayerStart_Phi():
             sleep(step_time - min(time() - st,step_time))
     
     # Begin_Animation()
-    judgeLine_Animation()
+    ChartStart_Animation()
     
     phigros_chart_obj.init_holdlength(PHIGROS_Y)
 

@@ -26,6 +26,7 @@ class CHINESE:
         RRM = "扩展渲染范围"
         SETSIZE = "设置窗口尺寸"
         LFDAOT_RENDER_VIDEO = "在提前加载帧数据基础上并使用谱面渲染数据文件时是否导出一个视频"
+        EASE_EVENT_INTERPOLATION = "在事件插值时使用缓动"
     
     class KWARGS:
         COMBOTIPS = "Combo提示文本: "
@@ -64,6 +65,7 @@ class ENGLISH:
         RRM = "Extend Render Range"
         SETSIZE = "Set Window Size"
         LFDAOT_RENDER_VIDEO = "Export Video When Load Frame Data Ahead of Time and Use Frame Data Ahead of Time File"
+        EASE_EVENT_INTERPOLATION = "Use Ease Interpolation When Interpolate Event"
     
     class KWARGS:
         COMBOTIPS = "Combo Tips Text: "
