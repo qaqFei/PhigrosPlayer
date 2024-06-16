@@ -66,7 +66,7 @@ tips = [
     "声音传播需要介质",
     "你打一首歌的时间，鸠已经发现 NaN 个问题了",
     "sudo 板子自己打歌",
-    "rks是RankingScore，不是热开水！（认真脸）"
+    "rks是RankingScore，不是热开水！（认真脸）",
     r"\u70b9\u4e2a\u0053\u0074\u0061\u0072\u5457\u0021",
     "https://github.com/qaqFei/PhigrosPlayer",
     r"\u0071\u0061\u0071\u005f\u0066\u0065\u0069",
