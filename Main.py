@@ -946,7 +946,15 @@ def PlayerStart_Phi():
             root.clear_canvas(wait_execute = True)
             all_ease_value = Tool_Functions.begin_animation_eases.im_ease(now_process)
             background_ease_value = Tool_Functions.begin_animation_eases.background_ease(now_process)
-            im_size = 1 / 3
+            im_size = 1 / 2.5
+            
+            draw_background()
+            
+            infoframe_x = w * 0.095 + all_ease_value * w
+            infoframe_y = h * 0.47
+            infoframe_width = 0.3 * w
+            infoframe_height = 0.118 * h
+            infoframe_ltr = w * 0.01
             
             root.create_polygon(
                 [
@@ -956,13 +964,39 @@ def PlayerStart_Phi():
                     (w * 0.1 + background_ease_value * w,0),
                     (0,0),
                 ],
-                fillStyle = "rgba(0, 0, 0, 0.5)",
                 strokeStyle = "rgba(0, 0, 0, 0)",
+                fillStyle = f"rgba(0, 0, 0, {0.75 * (1 - now_process)})",
+                wait_execute = True
+            )
+            
+            root.create_polygon(
+                [
+                    (infoframe_x + infoframe_ltr,infoframe_y - infoframe_height),
+                    (infoframe_x + infoframe_ltr + infoframe_width,infoframe_y - infoframe_height),
+                    (infoframe_x + infoframe_width,infoframe_y),
+                    (infoframe_x,infoframe_y),
+                    (infoframe_x + infoframe_ltr,infoframe_y - infoframe_height)
+                ],
+                strokeStyle = "rgba(0, 0, 0, 0)",
+                fillStyle = "rgba(0, 0, 0, 0.75)",
+                wait_execute = True
+            )
+            
+            root.create_polygon(
+                [
+                    (infoframe_x + w * 0.23 + infoframe_ltr,infoframe_y - infoframe_height * 1.055),
+                    (infoframe_x + w * 0.23 + infoframe_ltr + infoframe_width * 0.2,infoframe_y - infoframe_height * 1.055),
+                    (infoframe_x + w * 0.23 + infoframe_width * 0.2,infoframe_y + infoframe_height * 0.055),
+                    (infoframe_x + w * 0.23,infoframe_y + infoframe_height * 0.055),
+                    (infoframe_x + w * 0.23 + infoframe_ltr,infoframe_y - infoframe_height * 1.055)
+                ],
+                strokeStyle = "rgba(0, 0, 0, 0)",
+                fillStyle = "#FFFFFF",
                 wait_execute = True
             )
             
             root.run_js_code(
-                f"ctx.translate({all_ease_value * w / 1.5},0.0);",
+                f"ctx.translate({all_ease_value * w},0.0);",
                 add_code_array = True
             )
             
@@ -974,12 +1008,11 @@ def PlayerStart_Phi():
             )
             
             root.run_js_code(
-                f"ctx.translate(-{all_ease_value * w / 1.5},0.0);",
+                f"ctx.translate(-{all_ease_value * w},0.0);",
                 add_code_array = True
             )
             
             root.run_js_wait_code()
-            sleep(1 / 120)
     
     def ChartStart_Animation():
         gr,step_time = Tool_Functions.Get_Animation_Gr(60,1.0)
@@ -998,7 +1031,7 @@ def PlayerStart_Phi():
             root.run_js_wait_code()
             sleep(step_time - min(time() - st,step_time))
     
-    # Begin_Animation()
+    Begin_Animation()
     ChartStart_Animation()
     
     phigros_chart_obj.init_holdlength(PHIGROS_Y)

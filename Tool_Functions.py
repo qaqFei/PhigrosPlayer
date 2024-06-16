@@ -79,11 +79,13 @@ else:
         return (t - st) / (et - st) * (ev - sv) + sv
 
 class begin_animation_eases:
+    @staticmethod
     def im_ease(x):
-        a = max(0, 1.4 * x - 0.25)
+        a = max(0, 1.4 * x - 0.25) + 0.3
         b = min(a, 1.0)
-        return b ** 3
+        return b ** 8
     
+    @staticmethod
     def background_ease(x):
         k = 4
         a = max(0, x)

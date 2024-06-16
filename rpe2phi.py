@@ -91,6 +91,10 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                     se_et = st + (i + 1) * (et - st) / split_event_length
                     se_sv = ease(i / split_event_length) * (ev - sv) + sv
                     se_ev = ease((i + 1) / split_event_length) * (ev - sv) + sv
+                    if se_ev <= 5e-3:
+                        se_ev = 0.0
+                    if se_sv <= 5e-3:
+                        se_sv = 0.0
                     phi_judgeLine["judgeLineDisappearEvents"].append({
                         "startTime": se_st,
                         "endTime": se_et,

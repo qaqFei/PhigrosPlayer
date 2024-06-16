@@ -35,6 +35,8 @@ python Main.py
 - ```-render-range-more-scale <number-value>``` 扩展渲染范围的缩放 默认为2.0
 - ```-lfdaot-render-video``` 在在使用 ```-lfdaot``` 和 ```-lfdaot-file``` 时导出一个视频 视频路径会在加载完成 ```.lfdaot``` 文件时 弹出文件选择框时确定
 - ```-ease-event-interpolation``` 在事件插值时使用缓动 tip: 适用于几乎不存在缓动的谱面 否则可能会出现在细小的线性事件中进行缓动插值 从而导致判定线出现移动或旋转卡顿
+- ```-frameless``` 窗口无边框
+- ```-window-host <integer-hwnd-value>``` 将窗口设置为指定窗口的子窗口
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途
