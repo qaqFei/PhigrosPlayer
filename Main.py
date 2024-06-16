@@ -910,7 +910,7 @@ def GetFrameRenderTask_Phi(
     Task(
         draw_ui,
         process=now_t / audio_length,
-        score=get_stringscore(combo * (1000000 / phigros_chart_obj.note_num)),
+        score=get_stringscore((combo * (1000000 / phigros_chart_obj.note_num)) if phigros_chart_obj.note_num != 0 else 1000000),
         combo_state=combo >= 3,
         combo=combo,
         now_time=time_text,
