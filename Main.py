@@ -375,6 +375,7 @@ def Show_Start():
     sleep(0.5)
     root.run_js_code("show_out_animation();")
     sleep(1.25)
+    root.run_js_code("Start_img.remove();")
     Thread(target=PlayerStart_Phi,daemon=True).start()
     del WaitLoading,LoadSuccess
 
@@ -1232,8 +1233,11 @@ root = web_canvas.WebCanvas(
     x = 0,y = 0,
     title = "Phigros Chart Player",
     debug = "-debug" in argv,
-    resizable = True if not lfdaot else False
+    resizable = True if not lfdaot else False,
+    frameless = "-frameless" in argv
 )
+if "-window-host" in argv:
+    windll.user32.SetParent(root.winfo_hwnd(),eval(argv[argv.index("-window-host") + 1]))
 if hidemouse:
     root.run_js_code("hide_mouse();")
 if "-fullscreen" in argv:

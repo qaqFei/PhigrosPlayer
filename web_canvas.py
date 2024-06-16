@@ -74,6 +74,7 @@ class WebCanvas:
         debug:bool = False,
         title:str = "WebCanvas",
         resizable:bool = True,
+        frameless:bool = False,
         web_kwargs:typing.Mapping = {}
     ):
         self.jsapi = JsApi()
@@ -82,6 +83,7 @@ class WebCanvas:
             url=abspath(".\\web_canvas.html"),
             resizable = resizable,
             js_api=self.jsapi,
+            frameless=frameless,
             **web_kwargs
         )
         self._web_init_var = {
