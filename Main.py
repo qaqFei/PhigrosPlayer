@@ -168,16 +168,13 @@ else:
     path_head = f"{temp_dir}\\"
     _process_path = lambda path:abspath(path_head+path)
     _process_path2 = lambda path:abspath(path)
-    info_csv_map = {
-        name:None for name in "Chart,Music,Image,AspectRatio,ScaleRatio,GlobalAlpha,Name,Level,Illustrator,Designer".split(",")
-    }
+    info_csv_map = {name:None for name in "Chart,Music,Image,Name,Artist,Level,Illustrator,Charter,AspectRatio,NoteScale,GlobalAlpha".split(",")}
     with open(f"{temp_dir}\\info.csv","r",encoding="utf-8") as f:
         reader = csv.reader(f)
         for index,row in enumerate(reader):
             if index == 0:
                 for index_csv_map,item in enumerate(row):
-                    if item in info_csv_map:
-                        info_csv_map[item] = index_csv_map
+                    info_csv_map[item] = index_csv_map
                 break
         for row in reader:
             try:
@@ -222,11 +219,8 @@ else:
     
 print("Loading Chart Information Successfully.")
 print("Inforamtions: ")
-print("              Name:",chart_information["Name"])
-print("              Artist:",chart_information["Artist"])
-print("              Level:",chart_information["Level"])
-print("              Charter:",chart_information["Charter"])
-print("              BackgroundDim:",chart_information["BackgroundDim"])
+for k,v in chart_information.items():
+    print(f"              {k}: {v}")
 
 
 del chart_files,chart_files_dict
@@ -932,11 +926,33 @@ def GetFrameRenderTask_Phi(
         
     return Task
 
+def Get_LevelNumber() -> str:
+    lv = chart_information["Level"].lower()
+    if "lv." in lv:
+        return lv.split("lv.")[1]
+    elif "lv" in lv:
+        return lv.split("lv")[1]
+    elif "level" in lv:
+        return lv.split("level")[1]
+    else:
+        return "?"
+
+def Get_LevelText() -> str:
+    return chart_information["Level"].split(" ")[0]
+
 def PlayerStart_Phi():
     print("Player Start")
     root.title("Phigros Chart Player")
     def Begin_Animation():
         animation_time = 3.5
+        chart_name_text = chart_information["Name"]
+        chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_name_text}\").width;") / 50
+        chart_level_number = Get_LevelNumber()
+        chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_level_number}\").width;") / 50
+        chart_level_text = Get_LevelText()
+        chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_level_text}\").width;") / 50
+        chart_artist_text = chart_information["Artist"]
+        chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_artist_text}\").width;") / 50
         animation_st = time()
         while True:
             now_process = (time() - animation_st) / animation_time
@@ -955,7 +971,16 @@ def PlayerStart_Phi():
             infoframe_width = 0.3 * w
             infoframe_height = 0.118 * h
             infoframe_ltr = w * 0.01
-            
+            infoframe_text_place_width = w * 0.23
+            chart_name_font_size = infoframe_text_place_width / chart_name_text_width_1px
+            chart_level_number_font_size = infoframe_width * 0.215 * 0.45 / chart_level_number_width_1px
+            chart_level_text_font_size = infoframe_width * 0.215 * 0.145 / chart_level_text_width_1px
+            chart_artist_text_font_size = infoframe_text_place_width * 0.65 / chart_artist_text_width_1px
+            if chart_name_font_size > w * 0.020833:
+                chart_name_font_size = w * 0.020833
+            if chart_artist_text_font_size > w * 0.020833 * 0.65:
+                chart_artist_text_font_size = w * 0.020833 * 0.65
+                
             root.create_polygon(
                 [
                     (0,0),
@@ -965,7 +990,7 @@ def PlayerStart_Phi():
                     (0,0),
                 ],
                 strokeStyle = "rgba(0, 0, 0, 0)",
-                fillStyle = f"rgba(0, 0, 0, {0.75 * (1 - now_process)})",
+                fillStyle = f"rgba(0, 0, 0, {0.95 * (1 - now_process)})",
                 wait_execute = True
             )
             
@@ -984,14 +1009,56 @@ def PlayerStart_Phi():
             
             root.create_polygon(
                 [
-                    (infoframe_x + w * 0.23 + infoframe_ltr,infoframe_y - infoframe_height * 1.055),
-                    (infoframe_x + w * 0.23 + infoframe_ltr + infoframe_width * 0.2,infoframe_y - infoframe_height * 1.055),
-                    (infoframe_x + w * 0.23 + infoframe_width * 0.2,infoframe_y + infoframe_height * 0.055),
-                    (infoframe_x + w * 0.23,infoframe_y + infoframe_height * 0.055),
-                    (infoframe_x + w * 0.23 + infoframe_ltr,infoframe_y - infoframe_height * 1.055)
+                    (infoframe_x + w * 0.225 + infoframe_ltr,infoframe_y - infoframe_height * 1.03),
+                    (infoframe_x + w * 0.225 + infoframe_ltr + infoframe_width * 0.215,infoframe_y - infoframe_height * 1.03),
+                    (infoframe_x + w * 0.225 + infoframe_width * 0.215,infoframe_y + infoframe_height * 0.03),
+                    (infoframe_x + w * 0.225,infoframe_y + infoframe_height * 0.03),
+                    (infoframe_x + w * 0.225 + infoframe_ltr,infoframe_y - infoframe_height * 1.03)
                 ],
                 strokeStyle = "rgba(0, 0, 0, 0)",
                 fillStyle = "#FFFFFF",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                infoframe_x + infoframe_ltr * 2,
+                infoframe_y - infoframe_height * 0.65,
+                text = chart_name_text,
+                font = f"{int(chart_name_font_size)}px PhigrosFont",
+                textBaseline = "middle",
+                fillStyle = "#FFFFFF",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                infoframe_x + infoframe_ltr * 2,
+                infoframe_y - infoframe_height * 0.31,
+                text = chart_artist_text,
+                font = f"{int(chart_artist_text_font_size)}px PhigrosFont",
+                textBaseline = "middle",
+                fillStyle = "#FFFFFF",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                infoframe_x + w * 0.225 + infoframe_ltr + infoframe_width * 0.215 / 2 - infoframe_ltr / 2,
+                infoframe_y - infoframe_height * 1.03 * 0.55,
+                text = chart_level_number,
+                font = f"{int(chart_level_number_font_size)}px PhigrosFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "#2F2F2F",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                infoframe_x + w * 0.225 + infoframe_ltr + infoframe_width * 0.215 / 2 - infoframe_ltr / 2,
+                infoframe_y - infoframe_height * 1.03 * 0.31,
+                text = chart_level_text,
+                font = f"{int(chart_level_text_font_size)}px PhigrosFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "#2F2F2F",
                 wait_execute = True
             )
             
