@@ -948,9 +948,11 @@ def PlayerStart_Phi():
         chart_name_text = chart_information["Name"]
         chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_name_text}\").width;") / 50
         chart_level_number = Get_LevelNumber()
-        chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_level_number}\").width;") / 50
+        chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_level_number if len(chart_level_number) >= 2 else "00"}\").width;") / 50
+        if len(chart_level_number) == 1:
+            chart_level_number_width_1px /= 1.35
         chart_level_text = Get_LevelText()
-        chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_level_text}\").width;") / 50
+        chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_level_text if len(chart_level_text) >= 2 else "00"}\").width;") / 50
         chart_artist_text = chart_information["Artist"]
         chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_artist_text}\").width;") / 50
         animation_st = time()
