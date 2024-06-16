@@ -78,19 +78,28 @@ else:
         if t == st: return sv
         return (t - st) / (et - st) * (ev - sv) + sv
 
+bae_bs = 3.5
 class begin_animation_eases:
     @staticmethod
     def im_ease(x):
+        if x <= (1 / bae_bs): return 0.0
+        x -= (1 / bae_bs); x /= (1 - (1 / bae_bs))
         a = max(0, 1.4 * x - 0.25) + 0.3
         b = min(a, 1.0)
-        return b ** 8
+        return b ** 7
     
     @staticmethod
     def background_ease(x):
+        x *= 1.85
+        if x > 1.0: x = 1.0
         k = 4
         a = max(0, x)
         b = min(a, 1 / k)
         return (k ** 2 * b) ** 2 / (k ** 2)
+    
+    @staticmethod
+    def tip_alpha_ease(x): #emm... linear
+        return min(max(0.0, 3 * x - 0.25), 1.0)
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 interpolation_phi(0.5,0.1,0.8,-114.514,314.159)

@@ -27,6 +27,7 @@ import ConsoleWindow
 import web_canvas
 import Tool_Functions
 import dialog
+import Phigros_Tips
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
@@ -944,7 +945,8 @@ def PlayerStart_Phi():
     print("Player Start")
     root.title("Phigros Chart Player")
     def Begin_Animation():
-        animation_time = 3.5
+        animation_time = 4.0
+        
         chart_name_text = chart_information["Name"]
         chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_name_text}\").width;") / 50
         chart_level_number = Get_LevelNumber()
@@ -955,6 +957,23 @@ def PlayerStart_Phi():
         chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_level_text if len(chart_level_text) >= 2 else "00"}\").width;") / 50
         chart_artist_text = chart_information["Artist"]
         chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_artist_text}\").width;") / 50
+        tip = Phigros_Tips.get_tip()
+        tip_font_size = w * 0.020833 / 1.25
+        infoframe_x = w * 0.095
+        infoframe_y = h * 0.47
+        infoframe_width = 0.3 * w
+        infoframe_height = 0.118 * h
+        infoframe_ltr = w * 0.01
+        infoframe_text_place_width = w * 0.23
+        chart_name_font_size = infoframe_text_place_width / chart_name_text_width_1px
+        chart_level_number_font_size = infoframe_width * 0.215 * 0.45 / chart_level_number_width_1px
+        chart_level_text_font_size = infoframe_width * 0.215 * 0.145 / chart_level_text_width_1px
+        chart_artist_text_font_size = infoframe_text_place_width * 0.65 / chart_artist_text_width_1px
+        if chart_name_font_size > w * 0.020833:
+            chart_name_font_size = w * 0.020833
+        if chart_artist_text_font_size > w * 0.020833 * 0.65:
+            chart_artist_text_font_size = w * 0.020833 * 0.65
+        
         animation_st = time()
         while True:
             now_process = (time() - animation_st) / animation_time
@@ -968,21 +987,6 @@ def PlayerStart_Phi():
             
             draw_background()
             
-            infoframe_x = w * 0.095 + all_ease_value * w
-            infoframe_y = h * 0.47
-            infoframe_width = 0.3 * w
-            infoframe_height = 0.118 * h
-            infoframe_ltr = w * 0.01
-            infoframe_text_place_width = w * 0.23
-            chart_name_font_size = infoframe_text_place_width / chart_name_text_width_1px
-            chart_level_number_font_size = infoframe_width * 0.215 * 0.45 / chart_level_number_width_1px
-            chart_level_text_font_size = infoframe_width * 0.215 * 0.145 / chart_level_text_width_1px
-            chart_artist_text_font_size = infoframe_text_place_width * 0.65 / chart_artist_text_width_1px
-            if chart_name_font_size > w * 0.020833:
-                chart_name_font_size = w * 0.020833
-            if chart_artist_text_font_size > w * 0.020833 * 0.65:
-                chart_artist_text_font_size = w * 0.020833 * 0.65
-                
             root.create_polygon(
                 [
                     (0,0),
@@ -994,6 +998,11 @@ def PlayerStart_Phi():
                 strokeStyle = "rgba(0, 0, 0, 0)",
                 fillStyle = f"rgba(0, 0, 0, {0.95 * (1 - now_process)})",
                 wait_execute = True
+            )
+            
+            root.run_js_code(
+                f"ctx.translate({all_ease_value * w},0.0);",
+                add_code_array = True
             )
             
             root.create_polygon(
@@ -1064,9 +1073,14 @@ def PlayerStart_Phi():
                 wait_execute = True
             )
             
-            root.run_js_code(
-                f"ctx.translate({all_ease_value * w},0.0);",
-                add_code_array = True
+            root.create_text(
+                w * 0.065,
+                h * 0.95,
+                text = f"tip: {tip}",
+                font = f"{tip_font_size}px PhigrosFont",
+                textBaseline = "bottom",
+                fillStyle = f"rgba(255, 255, 255, {Tool_Functions.begin_animation_eases.tip_alpha_ease(now_process)})",
+                wait_execute = True
             )
             
             root.create_image(
@@ -1084,7 +1098,7 @@ def PlayerStart_Phi():
             root.run_js_wait_code()
     
     def ChartStart_Animation():
-        gr,step_time = Tool_Functions.Get_Animation_Gr(60,1.0)
+        gr,step_time = Tool_Functions.Get_Animation_Gr(60,0.65)
         val = 0.0
         for step in gr:
             st = time()
