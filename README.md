@@ -1,17 +1,7 @@
 # 这是一个使用WebView实现的Phigros谱面的模拟器
 
-## 安装依赖
-```
-pip install -r requirements.txt
-```
-
-## 运行
-```
-python Main.py
-```
-
 ## 兼容性
-- 目前只支持Phigros的官谱 且只支持```formatVersion```为```1```或```3```的谱面 (正在s逐步支持 ```Re:PhiEdit``` 谱面  还要好久... 可能的选择: rpe2phi.py)
+- 目前只支持Phigros的官谱 且只支持```formatVersion```为```1```或```3```的谱面
 - 目前只能读取谱面中的```info.csv```
 
 ## 命令行参数 (大部分 仅对phigros官谱生效)
