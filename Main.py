@@ -123,6 +123,7 @@ defualt_information = {
     "Name":"Unknow",
     "Artist":"Unknow",
     "Level":"SP Lv.?",
+    "Illustrator":"Unknow",
     "Charter":"Unknow",
     "BackgroundDim":0.6
 }
@@ -201,6 +202,7 @@ else:
                 "Name":all_inforamtion[keys]["Name"] if "Name" in all_inforamtion[keys] else "Unknow",
                 "Artist":all_inforamtion[keys]["Artist"] if "Artist" in all_inforamtion[keys] else "Unknow",
                 "Level":all_inforamtion[keys]["Level"] if "Level" in all_inforamtion[keys] else "SP Lv.?",
+                "Illustrator":all_inforamtion[keys]["Illustrator"] if "Illustrator" in all_inforamtion[keys] else "Unknow",
                 "Charter":all_inforamtion[keys]["Charter"] if "Charter" in all_inforamtion[keys] else "Unknow",
                 "BackgroundDim":float(all_inforamtion[keys]["BackgroundDim"] if "BackgroundDim" in all_inforamtion[keys] else 0.6)
             }
@@ -948,15 +950,19 @@ def PlayerStart_Phi():
         animation_time = 4.0
         
         chart_name_text = chart_information["Name"]
-        chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_name_text}\").width;") / 50
+        chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_name_text)}).width;") / 50
         chart_level_number = Get_LevelNumber()
-        chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_level_number if len(chart_level_number) >= 2 else "00"}\").width;") / 50
+        chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_level_number) if len(chart_level_number) >= 2 else "'00'"}).width;") / 50
         if len(chart_level_number) == 1:
             chart_level_number_width_1px /= 1.35
         chart_level_text = Get_LevelText()
-        chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_level_text if len(chart_level_text) >= 2 else "00"}\").width;") / 50
+        chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_level_text) if len(chart_level_text) >= 2 else "'00'"}).width;") / 50
         chart_artist_text = chart_information["Artist"]
-        chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText(\"{chart_artist_text}\").width;") / 50
+        chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_artist_text)}).width;") / 50
+        chart_charter_text = chart_information["Charter"]
+        chart_charter_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_charter_text)}).width;") / 50
+        chart_illustrator_text = chart_information["Illustrator"]
+        chart_illustrator_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_illustrator_text)}).width;") / 50
         tip = Phigros_Tips.get_tip()
         tip_font_size = w * 0.020833 / 1.25
         infoframe_x = w * 0.095
@@ -969,10 +975,16 @@ def PlayerStart_Phi():
         chart_level_number_font_size = infoframe_width * 0.215 * 0.45 / chart_level_number_width_1px
         chart_level_text_font_size = infoframe_width * 0.215 * 0.145 / chart_level_text_width_1px
         chart_artist_text_font_size = infoframe_text_place_width * 0.65 / chart_artist_text_width_1px
+        chart_charter_text_font_size = infoframe_text_place_width * 0.65 / chart_charter_text_width_1px
+        chart_illustrator_text_font_size = infoframe_text_place_width * 0.65 / chart_illustrator_text_width_1px
         if chart_name_font_size > w * 0.020833:
             chart_name_font_size = w * 0.020833
         if chart_artist_text_font_size > w * 0.020833 * 0.65:
             chart_artist_text_font_size = w * 0.020833 * 0.65
+        if chart_charter_text_font_size > w * 0.020833 * 0.65:
+            chart_charter_text_font_size = w * 0.020833 * 0.65
+        if chart_illustrator_text_font_size > w * 0.020833 * 0.65:
+            chart_illustrator_text_font_size = w * 0.020833 * 0.65
         
         animation_st = time()
         while True:
@@ -1076,10 +1088,46 @@ def PlayerStart_Phi():
             root.create_text(
                 w * 0.065,
                 h * 0.95,
-                text = f"tip: {tip}",
+                text = f"Tip: {tip}",
                 font = f"{tip_font_size}px PhigrosFont",
                 textBaseline = "bottom",
                 fillStyle = f"rgba(255, 255, 255, {Tool_Functions.begin_animation_eases.tip_alpha_ease(now_process)})",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.1375, h * 0.5225,
+                text = "Chart",
+                font = f"{w / 98}px PhigrosFont",
+                textBaseline = "top",
+                fillStyle = f"rgba(255, 255, 255, 235)",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.1375, h * 0.5225 + w / 98 * 1.25,
+                text = chart_charter_text,
+                font = f"{chart_charter_text_font_size}px PhigrosFont",
+                textBaseline = "top",
+                fillStyle = f"rgba(255, 255, 255, 235)",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.1255, h * 0.5225 + w / 98 * 1.25 + chart_artist_text_font_size * 2.05,
+                text = "Illustration",
+                font = f"{w / 98}px PhigrosFont",
+                textBaseline = "top",
+                fillStyle = f"rgba(255, 255, 255, 235)",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.1255, h * 0.5225 + w / 98 * 1.25 + chart_artist_text_font_size * 2.05 + w / 98 * 1.25,
+                text = chart_illustrator_text,
+                font = f"{chart_illustrator_text_font_size}px PhigrosFont",
+                textBaseline = "top",
+                fillStyle = f"rgba(255, 255, 255, 235)",
                 wait_execute = True
             )
             

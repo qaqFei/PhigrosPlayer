@@ -263,28 +263,16 @@ class WebCanvas:
         code += f"ctx.direction = \"{direction}\";"
         return code
     
-    def _process_code_string_syntax_tostring(
+    def process_code_string_syntax_tostring(
         self,code:str
     ):
-        r_code = ""
-        for c in code:
-            if c == "'":
-                r_code += "\\'"
-            elif c == "\"":
-                r_code += "\\\""
-            elif c == "`":
-                r_code += "\\`"
-            elif c == "\\":
-                r_code += "\\\\"
-            else:
-                r_code += c
-        return r_code
+        return code.replace("\\","\\\\").replace("'","\\'").replace("\"","\\\"").replace("`","\\`")
     
-    def _process_code_string_syntax_tocode(
+    def process_code_string_syntax_tocode(
         self,code:str
     ):
-        return f"'{self._process_code_string_syntax_tostring(code)}'"
-    
+        return f"'{self.process_code_string_syntax_tostring(code)}'"
+
     def rotate(
         self,
         deg:typing.Union[int,float],
@@ -389,7 +377,7 @@ class WebCanvas:
         threading_:bool = False,
         wait_execute:bool = False
     ) -> None:
-        text = self._process_code_string_syntax_tostring(text)
+        text = self.process_code_string_syntax_tostring(text)
         code = self._set_style_fill_stroke(fillStyle,strokeStyle) + self._set_style_font_textAlign_textBaseline_direction(font,textAlign,textBaseline,direction) + f"\
             ctx.fillText(\"{text}\",{x},{y});\
         "
