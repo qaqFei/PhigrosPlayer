@@ -947,7 +947,7 @@ def PlayerStart_Phi():
     print("Player Start")
     root.title("Phigros Chart Player")
     def Begin_Animation():
-        animation_time = 4.0
+        animation_time = 6.5
         
         chart_name_text = chart_information["Name"]
         chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_name_text)}).width;") / 50
@@ -995,6 +995,8 @@ def PlayerStart_Phi():
             root.clear_canvas(wait_execute = True)
             all_ease_value = Tool_Functions.begin_animation_eases.im_ease(now_process)
             background_ease_value = Tool_Functions.begin_animation_eases.background_ease(now_process)
+            info_data_ease_value = Tool_Functions.begin_animation_eases.info_data_ease((now_process - 0.2) * 3.25)
+            info_data_ease_value_2 = Tool_Functions.begin_animation_eases.info_data_ease((now_process - 0.275) * 3.25)
             im_size = 1 / 2.5
             
             draw_background()
@@ -1096,38 +1098,42 @@ def PlayerStart_Phi():
             )
             
             root.create_text(
-                w * 0.1375, h * 0.5225,
+                w * 0.1375 + (1 - info_data_ease_value) * -1 * w * 0.075,
+                h * 0.5225,
                 text = "Chart",
                 font = f"{w / 98}px PhigrosFont",
                 textBaseline = "top",
-                fillStyle = f"rgba(255, 255, 255, 235)",
+                fillStyle = f"rgba(255, 255, 255, {info_data_ease_value})",
                 wait_execute = True
             )
             
             root.create_text(
-                w * 0.1375, h * 0.5225 + w / 98 * 1.25,
+                w * 0.1375 + (1 - info_data_ease_value) * -1 * w * 0.075,
+                h * 0.5225 + w / 98 * 1.25,
                 text = chart_charter_text,
                 font = f"{chart_charter_text_font_size}px PhigrosFont",
                 textBaseline = "top",
-                fillStyle = f"rgba(255, 255, 255, 235)",
+                fillStyle = f"rgba(255, 255, 255, {info_data_ease_value})",
                 wait_execute = True
             )
             
             root.create_text(
-                w * 0.1255, h * 0.5225 + w / 98 * 1.25 + chart_artist_text_font_size * 2.05,
+                w * 0.1235 + (1 - info_data_ease_value_2) * -1 * w * 0.075,
+                h * 0.5225 + w / 98 * 1.25 + chart_artist_text_font_size * 2.05,
                 text = "Illustration",
                 font = f"{w / 98}px PhigrosFont",
                 textBaseline = "top",
-                fillStyle = f"rgba(255, 255, 255, 235)",
+                fillStyle = f"rgba(255, 255, 255, {info_data_ease_value_2})",
                 wait_execute = True
             )
             
             root.create_text(
-                w * 0.1255, h * 0.5225 + w / 98 * 1.25 + chart_artist_text_font_size * 2.05 + w / 98 * 1.25,
+                w * 0.1235 + (1 - info_data_ease_value_2) * -1 * w * 0.075,
+                h * 0.5225 + w / 98 * 1.25 + chart_artist_text_font_size * 2.05 + w / 98 * 1.25,
                 text = chart_illustrator_text,
                 font = f"{chart_illustrator_text_font_size}px PhigrosFont",
                 textBaseline = "top",
-                fillStyle = f"rgba(255, 255, 255, 235)",
+                fillStyle = f"rgba(255, 255, 255, {info_data_ease_value_2})",
                 wait_execute = True
             )
             
