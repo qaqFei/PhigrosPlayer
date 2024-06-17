@@ -1003,14 +1003,14 @@ def PlayerStart_Phi():
             
             root.create_polygon(
                 [
-                    (0,0),
-                    (0,h),
-                    (background_ease_value * w,h),
-                    (w * 0.1 + background_ease_value * w,0),
-                    (0,0),
+                    (-w * 0.1,0),
+                    (-w * 0.1,h),
+                    (background_ease_value * w - w * 0.1,h),
+                    (background_ease_value * w,0),
+                    (-w * 0.1,0)
                 ],
                 strokeStyle = "rgba(0, 0, 0, 0)",
-                fillStyle = f"rgba(0, 0, 0, {0.95 * (1 - now_process)})",
+                fillStyle = f"rgba(0, 0, 0, {0.75 * (1 - now_process)})",
                 wait_execute = True
             )
             
@@ -1162,7 +1162,7 @@ def PlayerStart_Phi():
                 w / 2 - (val * w / 2),h / 2,
                 w / 2 + (val * w / 2),h / 2,
                 strokeStyle = Const.JUDGELINE_PERFECT_COLOR,
-                lineWidth = JUDGELINE_WIDTH,
+                lineWidth = JUDGELINE_WIDTH / render_range_more_scale if render_range_more else JUDGELINE_WIDTH,
                 wait_execute = True
             )
             root.run_js_wait_code()

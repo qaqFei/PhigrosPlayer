@@ -90,12 +90,9 @@ class begin_animation_eases:
     
     @staticmethod
     def background_ease(x):
-        x *= 1.85
-        if x > 1.0: x = 1.0
-        k = 4
-        a = max(0, x)
-        b = min(a, 1 / k)
-        return (k ** 2 * b) ** 2 / (k ** 2)
+        if x >= 1.0: return 1.0
+        if x <= 0.0: return 0.0
+        return 128 * (x ** 3)
     
     @staticmethod
     def tip_alpha_ease(x): #emm... linear
@@ -105,7 +102,13 @@ class begin_animation_eases:
     def info_data_ease(x):
         if x >= 1.0: return 1.0
         if x <= 0.0: return 0.0
-        return 1 - (1 - x) ** 2
+        return 1 - (1 - x) ** 3
+    
+    @staticmethod
+    def background_block_color_alpha_ease(x):
+        if x >= 1.0: return 1.0
+        if x <= 0.0: return 0.0
+        return (1 - x ** 2) ** 0.5
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 interpolation_phi(0.5,0.1,0.8,-114.514,314.159)
