@@ -1403,7 +1403,7 @@ root = web_canvas.WebCanvas(
     x = 0,y = 0,
     title = "Phigros Chart Player",
     debug = "-debug" in argv,
-    resizable = True if not lfdaot else False,
+    resizable = True,
     frameless = "-frameless" in argv
 )
 if "-window-host" in argv:
