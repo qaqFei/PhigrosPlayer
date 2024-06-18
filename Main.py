@@ -361,10 +361,8 @@ def WaitLoading_FadeIn():
         sleep(2 / 50)
 
 def Show_Start():
-    global WaitLoading,LoadSuccess
     WaitLoading.fadeout(450)
     root.run_js_code("show_in_animation();")
-    LoadSuccess.play()
     sleep(1.25)
     draw_background()
     draw_ui(animationing=True)
@@ -374,7 +372,6 @@ def Show_Start():
     sleep(1.25)
     root.run_js_code("Start_img.remove();")
     Thread(target=PlayerStart_Phi,daemon=True).start()
-    del WaitLoading,LoadSuccess
 
 def draw_ui(
     process:float = 0.0,
@@ -947,7 +944,7 @@ def PlayerStart_Phi():
     print("Player Start")
     root.title("Phigros Chart Player")
     def Begin_Animation():
-        animation_time = 6.5
+        animation_time = 4.5
         
         chart_name_text = chart_information["Name"]
         chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_name_text)}).width;") / 50
@@ -986,6 +983,7 @@ def PlayerStart_Phi():
         if chart_illustrator_text_font_size > w * 0.020833 * 0.65:
             chart_illustrator_text_font_size = w * 0.020833 * 0.65
         
+        LoadSuccess.play()
         animation_st = time()
         while True:
             now_process = (time() - animation_st) / animation_time
@@ -994,7 +992,7 @@ def PlayerStart_Phi():
             
             root.clear_canvas(wait_execute = True)
             all_ease_value = Tool_Functions.begin_animation_eases.im_ease(now_process)
-            background_ease_value = Tool_Functions.begin_animation_eases.background_ease(now_process)
+            background_ease_value = Tool_Functions.begin_animation_eases.background_ease(now_process) * 1.25
             info_data_ease_value = Tool_Functions.begin_animation_eases.info_data_ease((now_process - 0.2) * 3.25)
             info_data_ease_value_2 = Tool_Functions.begin_animation_eases.info_data_ease((now_process - 0.275) * 3.25)
             im_size = 1 / 2.5
@@ -1067,7 +1065,7 @@ def PlayerStart_Phi():
             
             root.create_text(
                 infoframe_x + w * 0.225 + infoframe_ltr + infoframe_width * 0.215 / 2 - infoframe_ltr / 2,
-                infoframe_y - infoframe_height * 1.03 * 0.55,
+                infoframe_y - infoframe_height * 1.03 * 0.58,
                 text = chart_level_number,
                 font = f"{int(chart_level_number_font_size)}px PhigrosFont",
                 textAlign = "center",
@@ -1430,7 +1428,7 @@ if render_range_more:
     root.run_js_code("render_range_more = true;")
     root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
     
-background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 300))).enhance(1.0 - chart_information["BackgroundDim"])
+background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 125))).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
