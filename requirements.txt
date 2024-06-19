@@ -6,4 +6,3 @@ pydub
 numba
 opencv-python
 numpy
-tqdm

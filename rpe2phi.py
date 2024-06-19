@@ -3,8 +3,6 @@ from sys import argv
 import json
 import math
 
-from tqdm import trange
-
 import Chart_Functions_Rep
 import Chart_Objects_Rep
 
@@ -163,7 +161,7 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
     max_time = max([moves["et"] for moves in moves])
     time_split_block_size = 1 / 10 / T
     block_num = int(max_time / time_split_block_size)
-    for i in trange(block_num,desc="processing move events"):
+    for i in range(block_num,desc="processing move events"):
         se_st = i * time_split_block_size
         se_et = (i + 1) * time_split_block_size
         se_sv_x,se_sv_y = get_moves_state(moves,se_st)

@@ -370,7 +370,6 @@ def Show_Start():
     sleep(0.5)
     root.run_js_code("show_out_animation();")
     sleep(1.25)
-    root.run_js_code("Start_img.remove();")
     Thread(target=PlayerStart_Phi,daemon=True).start()
 
 def draw_ui(
