@@ -78,14 +78,20 @@ class judgeLineDisappearEvent:
     end:typing.Union[int,float]
 ```
 
+------
+
 一些关于谱面的概念:
 - 对于谱面的时间的现实时间的转化: `sec = t * (1.875 / bpm)`
-  
-- 定义的一些概念:
-    - `PHIGROS_X` & `PHIGROS_Y` 假设此时屏幕的大小为`w,h`
-    则: `PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h`
 
-对于谱面数据对象的含义  注: `bpm` 变量为 `note` 所处判定线的 `bpm`：
+------
+
+定义的一些概念:
+- `PHIGROS_X` & `PHIGROS_Y` 假设此时屏幕大小为`w,h`
+则: `PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h`
+
+------
+
+对于谱面数据对象的含义：
 - `class note`
     - `type:typing.Literal[1,2,3,4]` `note`的类型:
     `Tap = 1,  Drag = 2, Hold = 3, Flick = 4`
@@ -96,14 +102,14 @@ class judgeLineDisappearEvent:
         - 转化成秒的方法也是 `sec = t * (1.875 / bpm)`
         - 音符的长度如何计算?
             ```python
-            self:note
+            self: note
             
             length_sec = self.holdTime * (1.875 / bpm)
             length_px = self.speed * length_sec * PHIGROS_Y
             ```
         - 结束时间: 
           ```python
-          self:note
+          self: note
           
           hold_endtime = (self.time + self.holdTime) * (1.875 / bpm)
           ```
@@ -111,7 +117,7 @@ class judgeLineDisappearEvent:
         - 用处仅在 `Hold` 音符的长度和打击时速度的计算
         - 对于还未打击的音符, 速度以对`speedEvent`插值的到的实时速度值为准
     - `floorPosition:typing.Union[int,float]` 在谱面时间为`0`时, `note` 对于判定线的高度, 单位为`PHIGROS_Y`
-        - 作用仅为方便计算
+        - 作用仅为方便计算、
 
 - `class speedEvent`
     - `startTime:typing.Union[int,float]` 事件开始时的时间
@@ -119,6 +125,18 @@ class judgeLineDisappearEvent:
     - `endTime:typing.Union[int,float]` 事件结束时的时间
       转化为秒: `sec = startTime * (1.875 / bpm)`
     - `value:typing.Union[int,float]` 在事件开始时间到结束时间范围内的速度值, 单位为 `PHIGROS_Y / s`
+    - `floorPosition:typing.Union[typing.Union[int,float],None]` 对于一些谱面, 速度事件拥有`floorPosition`属性, 该属性表示该速度事件在开始时判定线已走过的长度, 仅用于方便计算
+      即:
+        ```python
+        ThisEvent: speedEvent
+        NextEvent: speedEvent
+
+        NextEvent.floorPosition = ThisEvent.floorPosition + (
+            (ThisEvent.endTime - ThisEvent.startTime)
+            / (1.875 / bpm)
+            * ThisEvent.value
+        )
+        ```
 
 - `class judgeLineMoveEvent`
     - `startTime:typing.Union[int,float]` 事件开始时的时间
@@ -146,15 +164,872 @@ class judgeLineDisappearEvent:
     - `start:typing.Union[int,float]` 事件开始时的`alpha`值
     - `end:typing.Union[int,float]` 事件结束时的`alpha`值
 
+- `class judgeLine`
+    - `bpm:typing.Union[int,float]` 判定线的`bpm`值
+    - `notesAbove:list[note]` 判定线的正面`note`列表
+    - `notesBelow:list[note]` 判定线的反面`note`列表
+    - `speedEvents:list[speedEvent]` 判定线的速度事件列表
+    - `judgeLineMoveEvents:list[judgeLineMoveEvent]` 判定线的移动事件列表
+    - `judgeLineRotateEvents:list[judgeLineRotateEvent]` 判定线的旋转事件列表
+    - `judgeLineDisappearEvents:list[judgeLineDisappearEvent]` 判定线的`alpha`事件列表
+
+------
+
 对于事件：
 - 应当连续 即: `es[index].endTime == es[index + 1].startTime`
 - 第一个事件的开始时间应当足够的小
 - 最后个事件的结束时间应当足够的大
 
+------
+
 事件值的计算:
 - 事件皆为线性事件
 
-... 还没写完
+------
+既然, 我们已经了解Phigros谱面的结构和渲染方式, 那就让我们用`Python`编写一个简易的渲染程序吧!
+
+首先, 让我们引入几个模块:
+- [WebCanvas](./../web_canvas.py) 这是一个`Python`模块 通过`JavaScript`在`WebView`上创建`Canvas`并绘制内容, 并将其封装为`Python Api`
+  文件名: `web_canvas.py`
+- [WebCanvas Html](./../web_canvas.html) 这是供`WebCanvas`模块使用的`html`文件 定义了一些`Javascript`函数供调用
+  文件名: `web_canvas.html`
+- [Chart Objects](./../Chart_Objects_Phi.py) 对于数据类型的定义
+  文件名: `Chart_Objects_Phi.py`
+
+其次, 我们需要安装一些模块:
+- `pywebview`
+- `Pillow`
+- `pywin32`
+
+使用脚本安装:
+```batch
+@echo off
+pip install pywebview
+pip install Pillow
+pip install pywin32
+```
+
+------
+
+让我们开始一步步地编写吧, 但是我们不做任何的异常处理, 且只兼容`formatVersion`为3的谱面(最为常见), 最终的文件: [Python Phigros Chart Render Example](./../docs_phi_render_example.py)
+
+### Step 1
+- 让我们导入基本的模块, 并创建一个简单的`WebView`窗口
+- 并且定义 `PHIGROS_X` & `PHIGROS_Y`
+- 在窗口大小更新时更新 `PHIGROS_X` & `PHIGROS_Y`
+```python
+from sys import argv
+from threading import Thread
+from ctypes import windll
+import math
+import json
+
+from win32api import GetWindowLong, SetWindowLong
+import win32con
+
+import web_canvas
+import Chart_Objects_Phi
+
+if len(argv) < 2:
+    print("Usage: python docs_phi_render_example.py <PhigrosChartFile>")
+    raise SystemExit
+
+def Window_Resize_Callback(width,height):
+    global w,h
+    global PHIGROS_X, PHIGROS_Y
+    w, h = width, height
+    PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h  #虽然说更改常量是一件不好的事情
+
+def Init_Window_Style():
+    window_hwnd = window.winfo_hwnd()
+    window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
+    SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU)
+
+window = web_canvas.WebCanvas( #创建窗口
+    width = 1,
+    height = 1,
+    x = 0,
+    y = 0,
+    title = "Python Phigros Chart Render Example"
+)
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+w,h = int(screen_width * 0.65), int(screen_height * 0.65) #定义窗口大小
+
+window.resize(w,h)
+w_legacy,h_legacy = window.winfo_legacywindowwidth(),window.winfo_legacywindowheight()
+dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
+window.resize(w + dw_legacy,h + dh_legacy)
+window.move(int(screen_width / 2 - (w + dw_legacy) / 2),int(screen_height / 2 - (h + dh_legacy) / 2))
+del w_legacy,h_legacy,dw_legacy,dh_legacy
+
+PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h
+window.reg_event("resized", Window_Resize_Callback) #注册事件
+Init_Window_Style() #使用win32api更改窗口样式
+window.loop_to_close()
+windll.kernel32.ExitProcess(0)
+```
+
+### Step 2
+- 加载Phigros谱面为`Python`对象
+- 为了渲染打击时随机扩散的方形特效 定义`Python`函数`get_effect_random_blocks`
+- 初始化谱面对象
+  ```python
+  def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
+      return tuple((randint(1,90) for _ in range(4)))
+  ```
+```python
+from sys import argv
+from threading import Thread
+from ctypes import windll
+from random import randint
+import math
+import json
+import typing
+
+from win32api import GetWindowLong, SetWindowLong
+import win32con
+
+import web_canvas
+import Chart_Objects_Phi
+
+if len(argv) < 2:
+    print("Usage: python docs_phi_render_example.py <PhigrosChartFile>")
+    raise SystemExit
+
+def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
+    return tuple((randint(1,90) for _ in range(4)))
+
+def Init_Phigros_ChartObject():
+    global chart_object
+    with open(argv[1], "r") as f: #加载谱面对象
+        phigros_chart = json.load(f)
+        chart_object = Chart_Objects_Phi.Phigros_Chart(
+            formatVersion = phigros_chart["formatVersion"],
+            offset = phigros_chart["offset"],
+            judgeLineList = [
+                Chart_Objects_Phi.judgeLine(
+                    id = index,
+                    bpm = judgeLine_item["bpm"],
+                    notesAbove = [
+                        Chart_Objects_Phi.note(
+                            type = notesAbove_item["type"],
+                            time = notesAbove_item["time"],
+                            positionX = notesAbove_item["positionX"],
+                            holdTime = notesAbove_item["holdTime"],
+                            speed = notesAbove_item["speed"],
+                            floorPosition = notesAbove_item["floorPosition"],
+                            effect_random_blocks = get_effect_random_blocks()
+                        )
+                        for notesAbove_item in judgeLine_item["notesAbove"]
+                    ],
+                    notesBelow = [
+                        Chart_Objects_Phi.note(
+                            type = notesBelow_item["type"],
+                            time = notesBelow_item["time"],
+                            positionX = notesBelow_item["positionX"],
+                            holdTime = notesBelow_item["holdTime"],
+                            speed = notesBelow_item["speed"],
+                            floorPosition = notesBelow_item["floorPosition"],
+                            effect_random_blocks = get_effect_random_blocks()
+                        )
+                        for notesBelow_item in judgeLine_item["notesBelow"]
+                    ],
+                    speedEvents = [
+                        Chart_Objects_Phi.speedEvent(
+                            startTime = speedEvent_item["startTime"],
+                            endTime = speedEvent_item["endTime"],
+                            value = speedEvent_item["value"],
+                            floorPosition = None
+                        )
+                        for speedEvent_item in judgeLine_item["speedEvents"]
+                    ],
+                    judgeLineMoveEvents=[
+                        Chart_Objects_Phi.judgeLineMoveEvent(
+                            startTime = judgeLineMoveEvent_item["startTime"],
+                            endTime = judgeLineMoveEvent_item["endTime"],
+                            start = judgeLineMoveEvent_item["start"],
+                            end = judgeLineMoveEvent_item["end"],
+                            start2 = judgeLineMoveEvent_item["start2"],
+                            end2 = judgeLineMoveEvent_item["end2"]
+                        )
+                        for judgeLineMoveEvent_item in judgeLine_item["judgeLineMoveEvents"]
+                    ],
+                    judgeLineRotateEvents=[
+                        Chart_Objects_Phi.judgeLineRotateEvent(
+                            startTime = judgeLineRotateEvent_item["startTime"],
+                            endTime = judgeLineRotateEvent_item["endTime"],
+                            start = judgeLineRotateEvent_item["start"],
+                            end = judgeLineRotateEvent_item["end"]
+                        )
+                        for judgeLineRotateEvent_item in judgeLine_item["judgeLineRotateEvents"]
+                    ],
+                    judgeLineDisappearEvents=[
+                        Chart_Objects_Phi.judgeLineDisappearEvent(
+                            startTime = judgeLineDisappearEvent_item["startTime"],
+                            endTime = judgeLineDisappearEvent_item["endTime"],
+                            start = judgeLineDisappearEvent_item["start"],
+                            end = judgeLineDisappearEvent_item["end"]
+                        )
+                        for judgeLineDisappearEvent_item in judgeLine_item["judgeLineDisappearEvents"]
+                    ]
+                )
+                for index,judgeLine_item in enumerate(phigros_chart["judgeLineList"])
+            ]
+        )
+        
+        #初始化
+        for judgeLine in chart_object.judgeLineList:
+            #为每个事件排序
+            judgeLine.judgeLineMoveEvents.sort(key = lambda x:x.startTime)
+            judgeLine.judgeLineRotateEvents.sort(key = lambda x:x.startTime)
+            judgeLine.judgeLineDisappearEvents.sort(key = lambda x:x.startTime)
+            
+            #计算事件单位
+            judgeLine.T = 1.875 / judgeLine.bpm
+            
+            #初始化每个SpeedEvent的floorPosition
+            speed_event_floorPosition = 0.0
+            for se in judgeLine.speedEvents:
+                se.floorPosition = speed_event_floorPosition
+                speed_event_floorPosition += (
+                    (se.endTime - se.startTime)
+                    / judgeLine.T
+                    * (se.value)
+                )
+            
+            #为每个Note设置master
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                note.master = judgeLine
+            
+        #初始化每个Hold的长度
+        chart_object.init_holdlength(PHIGROS_Y)
+    
+def Window_Resize_Callback(width,height):
+    global w,h
+    global PHIGROS_X, PHIGROS_Y
+    w, h = width, height
+    PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h  #虽然说更改常量是一件不好的事情
+    chart_object.init_holdlength(PHIGROS_Y)
+
+def Init_Window_Style():
+    window_hwnd = window.winfo_hwnd()
+    window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
+    SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU)
+
+window = web_canvas.WebCanvas( #创建窗口
+    width = 1,
+    height = 1,
+    x = 0,
+    y = 0,
+    title = "Python Phigros Chart Render Example"
+)
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+w,h = int(screen_width * 0.65), int(screen_height * 0.65) #定义窗口大小
+
+window.resize(w,h)
+w_legacy,h_legacy = window.winfo_legacywindowwidth(), window.winfo_legacywindowheight()
+dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
+window.resize(w + dw_legacy,h + dh_legacy)
+window.move(int(screen_width / 2 - (w + dw_legacy) / 2), int(screen_height / 2 - (h + dh_legacy) / 2))
+del w_legacy,h_legacy,dw_legacy,dh_legacy
+
+PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h
+window.reg_event("resized", Window_Resize_Callback) #注册事件
+Init_Window_Style() #使用win32api更改窗口样式
+Init_Phigros_ChartObject()
+window.loop_to_close()
+windll.kernel32.ExitProcess(0)
+```
+
+### Step 3
+- 加载资源到`WebView`
+  `WebCanvas.reg_img` 方法:
+    - 第一个参数为资源的名称
+    - 第二个参数为资源的对象(PIL.Image.Image)
+    - 可在`WebCanvas.create_image`地方使用
+    - 资源以 `f"{name}_img"` 的变量名存储在`JavaScript`的全局变量中
+```python
+from sys import argv
+from threading import Thread
+from ctypes import windll
+from random import randint
+from time import sleep
+import math
+import json
+import typing
+
+from PIL import Image
+from win32api import GetWindowLong, SetWindowLong
+import win32con
+
+import web_canvas
+import Chart_Objects_Phi
+
+if len(argv) < 2:
+    print("Usage: python docs_phi_render_example.py <PhigrosChartFile>")
+    raise SystemExit
+
+def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
+    return tuple((randint(1,90) for _ in range(4)))
+
+def Init_Phigros_ChartObject():
+    global chart_object
+    with open(argv[1], "r") as f: #加载谱面对象
+        phigros_chart = json.load(f)
+        chart_object = Chart_Objects_Phi.Phigros_Chart(
+            formatVersion = phigros_chart["formatVersion"],
+            offset = phigros_chart["offset"],
+            judgeLineList = [
+                Chart_Objects_Phi.judgeLine(
+                    id = index,
+                    bpm = judgeLine_item["bpm"],
+                    notesAbove = [
+                        Chart_Objects_Phi.note(
+                            type = notesAbove_item["type"],
+                            time = notesAbove_item["time"],
+                            positionX = notesAbove_item["positionX"],
+                            holdTime = notesAbove_item["holdTime"],
+                            speed = notesAbove_item["speed"],
+                            floorPosition = notesAbove_item["floorPosition"],
+                            effect_random_blocks = get_effect_random_blocks()
+                        )
+                        for notesAbove_item in judgeLine_item["notesAbove"]
+                    ],
+                    notesBelow = [
+                        Chart_Objects_Phi.note(
+                            type = notesBelow_item["type"],
+                            time = notesBelow_item["time"],
+                            positionX = notesBelow_item["positionX"],
+                            holdTime = notesBelow_item["holdTime"],
+                            speed = notesBelow_item["speed"],
+                            floorPosition = notesBelow_item["floorPosition"],
+                            effect_random_blocks = get_effect_random_blocks()
+                        )
+                        for notesBelow_item in judgeLine_item["notesBelow"]
+                    ],
+                    speedEvents = [
+                        Chart_Objects_Phi.speedEvent(
+                            startTime = speedEvent_item["startTime"],
+                            endTime = speedEvent_item["endTime"],
+                            value = speedEvent_item["value"],
+                            floorPosition = None
+                        )
+                        for speedEvent_item in judgeLine_item["speedEvents"]
+                    ],
+                    judgeLineMoveEvents=[
+                        Chart_Objects_Phi.judgeLineMoveEvent(
+                            startTime = judgeLineMoveEvent_item["startTime"],
+                            endTime = judgeLineMoveEvent_item["endTime"],
+                            start = judgeLineMoveEvent_item["start"],
+                            end = judgeLineMoveEvent_item["end"],
+                            start2 = judgeLineMoveEvent_item["start2"],
+                            end2 = judgeLineMoveEvent_item["end2"]
+                        )
+                        for judgeLineMoveEvent_item in judgeLine_item["judgeLineMoveEvents"]
+                    ],
+                    judgeLineRotateEvents=[
+                        Chart_Objects_Phi.judgeLineRotateEvent(
+                            startTime = judgeLineRotateEvent_item["startTime"],
+                            endTime = judgeLineRotateEvent_item["endTime"],
+                            start = judgeLineRotateEvent_item["start"],
+                            end = judgeLineRotateEvent_item["end"]
+                        )
+                        for judgeLineRotateEvent_item in judgeLine_item["judgeLineRotateEvents"]
+                    ],
+                    judgeLineDisappearEvents=[
+                        Chart_Objects_Phi.judgeLineDisappearEvent(
+                            startTime = judgeLineDisappearEvent_item["startTime"],
+                            endTime = judgeLineDisappearEvent_item["endTime"],
+                            start = judgeLineDisappearEvent_item["start"],
+                            end = judgeLineDisappearEvent_item["end"]
+                        )
+                        for judgeLineDisappearEvent_item in judgeLine_item["judgeLineDisappearEvents"]
+                    ]
+                )
+                for index,judgeLine_item in enumerate(phigros_chart["judgeLineList"])
+            ]
+        )
+        
+        #初始化
+        for judgeLine in chart_object.judgeLineList:
+            #为每个事件排序
+            judgeLine.judgeLineMoveEvents.sort(key = lambda x:x.startTime)
+            judgeLine.judgeLineRotateEvents.sort(key = lambda x:x.startTime)
+            judgeLine.judgeLineDisappearEvents.sort(key = lambda x:x.startTime)
+            
+            #计算事件单位
+            judgeLine.T = 1.875 / judgeLine.bpm
+            
+            #初始化每个SpeedEvent的floorPosition
+            speed_event_floorPosition = 0.0
+            for se in judgeLine.speedEvents:
+                se.floorPosition = speed_event_floorPosition
+                speed_event_floorPosition += (
+                    (se.endTime - se.startTime)
+                    / judgeLine.T
+                    * (se.value)
+                )
+            
+            #为每个Note设置master
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                note.master = judgeLine
+            
+        #初始化每个Hold的长度
+        chart_object.init_holdlength(PHIGROS_Y)
+    
+def Load_Resources():
+    global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
+    Note_width = int(PHIGROS_X * 1.75)
+    ClickEffect_Size = int(Note_width * 1.5)
+    Resource = {
+        "Notes":{
+            "Tap":Image.open("./Resources/Notes/Tap.png"),
+            "Tap_dub":Image.open("./Resources/Notes/Tap_dub.png"),
+            "Drag":Image.open("./Resources/Notes/Drag.png"),
+            "Drag_dub":Image.open("./Resources/Notes/Drag_dub.png"),
+            "Flick":Image.open("./Resources/Notes/Flick.png"),
+            "Flick_dub":Image.open("./Resources/Notes/Flick_dub.png"),
+            "Hold_Head":Image.open("./Resources/Notes/Hold_Head.png"),
+            "Hold_Head_dub":Image.open("./Resources/Notes/Hold_Head_dub.png"),
+            "Hold_End":Image.open("./Resources/Notes/Hold_End.png"),
+            "Hold_End_dub":Image.open("./Resources/Notes/Hold_End_dub.png"),
+            "Hold_Body":Image.open("./Resources/Notes/Hold_Body.png"),
+            "Hold_Body_dub":Image.open("./Resources/Notes/Hold_Body_dub.png")
+        },
+        "Note_Click_Effect":{
+            "Perfect":[
+                Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png")
+                for i in range(1,31)
+            ]
+        }
+    }
+    
+    for key,value in Resource["Notes"].items(): #修改资源尺寸
+        if value.width > Note_width:
+            Resource["Notes"][key] = value.resize((Note_width,int(Note_width / value.width * value.height)))
+        window.reg_img(Resource["Notes"][key],f"Note_{key}") #注册资源
+    
+    for i in range(30):
+        window.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}") #注册资源
+    with open("./Resources/font.ttf","rb") as f:
+        window.reg_res(f.read(),"PhigrosFont") #注册资源
+    window.load_allimg() #加载全部由reg_img注册的资源
+    window.run_js_code(f"loadFont('PhigrosFont',\"{window.get_resource_path("PhigrosFont")}\");") #加载字体
+    while not window.run_js_code("font_loaded;"):
+        sleep(0.1)
+    window.shutdown_fileserver()
+    note_max_width = max(
+        [
+            Resource["Notes"]["Tap"].width,
+            Resource["Notes"]["Tap_dub"].width,
+            Resource["Notes"]["Drag"].width,
+            Resource["Notes"]["Drag_dub"].width,
+            Resource["Notes"]["Flick"].width,
+            Resource["Notes"]["Flick_dub"].width,
+            Resource["Notes"]["Hold_Head"].width,
+            Resource["Notes"]["Hold_Head_dub"].width,
+            Resource["Notes"]["Hold_End"].width
+        ]
+    )
+    note_max_height = max(
+        [
+            Resource["Notes"]["Tap"].height,
+            Resource["Notes"]["Tap_dub"].height,
+            Resource["Notes"]["Drag"].height,
+            Resource["Notes"]["Drag_dub"].height,
+            Resource["Notes"]["Flick"].height,
+            Resource["Notes"]["Flick_dub"].height,
+            Resource["Notes"]["Hold_Head"].height,
+            Resource["Notes"]["Hold_Head_dub"].height,
+            Resource["Notes"]["Hold_End"].height
+        ]
+    )
+    note_max_width_half = note_max_width / 2
+    note_max_height_half = note_max_height / 2
+    return Resource
+
+def Window_Resize_Callback(width,height):
+    global w,h
+    global PHIGROS_X, PHIGROS_Y
+    w, h = width, height
+    PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h  #虽然说更改常量是一件不好的事情
+    chart_object.init_holdlength(PHIGROS_Y)
+
+def Init_Window_Style():
+    window_hwnd = window.winfo_hwnd()
+    window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
+    SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU)
+
+window = web_canvas.WebCanvas( #创建窗口
+    width = 1,
+    height = 1,
+    x = 0,
+    y = 0,
+    title = "Python Phigros Chart Render Example"
+)
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+w,h = int(screen_width * 0.65), int(screen_height * 0.65) #定义窗口大小
+
+window.resize(w,h)
+w_legacy,h_legacy = window.winfo_legacywindowwidth(), window.winfo_legacywindowheight()
+dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
+window.resize(w + dw_legacy,h + dh_legacy)
+window.move(int(screen_width / 2 - (w + dw_legacy) / 2), int(screen_height / 2 - (h + dh_legacy) / 2))
+del w_legacy,h_legacy,dw_legacy,dh_legacy
+
+PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h
+window.reg_event("resized", Window_Resize_Callback) #注册事件
+Init_Window_Style() #使用win32api更改窗口样式
+
+Init_Phigros_ChartObject()
+Resource = Load_Resources() #加载资源
+window.loop_to_close()
+windll.kernel32.ExitProcess(0)
+```
+
+### Step 4
+- 让我们初步渲染判定线
+    - 增加`Main`函数, 用于渲染
+- 让我们定义一个函数:
+    ```
+    def linear_interpolation(
+        t:float,
+        st:float,
+        et:float,
+        sv:float,
+        ev:float
+    ) -> float:
+        if t == st: return sv
+        return (t - st) / (et - st) * (ev - sv) + sv
+    ```
+    这个函数用于事件的线性插值
+- 让我们再定义一个函数:
+    ```
+    def rotate_point(x,y,θ,r) -> float:
+        xo = r * math.cos(math.radians(θ))
+        yo = r * math.sin(math.radians(θ))
+        return x + xo,y + yo
+    ```
+    旋转一个点
+- 再让我们定义一个值`JUDGELINE_WIDTH`, 为`h * 0.0075`, 判定线的宽度
+- 补充:
+    - 一些`WebCanvas`中的方法有`wait_execute`或`add_code_array`, 作用为添加到代码执行的队伍中, 不会立刻执行, 只有在调用`WebCanvas.run_js_wait_code` 时才会一并执行
+```python
+from sys import argv
+from threading import Thread
+from ctypes import windll
+from random import randint
+from time import time, sleep
+import math
+import json
+import typing
+
+from PIL import Image
+from win32api import GetWindowLong, SetWindowLong
+import win32con
+
+import web_canvas
+import Chart_Objects_Phi
+
+if len(argv) < 2:
+    print("Usage: python docs_phi_render_example.py <PhigrosChartFile>")
+    raise SystemExit
+
+def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
+    return tuple((randint(1,90) for _ in range(4)))
+
+def linear_interpolation(
+    t:float,
+    st:float,
+    et:float,
+    sv:float,
+    ev:float
+) -> float:
+    if t == st: return sv
+    return (t - st) / (et - st) * (ev - sv) + sv
+
+def rotate_point(x,y,θ,r) -> float:
+    xo = r * math.cos(math.radians(θ))
+    yo = r * math.sin(math.radians(θ))
+    return x + xo,y + yo
+
+def Init_Phigros_ChartObject():
+    global chart_object
+    with open(argv[1], "r") as f: #加载谱面对象
+        phigros_chart = json.load(f)
+        chart_object = Chart_Objects_Phi.Phigros_Chart(
+            formatVersion = phigros_chart["formatVersion"],
+            offset = phigros_chart["offset"],
+            judgeLineList = [
+                Chart_Objects_Phi.judgeLine(
+                    id = index,
+                    bpm = judgeLine_item["bpm"],
+                    notesAbove = [
+                        Chart_Objects_Phi.note(
+                            type = notesAbove_item["type"],
+                            time = notesAbove_item["time"],
+                            positionX = notesAbove_item["positionX"],
+                            holdTime = notesAbove_item["holdTime"],
+                            speed = notesAbove_item["speed"],
+                            floorPosition = notesAbove_item["floorPosition"],
+                            effect_random_blocks = get_effect_random_blocks()
+                        )
+                        for notesAbove_item in judgeLine_item["notesAbove"]
+                    ],
+                    notesBelow = [
+                        Chart_Objects_Phi.note(
+                            type = notesBelow_item["type"],
+                            time = notesBelow_item["time"],
+                            positionX = notesBelow_item["positionX"],
+                            holdTime = notesBelow_item["holdTime"],
+                            speed = notesBelow_item["speed"],
+                            floorPosition = notesBelow_item["floorPosition"],
+                            effect_random_blocks = get_effect_random_blocks()
+                        )
+                        for notesBelow_item in judgeLine_item["notesBelow"]
+                    ],
+                    speedEvents = [
+                        Chart_Objects_Phi.speedEvent(
+                            startTime = speedEvent_item["startTime"],
+                            endTime = speedEvent_item["endTime"],
+                            value = speedEvent_item["value"],
+                            floorPosition = None
+                        )
+                        for speedEvent_item in judgeLine_item["speedEvents"]
+                    ],
+                    judgeLineMoveEvents=[
+                        Chart_Objects_Phi.judgeLineMoveEvent(
+                            startTime = judgeLineMoveEvent_item["startTime"],
+                            endTime = judgeLineMoveEvent_item["endTime"],
+                            start = judgeLineMoveEvent_item["start"],
+                            end = judgeLineMoveEvent_item["end"],
+                            start2 = judgeLineMoveEvent_item["start2"],
+                            end2 = judgeLineMoveEvent_item["end2"]
+                        )
+                        for judgeLineMoveEvent_item in judgeLine_item["judgeLineMoveEvents"]
+                    ],
+                    judgeLineRotateEvents=[
+                        Chart_Objects_Phi.judgeLineRotateEvent(
+                            startTime = judgeLineRotateEvent_item["startTime"],
+                            endTime = judgeLineRotateEvent_item["endTime"],
+                            start = judgeLineRotateEvent_item["start"],
+                            end = judgeLineRotateEvent_item["end"]
+                        )
+                        for judgeLineRotateEvent_item in judgeLine_item["judgeLineRotateEvents"]
+                    ],
+                    judgeLineDisappearEvents=[
+                        Chart_Objects_Phi.judgeLineDisappearEvent(
+                            startTime = judgeLineDisappearEvent_item["startTime"],
+                            endTime = judgeLineDisappearEvent_item["endTime"],
+                            start = judgeLineDisappearEvent_item["start"],
+                            end = judgeLineDisappearEvent_item["end"]
+                        )
+                        for judgeLineDisappearEvent_item in judgeLine_item["judgeLineDisappearEvents"]
+                    ]
+                )
+                for index,judgeLine_item in enumerate(phigros_chart["judgeLineList"])
+            ]
+        )
+        
+        #初始化
+        for judgeLine in chart_object.judgeLineList:
+            #为每个事件排序
+            judgeLine.judgeLineMoveEvents.sort(key = lambda x:x.startTime)
+            judgeLine.judgeLineRotateEvents.sort(key = lambda x:x.startTime)
+            judgeLine.judgeLineDisappearEvents.sort(key = lambda x:x.startTime)
+            
+            #计算事件单位
+            judgeLine.T = 1.875 / judgeLine.bpm
+            
+            #初始化每个SpeedEvent的floorPosition
+            speed_event_floorPosition = 0.0
+            for se in judgeLine.speedEvents:
+                se.floorPosition = speed_event_floorPosition
+                speed_event_floorPosition += (
+                    (se.endTime - se.startTime)
+                    / judgeLine.T
+                    * (se.value)
+                )
+            
+            #为每个Note设置master
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                note.master = judgeLine
+            
+        #初始化每个Hold的长度
+        chart_object.init_holdlength(PHIGROS_Y)
+    
+def Load_Resources():
+    global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
+    Note_width = int(PHIGROS_X * 1.75)
+    ClickEffect_Size = int(Note_width * 1.5)
+    Resource = {
+        "Notes":{
+            "Tap":Image.open("./Resources/Notes/Tap.png"),
+            "Tap_dub":Image.open("./Resources/Notes/Tap_dub.png"),
+            "Drag":Image.open("./Resources/Notes/Drag.png"),
+            "Drag_dub":Image.open("./Resources/Notes/Drag_dub.png"),
+            "Flick":Image.open("./Resources/Notes/Flick.png"),
+            "Flick_dub":Image.open("./Resources/Notes/Flick_dub.png"),
+            "Hold_Head":Image.open("./Resources/Notes/Hold_Head.png"),
+            "Hold_Head_dub":Image.open("./Resources/Notes/Hold_Head_dub.png"),
+            "Hold_End":Image.open("./Resources/Notes/Hold_End.png"),
+            "Hold_End_dub":Image.open("./Resources/Notes/Hold_End_dub.png"),
+            "Hold_Body":Image.open("./Resources/Notes/Hold_Body.png"),
+            "Hold_Body_dub":Image.open("./Resources/Notes/Hold_Body_dub.png")
+        },
+        "Note_Click_Effect":{
+            "Perfect":[
+                Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png")
+                for i in range(1,31)
+            ]
+        }
+    }
+    
+    for key,value in Resource["Notes"].items(): #修改资源尺寸
+        if value.width > Note_width:
+            Resource["Notes"][key] = value.resize((Note_width,int(Note_width / value.width * value.height)))
+        window.reg_img(Resource["Notes"][key],f"Note_{key}") #注册资源
+    
+    for i in range(30):
+        window.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}") #注册资源
+    with open("./Resources/font.ttf","rb") as f:
+        window.reg_res(f.read(),"PhigrosFont") #注册资源
+    window.load_allimg() #加载全部由reg_img注册的资源
+    window.run_js_code(f"loadFont('PhigrosFont',\"{window.get_resource_path("PhigrosFont")}\");") #加载字体
+    while not window.run_js_code("font_loaded;"):
+        sleep(0.1)
+    window.shutdown_fileserver()
+    note_max_width = max(
+        [
+            Resource["Notes"]["Tap"].width,
+            Resource["Notes"]["Tap_dub"].width,
+            Resource["Notes"]["Drag"].width,
+            Resource["Notes"]["Drag_dub"].width,
+            Resource["Notes"]["Flick"].width,
+            Resource["Notes"]["Flick_dub"].width,
+            Resource["Notes"]["Hold_Head"].width,
+            Resource["Notes"]["Hold_Head_dub"].width,
+            Resource["Notes"]["Hold_End"].width
+        ]
+    )
+    note_max_height = max(
+        [
+            Resource["Notes"]["Tap"].height,
+            Resource["Notes"]["Tap_dub"].height,
+            Resource["Notes"]["Drag"].height,
+            Resource["Notes"]["Drag_dub"].height,
+            Resource["Notes"]["Flick"].height,
+            Resource["Notes"]["Flick_dub"].height,
+            Resource["Notes"]["Hold_Head"].height,
+            Resource["Notes"]["Hold_Head_dub"].height,
+            Resource["Notes"]["Hold_End"].height
+        ]
+    )
+    note_max_width_half = note_max_width / 2
+    note_max_height_half = note_max_height / 2
+    return Resource
+
+def Window_Resize_Callback(width,height):
+    global w,h
+    global PHIGROS_X, PHIGROS_Y
+    w, h = width, height
+    PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h  #虽然说更改常量是一件不好的事情
+    chart_object.init_holdlength(PHIGROS_Y)
+
+def Init_Window_Style():
+    window_hwnd = window.winfo_hwnd()
+    window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
+    SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU)
+
+def Main():
+    render_st = time()
+    while True:
+        now_t = time() - render_st
+        
+        #清空WebCanvas 并填充黑色背景
+        window.clear_canvas(wait_execute = True)
+        window.create_rectangle(
+            0, 0,
+            w, h,
+            strokeStyle = "#00000000",
+            fillStyle = "#000000",
+            wait_execute = True
+        )
+        
+        for judgeLine in chart_object.judgeLineList:
+            chart_time = now_t / judgeLine.T
+            
+            #渲染判定线
+            judgeLine_x, judgeLine_y = w / 2, h / 2 #默认值 防止事件不规范时
+            judgeLine_rotate = 0.0
+            judgeLine_alpha = 0.0
+            
+            for e in judgeLine.judgeLineMoveEvents: #计算判定线坐标
+                if e.startTime <= chart_time <= e.endTime:
+                    judgeLine_x, judgeLine_y = (
+                        linear_interpolation(chart_time, e.startTime, e.endTime, e.start, e.end) * w,
+                        h - linear_interpolation(chart_time, e.startTime, e.endTime, e.start2, e.end2) * h
+                    )
+                    break
+            
+            for e in judgeLine.judgeLineRotateEvents: #计算判定线旋转角度
+                if e.startTime <= chart_time <= e.endTime:
+                    judgeLine_rotate = linear_interpolation(chart_time, e.startTime, e.endTime, e.start, e.end)
+                    break
+            
+            for e in judgeLine.judgeLineDisappearEvents: #计算判定线透明度
+                if e.startTime <= chart_time <= e.endTime:
+                    judgeLine_alpha = linear_interpolation(chart_time, e.startTime, e.endTime, e.start, e.end)
+                    break
+            
+            if judgeLine_alpha > 0.0:
+                judgeLine_strokeStyle = (254,255,169,judgeLine_alpha) #判定线颜色
+                window.create_line(
+                    *rotate_point(judgeLine_x, judgeLine_y, judgeLine_rotate, h * 5.67), #h * 5.67 是判定线的长度
+                    *rotate_point(judgeLine_x, judgeLine_y, judgeLine_rotate + 180, h * 5.67),
+                    lineWidth = JUDGELINE_WIDTH,
+                    strokeStyle = f"rgba{judgeLine_strokeStyle}",
+                    wait_execute = True
+                )
+        
+        #渲染
+        window.run_js_wait_code()
+
+window = web_canvas.WebCanvas( #创建窗口
+    width = 1,
+    height = 1,
+    x = 0,
+    y = 0,
+    title = "Python Phigros Chart Render Example"
+)
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+w,h = int(screen_width * 0.65), int(screen_height * 0.65) #定义窗口大小
+
+window.resize(w,h)
+w_legacy,h_legacy = window.winfo_legacywindowwidth(), window.winfo_legacywindowheight()
+dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
+window.resize(w + dw_legacy,h + dh_legacy)
+window.move(int(screen_width / 2 - (w + dw_legacy) / 2), int(screen_height / 2 - (h + dh_legacy) / 2))
+del w_legacy,h_legacy,dw_legacy,dh_legacy
+
+PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h
+JUDGELINE_WIDTH = h * 0.0075
+window.reg_event("resized", Window_Resize_Callback) #注册事件
+Init_Window_Style() #使用win32api更改窗口样式
+
+Init_Phigros_ChartObject()
+Resource = Load_Resources() #加载资源
+Thread(target = Main, daemon = True).start() #开始渲染
+window.loop_to_close()
+windll.kernel32.ExitProcess(0)
+```
+
+### Step 5
+等我明天写......
 
 ## 一些使用技巧
 - 在使用命令行参数并要使用一些值时, 可输入 `Python` 的表达式, 也可使用 `Const` 模块的一些值, 如: `Const.INF` 等等...

@@ -175,7 +175,7 @@ class WebCanvas:
         self,
         width:int,height:int
     ):
-        self._web.set_window_size(width=width,height=height)
+        self._web.resize(width=width,height=height)
     
     def move(
         self,
@@ -527,7 +527,7 @@ class WebCanvas:
     def _init(
         self
     ) -> None:
-        self._web.set_window_size(width=self._web_init_var["width"],height=self._web_init_var["height"])
+        self._web.resize(width=self._web_init_var["width"],height=self._web_init_var["height"])
         self._web.move(x=self._web_init_var["x"],y=self._web_init_var["y"])
         self._web_init_var = None
         self._web.events.closed += self._closed_callback
