@@ -722,7 +722,7 @@ def GetFrameRenderTask_Phi(
                 if note_iscan_render:
                     judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
                     dub_text = "_dub" if note_item.morebets else ""
-                    if not note_ishold:
+                    if not this_note_ishold:
                         this_note_img_keyname = f"{note_type}{dub_text}"
                         this_note_img = Resource["Notes"][this_note_img_keyname]
                         this_note_imgname = f"Note_{this_note_img_keyname}"
