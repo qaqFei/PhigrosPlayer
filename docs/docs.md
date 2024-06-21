@@ -214,7 +214,7 @@ pip install pywin32
 ------
 <font color=#FF0000>注意: 该示例中的变量名可能会与[Main.py](./../Main.py)中的变量名一致, 但含义不同</font>
 
-让我们开始一步步地编写吧, 但是我们不做任何的异常处理, 且只兼容`formatVersion`为3的谱面(最为常见), 最终的文件: [Python Phigros Chart Render Example](./Python Phigros Chart Render Example/Python Phigros Chart Render Example].py)
+让我们开始一步步地编写吧, 但是我们不做任何的异常处理, 且只兼容`formatVersion`为3的谱面(最为常见), 最终的文件: [Python Phigros Chart Render Example](./Python Phigros Chart Render Example/Python Phigros Chart Render Example.py)
 
 ### Step 1
 - 让我们导入基本的模块, 并创建一个简单的`WebView`窗口
