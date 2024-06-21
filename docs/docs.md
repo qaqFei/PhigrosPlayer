@@ -212,7 +212,7 @@ pip install pywin32
 ```
 
 ------
-
+<font color=#FF0000>注意: 该示例中的变量名可能会与[Main.py](./../Main.py)中的变量名一致, 但含义不同</font>
 让我们开始一步步地编写吧, 但是我们不做任何的异常处理, 且只兼容`formatVersion`为3的谱面(最为常见), 最终的文件: [Python Phigros Chart Render Example](./../docs_phi_render_example.py)
 
 ### Step 1
@@ -2386,6 +2386,11 @@ Thread(target = Main, daemon = True).start() #开始渲染
 window.loop_to_close()
 windll.kernel32.ExitProcess(0)
 ```
+
+### Step 7
+- 至此, 我们已经完成了判定线, Note和渲染, 让我们完成最后的打击特效渲染吧!
+
+等我明天写......
 
 ## 一些使用技巧
 - 在使用命令行参数并要使用一些值时, 可输入 `Python` 的表达式, 也可使用 `Const` 模块的一些值, 如: `Const.INF` 等等...
