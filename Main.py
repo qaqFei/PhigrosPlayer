@@ -695,6 +695,9 @@ def GetFrameRenderTask_Phi(
                         Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
                         Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
                     )
+                    
+                    if note_item.floorPosition == 12.378947 and note_item.holdTime == 224.0:
+                        print(x,y,note_now_floorPosition)
                 
                 if not render_range_more:
                     note_iscan_render = (

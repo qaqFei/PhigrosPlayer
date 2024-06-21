@@ -383,11 +383,15 @@ def Main():
                 note_dy_px:float
             ):
                 this_note_sectime = note_item.time * judgeLine.T
+                this_noteitem_clicked = this_note_sectime < now_t
                 is_hold = note_item.type == Const.Note.HOLD
-                if is_hold:
-                    return None
                 
-                if not is_hold and this_note_sectime - now_t < 0.0:
+                if not note_item.clicked and this_noteitem_clicked:
+                    note_item.clicked = True #更新clicked状态
+                
+                if not is_hold and note_item.clicked:
+                    return None
+                elif is_hold and now_t > note_item.hold_endtime:
                     return None
 
                 note_type = {
@@ -402,7 +406,7 @@ def Main():
                         if not (is_hold and note_item.clicked) else ( #是Hold, 且已打击
                         Cal_judgeLine_NoteDy_ByTime(
                             judgeLine, note_item.time #计算note开始时的距离
-                        ) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec)) #计算Hold的距离
+                        ) * PHIGROS_Y + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec)) #计算Hold的距离
                     )
                 )
                 rotatenote_at_judgeLine_pos = rotate_point(
@@ -431,7 +435,7 @@ def Main():
                         rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
                         rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
                     )
-                
+                    
                 note_iscan_render = (
                     Note_CanRender(x,y)
                     if not is_hold
@@ -469,7 +473,41 @@ def Main():
                             );",
                             add_code_array = True
                         )
-            
+                    
+                    if is_hold:
+                        if note_item.clicked:
+                            holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
+                            holdbody_length = note_hold_draw_length - this_note_img_end.height / 2
+                        else:
+                            holdbody_x,holdbody_y = rotate_point(
+                                *holdhead_pos,judgeLine_to_note_rotate_deg,this_note_img.height / 2
+                            )
+                            holdbody_length = note_item.hold_length_px - this_note_img.height / 2 - this_note_img_end.height / 2
+                    
+                        window.run_js_code(
+                            f"ctx.drawRotateImage(\
+                                {window.get_img_jsvarname(this_note_imgname_end)},\
+                                {holdend_x},\
+                                {holdend_y},\
+                                {Note_width},\
+                                {Note_width / this_note_img_end.width * this_note_img_end.height},\
+                                {note_to_judgeLine_rotate}\
+                            );",
+                            add_code_array = True
+                        )
+                            
+                        if holdbody_length > 0.0:
+                            window.run_js_code(
+                                f"ctx.drawAnchorESRotateImage(\
+                                    {window.get_img_jsvarname(this_note_imgname_body)},\
+                                    {holdbody_x},\
+                                    {holdbody_y},\
+                                    {Note_width},\
+                                    {holdbody_length},\
+                                    {note_to_judgeLine_rotate}\
+                                );",
+                                add_code_array = True
+                            )
             note_dy = Cal_judgeLine_NoteDy_ByTime(judgeLine, chart_time)
             note_dy_px = note_dy * PHIGROS_Y
             
