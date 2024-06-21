@@ -13,6 +13,7 @@ import win32con
 
 import web_canvas
 import Chart_Objects_Phi
+import Const
 
 if len(argv) < 2:
     print("Usage: python docs_phi_render_example.py <PhigrosChartFile>")
@@ -137,7 +138,24 @@ def Init_Phigros_ChartObject():
             #为每个Note设置master
             for note in judgeLine.notesAbove + judgeLine.notesBelow:
                 note.master = judgeLine
-            
+        
+        #寻找多押
+        notes = []
+        for judgeLine in chart_object.judgeLineList:
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                notes.append(note)
+        note_times = {}
+        for note in notes:
+            note:Chart_Objects_Phi.note
+            if note.time not in note_times:
+                note_times[note.time] = 1
+            else:
+                note_times[note.time] += 1
+        for note in notes:
+            if note_times[note.time] > 1:
+                note.morebets = True
+        del notes,note_times
+        
         #初始化每个Hold的长度
         chart_object.init_holdlength(PHIGROS_Y)
     
@@ -224,7 +242,91 @@ def Init_Window_Style():
     window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
     SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU)
 
-def Main():
+def Note_CanRender(
+    x:float,y:float,
+    hold_points:typing.Union[typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float],
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ],None] = None
+) -> bool:
+    if hold_points is None: # type != HOLD
+        if (
+            (0 < x < w and 0 < y < h) or
+            (0 < x - note_max_width_half < w and 0 < y - note_max_height_half < h) or 
+            (0 < x - note_max_width_half < w and 0 < y + note_max_height_half < h) or
+            (0 < x + note_max_width_half < w and 0 < y - note_max_height_half < h) or
+            (0 < x + note_max_width_half < w and 0 < y + note_max_height_half < h)
+        ):
+            return True
+        return False
+    else:
+        if any((point_in_screen(point) for point in hold_points)):
+            return True
+        return any(batch_is_intersect(
+            [
+                [hold_points[0],hold_points[1]],
+                [hold_points[1],hold_points[2]],
+                [hold_points[2],hold_points[3]],
+                [hold_points[3],hold_points[0]]
+            ],
+            [
+                [(0,0),(w,0)],[(0,0),(0,h)],
+                [(w,0),(w,h)],[(0,h),(w,h)]
+            ]
+        ))
+
+def batch_is_intersect(
+    lines_group_1:typing.List[typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ]],
+    lines_group_2:typing.List[typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ]]
+) -> typing.Generator[bool,None,None]:
+    for i in lines_group_1:
+        for j in lines_group_2:
+            yield is_intersect(i,j)
+
+def is_intersect(
+    line_1:typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ],
+    line_2:typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ]
+) -> bool:
+    if (
+        max(line_1[0][0],line_1[1][0]) < min(line_2[0][0],line_2[1][0]) or
+        max(line_2[0][0],line_2[1][0]) < min(line_1[0][0],line_1[1][0]) or
+        max(line_1[0][1],line_1[1][1]) < min(line_2[0][1],line_2[1][1]) or
+        max(line_2[0][1],line_2[1][1]) < min(line_1[0][1],line_1[1][1])
+    ):
+        return False
+    else:
+        return True
+
+def point_in_screen(point:typing.Tuple[float,float]) -> bool:
+    return 0 < point[0] < w and 0 < point[1] < h
+
+def Cal_judgeLine_NoteDy_ByTime(
+    judgeLine:Chart_Objects_Phi.judgeLine,
+    time:float
+) -> float:
+    note_dy = 0.0 #note走过的距离
+    for e in judgeLine.speedEvents:
+        if e.startTime <= time <= e.endTime:
+            note_dy += (time - e.startTime) * judgeLine.T * e.value
+        elif e.endTime <= time:
+            note_dy += (e.endTime - e.startTime) * judgeLine.T * e.value
+    return note_dy
+
+def Main():      
     render_st = time()
     while True:
         now_t = time() - render_st
@@ -268,12 +370,114 @@ def Main():
             if judgeLine_alpha > 0.0:
                 judgeLine_strokeStyle = (254,255,169,judgeLine_alpha) #判定线颜色
                 window.create_line(
-                    *rotate_point(judgeLine_x, judgeLine_y, judgeLine_rotate, h * 5.67), #h * 5.67 是判定线的长度
-                    *rotate_point(judgeLine_x, judgeLine_y, judgeLine_rotate + 180, h * 5.67),
+                    *rotate_point(judgeLine_x, judgeLine_y, - judgeLine_rotate, h * 5.67), #h * 5.67 是判定线的长度
+                    *rotate_point(judgeLine_x, judgeLine_y, - judgeLine_rotate + 180, h * 5.67),
                     lineWidth = JUDGELINE_WIDTH,
                     strokeStyle = f"rgba{judgeLine_strokeStyle}",
                     wait_execute = True
                 )
+            
+            def process_note(
+                note_item:Chart_Objects_Phi.note,
+                note_face_type:typing.Literal["above","below"],
+                note_dy_px:float
+            ):
+                this_note_sectime = note_item.time * judgeLine.T
+                is_hold = note_item.type == Const.Note.HOLD
+                if is_hold:
+                    return None
+                
+                if not is_hold and this_note_sectime - now_t < 0.0:
+                    return None
+
+                note_type = {
+                    Const.Note.TAP:"Tap",
+                    Const.Note.DRAG:"Drag",
+                    Const.Note.HOLD:"Hold",
+                    Const.Note.FLICK:"Flick"
+                }[note_item.type]
+                
+                note_to_judgeLine_px = note_item.floorPosition * PHIGROS_Y - (
+                        note_dy_px
+                        if not (is_hold and note_item.clicked) else ( #是Hold, 且已打击
+                        Cal_judgeLine_NoteDy_ByTime(
+                            judgeLine, note_item.time #计算note开始时的距离
+                        ) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec)) #计算Hold的距离
+                    )
+                )
+                rotatenote_at_judgeLine_pos = rotate_point(
+                    judgeLine_x, judgeLine_y, -judgeLine_rotate, note_item.positionX * PHIGROS_X
+                ) #计算note在判定线上的位置
+                judgeLine_to_note_rotate_deg = - judgeLine_rotate + (180 if note_face_type == "below" else 0) - 90 #note要相对于判定线旋转的角度
+                x,y = rotate_point(
+                    *rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_to_judgeLine_px
+                ) #计算绘制中心坐标
+                
+                if is_hold:
+                    note_hold_draw_length = note_to_judgeLine_px + note_item.hold_length_px #计算Hold尾对于判定线的距离
+                    if note_hold_draw_length >= 0: #打击未结束时
+                        holdend_x,holdend_y = rotate_point(
+                            *rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_hold_draw_length
+                        ) #计算Hold尾坐标
+                    else:
+                        holdend_x,holdend_y = rotatenote_at_judgeLine_pos #Hold尾坐标在判定线上
+                    if note_to_judgeLine_px >= 0: #未打击时
+                        holdhead_pos = x,y
+                    else: #打击未结束时
+                        holdhead_pos = rotatenote_at_judgeLine_pos
+                    holdbody_range = ( #Hold的渲染范围
+                        rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg - 90, Note_width / 2),
+                        rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg - 90, Note_width / 2),
+                        rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
+                        rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
+                    )
+                
+                note_iscan_render = (
+                    Note_CanRender(x,y)
+                    if not is_hold
+                    else Note_CanRender(x,y,holdbody_range)
+                )
+                
+                if note_iscan_render:
+                    note_to_judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360 #计算note的旋转角度
+                    dub_text = "_dub" if note_item.morebets else ""
+                    if not is_hold:
+                        this_note_img_keyname = f"{note_type}{dub_text}"
+                        this_note_img = Resource["Notes"][this_note_img_keyname]
+                        this_note_imgname = f"Note_{this_note_img_keyname}"
+                    else:
+                        this_note_img_keyname = f"{note_type}_Head{dub_text}"
+                        this_note_img = Resource["Notes"][this_note_img_keyname]
+                        this_note_imgname = f"Note_{this_note_img_keyname}"
+                        
+                        this_note_img_body_keyname = f"{note_type}_Body{dub_text}"
+                        this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
+                        
+                        this_note_img_end_keyname = f"{note_type}_End{dub_text}"
+                        this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
+                        this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
+                    
+                    if not (is_hold and this_note_sectime < now_t):
+                        window.run_js_code(
+                            f"ctx.drawRotateImage(\
+                                {window.get_img_jsvarname(this_note_imgname)},\
+                                {x},\
+                                {y},\
+                                {Note_width},\
+                                {Note_width / this_note_img.width * this_note_img.height},\
+                                {note_to_judgeLine_rotate}\
+                            );",
+                            add_code_array = True
+                        )
+            
+            note_dy = Cal_judgeLine_NoteDy_ByTime(judgeLine, chart_time)
+            note_dy_px = note_dy * PHIGROS_Y
+            
+            for note in judgeLine.notesAbove:
+                process_note(note, "above", note_dy_px)
+            
+            for note in judgeLine.notesBelow:
+                process_note(note, "below", note_dy_px)
         
         #渲染
         window.run_js_wait_code()

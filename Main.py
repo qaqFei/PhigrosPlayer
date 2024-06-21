@@ -488,13 +488,14 @@ def draw_background():
     root.create_image("background",0,0,w,h,wait_execute=True)
 
 def Note_CanRender(
-        x:float,y:float,
-        hold_points:typing.Union[typing.Tuple[
-            typing.Tuple[float,float],
-            typing.Tuple[float,float],
-            typing.Tuple[float,float],
-            typing.Tuple[float,float]
-        ],None] = None) -> bool:
+    x:float,y:float,
+    hold_points:typing.Union[typing.Tuple[
+        typing.Tuple[float,float],
+        typing.Tuple[float,float],
+        typing.Tuple[float,float],
+        typing.Tuple[float,float]
+    ],None] = None
+) -> bool:
     if hold_points is None: # type != HOLD
         if (
             (0 < x < w and 0 < y < h) or
@@ -671,7 +672,7 @@ def GetFrameRenderTask_Phi(
                 rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
                     *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
                 )
-                judgeLine_to_note_rotate_deg = - judgeLine_cfg["Rotate"] +( 180 if t == -1 else 0) - 90
+                judgeLine_to_note_rotate_deg = - judgeLine_cfg["Rotate"] + (180 if t == -1 else 0) - 90
                 x,y = Tool_Functions.rotate_point(
                     *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_now_floorPosition
                 )
@@ -721,7 +722,7 @@ def GetFrameRenderTask_Phi(
                 if note_iscan_render:
                     judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
                     dub_text = "_dub" if note_item.morebets else ""
-                    if note_item.type != Const.Note.HOLD:
+                    if not note_ishold:
                         this_note_img_keyname = f"{note_type}{dub_text}"
                         this_note_img = Resource["Notes"][this_note_img_keyname]
                         this_note_imgname = f"Note_{this_note_img_keyname}"
