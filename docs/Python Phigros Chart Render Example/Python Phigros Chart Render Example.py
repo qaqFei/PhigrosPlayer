@@ -193,12 +193,7 @@ def Load_Resources():
     
     for i in range(30):
         window.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}") #注册资源
-    with open("./Resources/font.ttf","rb") as f:
-        window.reg_res(f.read(),"PhigrosFont") #注册资源
     window.load_allimg() #加载全部由reg_img注册的资源
-    window.run_js_code(f"loadFont('PhigrosFont',\"{window.get_resource_path("PhigrosFont")}\");") #加载字体
-    while not window.run_js_code("font_loaded;"):
-        sleep(0.1)
     window.shutdown_fileserver()
     note_max_width = max(
         [

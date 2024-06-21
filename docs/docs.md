@@ -213,7 +213,8 @@ pip install pywin32
 
 ------
 <font color=#FF0000>注意: 该示例中的变量名可能会与[Main.py](./../Main.py)中的变量名一致, 但含义不同</font>
-让我们开始一步步地编写吧, 但是我们不做任何的异常处理, 且只兼容`formatVersion`为3的谱面(最为常见), 最终的文件: [Python Phigros Chart Render Example](./../docs_phi_render_example.py)
+
+让我们开始一步步地编写吧, 但是我们不做任何的异常处理, 且只兼容`formatVersion`为3的谱面(最为常见), 最终的文件: [Python Phigros Chart Render Example](./Python Phigros Chart Render Example/Python Phigros Chart Render Example].py)
 
 ### Step 1
 - 让我们导入基本的模块, 并创建一个简单的`WebView`窗口
@@ -632,12 +633,7 @@ def Load_Resources():
     
     for i in range(30):
         window.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}") #注册资源
-    with open("./Resources/font.ttf","rb") as f:
-        window.reg_res(f.read(),"PhigrosFont") #注册资源
     window.load_allimg() #加载全部由reg_img注册的资源
-    window.run_js_code(f"loadFont('PhigrosFont',\"{window.get_resource_path("PhigrosFont")}\");") #加载字体
-    while not window.run_js_code("font_loaded;"):
-        sleep(0.1)
     window.shutdown_fileserver()
     note_max_width = max(
         [
@@ -914,12 +910,7 @@ def Load_Resources():
     
     for i in range(30):
         window.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}") #注册资源
-    with open("./Resources/font.ttf","rb") as f:
-        window.reg_res(f.read(),"PhigrosFont") #注册资源
     window.load_allimg() #加载全部由reg_img注册的资源
-    window.run_js_code(f"loadFont('PhigrosFont',\"{window.get_resource_path("PhigrosFont")}\");") #加载字体
-    while not window.run_js_code("font_loaded;"):
-        sleep(0.1)
     window.shutdown_fileserver()
     note_max_width = max(
         [
@@ -1473,12 +1464,7 @@ def Load_Resources():
     
     for i in range(30):
         window.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}") #注册资源
-    with open("./Resources/font.ttf","rb") as f:
-        window.reg_res(f.read(),"PhigrosFont") #注册资源
     window.load_allimg() #加载全部由reg_img注册的资源
-    window.run_js_code(f"loadFont('PhigrosFont',\"{window.get_resource_path("PhigrosFont")}\");") #加载字体
-    while not window.run_js_code("font_loaded;"):
-        sleep(0.1)
     window.shutdown_fileserver()
     note_max_width = max(
         [
@@ -2030,12 +2016,7 @@ def Load_Resources():
     
     for i in range(30):
         window.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}") #注册资源
-    with open("./Resources/font.ttf","rb") as f:
-        window.reg_res(f.read(),"PhigrosFont") #注册资源
     window.load_allimg() #加载全部由reg_img注册的资源
-    window.run_js_code(f"loadFont('PhigrosFont',\"{window.get_resource_path("PhigrosFont")}\");") #加载字体
-    while not window.run_js_code("font_loaded;"):
-        sleep(0.1)
     window.shutdown_fileserver()
     note_max_width = max(
         [
