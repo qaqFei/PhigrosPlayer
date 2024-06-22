@@ -19,9 +19,6 @@ class note:
     clicked:bool = False
     morebets:bool = False
     master:typing.Union[judgeLine,None] = None
-    hold_end_clicked:bool = False
-    note_last_show_hold_effect_time:float = 0.0
-    is_will_click:bool = False
     hold_click_type:typing.Union[None,typing.Literal["Perfect","Good"]] = None
     show_effected = False
     show_effected_hold = False
