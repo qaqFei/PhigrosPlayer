@@ -2,8 +2,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 import typing
 
+import numba
+
 import Const
 import Tool_Functions
+
+def _get_datavar_rotate(events,time):
+    pass
+
+def _get_datavar_disappear(events,time):
+    pass
+
+def _get_datavar_move(events,time,w,h):
+    pass
 
 @dataclass
 class note:
@@ -145,12 +156,6 @@ class judgeLine:
                     h - Tool_Functions.interpolation_phi(now_time,move_event.startTime,move_event.endTime,move_event.start2,move_event.end2) * h
                 )
         return (w * 0.5,h * 0.5) #never
-
-    def get_datavar_speed(self,now_time):
-        for speed_event in self.speedEvents:
-            if speed_event.startTime <= now_time <= speed_event.endTime:
-               return speed_event.value
-        return 1.0 #never
 
 @dataclass
 class Phigros_Chart:

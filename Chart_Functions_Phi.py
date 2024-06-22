@@ -107,7 +107,7 @@ def Load_Chart_Object(phigros_chart):
                         startTime=speedEvent_item["startTime"],
                         endTime=speedEvent_item["endTime"],
                         value=speedEvent_item["value"],
-                        floorPosition=speedEvent_item["floorPosition"] if "floorPosition" in speedEvent_item else None
+                        floorPosition=None
                     )
                     for speedEvent_item in judgeLine_item["speedEvents"]
                 ],
