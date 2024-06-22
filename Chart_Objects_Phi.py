@@ -258,4 +258,16 @@ class FrameRenderTask:
             t.func(*t.args,**t.kwargs)
         self.RenderTasks.clear()
 
+@dataclass
+class judgeLine_Config_Item:
+    line:judgeLine
+    rotate:float
+    disappear:float
+    pos:typing.Tuple[float,float]
+    time:float
+
+@dataclass
+class judgeLine_Configs:
+    Configs:typing.List[judgeLine_Config_Item]
+
 del typing,dataclass

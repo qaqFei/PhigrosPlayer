@@ -583,20 +583,7 @@ def get_stringscore(score:float) -> str:
 
 def GetFrameRenderTask_Phi(
     now_t:float,
-    judgeLine_Configs:typing.Dict[
-        int,
-        typing.Dict[
-            str,
-            typing.Union[
-                Chart_Objects_Phi.judgeLine,
-                int,
-                float,
-                typing.Tuple[
-                    typing.Union[int,float],typing.Union[int,float]
-                ]
-            ]
-        ]
-    ],
+    judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,
     show_start_time:float
 ):
     GetFrameRenderTask_Phi_CallTime = time() #use in some extend
@@ -616,15 +603,15 @@ def GetFrameRenderTask_Phi(
             f"ctx.translate({fr_x},{fr_y});",
             add_code_array = True
         )
-    for judgeLine_cfg in judgeLine_Configs.values():
-        judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
+    for judgeLine_cfg in judgeLine_Configs.Configs:
+        judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
         this_judgeLine_T = judgeLine.T
-        judgeLine_note_dy = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,judgeLine_cfg["time"])
+        judgeLine_note_dy = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,judgeLine_cfg.time)
         judgeLine_DrawPos = (
-            *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
-            *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos,-judgeLine_cfg.rotate,5.76 * h),
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos,-judgeLine_cfg.rotate + 180,5.76 * h)
         )
-        judgeLine_strokeStyle = (254,255,169,judgeLine_cfg["Disappear"] if not judgeline_notransparent else 1.0)
+        judgeLine_strokeStyle = (254,255,169,judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
         if judgeLine_strokeStyle[-1] > 0.0 and show_judgeline:
             if judgeLine_can_render(judgeLine_DrawPos) or render_range_more:
                 if render_range_more:
@@ -676,9 +663,9 @@ def GetFrameRenderTask_Phi(
                 )
                 
                 rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
-                    *judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],note_item.positionX * PHIGROS_X
+                    *judgeLine_cfg.pos,-judgeLine_cfg.rotate,note_item.positionX * PHIGROS_X
                 )
-                judgeLine_to_note_rotate_deg = - judgeLine_cfg["Rotate"] + (180 if t == -1 else 0) - 90
+                judgeLine_to_note_rotate_deg = - judgeLine_cfg.rotate + (180 if t == -1 else 0) - 90
                 x,y = Tool_Functions.rotate_point(
                     *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_now_floorPosition
                 )
@@ -1181,17 +1168,18 @@ def PlayerStart_Phi():
 
     show_start_time = time()
     now_t = 0
-    judgeLine_Configs = {
-        judgeLine_item.__hash__():{
-            "judgeLine":judgeLine_item,
-            "Rotate":0.0,
-            "Disappear":1.0,
-            "Pos":(0,0),
-            "Speed":1.0,
-            "time":None
-        }
-        for judgeLine_item in phigros_chart_obj.judgeLineList
-    }
+    judgeLine_Configs = Chart_Objects_Phi.judgeLine_Configs(
+        [
+            Chart_Objects_Phi.judgeLine_Config_Item(
+                line = judgeLine,
+                rotate = 0.0,
+                disappear = 0.0,
+                pos = (0,0),
+                time = 0.0
+            )
+            for judgeLine in phigros_chart_obj.judgeLineList
+        ]
+    )
     
     if not lfdaot:
         mixer.music.play()
