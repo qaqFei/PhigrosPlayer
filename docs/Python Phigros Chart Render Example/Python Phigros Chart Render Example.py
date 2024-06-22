@@ -2,7 +2,7 @@ from sys import argv
 from threading import Thread
 from ctypes import windll
 from random import randint
-from time import time, sleep
+from time import time
 import math
 import json
 import typing
@@ -36,6 +36,9 @@ def rotate_point(x,y,θ,r) -> float:
     xo = r * math.cos(math.radians(θ))
     yo = r * math.sin(math.radians(θ))
     return x + xo,y + yo
+
+def ease_out(x:float) -> float:
+    return math.sqrt(1.0 - (1.0 - x) ** 2)
 
 def Init_Phigros_ChartObject():
     global chart_object
@@ -138,6 +141,24 @@ def Init_Phigros_ChartObject():
             #为每个Note设置master
             for note in judgeLine.notesAbove + judgeLine.notesBelow:
                 note.master = judgeLine
+            
+            #初始化每个Hold的长度
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                note.hold_length_sec = note.holdTime * note.master.T
+                note.hold_length_px = (note.speed * note.hold_length_sec) * PHIGROS_Y
+                note.hold_endtime = note.time * note.master.T + note.hold_length_sec
+                
+            #为note添加Hold打击特效的随机效果度数
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                if note.type == Const.Note.HOLD:
+                    note.effect_times = []
+                    hold_starttime = note.time * note.master.T #Hold开始时间
+                    hold_effect_blocktime = (1 / note.master.bpm * 30) #特效的间隔
+                    while True: #循环遍历添加
+                        hold_starttime += hold_effect_blocktime
+                        if hold_starttime >= note.hold_endtime:
+                            break
+                        note.effect_times.append((hold_starttime,get_effect_random_blocks()))
         
         #寻找多押
         notes = []
@@ -155,9 +176,6 @@ def Init_Phigros_ChartObject():
             if note_times[note.time] > 1:
                 note.morebets = True
         del notes,note_times
-        
-        #初始化每个Hold的长度
-        chart_object.init_holdlength(PHIGROS_Y)
     
 def Load_Resources():
     global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half
@@ -230,7 +248,11 @@ def Window_Resize_Callback(width,height):
     global PHIGROS_X, PHIGROS_Y
     w, h = width, height
     PHIGROS_X, PHIGROS_Y = 0.05625 * w,0.6 * h  #虽然说更改常量是一件不好的事情
-    chart_object.init_holdlength(PHIGROS_Y)
+    for judgeLine in chart_object.judgeLineList:
+        for note in judgeLine.notesAbove + judgeLine.notesBelow:
+            note.hold_length_sec = note.holdTime * note.master.T
+            note.hold_length_px = (note.speed * note.hold_length_sec) * PHIGROS_Y
+            note.hold_endtime = note.time * note.master.T + note.hold_length_sec
 
 def Init_Window_Style():
     window_hwnd = window.winfo_hwnd()
@@ -511,6 +533,73 @@ def Main():
             
             for note in judgeLine.notesBelow:
                 process_note(note, "below", note_dy_px)
+            
+            effect_time = 0.5
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                note_time = note.time * judgeLine.T #note的打击时刻
+                note_ishold = note.type == Const.Note.HOLD #是否为Hold
+                
+                if note_time <= now_t: #note已打击
+                    def process(et,t,effect_random_blocks): #处理函数
+                        effect_process = (now_t - et) / effect_time #特效的进度
+                        
+                        will_show_effect_pos = 0.0,0.0 #计算判定线的坐标
+                        will_show_effect_rotate = 0.0 #计算判定线的旋转角度
+                        for e in judgeLine.judgeLineMoveEvents:
+                            if e.startTime <= t <= e.endTime:
+                                will_show_effect_pos = (
+                                    linear_interpolation(t, e.startTime, e.endTime, e.start, e.end) * w,
+                                    h - linear_interpolation(t, e.startTime, e.endTime, e.start2, e.end2) * h
+                                )
+                                break
+                        for e in judgeLine.judgeLineRotateEvents:
+                            if e.startTime <= t <= e.endTime:
+                                will_show_effect_rotate = linear_interpolation(t, e.startTime, e.endTime, e.start, e.end)
+                                break
+                        
+                        effect_pos = rotate_point(
+                            *will_show_effect_pos,
+                            -will_show_effect_rotate,
+                            note.positionX * PHIGROS_X
+                        ) #特效的坐标
+                        for index,random_deg in enumerate(effect_random_blocks): #绘制随机的方块
+                            block_alpha = (1.0 - effect_process) * 0.85 #方块的透明度
+                            if block_alpha <= 0.0:
+                                continue
+                            effect_random_point = rotate_point( #特效点的坐标
+                                *effect_pos,
+                                random_deg + index * 90,
+                                ClickEffect_Size * ease_out(effect_process) / 1.25
+                            )
+                            block_size = EFFECT_RANDOM_BLOCK_SIZE
+                            if effect_process > 0.65: #渐渐缩小
+                                block_size -= (effect_process - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
+                            window.create_rectangle( #绘制特效的随机方块
+                                effect_random_point[0] - block_size,
+                                effect_random_point[1] - block_size,
+                                effect_random_point[0] + block_size,
+                                effect_random_point[1] + block_size,
+                                fillStyle = f"rgba{(254,255,169,block_alpha)}",
+                                wait_execute = True
+                            )
+                        window.create_image( #绘制特效的图像
+                            f"Note_Click_Effect_Perfect_{int(effect_process * (30 - 1)) + 1}",
+                            effect_pos[0] - ClickEffect_Size / 2,
+                            effect_pos[1] - ClickEffect_Size / 2,
+                            ClickEffect_Size,ClickEffect_Size,
+                            wait_execute = True
+                        )
+                                
+                    if now_t - note_time <= effect_time: #特效未结束
+                        process(note_time, note.time, note.effect_random_blocks)
+                    
+                    if note_ishold: #如果是Hold
+                        efct_et = note.hold_endtime + effect_time #Hold打击特效的结束时间
+                        if efct_et >= now_t: #如果Hold打击特效未结束
+                            for temp_time,hold_effect_random_blocks in note.effect_times: #遍历Hold打击特效
+                                if temp_time < now_t: #打击特效已发生
+                                    if now_t - temp_time <= effect_time: #打击特效未结束
+                                        process(temp_time, temp_time / judgeLine.T, hold_effect_random_blocks)
         
         #渲染
         window.run_js_wait_code()
@@ -540,6 +629,7 @@ Init_Window_Style() #使用win32api更改窗口样式
 
 Init_Phigros_ChartObject()
 Resource = Load_Resources() #加载资源
+EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5 #打击特效的随机扩散方块的大小
 Thread(target = Main, daemon = True).start() #开始渲染
 window.loop_to_close()
 windll.kernel32.ExitProcess(0)
