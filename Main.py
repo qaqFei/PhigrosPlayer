@@ -747,20 +747,6 @@ def GetFrameRenderTask_Phi(
                         this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
                         this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
                         
-                    if not (this_note_ishold and this_note_sectime < now_t):
-                        Task(
-                            root.run_js_code,
-                            f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(this_note_imgname)},\
-                                {x},\
-                                {y},\
-                                {Note_width},\
-                                {Note_width / this_note_img.width * this_note_img.height},\
-                                {judgeLine_rotate}\
-                            );",
-                            add_code_array = True #eq wait_exec true
-                        )
-                        
                     if this_note_ishold:
                         if note_item.clicked:
                             holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
@@ -797,6 +783,20 @@ def GetFrameRenderTask_Phi(
                                 );",
                                 add_code_array = True
                             )
+                        
+                    if not (this_note_ishold and this_note_sectime < now_t):
+                        Task(
+                            root.run_js_code,
+                            f"ctx.drawRotateImage(\
+                                {root.get_img_jsvarname(this_note_imgname)},\
+                                {x},\
+                                {y},\
+                                {Note_width},\
+                                {Note_width / this_note_img.width * this_note_img.height},\
+                                {judgeLine_rotate}\
+                            );",
+                            add_code_array = True #eq wait_exec true
+                        )
         process(judgeLine.notesAbove,1)
         process(judgeLine.notesBelow,-1)
 
