@@ -3093,5 +3093,27 @@ window.loop_to_close()
 windll.kernel32.ExitProcess(0)
 ```
 
+## PhigrosPlayer Extend / PhigrosPlayer 扩展
+- `-extend <python_file>`参数的使用
+- `PhigrosPlayer_Extend.update`方法会在每一次计算完成渲染数据时调用
+- 示例(禁用ui):
+  ```python
+  import typing
+
+  class PhigrosPlayer_Extend:
+      def __init__(
+          self,
+          get_globals: typing.Callable[[], typing.Any]
+      ) -> None:
+          self._get_globals = get_globals
+      
+      def globals(self):
+          return self._get_globals()
+      
+      def update(self,locals_dict):
+          task = locals_dict["Task"]
+          task.RenderTasks = [i for i in task.RenderTasks if i.func.__name__ != "draw_ui"]
+  ```
+
 ## 一些使用技巧
 - 在使用命令行参数并要使用一些值时, 可输入 `Python` 的表达式, 也可使用 `Const` 模块的一些值, 如: `Const.INF` 等等...

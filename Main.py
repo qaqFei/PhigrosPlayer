@@ -10,6 +10,7 @@ import typing
 import csv
 import json
 import base64
+import importlib.util
 
 from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
 from win32gui import GetWindowLong,SetWindowLong
@@ -28,6 +29,7 @@ import web_canvas
 import Tool_Functions
 import dialog
 import Phigros_Tips
+import default_extend
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
@@ -70,6 +72,14 @@ lfdoat_file = "-lfdaot-file" in argv
 render_range_more = "-render-range-more" in argv
 render_range_more_scale = 2.0 if "-render-range-more-scale" not in argv else eval(argv[argv.index("-render-range-more-scale")+1])
 lfdaot_render_video = "-lfdaot-render-video" in argv
+extend_file = argv[argv.index("-extend") + 1] if "-extend" in argv else "./default_extend.py"
+
+extend_file_spec = importlib.util.spec_from_file_location("extend", extend_file)
+extend = importlib.util.module_from_spec(extend_file_spec)
+extend_file_spec.loader.exec_module(extend)
+extend_object:default_extend.PhigrosPlayer_Extend = extend.PhigrosPlayer_Extend(
+    lambda *args, **kwargs: globals(*args, **kwargs)
+)
 
 if len(argv) < 2 or not exists(argv[1]):
     argv = [argv[0]] + [dialog.openfile()] + argv[0:]
@@ -224,7 +234,6 @@ print("Loading Chart Information Successfully.")
 print("Inforamtions: ")
 for k,v in chart_information.items():
     print(f"              {k}: {v}")
-
 
 del chart_files,chart_files_dict
 
@@ -696,9 +705,6 @@ def GetFrameRenderTask_Phi(
                         Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
                     )
                     
-                    if note_item.floorPosition == 12.378947 and note_item.holdTime == 224.0:
-                        print(x,y,note_now_floorPosition)
-                
                 if not render_range_more:
                     note_iscan_render = (
                         Note_CanRender(x,y)
@@ -926,6 +932,8 @@ def GetFrameRenderTask_Phi(
             print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
     
     Task(root.run_js_wait_code)
+    
+    extend_object.update(locals())
         
     return Task
 

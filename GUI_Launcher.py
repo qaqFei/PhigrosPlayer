@@ -87,6 +87,27 @@ def kwarg_lfdaot_file_choose_callback():
     kwarg_lfdaot_file_entry.delete(0,"end")
     kwarg_lfdaot_file_entry.insert(0,fp)
 
+def kwarg_extend_file_choose_callback():
+    fp = askopenfilename(
+            filetypes = [
+                (TEXT.FILE_INPUT_EXTEND_TYPE_TEXT,"*.py"),
+                (TEXT.FILE_INPUT_ALLFILE_TYPE,"*.*")
+            ],
+            parent = root,
+            title = TEXT.FILE_INPUT_DIALOG_TITLE
+        )
+    if fp == "":
+        return
+    
+    if not (exists(fp) and isfile(fp)):
+        showerror(
+            title = TEXT.ERROR_TITLE,
+            message = TEXT.FILE_INPUT_ERROR_MESSAGE
+        )
+    
+    kwarg_extend_entry.delete(0,"end")
+    kwarg_extend_entry.insert(0,fp)
+
 def Launch():
     launch_command = f"start {target_path} "
     launch_args = []
@@ -145,6 +166,9 @@ def Launch():
     
     if lfdaot_render_video_checkbutton_var.get():
         launch_args.append("-lfdaot-render-video")
+    
+    if exists(kwarg_extend_entry.get()) and isfile(kwarg_extend_entry.get()):
+        launch_args.append(f"-extend \"{kwarg_extend_entry.get()}\"")
     
     launch_args.append(f"-combotips \"{kwarg_combotips_entry.get()}\"")
     launch_args.append(f"-random-block-num \"{kwarg_random_block_num_entry.get()}\"")
@@ -268,6 +292,14 @@ kwarg_render_range_more_scale_entry = Entry(kwargs_LabelFrame,textvariable=kwarg
 kwarg_render_range_more_scale_label.grid(row=6,column=0)
 kwarg_render_range_more_scale_entry.grid(row=6,column=1)
 kwarg_render_range_more_scale_entry.configure(state = "disabled")
+
+kwarg_extend_var = StringVar(value="") # -extend
+kwarg_extend_label = Label(kwargs_LabelFrame,text=TEXT.KWARGS.EXTEND)
+kwarg_extend_entry = Entry(kwargs_LabelFrame,textvariable=kwarg_extend_var)
+kwarg_extend_button = Button(kwargs_LabelFrame,text=TEXT.FILE_INPUT_FILEDIALOG_BUTTON_TEXT,command=kwarg_extend_file_choose_callback)
+kwarg_extend_label.grid(row=7,column=0)
+kwarg_extend_entry.grid(row=7,column=1)
+kwarg_extend_button.grid(row=7,column=2,columnspan=100,sticky="w")
 
 Launch_Button = Button(root,text=TEXT.LAUNCH_BUTTON_TEXT,command=Launch)
 Launch_Button.grid(row=3,column=0,columnspan=5000,padx=12,pady=5,sticky="w")
