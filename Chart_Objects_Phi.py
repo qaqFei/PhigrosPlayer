@@ -55,6 +55,13 @@ class note:
             if hold_starttime >= self.hold_endtime:
                 break
             self.effect_times.append((hold_starttime,Tool_Functions.get_effect_random_blocks()))
+        
+        self.type_string = {
+            Const.Note.TAP:"Tap",
+            Const.Note.DRAG:"Drag",
+            Const.Note.HOLD:"Hold",
+            Const.Note.FLICK:"Flick"
+        }[self.type]
 
 @dataclass
 class speedEvent:

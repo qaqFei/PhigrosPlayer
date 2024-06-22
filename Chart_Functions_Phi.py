@@ -32,16 +32,16 @@ def Cal_Combo(now_time:float) -> int:
                     combo += 1
     return combo
 
-def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects_Phi.judgeLine,T:float,time:float) -> float:
+def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects_Phi.judgeLine,time:float) -> float:
     if not judgeLine.speedEvents: return 0.0
     for speed_event in judgeLine.speedEvents:
         if speed_event.startTime <= time <= speed_event.endTime:
             dy = speed_event.floorPosition + (
                 time - speed_event.startTime
-            ) * T * speed_event.value
+            ) * judgeLine.T * speed_event.value
             return dy * PHIGROS_Y
     last_speed_event = judgeLine.speedEvents[-1]
-    dy = last_speed_event.floorPosition + (time - last_speed_event.endTime) * T * last_speed_event.value
+    dy = last_speed_event.floorPosition + (time - last_speed_event.endTime) * judgeLine.T * last_speed_event.value
     return dy * PHIGROS_Y
 
 def Update_JudgeLine_Configs(judgeLine_Configs:typing.Dict,now_t:typing.Union[int,float]):
@@ -171,7 +171,7 @@ def Load_Chart_Object(phigros_chart):
         if note_times[note.time] > 1:
             note.morebets = True
     del notes,note_times
-    
+        
     phigros_chart_obj.init()
     print("Load Chart Object Successfully.")
     return phigros_chart_obj

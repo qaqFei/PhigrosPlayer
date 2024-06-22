@@ -15,6 +15,7 @@ import importlib.util
 from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
 from win32gui import GetWindowLong,SetWindowLong
 from pygame import mixer
+from numba import jit
 import win32con
 import cv2
 import numpy
@@ -598,6 +599,8 @@ def GetFrameRenderTask_Phi(
     ],
     show_start_time:float
 ):
+    GetFrameRenderTask_Phi_CallTime = time() #use in some extend
+    
     Task = Chart_Objects_Phi.FrameRenderTask([],[])
     Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,now_t)
     Task(root.clear_canvas,wait_execute = True)
@@ -616,7 +619,7 @@ def GetFrameRenderTask_Phi(
     for judgeLine_cfg in judgeLine_Configs.values():
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg["judgeLine"]
         this_judgeLine_T = judgeLine.T
-        judgeLine_note_dy = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,this_judgeLine_T,judgeLine_cfg["time"])
+        judgeLine_note_dy = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,judgeLine_cfg["time"])
         judgeLine_DrawPos = (
             *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"],5.76 * h),
             *Tool_Functions.rotate_point(*judgeLine_cfg["Pos"],-judgeLine_cfg["Rotate"] + 180,5.76 * h)
@@ -649,19 +652,13 @@ def GetFrameRenderTask_Phi(
                 this_note_sectime = note_item.time * this_judgeLine_T
                 this_noteitem_clicked = this_note_sectime < now_t
                 this_note_ishold = note_item.type == Const.Note.HOLD
-                note_type = {
-                    Const.Note.TAP:"Tap",
-                    Const.Note.DRAG:"Drag",
-                    Const.Note.HOLD:"Hold",
-                    Const.Note.FLICK:"Flick"
-                }[note_item.type]
                 
                 if this_noteitem_clicked and not note_item.clicked:
                     note_item.clicked = True
                     Task.ExTask.append((
                         "thread-call",
                         "PlaySound.Play",
-                        f'(Resource["Note_Click_Audio"][{repr(note_type)}],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
+                        f'(Resource["Note_Click_Audio"]["{note_item.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
                     ))
                     
                 if not this_note_ishold and this_noteitem_clicked:
@@ -673,7 +670,7 @@ def GetFrameRenderTask_Phi(
                         judgeLine_note_dy
                         if not (this_note_ishold and note_item.clicked) else (
                         Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(
-                            judgeLine,this_judgeLine_T,note_item.time
+                            judgeLine,note_item.time
                         ) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
                     )
                 )
@@ -732,18 +729,18 @@ def GetFrameRenderTask_Phi(
                     judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
                     dub_text = "_dub" if note_item.morebets else ""
                     if not this_note_ishold:
-                        this_note_img_keyname = f"{note_type}{dub_text}"
+                        this_note_img_keyname = f"{note_item.type_string}{dub_text}"
                         this_note_img = Resource["Notes"][this_note_img_keyname]
                         this_note_imgname = f"Note_{this_note_img_keyname}"
                     else:
-                        this_note_img_keyname = f"{note_type}_Head{dub_text}"
+                        this_note_img_keyname = f"{note_item.type_string}_Head{dub_text}"
                         this_note_img = Resource["Notes"][this_note_img_keyname]
                         this_note_imgname = f"Note_{this_note_img_keyname}"
                         
-                        this_note_img_body_keyname = f"{note_type}_Body{dub_text}"
+                        this_note_img_body_keyname = f"{note_item.type_string}_Body{dub_text}"
                         this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
                         
-                        this_note_img_end_keyname = f"{note_type}_End{dub_text}"
+                        this_note_img_end_keyname = f"{note_item.type_string}_End{dub_text}"
                         this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
                         this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
                         
