@@ -965,7 +965,7 @@ def PlayerStart_Phi():
         infoframe_text_place_width = w * 0.23
         chart_name_font_size = infoframe_text_place_width / chart_name_text_width_1px
         chart_level_number_font_size = infoframe_width * 0.215 * 0.45 / chart_level_number_width_1px
-        chart_level_text_font_size = infoframe_width * 0.215 * 0.145 / chart_level_text_width_1px
+        chart_level_text_font_size = infoframe_width * 0.215 * 0.175 / chart_level_text_width_1px
         chart_artist_text_font_size = infoframe_text_place_width * 0.65 / chart_artist_text_width_1px
         chart_charter_text_font_size = infoframe_text_place_width * 0.65 / chart_charter_text_width_1px
         chart_illustrator_text_font_size = infoframe_text_place_width * 0.65 / chart_illustrator_text_width_1px
