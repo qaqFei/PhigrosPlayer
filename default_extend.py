@@ -10,5 +10,14 @@ class PhigrosPlayer_Extend:
     def globals(self):
         return self._get_globals()
     
+    def loaded(self):
+        pass
+    
     def update(self,locals_dict):
         pass
+    
+    def __getattribute__(self, name: str) -> typing.Any:
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            return lambda *args, **kwargs: None

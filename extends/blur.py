@@ -11,11 +11,11 @@ class PhigrosPlayer_Extend:
         return self._get_globals()
     
     def loaded(self):
-        pass
+        root = self.globals()["root"]
+        root.run_js_code("canvas_ele.style.filter = 'blur(5px)';")
     
     def update(self,locals_dict):
-        task = locals_dict["Task"]
-        task.RenderTasks = [i for i in task.RenderTasks if i.func.__name__ != "draw_ui"]
+        pass
     
     def __getattribute__(self, name: str) -> typing.Any:
         try:

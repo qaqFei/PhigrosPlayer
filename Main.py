@@ -1454,6 +1454,7 @@ Chart_Functions_Phi.Init(
     PHIGROS_X_ = PHIGROS_X,PHIGROS_Y_ = PHIGROS_Y,
     w_ = w,h_ = h
 )
+extend_object.loaded()
 Thread(target=Show_Start,daemon=True).start()
 root.loop_to_close()
 windll.kernel32.ExitProcess(0)
