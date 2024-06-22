@@ -2,19 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import typing
 
-import numba
-
 import Const
 import Tool_Functions
-
-def _get_datavar_rotate(events,time):
-    pass
-
-def _get_datavar_disappear(events,time):
-    pass
-
-def _get_datavar_move(events,time,w,h):
-    pass
 
 @dataclass
 class note:
@@ -31,8 +20,8 @@ class note:
     morebets:bool = False
     master:typing.Union[judgeLine,None] = None
     hold_click_type:typing.Union[None,typing.Literal["Perfect","Good"]] = None
-    show_effected = False
-    show_effected_hold = False
+    show_effected:bool = False
+    show_effected_hold:bool = False
     
     def __eq__(self,oth:note):
         try:
