@@ -587,6 +587,9 @@ def GetFrameRenderTask_Phi(
     show_start_time:float
 ):
     GetFrameRenderTask_Phi_CallTime = time() #use in some extend
+    Render_JudgeLine_Count = 0
+    Render_Note_Count = 0
+    Render_ClickEffect_Count = 0
     
     Task = Chart_Objects_Phi.FrameRenderTask([],[])
     Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,now_t)
@@ -627,6 +630,7 @@ def GetFrameRenderTask_Phi(
                     strokeStyle=f"rgba{judgeLine_strokeStyle}",
                     wait_execute = True
                 )
+                Render_JudgeLine_Count += 1
                 if render_range_more:
                     Task(
                         root.run_js_code,
@@ -635,6 +639,7 @@ def GetFrameRenderTask_Phi(
                     )
         
         def process(notes_list:typing.List[Chart_Objects_Phi.note],t:int):
+            nonlocal Render_Note_Count
             for note_item in notes_list:
                 this_note_sectime = note_item.time * this_judgeLine_T
                 this_noteitem_clicked = this_note_sectime < now_t
@@ -781,6 +786,8 @@ def GetFrameRenderTask_Phi(
                             );",
                             add_code_array = True #eq wait_exec true
                         )
+                    
+                    Render_Note_Count += 1
         process(judgeLine.notesAbove,1)
         process(judgeLine.notesBelow,-1)
 
@@ -804,6 +811,8 @@ def GetFrameRenderTask_Phi(
             
             if note_time <= now_t:
                 def process(et,t,effect_random_blocks):
+                    nonlocal Render_ClickEffect_Count
+                    Render_ClickEffect_Count += 1
                     effect_process = (now_t - et) / effect_time
                     will_show_effect_pos = judgeLine.get_datavar_move(t,w,h)
                     will_show_effect_rotate = judgeLine.get_datavar_rotate(t)

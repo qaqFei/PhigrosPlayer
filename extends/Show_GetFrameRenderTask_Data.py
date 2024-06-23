@@ -33,6 +33,15 @@ class PhigrosPlayer_Extend:
         task = locals_dict["Task"]
         output += f"\tRender_Task_Count: {len(task.RenderTasks)},\n"
         
+        Render_JudgeLine_Count = locals_dict["Render_JudgeLine_Count"]
+        output += f"\tRender_JudgeLine_Count: {Render_JudgeLine_Count},\n"
+        
+        Render_Note_Count = locals_dict["Render_Note_Count"]
+        output += f"\tRender_Note_Count: {Render_Note_Count},\n"
+        
+        Render_ClickEffect_Count = locals_dict["Render_ClickEffect_Count"]
+        output += f"\tRender_ClickEffect_Count: {Render_ClickEffect_Count},\n"
+        
         print(output)
     
     def __getattribute__(self, name: str) -> typing.Any:
