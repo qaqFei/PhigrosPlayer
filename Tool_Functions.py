@@ -118,6 +118,31 @@ class finish_animation_eases:
         if x >= 1.0: return 1.0
         k = 1 - x
         return 1 - k ** 10
+    
+    @staticmethod
+    def score_alpha_ease(x):
+        k = 0.125
+        x -= k
+        x *= (1 / (1 - k))
+        x *= 5.0
+        if x <= 0.0: return 0.0
+        if x >= 1.0: return 1.0
+        return x ** 2
+
+    @staticmethod
+    def level_size_ease(x):
+        k = 3.0
+        return max(0.5 - (k * max(x - 1 / 6, 0.0)) ** 4, 0.0) + 1.0
+    
+    @staticmethod
+    def level_alpha_ease(x):
+        k = 0.25
+        x -= k
+        x *= (1 / (1 - k))
+        x *= 5.0
+        if x <= 0.0: return 0.0
+        if x >= 1.0: return 1.0
+        return x ** 2
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 interpolation_phi(0.5,0.1,0.8,-114.514,314.159)

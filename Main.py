@@ -281,13 +281,24 @@ def Load_Resource():
                 for i in range(1,31)
             ]
         },
+        "Levels":{
+            "AP":Image.open("./Resources/Levels/AP.png"),
+            "FC":Image.open("./Resources/Levels/FC.png"),
+            "V":Image.open("./Resources/Levels/V.png"),
+            "S":Image.open("./Resources/Levels/S.png"),
+            "A":Image.open("./Resources/Levels/A.png"),
+            "B":Image.open("./Resources/Levels/B.png"),
+            "C":Image.open("./Resources/Levels/C.png"),
+            "F":Image.open("./Resources/Levels/F.png")
+        },
         "Note_Click_Audio":{
             "Tap":open("./Resources/Note_Click_Audio/Tap.wav","rb").read(),
             "Drag":open("./Resources/Note_Click_Audio/Drag.wav","rb").read(),
             "Hold":open("./Resources/Note_Click_Audio/Hold.wav","rb").read(),
             "Flick":open("./Resources/Note_Click_Audio/Flick.wav","rb").read()
         },
-        "Start":Image.open("./Resources/Start.png")
+        "Start":Image.open("./Resources/Start.png"),
+        "Over":mixer.Sound("./Resources/Over.wav")
     }
     
     animation_image = chart_image.copy()
@@ -319,6 +330,8 @@ def Load_Resource():
     
     for i in range(30):
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
+    for k,v in Resource["Levels"].items():
+        root.reg_img(v,f"Level_{k}")
     root.reg_img(Resource["Start"],"Start")
     root.reg_img(animation_image,"begin_animation_image")
     with open("./Resources/font.ttf","rb") as f:
@@ -399,7 +412,7 @@ def draw_ui(
         draw_background()
     
     if animationing:
-        root.run_js_code(f"ctx.translate(0,{- h / 18 + dy});",add_code_array=True)
+        root.run_js_code(f"ctx.translate(0,{- h / 9 + dy});",add_code_array=True)
     
     root.create_rectangle(
         0, 0,
@@ -465,7 +478,7 @@ def draw_ui(
     )
     
     if animationing:
-        root.run_js_code(f"ctx.translate(0,-2 * {- h / 18 + dy});",add_code_array=True)
+        root.run_js_code(f"ctx.translate(0,-2 * {- h / 9 + dy});",add_code_array=True)
     
     root.create_text(
         text = chart_information["Name"],
@@ -492,7 +505,7 @@ def draw_ui(
     )
     
     if animationing:
-        root.run_js_code(f"ctx.translate(0,{- h / 18 + dy});",add_code_array=True)
+        root.run_js_code(f"ctx.translate(0,{- h / 9 + dy});",add_code_array=True)
 
 def draw_background():
     root.create_image("background",0,0,w,h,wait_execute=True)
@@ -1163,7 +1176,7 @@ def PlayerStart_Phi():
         for step in gr:
             st = time()
             val += step
-            draw_ui(animationing=True,dy = h / 18 * val)
+            draw_ui(animationing=True,dy = h / 9 * val)
             root.create_line(
                 w / 2 - (val * w / 2),h / 2,
                 w / 2 + (val * w / 2),h / 2,
@@ -1395,9 +1408,21 @@ def PlayerStart_Phi():
         while time() - animation_1_start_time < animation_1_time:
             p = (time() - animation_1_start_time) / animation_1_time
             v = p ** 2
-            draw_ui(animationing=True,dy = h / 18 * (1 - v))
+            draw_ui(
+                process = 1.0,
+                score = "1000000",
+                combo_state = True,
+                combo = phigros_chart_obj.note_num,
+                now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
+                animationing = True,
+                dy = h / 9 * (1 - v)
+            )
             root.run_js_wait_code()
         
+        mixer.music.fadeout(250)
+        sleep(0.25)
+        Resource["Over"].play(-1)
+    
         animation_2_time = 3.5
         animation_2_start_time = time()
         
@@ -1413,6 +1438,8 @@ def PlayerStart_Phi():
             data_block_3_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.055)
             data_block_3_ease_pos = w * 1.25 * (1 - data_block_3_ease_value)
             im_size = 0.475
+            level_size = 0.125
+            level_size *= Tool_Functions.finish_animation_eases.level_size_ease(p)
             
             draw_background()
             
@@ -1423,11 +1450,6 @@ def PlayerStart_Phi():
                 width = w * im_size,
                 height = h * im_size,
                 wait_execute = True
-            )
-            
-            root.run_js_code(
-                "ctx.shadowColor = '#000000'; ctx.shadowBlur = 15;",
-                add_code_array = True
             )
             
             root.create_polygon(
@@ -1443,11 +1465,6 @@ def PlayerStart_Phi():
                 wait_execute = True
             )
             
-            root.run_js_code(
-                "ctx.shadowColor = '#000000'; ctx.shadowBlur = 15;",
-                add_code_array = True
-            )
-            
             root.create_polygon(
                 [
                     (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
@@ -1461,11 +1478,6 @@ def PlayerStart_Phi():
                 wait_execute = True
             )
             
-            root.run_js_code(
-                "ctx.shadowColor = '#000000'; ctx.shadowBlur = 15;",
-                add_code_array = True
-            )
-            
             root.create_polygon(
                 [
                     (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
@@ -1477,6 +1489,34 @@ def PlayerStart_Phi():
                 strokeStyle = "rgba(0, 0, 0, 0)",
                 fillStyle = "#00000066",
                 wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.06,
+                h * 0.433,
+                text = "1000000",
+                font = f"{(w + h) / 42}px PhigrosFont",
+                fillStyle = f"rgba(255, 255, 255, {Tool_Functions.finish_animation_eases.score_alpha_ease(p)})",
+                wait_execute = True
+            )
+            
+            root.run_js_code(
+                f"ctx.globalAlpha = {Tool_Functions.finish_animation_eases.level_alpha_ease(p)};",
+                add_code_array = True
+            )
+            
+            root.create_image(
+                "Level_AP",
+                w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.6 - level_size * w / 2,
+                h * 0.375 - level_size * w / 2,
+                width = w * level_size,
+                height = w * level_size,
+                wait_execute = True
+            )
+            
+            root.run_js_code(
+                "ctx.globalAlpha = 1.0;",
+                add_code_array = True
             )
             
             root.run_js_wait_code()
