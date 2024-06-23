@@ -143,6 +143,16 @@ class finish_animation_eases:
         if x <= 0.0: return 0.0
         if x >= 1.0: return 1.0
         return x ** 2
+    
+    @staticmethod
+    def playdata_alpha_ease(x):
+        k = 0.25
+        x -= k
+        x *= (1 / (1 - k))
+        x *= 5.0
+        if x <= 0.0: return 0.0
+        if x >= 1.0: return 1.0
+        return x ** 2
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 interpolation_phi(0.5,0.1,0.8,-114.514,314.159)

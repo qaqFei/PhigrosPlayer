@@ -1520,6 +1520,183 @@ def PlayerStart_Phi():
                 add_code_array = True
             )
             
+            root.run_js_code(
+                f"ctx.globalAlpha = {Tool_Functions.finish_animation_eases.playdata_alpha_ease(p - 0.02)}",
+                add_code_array = True
+            )
+            
+            root.create_text( # Max Combo
+                w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 + w * im_size / 45,
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625,
+                text = f"{phigros_chart_obj.note_num}",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 70}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 + w * im_size / 45,
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625 + (w + h) / 70 / 2 * 1.25,
+                text = "Max Combo",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 150}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text( # Accuracy
+                w * 0.25 + w * im_size * 0.38 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 45,
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625,
+                text = "100.00%",
+                textAlign = "end",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 70}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.25 + w * im_size * 0.38 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 45,
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625 + (w + h) / 70 / 2 * 1.25,
+                text = "Accuracy",
+                textAlign = "end",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 150}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.run_js_code(
+                f"ctx.globalAlpha = {Tool_Functions.finish_animation_eases.playdata_alpha_ease(p - 0.04)}",
+                add_code_array = True
+            )
+            
+            root.create_text( # Perfect Count
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.125),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
+                text = f"{phigros_chart_obj.note_num}",
+                textAlign = "center",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 75}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.125),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
+                text = "Perfect",
+                textAlign = "center",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 185}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text( # Good Count
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.315),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
+                text = "0",
+                textAlign = "center",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 75}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.315),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
+                text = "Good",
+                textAlign = "center",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 185}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text( # Bad Conut
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.505),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
+                text = "0",
+                textAlign = "center",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 75}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.505),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
+                text = "Bad",
+                textAlign = "center",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 185}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text( # Miss Count
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.695),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
+                text = "0",
+                textAlign = "center",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 75}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.695),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
+                text = "Miss",
+                textAlign = "center",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 185}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text( # Early Count
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.875),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.375,
+                text = "Early",
+                textAlign = "start",
+                textBaseline = "middle",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 150}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.925),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.375,
+                text = "0",
+                textAlign = "end",
+                textBaseline = "middle",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 150}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text( # Late Count
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.875),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.625,
+                text = "Late",
+                textAlign = "start",
+                textBaseline = "middle",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 150}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.create_text(
+                w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.925),
+                h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.625,
+                text = "0",
+                textAlign = "end",
+                textBaseline = "middle",
+                fillStyle = "#FFFFFF",
+                font = f"{(w + h) / 150}px PhigrosFont",
+                wait_execute = True
+            )
+            
+            root.run_js_code(
+                "ctx.globalAlpha = 1.0;",
+                add_code_array = True
+            )
+            
             root.run_js_wait_code()
             
     
