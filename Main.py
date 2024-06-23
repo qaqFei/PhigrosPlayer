@@ -248,6 +248,7 @@ def LoadChartObject():
         print("Please run rpe2phi.py.")
         windll.kernel32.ExitProcess(0)
 LoadChartObject()
+extend_object.chart_loaded(phigros_chart_obj)
 
 def Load_Resource():
     global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half,animation_image

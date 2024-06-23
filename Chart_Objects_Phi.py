@@ -13,7 +13,7 @@ class note:
     holdTime:typing.Union[int,float]
     speed:typing.Union[int,float]
     floorPosition:typing.Union[int,float]
-    effect_random_blocks:typing.Tuple[int,int,int,int]
+    effect_random_blocks:typing.Tuple[int]
     id:typing.Union[int,None] = None
     by_judgeLine_id:typing.Union[int,None] = None
     clicked:bool = False
@@ -22,6 +22,7 @@ class note:
     hold_click_type:typing.Union[None,typing.Literal["Perfect","Good"]] = None
     show_effected:bool = False
     show_effected_hold:bool = False
+    effect_times:typing.Union[typing.List[typing.Tuple[int]],typing.Tuple] = ()
     
     def __eq__(self,oth:note):
         try:

@@ -26,9 +26,6 @@ class PhigrosPlayer_Extend:
         }
         '''.replace("SHADOWCOLOR",shadowColor).replace("SHADOWBLUR",str(shadowBlur)))
     
-    def update(self,locals_dict):
-        pass
-    
     def __getattribute__(self, name: str) -> typing.Any:
         try:
             return object.__getattribute__(self, name)

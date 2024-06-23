@@ -7,6 +7,9 @@ class PhigrosPlayer_Extend:
     ) -> None:
         self._get_globals = get_globals
     
+    def chart_loaded(self,chart_obj):
+        pass
+    
     def globals(self):
         return self._get_globals()
     

@@ -14,9 +14,6 @@ class PhigrosPlayer_Extend:
         root = self.globals()["root"]
         root.run_js_code("canvas_ele.style.filter = 'invert(1.0)';")
     
-    def update(self,locals_dict):
-        pass
-    
     def __getattribute__(self, name: str) -> typing.Any:
         try:
             return object.__getattribute__(self, name)
