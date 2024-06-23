@@ -596,6 +596,9 @@ def GetFrameRenderTask_Phi(
     Task(root.clear_canvas,wait_execute = True)
     Task(draw_background)
     
+    # Task(root.run_js_wait_code)
+    # Task.ExTask.append(("break",))
+    
     if render_range_more:
         fr_x = w / 2 - w / render_range_more_scale / 2
         fr_y = h / 2 - h / render_range_more_scale / 2
@@ -1142,7 +1145,8 @@ def PlayerStart_Phi():
             root.create_image(
                 "begin_animation_image",
                 w * 0.65 - w * im_size * 0.5, h * 0.5 - h * im_size * 0.5,
-                width = w * im_size, height = h * im_size,
+                width = w * im_size,
+                height = h * im_size,
                 wait_execute = True
             )
             
@@ -1383,12 +1387,108 @@ def PlayerStart_Phi():
                     sleep(0.1)
                 
                 Lfdaot_VideoWriter.release()
+    
+    def Chart_Finish_Animation():
+        animation_1_time = 0.75
+        animation_1_start_time = time()
         
-    if loop:
-        LoadChartObject()
-        PlayerStart_Phi()
-    else:
-        root.destroy()
+        while time() - animation_1_start_time < animation_1_time:
+            p = (time() - animation_1_start_time) / animation_1_time
+            v = p ** 2
+            draw_ui(animationing=True,dy = h / 18 * (1 - v))
+            root.run_js_wait_code()
+        
+        animation_2_time = 3.5
+        animation_2_start_time = time()
+        
+        while time() - animation_2_start_time < animation_2_time:
+            root.clear_canvas(wait_execute = True)
+            p = (time() - animation_2_start_time) / animation_2_time
+            im_ease_value = Tool_Functions.finish_animation_eases.all_ease(p)
+            im_ease_pos = w * 1.25 * (1 - im_ease_value)
+            data_block_1_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.015)
+            data_block_1_ease_pos = w * 1.25 * (1 - data_block_1_ease_value)
+            data_block_2_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.035)
+            data_block_2_ease_pos = w * 1.25 * (1 - data_block_2_ease_value)
+            data_block_3_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.055)
+            data_block_3_ease_pos = w * 1.25 * (1 - data_block_3_ease_value)
+            im_size = 0.475
+            
+            draw_background()
+            
+            root.create_image(
+                "begin_animation_image", #emm...
+                w * 0.3 - w * im_size * 0.5 + im_ease_pos,
+                h * 0.5 - h * im_size * 0.5,
+                width = w * im_size,
+                height = h * im_size,
+                wait_execute = True
+            )
+            
+            root.run_js_code(
+                "ctx.shadowColor = '#000000'; ctx.shadowBlur = 15;",
+                add_code_array = True
+            )
+            
+            root.create_polygon(
+                [
+                    (w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05, h * 0.5 - h * im_size * 0.5),
+                    (w * 0.25 + w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05, h * 0.5 - h * im_size * 0.5),
+                    (w * 0.25 + w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.5),
+                    (w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.5),
+                    (w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05, h * 0.5 - h * im_size * 0.5),
+                ],
+                strokeStyle = "rgba(0, 0, 0, 0)",
+                fillStyle = "#00000066",
+                wait_execute = True
+            )
+            
+            root.run_js_code(
+                "ctx.shadowColor = '#000000'; ctx.shadowBlur = 15;",
+                add_code_array = True
+            )
+            
+            root.create_polygon(
+                [
+                    (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
+                    (w * 0.25 + w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
+                    (w * 0.25 + w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545 + h * im_size * 0.205),
+                    (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545 + h * im_size * 0.205),
+                    (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
+                ],
+                strokeStyle = "rgba(0, 0, 0, 0)",
+                fillStyle = "#00000066",
+                wait_execute = True
+            )
+            
+            root.run_js_code(
+                "ctx.shadowColor = '#000000'; ctx.shadowBlur = 15;",
+                add_code_array = True
+            )
+            
+            root.create_polygon(
+                [
+                    (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
+                    (w * 0.25 + w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
+                    (w * 0.25 + w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205),
+                    (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205),
+                    (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
+                ],
+                strokeStyle = "rgba(0, 0, 0, 0)",
+                fillStyle = "#00000066",
+                wait_execute = True
+            )
+            
+            root.run_js_wait_code()
+            
+    
+    Chart_Finish_Animation()
+        
+    # if loop:
+    #     LoadChartObject()
+    #     PlayerStart_Phi()
+    # else:
+    #     root.destroy()
 
 def Re_Init():
     (
@@ -1432,8 +1532,9 @@ root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGRO
 if render_range_more:
     root.run_js_code("render_range_more = true;")
     root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
-    
-background_image = ImageEnhance.Brightness(chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 125))).enhance(1.0 - chart_information["BackgroundDim"])
+
+background_image_blur = chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
+background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_WIDTH = h * 0.0075

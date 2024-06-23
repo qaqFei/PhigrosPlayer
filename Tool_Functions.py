@@ -80,14 +80,6 @@ else:
 
 bae_bs = 2.15
 class begin_animation_eases:
-    # def __init__(self) -> None:
-    #     self.__lbe_base_func_k = 1.8
-    #     self.__lbe_f_base = lambda x: 1 - (1 - x) ** self.__lbe_base_func_k
-    #     self.__lbe_f1 = lambda x: 0.0 if x <= 0.0 else (0.0 if x >= 1.0 else self.__lbe_f_base(x))
-    #     self.__lbe_f2 = lambda x: self.__lbe_f_base(min(max(x, 0), 1))
-    #     self.__lbe_f3 = lambda x: self.__lbe_f1((x % 3) - 1)
-    #     self.__lbe_f4 = lambda x: self.__lbe_f2(((x + 1) % 3) - 1)
-    
     @staticmethod
     def im_ease(x):
         if x <= (1 / bae_bs): return 0.0
@@ -118,11 +110,16 @@ class begin_animation_eases:
         if x >= 1.0: return 1.0
         if x <= 0.0: return 0.0
         return (1 - x ** 2) ** 0.5
-    
-    # def loading_block_ease(self,t):
-    #     't = 0 ~ +inf'
-    #     return self.__lbe_f3(t), self.__lbe_f4(t)
+
+class finish_animation_eases:
+    @staticmethod
+    def all_ease(x):
+        if x <= 0.0: return 0.0
+        if x >= 1.0: return 1.0
+        k = 1 - x
+        return 1 - k ** 10
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 interpolation_phi(0.5,0.1,0.8,-114.514,314.159)
 begin_animation_eases = begin_animation_eases()
+finish_animation_eases = finish_animation_eases()
