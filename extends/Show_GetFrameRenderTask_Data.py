@@ -3,6 +3,7 @@ from time import time
 
 render_data_times = []
 to_last_times = []
+webview_times = [0.0]
 min_render_data_time = float("inf")
 
 def get_average_render_data_time():
@@ -10,6 +11,9 @@ def get_average_render_data_time():
 
 def get_average_to_last_time():
     return sum(to_last_times) / len(to_last_times) # this list not possible is empty.
+
+def get_average_webview_time():
+    return sum(webview_times) / len(webview_times) # this list not possible is empty.
 
 class PhigrosPlayer_Extend:
     def __init__(
@@ -54,17 +58,35 @@ class PhigrosPlayer_Extend:
             min_render_data_time_fps = 1 / min_render_data_time
         except ZeroDivisionError:
             min_render_data_time_fps = float("INF")
+        
+        webview_render_use_time = to_last_time - use_time
+        if webview_render_use_time == webview_render_use_time: # != nan
+            webview_times.append(webview_render_use_time)
+        webview_render_use_time_average = get_average_webview_time()
+        try:
+            webview_render_use_time_fps = 1 / webview_render_use_time
+        except ZeroDivisionError:
+            webview_render_use_time_fps = float("INF")
+        try:
+            webview_render_use_time_average_fps = 1 / webview_render_use_time_average
+        except ZeroDivisionError:
+            webview_render_use_time_average_fps = float("INF")
             
         if len(render_data_times) > 3600:
             render_data_times.clear()
         if len(to_last_times) > 3600:
             to_last_times.clear()
+        if len(webview_times) > 3600:
+            webview_times.clear()
+            webview_times.append(0.0)
         
         output += f"\tGetFrameRenderTask use time(this): {use_time:.5f}s/item = {fps:.2f}fps,\n"
         output += f"\tGetFrameRenderTask use time(average): {average:.5f}s/item = {average_fps:.2f}fps ({len(render_data_times)}sample),\n"
         output += f"\tGetFrameRemderTask min time: {min_render_data_time:.5f}s/item = {min_render_data_time_fps:.2f}fps,\n"
         output += f"\tAll use time(this): {to_last_time:.5f}s/tiem = {(1 / to_last_time):.2f}fps,\n"
         output += f"\tAll use time(average): {all_time_average:.5f}s/tiem = {all_time_average_fps:.2f}fps ({len(to_last_times)}sample),\n"
+        output += f"\tWebView Render use time(this): {webview_render_use_time:.5f}s/item = {webview_render_use_time_fps:.2f}fps,\n"
+        output += f"\tWebView Render use time(average): {webview_render_use_time_average:.5f}s/item = {webview_render_use_time_average_fps:.2f}fps ({len(webview_times)}sample),\n"
         
         task = locals_dict["Task"]
         output += f"\tRender_Task_Count: {len(task.RenderTasks)},\n"
