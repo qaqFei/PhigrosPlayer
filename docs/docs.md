@@ -3110,9 +3110,6 @@ windll.kernel32.ExitProcess(0)
       def globals(self):
           return self._get_globals()
       
-      def loaded(self):
-          pass
-      
       def update(self,locals_dict):
           task = locals_dict["Task"]
           task.RenderTasks = [i for i in task.RenderTasks if i.func.__name__ != "draw_ui"]
