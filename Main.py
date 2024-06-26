@@ -301,6 +301,8 @@ def Load_Resource():
         "Start":Image.open("./Resources/Start.png"),
         "Button_Left":Image.open("./Resources/Button_Left.png"),
         "Button_Right":Image.open("./Resources/Button_Right.png"),
+        "Retry":Image.open("./Resources/Retry.png"),
+        "Arrow_Right":Image.open("./Resources/Arrow_Right.png"),
         "Over":mixer.Sound("./Resources/Over.wav")
     }
     
@@ -339,6 +341,8 @@ def Load_Resource():
     root.reg_img(animation_image,"begin_animation_image")
     root.reg_img(Resource["Button_Left"],"Button_Left")
     root.reg_img(Resource["Button_Right"],"Button_Right")
+    root.reg_img(Resource["Retry"],"Retry")
+    root.reg_img(Resource["Arrow_Right"],"Arrow_Right")
     with open("./Resources/font.ttf","rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
     root.load_allimg()
@@ -1442,11 +1446,11 @@ def PlayerStart_Phi():
             data_block_2_ease_pos = w * 1.25 * (1 - data_block_2_ease_value)
             data_block_3_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.055)
             data_block_3_ease_pos = w * 1.25 * (1 - data_block_3_ease_value)
-            button_ease_value = Tool_Functions.finish_animation_eases.button_ease(p * 15)
+            button_ease_value = Tool_Functions.finish_animation_eases.button_ease(p * 4.5 - 0.95)
             im_size = 0.475
             level_size = 0.125
             level_size *= Tool_Functions.finish_animation_eases.level_size_ease(p)
-            button_size = 0.075
+            button_size = 0.095
             button_ease_pos = - w * button_size * (1 - button_ease_value)
             
             draw_background()
@@ -1704,13 +1708,26 @@ def PlayerStart_Phi():
                 add_code_array = True
             )
             
-            # root.create_image( # Replay Button
-            #     "Button_Right",
-            #     button_ease_pos, 0,
-            #     width = w * button_size,
-            #     height = h * button_size / 190 * 145,
-            #     wait_execute = True
-            # )
+            Retry_Button_Width = w * button_size
+            Retry_Button_Height = w * button_size / 190 * 145
+            Retry_imsize = Retry_Button_Height * 0.3
+            
+            root.create_image( # Retry Button
+                "Button_Left",
+                button_ease_pos, 0,
+                width = Retry_Button_Width,
+                height = Retry_Button_Height,
+                wait_execute = True
+            )
+            
+            root.create_image(
+                "Retry",
+                button_ease_pos + w * button_size * 0.3 - Retry_imsize / 2,
+                Retry_Button_Height / 2 - (Retry_Button_Height * (8 / 145)) - Retry_imsize / 2,
+                width = Retry_imsize,
+                height = Retry_imsize,
+                wait_execute = True
+            )
             
             root.run_js_wait_code()
             

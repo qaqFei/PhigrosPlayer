@@ -158,7 +158,7 @@ class finish_animation_eases:
     def button_ease(x):
         if x <= 0.0: return 0.0
         if x >= 1.0: return 1.0
-        return 1 - (1 - x) ** 2
+        return 1 - (1 - x) ** 3
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 interpolation_phi(0.5,0.1,0.8,-114.514,314.159)
