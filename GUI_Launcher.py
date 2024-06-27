@@ -25,7 +25,7 @@ else:
     raise SystemExit
 
 TEXT = GUI_Const.CHINESE
-if "-english" in argv:
+if "-english" in argv or "-eng" in argv:
     TEXT = GUI_Const.ENGLISH
 
 def hook_dropfiles_first(hwnd,callback):
