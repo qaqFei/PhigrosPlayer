@@ -8,6 +8,9 @@ from sys import argv
 import ctypes
 
 import GUI_Const
+import ConsoleWindow
+
+ConsoleWindow.Hide()
 
 selfdir = dirname(argv[0])
 if selfdir == "": selfdir = "."
