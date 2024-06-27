@@ -5,7 +5,6 @@ from tkinter.messagebox import showerror
 from os import chdir,popen
 from os.path import exists,isfile,dirname
 from sys import argv
-from ctypes import windll
 import ctypes
 
 import GUI_Const
@@ -27,7 +26,7 @@ else:
 
 if "-english" in argv or "-eng" in argv:
     english = True
-elif windll.kernel32.GetSystemDefaultUILanguage() != 0x804:
+elif ctypes.windll.kernel32.GetSystemDefaultUILanguage() != 0x804:
     english = True
 else:
     english = False
