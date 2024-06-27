@@ -30,12 +30,8 @@ english = False
 
 if "-english" in argv or "-eng" in argv:
     english = True
-    
-try:
-    if windll.kernel32.GetSystemDefaultUILanguage() != 0x804:
-        english = True
-except Exception:
-    pass
+elif windll.kernel32.GetSystemDefaultUILanguage() != 0x804:
+    english = True
     
 if english:
     TEXT = GUI_Const.ENGLISH
