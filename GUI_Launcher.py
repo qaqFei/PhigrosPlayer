@@ -25,16 +25,17 @@ else:
     print("Can't find Main.py or Main.exe.")
     raise SystemExit
 
-TEXT = GUI_Const.CHINESE
-english = False
-
 if "-english" in argv or "-eng" in argv:
     english = True
 elif windll.kernel32.GetSystemDefaultUILanguage() != 0x804:
     english = True
+else:
+    english = False
     
 if english:
     TEXT = GUI_Const.ENGLISH
+else:
+    TEXT = GUI_Const.CHINESE
 
 def hook_dropfiles_first(hwnd,callback):
     globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"] = ctypes.WINFUNCTYPE(*(ctypes.c_uint64,)*5)(lambda hwnd,msg,wp,lp: [callback([ctypes.windll.shell32.DragQueryFileW(ctypes.c_uint64(wp),0,szFile := ctypes.create_unicode_buffer(260),ctypes.sizeof(szFile)),szFile.value][1]) if msg == 0x233 else None,ctypes.windll.user32.CallWindowProcW(*map(ctypes.c_uint64,(lptr,hwnd,msg,wp,lp)))][1]);ctypes.windll.shell32.DragAcceptFiles(hwnd,True);lptr = ctypes.windll.user32.GetWindowLongPtrA(hwnd,-4);ctypes.windll.user32.SetWindowLongPtrA(hwnd,-4,globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"])
