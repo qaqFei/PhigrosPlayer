@@ -5,6 +5,7 @@ from tkinter.messagebox import showerror
 from os import chdir,popen
 from os.path import exists,isfile,dirname
 from sys import argv
+from ctypes import windll
 import ctypes
 
 import GUI_Const
@@ -25,7 +26,18 @@ else:
     raise SystemExit
 
 TEXT = GUI_Const.CHINESE
+english = False
+
 if "-english" in argv or "-eng" in argv:
+    english = True
+    
+try:
+    if windll.kernel32.GetSystemDefaultUILanguage() != 0x804:
+        english = True
+except Exception:
+    pass
+    
+if english:
     TEXT = GUI_Const.ENGLISH
 
 def hook_dropfiles_first(hwnd,callback):
