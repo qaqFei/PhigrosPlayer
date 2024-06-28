@@ -19,7 +19,6 @@ class note:
     clicked:bool = False
     morebets:bool = False
     master:typing.Union[judgeLine,None] = None
-    hold_click_type:typing.Union[None,typing.Literal["Perfect","Good"]] = None
     show_effected:bool = False
     show_effected_hold:bool = False
     effect_times:typing.Union[typing.List[typing.Tuple[int]],typing.Tuple] = ()
@@ -69,7 +68,7 @@ class speedEvent:
     startTime:typing.Union[int,float]
     endTime:typing.Union[int,float]
     value:typing.Union[int,float]
-    floorPosition:typing.Union[typing.Union[int,float],None]
+    floorPosition:typing.Union[typing.Union[int,float],None] = None
 
 @dataclass
 class judgeLineMoveEvent:

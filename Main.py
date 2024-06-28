@@ -1146,7 +1146,7 @@ def PlayerStart_Phi():
             
             root.create_text(
                 w * 0.1235 + (1 - info_data_ease_value_2) * -1 * w * 0.075,
-                h * 0.5225 + w / 98 * 1.25 + chart_artist_text_font_size * 2.05,
+                h * 0.565 + w / 98 * 1.25,
                 text = "Illustration",
                 font = f"{w / 98}px PhigrosFont",
                 textBaseline = "top",
@@ -1156,7 +1156,7 @@ def PlayerStart_Phi():
             
             root.create_text(
                 w * 0.1235 + (1 - info_data_ease_value_2) * -1 * w * 0.075,
-                h * 0.5225 + w / 98 * 1.25 + chart_artist_text_font_size * 2.05 + w / 98 * 1.25,
+                h * 0.565 + w / 98 * 1.25 + w / 98 * 1.25,
                 text = chart_illustrator_text,
                 font = f"{chart_illustrator_text_font_size}px PhigrosFont",
                 textBaseline = "top",
