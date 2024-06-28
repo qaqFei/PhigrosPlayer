@@ -2,8 +2,6 @@ from sys import argv
 import typing
 import time
 
-import debug_playbreak
-
 argv.append("-no-mixer-reset-chart-time")
 
 x = int(eval(argv[argv.index("-time++") + 1])) if "-time++" in argv else 3.0
@@ -22,7 +20,8 @@ class PhigrosPlayer_Extend:
         g["sleep"] = lambda t: time.sleep(t / x)
     
     def update(self, locals_dict):
-        debug_playbreak.PhigrosPlayer_Extend.update(self, locals_dict)
+        task = locals_dict["Task"]
+        task.ExTask.append(("break",))
     
     def __getattribute__(self, name: str) -> typing.Any:
         try:
