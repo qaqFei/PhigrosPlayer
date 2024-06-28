@@ -1734,11 +1734,11 @@ def PlayerStart_Phi():
     
     Chart_Finish_Animation()
         
-    # if loop:
-    #     LoadChartObject()
-    #     PlayerStart_Phi()
-    # else:
-    #     root.destroy()
+    if loop:
+        LoadChartObject()
+        PlayerStart_Phi()
+    else:
+        root.destroy()
 
 def Re_Init():
     (
