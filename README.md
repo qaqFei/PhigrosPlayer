@@ -1,4 +1,5 @@
-# 这是一个使用WebView实现的Phigros谱面的模拟器 Python 版本: `3.12.0`
+# 这是一个使用WebView实现的Phigros谱面的模拟器
+# Python 版本: `3.12.0`
 
 ## 兼容性
 - 目前只支持Phigros的官谱 且只支持```formatVersion```为```1```或```3```的谱面
