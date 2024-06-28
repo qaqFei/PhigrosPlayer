@@ -972,6 +972,7 @@ def Get_LevelText() -> str:
 def PlayerStart_Phi():
     print("Player Start")
     root.title("Phigros Chart Player")
+    Resource["Over"].stop()
     def Begin_Animation():
         animation_time = 4.5
         
