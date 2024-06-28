@@ -15,7 +15,7 @@ class PhigrosPlayer_Extend:
     ) -> None:
         self._get_globals = get_globals
     
-    def chart_loaded(self,chart_obj):
+    def chart_loaded(self, chart_obj):
         for judgeLine in chart_obj.judgeLineList:
             na = []
             nb = []

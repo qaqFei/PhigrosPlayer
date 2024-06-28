@@ -23,7 +23,7 @@ class PhigrosPlayer_Extend:
         self._get_globals = get_globals
         self.last_call_update = None
     
-    def update(self,locals_dict):
+    def update(self, locals_dict):
         global min_render_data_time
         
         if self.last_call_update is not None:

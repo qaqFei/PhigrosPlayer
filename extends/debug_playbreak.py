@@ -7,7 +7,7 @@ class PhigrosPlayer_Extend:
     ) -> None:
         self._get_globals = get_globals
     
-    def update(self,locals_dict):
+    def update(self, locals_dict):
         task = locals_dict["Task"]
         task.ExTask.append(("break",))
     
