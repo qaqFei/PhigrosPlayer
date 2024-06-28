@@ -1,4 +1,4 @@
-# 这是一个使用WebView实现的Phigros谱面的模拟器
+# 这是一个使用WebView实现的Phigros谱面的模拟器 Python 版本: `3.12.0`
 
 ## 兼容性
 - 目前只支持Phigros的官谱 且只支持```formatVersion```为```1```或```3```的谱面
@@ -28,6 +28,7 @@
 - ```-frameless``` 窗口无边框
 - ```-window-host <integer-hwnd-value>``` 将窗口设置为指定窗口的子窗口
 - ```-extend <python_file>``` 使用扩展 详见`docs/docs.md`
+- ```-no-mixer-reset-chart-time``` 在 `mixer` 的时间与谱面播放时间存在较大误差时 不进行纠正
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途

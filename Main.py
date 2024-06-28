@@ -15,7 +15,6 @@ import importlib.util
 from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
 from win32gui import GetWindowLong,SetWindowLong
 from pygame import mixer
-from numba import jit
 import win32con
 import cv2
 import numpy
@@ -36,7 +35,7 @@ if "-hideconsole" in argv:
     ConsoleWindow.Hide()
 
 if "-noclicksound" in argv:
-    PlaySound.Play = lambda *args,**kwargs:None
+    PlaySound.Play = lambda *args, **kwargs: None
 
 hidemouse = "-hidemouse" in argv
 
@@ -59,7 +58,7 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_
 print(f"Temp Dir: {temp_dir}")
 
 Image._open = Image.open
-Image.open = lambda fp,mode = "r",formats = None: [print(f"Loading Resource: {fp} ...") if temp_dir not in fp else None,Image._open(fp,mode,formats)][1]
+Image.open = lambda fp,mode = "r", formats = None: [print(f"Loading Resource: {fp} ...") if temp_dir not in fp else None,Image._open(fp,mode,formats)][1]
 
 debug = "-debug" in argv
 show_holdbody = "-holdbody" in argv
@@ -74,6 +73,7 @@ render_range_more = "-render-range-more" in argv
 render_range_more_scale = 2.0 if "-render-range-more-scale" not in argv else eval(argv[argv.index("-render-range-more-scale")+1])
 lfdaot_render_video = "-lfdaot-render-video" in argv
 extend_file = argv[argv.index("-extend") + 1] if "-extend" in argv else "./default_extend.py"
+no_mixer_reset_chart_time = "-no-mixer-reset-chart-time" in argv
 
 extend_file_spec = importlib.util.spec_from_file_location("extend", extend_file)
 extend = importlib.util.module_from_spec(extend_file_spec)
@@ -97,31 +97,29 @@ popen(f".\\7z.exe e \"{argv[1]}\" -o\"{temp_dir}\" >> nul").read()
 print("Loading All Files of Chart...")
 chart_files = Find_Files.Get_All_Files(temp_dir)
 chart_files_dict = {
-    "charts":[],
-    "images":[],
-    "audio":[],
+    "charts": [],
+    "images": [],
+    "audio": [],
 }
 for item in chart_files:
     try:
         chart_files_dict["images"].append([item,Image.open(item).convert("RGB")])
-        name = item.replace(temp_dir+"\\","")
-        print(f"Add Resource (image): {name}")
+        print(f"Add Resource (image): {item.replace(temp_dir + "\\", "")}")
     except Exception:
         try:
             mixer.music.load(item)
             chart_files_dict["audio"].append(item)
-            name = item.replace(temp_dir+"\\","")
-            print(f"Add Resource (audio): {name}")
+            print(f"Add Resource (audio): {item.replace(temp_dir + "\\", "")}")
         except Exception:
             try:
-                with open(item,"r",encoding="utf-8") as f:
-                    chart_files_dict["charts"].append([item,json.load(f)])
-                    name = item.replace(temp_dir+"\\","")
-                    print(f"Add Resource (chart): {name}")
+                with open(item, "r", encoding="utf-8") as f:
+                    chart_files_dict["charts"].append([item, json.load(f)])
+                    print(f"Add Resource (chart): {item.replace(temp_dir + "\\", "")}")
             except Exception:
-                name = item.replace(temp_dir+"\\","")
+                name = item.replace(temp_dir + "\\", "")
                 if name not in ["info.csv"]:
                     print(f"Warning: Unknown Resource Type. Path = {name}")
+                    
 if len(chart_files_dict["charts"]) == 0:
     print("No Chart File Found.")
     windll.kernel32.ExitProcess(1)
@@ -129,66 +127,71 @@ if len(chart_files_dict["audio"]) == 0:
     print("No Audio File Found.")
     windll.kernel32.ExitProcess(1)
 if len(chart_files_dict["images"]) == 0:
-    chart_files_dict["images"].append(["default",Image.new("RGB",(16,9),"#0078d7")])
+    chart_files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
+    
 defualt_information = {
-    "Name":"Unknow",
-    "Artist":"Unknow",
-    "Level":"SP Lv.?",
-    "Illustrator":"Unknow",
-    "Charter":"Unknow",
-    "BackgroundDim":0.6
+    "Name": "Unknow",
+    "Artist": "Unknow",
+    "Level": "SP Lv.?",
+    "Illustrator": "Unknow",
+    "Charter": "Unknow",
+    "BackgroundDim": 0.6
 }
+
 phigros_chart_index = 0
 chart_image_index = 0
 audio_file_index = 0
+
 if len(chart_files_dict["charts"]) > 1:
     for index,chart_file in enumerate(chart_files_dict["charts"]):
-        index += 1
         name = chart_file[0].split("/")[-1].split("\\")[-1]
-        print(f"{index}. {name}")
-    phigros_chart_index = int(input("请选择谱面文件: "))-1
+        print(f"{index + 1}. {name}")
+    phigros_chart_index = int(input("请选择谱面文件: ")) - 1
     phigros_chart = chart_files_dict["charts"][phigros_chart_index][1]
 else:
     phigros_chart = chart_files_dict["charts"][phigros_chart_index][1]
 phigros_chart_filepath = chart_files_dict["charts"][phigros_chart_index][0]
+
 if len(chart_files_dict["images"]) > 1:
     for index,chart_file in enumerate(chart_files_dict["images"]):
-        index += 1
         name = chart_file[0].split("/")[-1].split("\\")[-1]
-        print(f"{index}. {name}")
-    chart_image_index = int(input("请选择谱面图片: "))-1
+        print(f"{index + 1}. {name}")
+    chart_image_index = int(input("请选择谱面图片: ")) - 1
     chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
 else:
     chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
 chart_image_filepath = chart_files_dict["images"][chart_image_index][0]
+
 if len(chart_files_dict["audio"]) > 1:
     for index,chart_file in enumerate(chart_files_dict["audio"]):
-        index += 1
         name = chart_file.split("/")[-1].split("\\")[-1]
-        print(f"{index}. {name}")
-    audio_file_index = int(input("请选择音频文件: "))-1
+        print(f"{index + 1}. {name}")
+    audio_file_index = int(input("请选择音频文件: ")) - 1
     audio_file = chart_files_dict["audio"][audio_file_index]
 else:
     audio_file = chart_files_dict["audio"][audio_file_index]
+    
 mixer.music.load(audio_file)
 audio_length = mixer.Sound(audio_file).get_length()
 all_inforamtion = {}
 print("Loading Chart Information...")
+
 if not exists(f"{temp_dir}\\info.csv"):
     print("No info.csv Found.")
     chart_information = defualt_information
 else:
     path_head = f"{temp_dir}\\"
-    _process_path = lambda path:abspath(path_head+path)
-    _process_path2 = lambda path:abspath(path)
-    info_csv_map = {name:None for name in "Chart,Music,Image,Name,Artist,Level,Illustrator,Charter,AspectRatio,NoteScale,GlobalAlpha".split(",")}
-    with open(f"{temp_dir}\\info.csv","r",encoding="utf-8") as f:
+    _process_path = lambda path: abspath(path_head + path)
+    _process_path2 = lambda path: abspath(path)
+    info_csv_map = {name: None for name in "Chart,Music,Image,Name,Artist,Level,Illustrator,Charter,AspectRatio,NoteScale,GlobalAlpha".split(",")}
+    with open(f"{temp_dir}\\info.csv", "r", encoding="utf-8") as f:
         reader = csv.reader(f)
         for index,row in enumerate(reader):
             if index == 0:
                 for index_csv_map,item in enumerate(row):
                     info_csv_map[item] = index_csv_map
                 break
+            
         for row in reader:
             try:
                 all_inforamtion[
@@ -217,9 +220,8 @@ else:
                 "Charter":all_inforamtion[keys]["Charter"] if "Charter" in all_inforamtion[keys] else "Unknow",
                 "BackgroundDim":float(all_inforamtion[keys]["BackgroundDim"] if "BackgroundDim" in all_inforamtion[keys] else 0.6)
             }
-    try:
-        chart_information
-    except NameError:
+            
+    if "chart_information" not in globals():
         print("info.cvs Found. But cannot find information of this chart.")
         chart_information = defualt_information
 
@@ -241,7 +243,7 @@ del chart_files,chart_files_dict
 clickeffect_cache = []
 note_id = -1
 def LoadChartObject():
-    global phigros_chart_obj,rep_chart_obj
+    global phigros_chart_obj
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart)
     elif CHART_TYPE == Const.CHART_TYPE.REP:
@@ -251,59 +253,63 @@ LoadChartObject()
 extend_object.chart_loaded(phigros_chart_obj)
 
 def Load_Resource():
-    global ClickEffect_Size,Note_width,note_max_width,note_max_height,note_max_width_half,note_max_height_half,animation_image
+    global ClickEffect_Size, Note_width
+    global note_max_width, note_max_height
+    global note_max_width_half, note_max_height_half
+    global animation_image
     global WaitLoading,LoadSuccess
+    
     print("Loading Resource...")
     WaitLoading = mixer.Sound("./Resources/WaitLoading.mp3")
     LoadSuccess = mixer.Sound("./Resources/LoadSuccess.wav")
-    Thread(target=WaitLoading_FadeIn,daemon=True).start()
+    Thread(target=WaitLoading_FadeIn, daemon = True).start()
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
     Note_width = int(PHIGROS_X * 1.75 * (eval(argv[argv.index("-scale-note") + 1]) if "-scale-note" in argv else 1.0))
     ClickEffect_Size = int(Note_width * 1.5)
     Resource = {
         "Notes":{
-            "Tap":Image.open("./Resources/Notes/Tap.png"),
-            "Tap_dub":Image.open("./Resources/Notes/Tap_dub.png"),
-            "Drag":Image.open("./Resources/Notes/Drag.png"),
-            "Drag_dub":Image.open("./Resources/Notes/Drag_dub.png"),
-            "Flick":Image.open("./Resources/Notes/Flick.png"),
-            "Flick_dub":Image.open("./Resources/Notes/Flick_dub.png"),
-            "Hold_Head":Image.open("./Resources/Notes/Hold_Head.png"),
-            "Hold_Head_dub":Image.open("./Resources/Notes/Hold_Head_dub.png"),
-            "Hold_End":Image.open("./Resources/Notes/Hold_End.png"),
-            "Hold_End_dub":Image.open("./Resources/Notes/Hold_End_dub.png"),
-            "Hold_Body":Image.open("./Resources/Notes/Hold_Body.png"),
-            "Hold_Body_dub":Image.open("./Resources/Notes/Hold_Body_dub.png")
+            "Tap": Image.open("./Resources/Notes/Tap.png"),
+            "Tap_dub": Image.open("./Resources/Notes/Tap_dub.png"),
+            "Drag": Image.open("./Resources/Notes/Drag.png"),
+            "Drag_dub": Image.open("./Resources/Notes/Drag_dub.png"),
+            "Flick": Image.open("./Resources/Notes/Flick.png"),
+            "Flick_dub": Image.open("./Resources/Notes/Flick_dub.png"),
+            "Hold_Head": Image.open("./Resources/Notes/Hold_Head.png"),
+            "Hold_Head_dub": Image.open("./Resources/Notes/Hold_Head_dub.png"),
+            "Hold_End": Image.open("./Resources/Notes/Hold_End.png"),
+            "Hold_End_dub": Image.open("./Resources/Notes/Hold_End_dub.png"),
+            "Hold_Body": Image.open("./Resources/Notes/Hold_Body.png"),
+            "Hold_Body_dub": Image.open("./Resources/Notes/Hold_Body_dub.png")
         },
         "Note_Click_Effect":{
             "Perfect":[
-                Image.open(f"./Resources/Note_Click_Effect/Perfect/{i}.png")
-                for i in range(1,31)
+                Image.open(f"./Resources/Note_Click_Effect/Perfect/{i + 1}.png")
+                for i in range(30)
             ]
         },
         "Levels":{
-            "AP":Image.open("./Resources/Levels/AP.png"),
-            "FC":Image.open("./Resources/Levels/FC.png"),
-            "V":Image.open("./Resources/Levels/V.png"),
-            "S":Image.open("./Resources/Levels/S.png"),
-            "A":Image.open("./Resources/Levels/A.png"),
-            "B":Image.open("./Resources/Levels/B.png"),
-            "C":Image.open("./Resources/Levels/C.png"),
-            "F":Image.open("./Resources/Levels/F.png")
+            "AP": Image.open("./Resources/Levels/AP.png"),
+            "FC": Image.open("./Resources/Levels/FC.png"),
+            "V": Image.open("./Resources/Levels/V.png"),
+            "S": Image.open("./Resources/Levels/S.png"),
+            "A": Image.open("./Resources/Levels/A.png"),
+            "B": Image.open("./Resources/Levels/B.png"),
+            "C": Image.open("./Resources/Levels/C.png"),
+            "F": Image.open("./Resources/Levels/F.png")
         },
         "Note_Click_Audio":{
-            "Tap":open("./Resources/Note_Click_Audio/Tap.wav","rb").read(),
-            "Drag":open("./Resources/Note_Click_Audio/Drag.wav","rb").read(),
-            "Hold":open("./Resources/Note_Click_Audio/Hold.wav","rb").read(),
-            "Flick":open("./Resources/Note_Click_Audio/Flick.wav","rb").read()
+            "Tap": open("./Resources/Note_Click_Audio/Tap.wav", "rb").read(),
+            "Drag": open("./Resources/Note_Click_Audio/Drag.wav", "rb").read(),
+            "Hold": open("./Resources/Note_Click_Audio/Hold.wav", "rb").read(),
+            "Flick": open("./Resources/Note_Click_Audio/Flick.wav", "rb").read()
         },
-        "Start":Image.open("./Resources/Start.png"),
-        "Button_Left":Image.open("./Resources/Button_Left.png"),
-        "Button_Right":Image.open("./Resources/Button_Right.png"),
-        "Retry":Image.open("./Resources/Retry.png"),
-        "Arrow_Right":Image.open("./Resources/Arrow_Right.png"),
-        "Over":mixer.Sound("./Resources/Over.wav")
+        "Start": Image.open("./Resources/Start.png"),
+        "Button_Left": Image.open("./Resources/Button_Left.png"),
+        "Button_Right": Image.open("./Resources/Button_Right.png"),
+        "Retry": Image.open("./Resources/Retry.png"),
+        "Arrow_Right": Image.open("./Resources/Arrow_Right.png"),
+        "Over": mixer.Sound("./Resources/Over.wav")
     }
     
     animation_image = chart_image.copy()
@@ -328,21 +334,24 @@ def Load_Resource():
         fill = "#00000000"
     )
     
-    for key,value in Resource["Notes"].items():
-        if value.width > Note_width:
-            Resource["Notes"][key] = value.resize((Note_width,int(Note_width / value.width * value.height)))
-        root.reg_img(Resource["Notes"][key],f"Note_{key}")
+    for k,v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
+        if v.width > Note_width:
+            Resource["Notes"][k] = v.resize((Note_width,int(Note_width / v.width * v.height)))
+        root.reg_img(Resource["Notes"][k], f"Note_{k}")
     
-    for i in range(30):
-        root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i],f"Note_Click_Effect_Perfect_{i + 1}")
-    for k,v in Resource["Levels"].items():
-        root.reg_img(v,f"Level_{k}")
+    for i in range(30): # reg click effect
+        root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
+        
+    for k,v in Resource["Levels"].items(): # reg levels img
+        root.reg_img(v, f"Level_{k}")
+        
     root.reg_img(Resource["Start"],"Start")
     root.reg_img(animation_image,"begin_animation_image")
     root.reg_img(Resource["Button_Left"],"Button_Left")
     root.reg_img(Resource["Button_Right"],"Button_Right")
     root.reg_img(Resource["Retry"],"Retry")
     root.reg_img(Resource["Arrow_Right"],"Arrow_Right")
+    
     with open("./Resources/font.ttf","rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
     root.load_allimg()
@@ -350,6 +359,7 @@ def Load_Resource():
     root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
     while not root.run_js_code("font_loaded;"):
         sleep(0.1)
+        
     root.shutdown_fileserver()
     print("Loading Resource Successfully.")
     note_max_width = max(
@@ -384,12 +394,12 @@ def Load_Resource():
 
 def Format_Time(t:typing.Union[int,float]) -> str:
     m,s = t // 60,t % 60
-    m,s = int(m),int(s)
-    return f"{m}:{s:>2}".replace(" ","0")
+    m,s = int(m), int(s)
+    return f"{m}:{s:>2}".replace(" ", "0")
 
 def WaitLoading_FadeIn():
-    for i in range(1,50+1):
-        WaitLoading.set_volume(i / 100)
+    for i in range(50):
+        WaitLoading.set_volume((i + 1) / 100)
         sleep(2 / 50)
 
 def Show_Start():
@@ -397,12 +407,12 @@ def Show_Start():
     root.run_js_code("show_in_animation();")
     sleep(1.25)
     draw_background()
-    draw_ui(animationing=True)
+    draw_ui(animationing = True)
     root.run_js_wait_code()
     sleep(0.5)
     root.run_js_code("show_out_animation();")
     sleep(1.25)
-    Thread(target=PlayerStart_Phi,daemon=True).start()
+    Thread(target = PlayerStart_Phi,daemon = True).start()
 
 def draw_ui(
     process:float = 0.0,
@@ -517,7 +527,12 @@ def draw_ui(
         root.run_js_code(f"ctx.translate(0,{- h / 9 + dy});",add_code_array=True)
 
 def draw_background():
-    root.create_image("background",0,0,w,h,wait_execute=True)
+    root.create_image(
+        "background",
+        0, 0,
+        w, h, 
+        wait_execute = True
+    )
 
 def Note_CanRender(
     x:float,y:float,
@@ -618,9 +633,6 @@ def GetFrameRenderTask_Phi(
     Task(root.clear_canvas,wait_execute = True)
     Task(draw_background)
     
-    # Task(root.run_js_wait_code)
-    # Task.ExTask.append(("break",))
-    
     if render_range_more:
         fr_x = w / 2 - w / render_range_more_scale / 2
         fr_y = h / 2 - h / render_range_more_scale / 2
@@ -634,12 +646,12 @@ def GetFrameRenderTask_Phi(
     for judgeLine_cfg in judgeLine_Configs.Configs:
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
         this_judgeLine_T = judgeLine.T
-        judgeLine_note_dy = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine,judgeLine_cfg.time)
+        judgeLine_note_dy = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine, judgeLine_cfg.time)
         judgeLine_DrawPos = (
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos,-judgeLine_cfg.rotate,5.76 * h),
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos,-judgeLine_cfg.rotate + 180,5.76 * h)
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h),
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h)
         )
-        judgeLine_strokeStyle = (254,255,169,judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
+        judgeLine_strokeStyle = (254, 255, 169, judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
         if judgeLine_strokeStyle[-1] > 0.0 and show_judgeline:
             if judgeLine_can_render(judgeLine_DrawPos) or render_range_more:
                 if render_range_more:
@@ -709,7 +721,7 @@ def GetFrameRenderTask_Phi(
                     else:
                         holdend_x,holdend_y = rotatenote_at_judgeLine_pos
                     if note_now_floorPosition >= 0:
-                        holdhead_pos = x,y
+                        holdhead_pos = x, y
                     else:
                         holdhead_pos = rotatenote_at_judgeLine_pos
                     holdbody_range = (
@@ -721,9 +733,9 @@ def GetFrameRenderTask_Phi(
                     
                 if not render_range_more:
                     note_iscan_render = (
-                        Note_CanRender(x,y)
+                        Note_CanRender(x, y)
                         if not this_note_ishold
-                        else Note_CanRender(x,y,holdbody_range)
+                        else Note_CanRender(x, y, holdbody_range)
                     )
                 else:
                     note_iscan_render = (
@@ -848,7 +860,7 @@ def GetFrameRenderTask_Phi(
                             if block_alpha <= 0.0:
                                 continue
                             effect_random_point = Tool_Functions.rotate_point(
-                                *effect_pos,random_deg + index * 90,
+                                *effect_pos, random_deg + index * 90,
                                 ClickEffect_Size * Tool_Functions.ease_out(effect_process) / 1.25
                             )
                             block_size = EFFECT_RANDOM_BLOCK_SIZE
@@ -873,7 +885,7 @@ def GetFrameRenderTask_Phi(
                     )
                             
                 if now_t - note_time <= effect_time:
-                    process(note_time,note.time,note.effect_random_blocks)
+                    process(note_time, note.time, note.effect_random_blocks)
                 else:
                     note.show_effected = True
                 
@@ -884,7 +896,7 @@ def GetFrameRenderTask_Phi(
                         for temp_time,hold_effect_random_blocks in note.effect_times:
                             if temp_time < now_t:
                                 if now_t - temp_time <= effect_time:
-                                    process(temp_time,temp_time / judgeLine.T,hold_effect_random_blocks)
+                                    process(temp_time, temp_time / judgeLine.T, hold_effect_random_blocks)
                                     is_processed = True
                     if not is_processed and efct_et < now_t:
                         note.show_effected_hold = True
@@ -940,14 +952,15 @@ def GetFrameRenderTask_Phi(
         background=False
     )
     
-    if not lfdaot:
-        if not mixer.music.get_busy():
-            Task.ExTask.append(("break",))
-        this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
-        offset_judge_range = (1000 / 60) * 4
-        if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
-            Task.ExTask.append(("set","show_start_time",show_start_time - music_offset / 1000))
-            print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
+    if not lfdaot: # 2 "if" layer is more readable
+        if not no_mixer_reset_chart_time:
+            if not mixer.music.get_busy():
+                Task.ExTask.append(("break",))
+            this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
+            offset_judge_range = (1000 / 60) * 4
+            if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
+                Task.ExTask.append(("set","show_start_time",show_start_time - music_offset / 1000))
+                print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
     
     Task(root.run_js_wait_code)
     
@@ -970,6 +983,7 @@ def Get_LevelText() -> str:
     return chart_information["Level"].split(" ")[0]
 
 def PlayerStart_Phi():
+    global show_start_time
     print("Player Start")
     root.title("Phigros Chart Player")
     Resource["Over"].stop()
@@ -1186,7 +1200,7 @@ def PlayerStart_Phi():
         for step in gr:
             st = time()
             val += step
-            draw_ui(animationing=True,dy = h / 9 * val)
+            draw_ui(animationing = True,dy = h / 9 * val)
             root.create_line(
                 w / 2 - (val * w / 2),h / 2,
                 w / 2 + (val * w / 2),h / 2,
@@ -1207,11 +1221,7 @@ def PlayerStart_Phi():
     judgeLine_Configs = Chart_Objects_Phi.judgeLine_Configs(
         [
             Chart_Objects_Phi.judgeLine_Config_Item(
-                line = judgeLine,
-                rotate = 0.0,
-                disappear = 0.0,
-                pos = (0,0),
-                time = 0.0
+                line = judgeLine
             )
             for judgeLine in phigros_chart_obj.judgeLineList
         ]
@@ -1232,9 +1242,8 @@ def PlayerStart_Phi():
             Task.ExecTask()
             
             break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
-                locals(),
                 Task.ExTask,
-                lambda x:eval(x)
+                lambda x: eval(x)
             )
             
             if break_flag:
@@ -1367,9 +1376,8 @@ def PlayerStart_Phi():
                     Task.ExTask = None
                 for ExTask in will_process_extask:
                     break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
-                        locals(),
                         ExTask,
-                        lambda x:eval(x)
+                        lambda x: eval(x)
                     )
                     
                     if break_flag:

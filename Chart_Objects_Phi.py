@@ -255,10 +255,10 @@ class FrameRenderTask:
 @dataclass
 class judgeLine_Config_Item:
     line:judgeLine
-    rotate:float
-    disappear:float
-    pos:typing.Tuple[float,float]
-    time:float
+    rotate:float = 0.0
+    disappear:float = 0.0
+    pos:typing.Tuple[float,float] = (0.0, 0.0)
+    time:float = 0.0
 
 @dataclass
 class judgeLine_Configs:
