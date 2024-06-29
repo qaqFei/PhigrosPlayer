@@ -10,21 +10,35 @@ with open(argv[1],"r",encoding="utf-8") as f:
     rpe_obj = Chart_Functions_Rep.Load_Chart_Object(json.load(f))
 
 ease_funcs = [
-  lambda t: t, # 0 - Linear
-  lambda t: 1 - math.cos(t * math.pi / 2), # 1 - EaseInSine
-  lambda t: math.sin(t * math.pi / 2), # 2 - EaseOutSine
-  lambda t: (1 - math.cos(t * math.pi)) / 2, # 3 - EaseInOutSine
-  lambda t: t ** 2, # 4 - EaseInQuad
-  lambda t: 1 - (t - 1) ** 2, # 5 - EaseOutQuad
-  lambda t: (t ** 2 if (t := t * 2) < 1 else -((t - 2) ** 2 - 2)) / 2, # 6 - EaseInOutQuad
-  lambda t: t ** 3, # 7 - EaseInCubic
-  lambda t: 1 + (t - 1) ** 3, # 8 - EaseOutCubic
-  lambda t: (t ** 3 if (t := t * 3) < 1 else -((t - 2) ** 3 + 2)) / 2, # 9 - EaseInOutCubic
-  lambda t: t ** 4, # 10 - EaseInQuart
-  lambda t: 1 - (t - 1) ** 4, # 11 - EaseOutQuart
-  lambda t: (t ** 4 if (t := t * 2) < 1 else -((t - 2) ** 4 - 2)) / 2, # 12 - EaseInOutQuart
-  lambda t: 0, # 13 - Zero
-  lambda t: 1 # 14 - One
+  lambda t: t, # linear - 1
+  lambda t: math.sin((t * math.pi) / 2), # out sine - 2
+  lambda t: 1 - math.cos((t * math.pi) / 2), # in sine - 3
+  lambda t: 1 - (1 - t) * (1 - t), # out quad - 4
+  lambda t: t ** 2, # in quad - 5
+  lambda t: -(math.cos(math.pi * t) - 1) / 2, # io sine - 6
+  lambda t: 2 * (t ** 2) if t < 0.5 else 1 - (-2 * t + 2) ** 2 / 2, # io quad - 7
+  lambda t: 1 - (1 - t) ** 3, # out cubic - 8
+  lambda t: t ** 3, # in cubic - 9
+  lambda t: 1 - (1 - t) ** 4, # out quart - 10
+  lambda t: t ** 4, # in quart - 11
+  lambda t: 4 * (t ** 3) if t < 0.5 else 1 - (-2 * t + 2) ** 3 / 2, # io cubic - 12
+  lambda t: 8 * (t ** 4) if t < 0.5 else 1 - (-2 * t + 2) ** 4 / 2, # io quart - 13
+  lambda t: 1 - (1 - t) ** 5, # out quint - 14
+  lambda t: t ** 5, # in quint - 15
+  lambda t: 1 if t == 1 else 1 - 2 ** (-10 * t), # out expo - 16
+  lambda t: 0 if t == 0 else 2 ** (10 * t - 10), # in expo - 17
+  lambda t: (1 - (t - 1) ** 2) ** 0.5, # out circ - 18
+  lambda t: 1 - (1 - t ** 2) ** 0.5, # in circ - 19
+  lambda t: 1 + 2.70158 * ((t - 1) ** 3) + 1.70158 * ((t - 1) ** 2), # out back - 20
+  lambda t: 2.70158 * (t ** 3) - 1.70158 * (t ** 2), # in back - 21
+  lambda t: (1 - (1 - (2 * t) ** 2) ** 0.5) / 2 if t < 0.5 else (((1 - (-2 * t + 2) ** 2) ** 0.5) + 1) / 2, # io circ - 22
+  lambda t: ((2 * t) ** 2 * ((2.5949095 + 1) * 2 * t - 2.5949095)) / 2 if t < 0.5 else ((2 * t - 2) ** 2 * ((2.5949095 + 1) * (t * 2 - 2) + 2.5949095) + 2) / 2, # io back - 23
+  lambda t: 0 if t == 0 else (1 if t == 1 else 2 ** (-10 * t) * math.sin((t * 10 - 0.75) * (2 * math.pi / 3)) + 1), # out elastic - 24
+  lambda t: 0 if t == 0 else (1 if t == 1 else - 2 ** (10 * t - 10) * math.sin((t * 10 - 10.75) * (2 * math.pi / 3))), # in elastic - 25
+  lambda t: 7.5625 * (t ** 2) if (t < 1 / 2.75) else (7.5625 * (t - (1.5 / 2.75)) * (t - (1.5 / 2.75)) + 0.75 if (t < 2 / 2.75) else (7.5625 * (t - (2.25 / 2.75)) * (t - (2.25 / 2.75)) + 0.9375 if (t < 2.5 / 2.75) else (7.5625 * (t - (2.625 / 2.75)) * (t - (2.625 / 2.75)) + 0.984375))), # out bounce - 26
+  lambda t: 1 - ease_funcs[26 - 1](1 - t), # in bounce - 27
+  lambda t: (1 - ease_funcs[26 - 1](1 - 2 * t)) / 2 if t < 0.5 else (1 + ease_funcs[26 - 1](2 * t - 1)) / 2, # io bounce - 28
+  lambda t: 0 if t == 0 else (1 if t == 0 else (-2 ** (20 * t - 10) * math.sin((20 * t - 11.125) * ((2 * math.pi) / 4.5))) / 2 if t < 0.5 else (2 ** (-20 * t + 10) * math.sin((20 * t - 11.125) * ((2 * math.pi) / 4.5))) / 2 + 1) # io elastic - 29
 ]
 
 phi_data = {
@@ -34,7 +48,7 @@ phi_data = {
 }
 
 split_event_length = 20
-T = 1.875 / 120
+T = 1.875 / rpe_obj.BPMList[0].bpm
 
 for index,bpm in enumerate(rpe_obj.BPMList):
     if index != len(rpe_obj.BPMList) - 1:
@@ -53,19 +67,19 @@ def getReal(b:Chart_Objects_Rep.Beat):
                 realtime += 60 / bpm.bpm * bpm.dur
     return realtime
 
-def get_moves_state(moves,t):
-    x,y = 0,0
-    for e in moves:
-        if e["st"] <= t <= e["et"]:
-            if e["type"] == "x":
-                x = (t - e["st"]) / (e["et"] - e["st"]) * (e["ev"] - e["sv"]) + e["sv"]
-            elif e["type"] == "y":
-                y = (t - e["st"]) / (e["et"] - e["st"]) * (e["ev"] - e["sv"]) + e["sv"]
-    return x,y
+def linear_interpolation(
+    t:float,
+    st:float,
+    et:float,
+    sv:float,
+    ev:float
+) -> float:
+    if t == st: return sv
+    return (t - st) / (et - st) * (ev - sv) + sv
 
 for rpe_judgeLine in rpe_obj.JudgeLineList:
     phi_judgeLine = {
-        "bpm": 120,
+        "bpm": rpe_obj.BPMList[0].bpm,
         "notesAbove": [],
         "notesBelow": [],
         "speedEvents": [],
@@ -74,106 +88,52 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
         "judgeLineDisappearEvents": []
     }
     
-    moves = []
-    
     for eventLayer in rpe_judgeLine.eventLayers:
         if eventLayer.alphaEvents is not None:
             for e in eventLayer.alphaEvents:
-                st = getReal(e.startTime) / T
-                et = getReal(e.endTime) / T
-                sv,ev = 255 & e.start,255 & e.end
-                sv /= 255; ev /= 255
-                ease = ease_funcs[e.easingType] if e.easingType < len(ease_funcs) else ease_funcs[0]
+                st = getReal(e.startTime)
+                et = getReal(e.endTime)
+                sv = (255 & e.start) / 255
+                ev = (255 & e.end) / 255
+                ef = ease_funcs[e.easingType - 1]
                 for i in range(split_event_length):
-                    se_st = st + i * (et - st) / split_event_length
-                    se_et = st + (i + 1) * (et - st) / split_event_length
-                    se_sv = ease(i / split_event_length) * (ev - sv) + sv
-                    se_ev = ease((i + 1) / split_event_length) * (ev - sv) + sv
-                    if se_ev <= 5e-3:
-                        se_ev = 0.0
-                    if se_sv <= 5e-3:
-                        se_sv = 0.0
-                    phi_judgeLine["judgeLineDisappearEvents"].append({
-                        "startTime": se_st,
-                        "endTime": se_et,
-                        "start": se_sv,
-                        "end": se_ev
-                    })
+                    ist = st + i * (et - st) / split_event_length
+                    iet = st + (i + 1) * (et - st) / split_event_length
+                    isvp = ef(i / split_event_length)
+                    ievp = ef((i + 1) / split_event_length)
+                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                    phi_judgeLine["judgeLineDisappearEvents"].append(
+                        {
+                            "startTime": ist / T,
+                            "endTime": iet / T,
+                            "start": isv,
+                            "end": iev
+                        }
+                    )
         
         if eventLayer.rotateEvents is not None:
             for e in eventLayer.rotateEvents:
-                st = getReal(e.startTime) / T
-                et = getReal(e.endTime) / T
-                sv,ev = e.start,e.end
-                sv *= -1; ev *= -1
-                ease = ease_funcs[e.easingType] if e.easingType < len(ease_funcs) else ease_funcs[0]
+                st = getReal(e.startTime)
+                et = getReal(e.endTime)
+                sv = - e.start
+                ev = - e.end
+                ef = ease_funcs[e.easingType - 1]
                 for i in range(split_event_length):
-                    se_st = st + i * (et - st) / split_event_length
-                    se_et = st + (i + 1) * (et - st) / split_event_length
-                    se_sv = ease(i / split_event_length) * (ev - sv) + sv
-                    se_ev = ease((i + 1) / split_event_length) * (ev - sv) + sv
-                    phi_judgeLine["judgeLineRotateEvents"].append({
-                        "startTime": se_st,
-                        "endTime": se_et,
-                        "start": se_sv,
-                        "end": se_ev
-                    })
-        
-        if eventLayer.moveXEvents is not None:
-            for e in eventLayer.moveXEvents:
-                st = getReal(e.startTime) / T
-                et = getReal(e.endTime) / T
-                sv,ev = e.start,e.end
-                ease = ease_funcs[e.easingType] if e.easingType < len(ease_funcs) else ease_funcs[0]
-                for i in range(split_event_length):
-                    se_st = st + i * (et - st) / split_event_length
-                    se_et = st + (i + 1) * (et - st) / split_event_length
-                    se_sv = ease(i / split_event_length) * (ev - sv) + sv
-                    se_ev = ease((i + 1) / split_event_length) * (ev - sv) + sv
-                    moves.append({
-                        "type":"x",
-                        "st":se_st,
-                        "et":se_et,
-                        "sv":se_sv,
-                        "ev":se_ev
-                    })
-        
-        if eventLayer.moveYEvents is not None:
-            for e in eventLayer.moveYEvents:
-                st = getReal(e.startTime) / T
-                et = getReal(e.endTime) / T
-                sv,ev = e.start,e.end
-                ease = ease_funcs[e.easingType] if e.easingType < len(ease_funcs) else ease_funcs[0]
-                for i in range(split_event_length):
-                    se_st = st + i * (et - st) / split_event_length
-                    se_et = st + (i + 1) * (et - st) / split_event_length
-                    se_sv = ease(i / split_event_length) * (ev - sv) + sv
-                    se_ev = ease((i + 1) / split_event_length) * (ev - sv) + sv
-                    moves.append({
-                        "type":"y",
-                        "st":se_st,
-                        "et":se_et,
-                        "sv":se_sv,
-                        "ev":se_ev
-                    })
-    
-    moves.sort(key=lambda x:x["st"])
-    max_time = max([moves["et"] for moves in moves])
-    time_split_block_size = 1 / 10 / T
-    block_num = int(max_time / time_split_block_size)
-    for i in range(block_num,desc="processing move events"):
-        se_st = i * time_split_block_size
-        se_et = (i + 1) * time_split_block_size
-        se_sv_x,se_sv_y = get_moves_state(moves,se_st)
-        se_ev_x,se_ev_y = get_moves_state(moves,se_et)
-        phi_judgeLine["judgeLineMoveEvents"].append({
-            "startTime": se_st,
-            "endTime": se_et,
-            "start": (se_sv_x + 675) / (675 * 2),
-            "end": (se_ev_x + 675) / (675 * 2),
-            "start2": (se_sv_y + 450) / (450 * 2),
-            "end2": (se_ev_y + 450) / (450 * 2)
-        })
+                    ist = st + i * (et - st) / split_event_length
+                    iet = st + (i + 1) * (et - st) / split_event_length
+                    isvp = ef(i / split_event_length)
+                    ievp = ef((i + 1) / split_event_length)
+                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                    phi_judgeLine["judgeLineRotateEvents"].append(
+                        {
+                            "startTime": ist / T,
+                            "endTime": iet / T,
+                            "start": isv,
+                            "end": iev
+                        }
+                    )
                     
     phi_data["judgeLineList"].append(phi_judgeLine)
 
