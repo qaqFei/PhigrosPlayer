@@ -14,6 +14,7 @@ class CHINESE:
     KWARGS_TEXT = "关键字参数设置"
     LAUNCH_BUTTON_TEXT = "启动"
     LAUNCH_FILE_ERROR_TEXT = "选择的 Phigros 谱面文件不存在或不为文件"
+    OTHER_ARGS_TEXT = "其他命令行参数: "
     
     class ARGS:
         DEBUG = "调试"
@@ -56,6 +57,7 @@ class ENGLISH:
     KWARGS_TEXT = "Keyword Arguments"
     LAUNCH_BUTTON_TEXT = "Launch"
     LAUNCH_FILE_ERROR_TEXT = "The chosen Phigros Chart File is not exist or not a file."
+    OTHER_ARGS_TEXT = "Other Command Line Arguments: "
     
     class ARGS:
         DEBUG = "Debug"

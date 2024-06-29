@@ -4,7 +4,7 @@ import time
 
 argv.append("-no-mixer-reset-chart-time")
 
-x = int(eval(argv[argv.index("-time++") + 1])) if "-time++" in argv else 3.0
+x = eval(argv[argv.index("-time++") + 1]) if "-time++" in argv else 3.0
 
 class PhigrosPlayer_Extend:
     def __init__(

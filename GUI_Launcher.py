@@ -37,7 +37,7 @@ else:
     TEXT = GUI_Const.CHINESE
 
 def hook_dropfiles_first(hwnd,callback):
-    globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"] = ctypes.WINFUNCTYPE(*(ctypes.c_uint64,)*5)(lambda hwnd,msg,wp,lp: [callback([ctypes.windll.shell32.DragQueryFileW(ctypes.c_uint64(wp),0,szFile := ctypes.create_unicode_buffer(260),ctypes.sizeof(szFile)),szFile.value][1]) if msg == 0x233 else None,ctypes.windll.user32.CallWindowProcW(*map(ctypes.c_uint64,(lptr,hwnd,msg,wp,lp)))][1]);ctypes.windll.shell32.DragAcceptFiles(hwnd,True);lptr = ctypes.windll.user32.GetWindowLongPtrA(hwnd,-4);ctypes.windll.user32.SetWindowLongPtrA(hwnd,-4,globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"])
+    globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"] = ctypes.WINFUNCTYPE(*(ctypes.c_uint64,) * 5)(lambda hwnd,msg,wp,lp: [callback([ctypes.windll.shell32.DragQueryFileW(ctypes.c_uint64(wp),0,szFile := ctypes.create_unicode_buffer(260),ctypes.sizeof(szFile)),szFile.value][1]) if msg == 0x233 else None,ctypes.windll.user32.CallWindowProcW(*map(ctypes.c_uint64,(lptr,hwnd,msg,wp,lp)))][1]);ctypes.windll.shell32.DragAcceptFiles(hwnd,True);lptr = ctypes.windll.user32.GetWindowLongPtrA(hwnd,-4);ctypes.windll.user32.SetWindowLongPtrA(hwnd,-4,globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"])
 
 def OpenFile():
     fp = askopenfilename(
@@ -186,6 +186,7 @@ def Launch():
     launch_args.append(f"-scale-note \"{kwarg_scale_note_entry.get()}\"")
     
     launch_command += " ".join(launch_args)
+    launch_command += f" {other_args_Entry.get()}"
     popen(launch_command)
 
 root = Tk()
@@ -206,6 +207,10 @@ args_LabelFrame = LabelFrame(root,text=TEXT.ARGS_TEXT)
 args_LabelFrame.grid(row=1,column=0,columnspan=5000,padx=12,sticky="w")
 kwargs_LabelFrame = LabelFrame(root,text=TEXT.KWARGS_TEXT)
 kwargs_LabelFrame.grid(row=2,column=0,columnspan=5000,padx=12,sticky="w")
+other_args_Label = Label(root,text=TEXT.OTHER_ARGS_TEXT)
+other_args_Label.grid(row=3,column=0,columnspan=100,padx=12,sticky="w")
+other_args_Entry = Entry(root,width=int(screen_width / 35))
+other_args_Entry.grid(row=3,column=101,columnspan=100,sticky="w")
 
 debug_checkbutton_var = BooleanVar(value=False) # -debug
 debug_checkbutton = Checkbutton(args_LabelFrame,text=TEXT.ARGS.DEBUG,variable=debug_checkbutton_var)
@@ -313,7 +318,7 @@ kwarg_extend_entry.grid(row=7,column=1)
 kwarg_extend_button.grid(row=7,column=2,columnspan=100,sticky="w")
 
 Launch_Button = Button(root,text=TEXT.LAUNCH_BUTTON_TEXT,command=Launch)
-Launch_Button.grid(row=3,column=0,columnspan=5000,padx=12,pady=5,sticky="w")
+Launch_Button.grid(row=4,column=0,columnspan=5000,padx=12,pady=5,sticky="w")
 
 root.update()
 hook_dropfiles_first(root.winfo_id(),lambda file:([file_input_entry.delete(0,"end"),file_input_entry.insert(0,file)] if isfile(file) else None))
