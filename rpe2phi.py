@@ -66,7 +66,7 @@ phi_data = {
     "judgeLineList" :[]
 }
 
-split_event_length = 20
+split_event_length = 50
 T = 1.875 / rpe_obj.BPMList[0].bpm
 
 for index,bpm in enumerate(rpe_obj.BPMList):
@@ -105,6 +105,15 @@ def get_phimove_state(t):
             elif move.type == "y":
                 y = linear_interpolation(t, move.st, move.et, move.sv, move.ev)
     return (x + 675) / 1350, (y + 450) / 900
+
+def get_floor_position(t):
+    v = 0.0
+    for e in phi_judgeLine["speedEvents"]:
+        if e["startTime"] <= t <= e["endTime"]:
+            v += (t - e["startTime"]) * T * e["value"]
+        elif e["endTime"] <= t:
+            v += (e["endTime"] - e["startTime"]) * T * e["value"]
+    return v
 
 for rpe_judgeLine in rpe_obj.JudgeLineList:
     phi_judgeLine = {
@@ -213,7 +222,37 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                             ev = iev
                         )
                     )
+        
+        if eventLayer.speedEvents is not None:
+            for e in eventLayer.speedEvents:
+                st = getReal(e.startTime)
+                et = getReal(e.endTime)
+                v = (e.start + e.end) / 2 # normal, e.start == e.end is True
+                phi_judgeLine["speedEvents"].append(
+                    {
+                        "startTime": st / T,
+                        "endTime": et / T,
+                        "value": (v * 120) / 900 / 0.6
+                    }
+                )
     
+    for note in rpe_judgeLine.notes:
+        st = getReal(note.startTime)
+        et = getReal(note.endTime)
+        phi_judgeLine["notesAbove"]
+        item = {
+            "type": note.type,
+            "time": st / T,
+            "holdTime": (et - st) / T,
+            "positionX": note.positionX / 1350 / 0.05625,
+            "floorPosition": get_floor_position(st / T)
+        }
+        if note.above:
+            phi_judgeLine["notesAbove"].append(item)
+        else:
+            phi_judgeLine["notesBelow"].append(item)
+    
+    moves.sort(key=lambda x: x.st)
     phimoves = []
     max_movet = max([i.et for i in moves])
     t = 0.0
