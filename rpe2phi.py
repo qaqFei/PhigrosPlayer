@@ -236,7 +236,7 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                     }
                 )
     
-    for note in rpe_judgeLine.notes:
+    for note in rpe_judgeLine.notes: # has bugsssssssss
         st = getReal(note.startTime)
         et = getReal(note.endTime)
         phi_judgeLine["notesAbove"]
