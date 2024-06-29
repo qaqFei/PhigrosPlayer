@@ -54,6 +54,16 @@ def linear_interpolation(
     if t == st: return sv
     return (t - st) / (et - st) * (ev - sv) + sv
 
+@numba.jit
+def cosint(p, dx = 1 / 5e2): # f\left(m\right)=\int_{0}^{m}\left(\cos\left(\pi x\right)+1\right)dx
+    if p >= 1.0: return 1.0
+    if p <= 0.0: return 0.0
+    ep, intp = 0.0, 0.0
+    while intp <= p:
+        ep += dx * (math.cos(intp * math.pi) + 1)
+        intp += dx
+    return ep if 0.0 <= ep <= 1.0 else (0.0 if ep <= 0.0 else 1.0)
+
 if "-ease-event-interpolation" in argv:
     @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
     def interpolation_phi(
@@ -65,7 +75,8 @@ if "-ease-event-interpolation" in argv:
     ) -> float:
         if t == st: return sv
         p = (t - st) / (et - st)
-        return ((1 - (1 - p) ** 2) ** 0.5) * (ev - sv) + sv
+        ep = cosint(p)
+        return ep * (ev - sv) + sv
 else:
     @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
     def interpolation_phi(

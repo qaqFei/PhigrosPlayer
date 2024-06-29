@@ -1195,11 +1195,10 @@ def PlayerStart_Phi():
             root.run_js_wait_code()
     
     def ChartStart_Animation():
-        gr,step_time = Tool_Functions.Get_Animation_Gr(60,0.65)
-        val = 0.0
-        for step in gr:
-            st = time()
-            val += step
+        st = time()
+        while time() - st < 0.65:
+            p = (time() - st) / 0.65
+            val = 1 - (1 - p) ** 2
             draw_ui(animationing = True,dy = h / 9 * val)
             root.create_line(
                 w / 2 - (val * w / 2),h / 2,
@@ -1209,7 +1208,7 @@ def PlayerStart_Phi():
                 wait_execute = True
             )
             root.run_js_wait_code()
-            sleep(step_time - min(time() - st,step_time))
+            sleep(1 / 240)
     
     Begin_Animation()
     ChartStart_Animation()
