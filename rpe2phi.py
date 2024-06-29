@@ -1,7 +1,9 @@
 #i can't write this file, because i don't know rpe format... how can tell me?????????  welcome to my github to create a issue. thank you very much!!!
 from sys import argv
+from dataclasses import dataclass
 import json
 import math
+import typing
 
 import Chart_Functions_Rep
 import Chart_Objects_Rep
@@ -41,6 +43,23 @@ ease_funcs = [
   lambda t: 0 if t == 0 else (1 if t == 0 else (-2 ** (20 * t - 10) * math.sin((20 * t - 11.125) * ((2 * math.pi) / 4.5))) / 2 if t < 0.5 else (2 ** (-20 * t + 10) * math.sin((20 * t - 11.125) * ((2 * math.pi) / 4.5))) / 2 + 1) # io elastic - 29
 ]
 
+@dataclass
+class Move:
+    type: typing.Literal["x", "y"]
+    st: float
+    et: float
+    sv: float
+    ev: float
+
+@dataclass
+class PhiMove:
+    st: float
+    et: float
+    sv_x: float
+    sv_y: float
+    ev_x: float
+    ev_y: float
+
 phi_data = {
     "formatVersion": 3,
     "offset": 0,
@@ -77,6 +96,16 @@ def linear_interpolation(
     if t == st: return sv
     return (t - st) / (et - st) * (ev - sv) + sv
 
+def get_phimove_state(t):
+    x, y = 0, 0
+    for move in moves:
+        if move.st <= t <= move.et:
+            if move.type == "x":
+                x = linear_interpolation(t, move.st, move.et, move.sv, move.ev)
+            elif move.type == "y":
+                y = linear_interpolation(t, move.st, move.et, move.sv, move.ev)
+    return (x + 675) / 1350, (y + 450) / 900
+
 for rpe_judgeLine in rpe_obj.JudgeLineList:
     phi_judgeLine = {
         "bpm": rpe_obj.BPMList[0].bpm,
@@ -87,6 +116,8 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
         "judgeLineRotateEvents": [],
         "judgeLineDisappearEvents": []
     }
+    
+    moves:typing.List[Move] = []
     
     for eventLayer in rpe_judgeLine.eventLayers:
         if eventLayer.alphaEvents is not None:
@@ -134,6 +165,74 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                             "end": iev
                         }
                     )
+        
+        if eventLayer.moveXEvents is not None:
+            for e in eventLayer.moveXEvents:
+                st = getReal(e.startTime)
+                et = getReal(e.endTime)
+                sv = e.start
+                ev = e.end
+                ef = ease_funcs[e.easingType - 1]
+                for i in range(split_event_length):
+                    ist = st + i * (et - st) / split_event_length
+                    iet = st + (i + 1) * (et - st) / split_event_length
+                    isvp = ef(i / split_event_length)
+                    ievp = ef((i + 1) / split_event_length)
+                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                    moves.append(
+                        Move(
+                            type = "x",
+                            st = ist / T,
+                            et = iet / T,
+                            sv = isv,
+                            ev = iev
+                        )
+                    )
+        
+        if eventLayer.moveYEvents is not None:
+            for e in eventLayer.moveYEvents:
+                st = getReal(e.startTime)
+                et = getReal(e.endTime)
+                sv = e.start
+                ev = e.end
+                ef = ease_funcs[e.easingType - 1]
+                for i in range(split_event_length):
+                    ist = st + i * (et - st) / split_event_length
+                    iet = st + (i + 1) * (et - st) / split_event_length
+                    isvp = ef(i / split_event_length)
+                    ievp = ef((i + 1) / split_event_length)
+                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                    moves.append(
+                        Move(
+                            type = "y",
+                            st = ist / T,
+                            et = iet / T,
+                            sv = isv,
+                            ev = iev
+                        )
+                    )
+    
+    phimoves = []
+    max_movet = max([i.et for i in moves])
+    t = 0.0
+    t_step = 1 / split_event_length / T
+    while t <= max_movet:
+        next_t = t + t_step
+        state_now = get_phimove_state(t)
+        state_next = get_phimove_state(next_t)
+        phi_judgeLine["judgeLineMoveEvents"].append(
+            {
+                "startTime": t,
+                "endTime": next_t,
+                "start": state_now[0],
+                "end": state_next[0],
+                "start2": state_now[1],
+                "end2": state_next[1]
+            }
+        )
+        t += t_step
                     
     phi_data["judgeLineList"].append(phi_judgeLine)
 
