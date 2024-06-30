@@ -420,28 +420,7 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
     if len(phi_judgeLine["judgeLineMoveEvents"]) > 0:
         phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["endTime"])
         phi_judgeLine["judgeLineMoveEvents"][-1]["endTime"] = 1000000000
-        min_st = (float("inf"), None)
-        for e in phi_judgeLine["judgeLineMoveEvents"]:
-            if e["startTime"] < min_st[0]:
-                min_st = (e["startTime"], e)
-        min_st[1]["startTime"] = -999999
-        
-        oth_es = []
-        for index, e in enumerate(phi_judgeLine["judgeLineMoveEvents"]):
-            if index == len(phi_judgeLine["judgeLineMoveEvents"]) - 1:
-                break
-            else:
-                ne = phi_judgeLine["judgeLineMoveEvents"][index + 1]
-                if e["endTime"] < ne["startTime"]:
-                    oth_es.append({
-                        "startTime": e["endTime"],
-                        "endTime": ne["startTime"],
-                        "start": e["end"],
-                        "end": e["end"],
-                        "start2": e["end2"],
-                        "end2": e["end2"]
-                    })
-        phi_judgeLine["judgeLineMoveEvents"] += oth_es
+        min(phi_judgeLine["judgeLineMoveEvents"], key = lambda x: x["startTime"])["startTime"] = -999999
                     
     phi_data["judgeLineList"].append(phi_judgeLine)
 
