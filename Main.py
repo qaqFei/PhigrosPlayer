@@ -700,7 +700,7 @@ def GetFrameRenderTask_Phi(
                         if not (this_note_ishold and note_item.clicked) else (
                         Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(
                             judgeLine,note_item.time
-                        ) + note_item.hold_length_px * (1 - ((note_item.hold_endtime - now_t) / note_item.hold_length_sec))
+                        ) + Tool_Functions.linear_interpolation(note_item.hold_endtime - now_t, 0, note_item.hold_length_sec, note_item.hold_length_px, 0)
                     )
                 )
                 

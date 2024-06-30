@@ -1,6 +1,7 @@
 #i can't write this file, because i don't know rpe format... how can tell me?????????  welcome to my github to create a issue. thank you very much!!!
 from sys import argv
 from dataclasses import dataclass
+from functools import cache
 import json
 import math
 import typing
@@ -76,6 +77,7 @@ for index,bpm in enumerate(rpe_obj.BPMList):
     else:
         bpm.dur = float("inf")
 
+@cache
 def getReal(b:Chart_Objects_Rep.Beat):
     realtime = 0.0
     for bpm in rpe_obj.BPMList:
@@ -86,6 +88,7 @@ def getReal(b:Chart_Objects_Rep.Beat):
                 realtime += 60 / bpm.bpm * bpm.dur
     return realtime
 
+@cache
 def linear_interpolation(
     t:float,
     st:float,
@@ -235,6 +238,15 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                         "value": (v * 120) / 900 / 0.6
                     }
                 )
+    
+    if len(phi_judgeLine["speedEvents"]) > 0:
+        phi_judgeLine["speedEvents"].sort(key = lambda x: x["endTime"])
+        phi_judgeLine["speedEvents"][-1]["endTime"] = 9999999
+        min_st = (float("inf"), None)
+        for e in phi_judgeLine["speedEvents"]:
+            if e["startTime"] < min_st[0]:
+                min_st = (e["startTime"], e)
+        min_st[1]["startTime"] = -9999999
     
     for note in rpe_judgeLine.notes: # has bugsssssssss
         st = getReal(note.startTime)
