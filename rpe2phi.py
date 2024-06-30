@@ -1,4 +1,4 @@
-#i can't write this file, because i don't know rpe format... how can tell me?????????  welcome to my github to create a issue. thank you very much!!!
+# i can't write this file, because i don't know rpe format... how can help me?????????  welcome to my github to create a issue. thank you very much!!!
 from sys import argv
 from dataclasses import dataclass
 from functools import cache
@@ -117,6 +117,16 @@ def get_floor_position(t):
         elif e["endTime"] <= t:
             v += (e["endTime"] - e["startTime"]) * T * e["value"]
     return v
+
+def get_speed(t):
+    for e in phi_judgeLine["speedEvents"]:
+        if e["startTime"] <= t <= e["endTime"]:
+            return e["value"]
+    return 1.0
+
+@cache
+def conv_note(n):
+    return {1:1, 2:3, 3:4, 4:2}[n]
 
 for rpe_judgeLine in rpe_obj.JudgeLineList:
     phi_judgeLine = {
@@ -241,22 +251,50 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
     
     if len(phi_judgeLine["speedEvents"]) > 0:
         phi_judgeLine["speedEvents"].sort(key = lambda x: x["endTime"])
-        phi_judgeLine["speedEvents"][-1]["endTime"] = 9999999
+        phi_judgeLine["speedEvents"][-1]["endTime"] = 1000000000
         min_st = (float("inf"), None)
         for e in phi_judgeLine["speedEvents"]:
             if e["startTime"] < min_st[0]:
                 min_st = (e["startTime"], e)
-        min_st[1]["startTime"] = -9999999
+        min_st[1]["startTime"] = -999999
+    
+    if len(phi_judgeLine["judgeLineDisappearEvents"]) > 0:
+        phi_judgeLine["judgeLineDisappearEvents"].sort(key = lambda x: x["endTime"])
+        phi_judgeLine["judgeLineDisappearEvents"][-1]["endTime"] = 1000000000
+        min_st = (float("inf"), None)
+        for e in phi_judgeLine["judgeLineDisappearEvents"]:
+            if e["startTime"] < min_st[0]:
+                min_st = (e["startTime"], e)
+        min_st[1]["startTime"] = -999999
+    
+    if len(phi_judgeLine["judgeLineMoveEvents"]) > 0:
+        phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["endTime"])
+        phi_judgeLine["judgeLineMoveEvents"][-1]["endTime"] = 1000000000
+        min_st = (float("inf"), None)
+        for e in phi_judgeLine["judgeLineMoveEvents"]:
+            if e["startTime"] < min_st[0]:
+                min_st = (e["startTime"], e)
+        min_st[1]["startTime"] = -999999
+    
+    if len(phi_judgeLine["judgeLineRotateEvents"]) > 0:
+        phi_judgeLine["judgeLineRotateEvents"].sort(key = lambda x: x["endTime"])
+        phi_judgeLine["judgeLineRotateEvents"][-1]["endTime"] = 1000000000
+        min_st = (float("inf"), None)
+        for e in phi_judgeLine["judgeLineRotateEvents"]:
+            if e["startTime"] < min_st[0]:
+                min_st = (e["startTime"], e)
+        min_st[1]["startTime"] = -999999
     
     for note in rpe_judgeLine.notes: # has bugsssssssss
         st = getReal(note.startTime)
         et = getReal(note.endTime)
         phi_judgeLine["notesAbove"]
         item = {
-            "type": note.type,
+            "type": conv_note(note.type),
             "time": st / T,
             "holdTime": (et - st) / T,
             "positionX": note.positionX / 1350 / 0.05625,
+            "speed": ((get_floor_position(et / T) - get_floor_position(st / T)) / ((et - st) / T)) / T if et != st else get_speed(st),
             "floorPosition": get_floor_position(st / T)
         }
         if note.above:
