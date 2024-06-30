@@ -63,7 +63,7 @@ class PhiMove:
 
 phi_data = {
     "formatVersion": 3,
-    "offset": 0,
+    "offset": rpe_obj.META.offset / 1000,
     "judgeLineList" :[]
 }
 
