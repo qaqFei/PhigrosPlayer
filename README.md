@@ -33,6 +33,7 @@
 - ```-window-host <integer-hwnd-value>``` 将窗口设置为指定窗口的子窗口
 - ```-extend <python_file>``` 使用扩展 详见`docs/docs.md`
 - ```-no-mixer-reset-chart-time``` 在 `mixer` 的时间与谱面播放时间存在较大误差时 不进行纠正
+- ```-res <folder-path>``` 使用指定的资源文件夹, 若资源文件夹中不存在需要的资源, 则从原资源处加载 (仅对图片生效)
 
 ## 声明
 - 此项目仅用于学习交流，请勿用于商业用途

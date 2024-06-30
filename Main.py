@@ -30,6 +30,7 @@ import Tool_Functions
 import dialog
 import Phigros_Tips
 import default_extend
+import Image_open
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
@@ -40,7 +41,7 @@ if "-noclicksound" in argv:
 hidemouse = "-hidemouse" in argv
 
 selfdir = dirname(argv[0])
-if selfdir == "": selfdir = "."
+if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
 if not exists(".\\7z.exe") or not exists(".\\7z.dll"):
@@ -58,7 +59,7 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_
 print(f"Temp Dir: {temp_dir}")
 
 Image._open = Image.open
-Image.open = lambda fp,mode = "r", formats = None: [print(f"Loading Resource: {fp} ...") if temp_dir not in fp else None,Image._open(fp,mode,formats)][1]
+Image.open = Image_open.open
 
 debug = "-debug" in argv
 show_holdbody = "-holdbody" in argv
