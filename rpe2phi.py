@@ -1,5 +1,5 @@
-# i can't write this file, because i don't know rpe format... how can help me?????????  welcome to my github to create a issue. thank you very much!!!
-# why lchzh3427`s player can`t play it?
+# i can't write this file, because i don't know rpe format... how can help me?????????  welcome to my github to create a issue. thank you very much!!! (oh! 30/6/2024, i can write some code, because i get re:phiedit.)
+# why lchzh3427`s player can`t play it? (maybe is the speed events read ways is different from my project ?)
 from sys import argv
 from dataclasses import dataclass
 from functools import cache
@@ -9,7 +9,6 @@ import typing
 
 import Chart_Functions_Rep
 import Chart_Objects_Rep
-import rpe2phi_moveNode_hashConst
 
 with open(argv[1],"r",encoding="utf-8") as f:
     rpe_obj = Chart_Functions_Rep.Load_Chart_Object(json.load(f))
@@ -63,36 +62,6 @@ class PhiMove:
     ev_x: float
     ev_y: float
 
-@dataclass
-class RpeMoveNode:
-    item: Move
-    type: typing.Literal["start", "end"]
-    value: float
-
-@dataclass
-class MoveEventManager:
-    moves: typing.List[Move]
-    nodes: typing.List[RpeMoveNode]
-    
-    def __post_init__(self):
-        for e in moves:
-            self.nodes.append(
-                    RpeMoveNode(
-                    item = e,
-                    type = "start",
-                    value = e.st
-                )
-            )
-            self.nodes.append(
-                    RpeMoveNode(
-                    item = e,
-                    type = "end",
-                    value = e.et
-                )
-            )
-        
-        self.nodes.sort(key = lambda x: x.value)
-
 phi_data = {
     "formatVersion": 3,
     "offset": rpe_obj.META.offset / 1000,
@@ -132,16 +101,14 @@ def linear_interpolation(
     return (t - st) / (et - st) * (ev - sv) + sv
 
 def get_phimove_state_x(t):
-    for move in moves:
+    for move in x_moves:
         if move.st <= t <= move.et:
-            if move.type == "x":
-                return linear_interpolation(t, move.st, move.et, move.sv, move.ev)
+            return linear_interpolation(t, move.st, move.et, move.sv, move.ev)
 
 def get_phimove_state_y(t):
-    for move in moves:
+    for move in y_moves:
         if move.st <= t <= move.et:
-            if move.type == "y":
-                return linear_interpolation(t, move.st, move.et, move.sv, move.ev)
+            return linear_interpolation(t, move.st, move.et, move.sv, move.ev)
 
 def get_floor_position(t):
     v = 0.0
@@ -162,7 +129,9 @@ def get_speed(t):
 def conv_note(n):
     return {1:1, 2:3, 3:4, 4:2}[n]
 
-for rpe_judgeLine in rpe_obj.JudgeLineList:
+for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
+    print(f"\rProcess JudgeLine: {line_index + 1}", end="")
+    
     phi_judgeLine = {
         "bpm": rpe_obj.BPMList[0].bpm,
         "notesAbove": [],
@@ -173,7 +142,8 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
         "judgeLineDisappearEvents": []
     }
     
-    moves:typing.List[Move] = []
+    x_moves:typing.List[Move] = []
+    y_moves:typing.List[Move] = []
     
     for eventLayer in rpe_judgeLine.eventLayers:
         if eventLayer.alphaEvents is not None:
@@ -236,7 +206,7 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                     ievp = ef((i + 1) / split_event_length)
                     isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
                     iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
-                    moves.append(
+                    x_moves.append(
                         Move(
                             type = "x",
                             st = ist / T,
@@ -260,7 +230,7 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                     ievp = ef((i + 1) / split_event_length)
                     isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
                     iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
-                    moves.append(
+                    y_moves.append(
                         Move(
                             type = "y",
                             st = ist / T,
@@ -286,34 +256,31 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
     if len(phi_judgeLine["speedEvents"]) > 0:
         phi_judgeLine["speedEvents"].sort(key = lambda x: x["endTime"])
         phi_judgeLine["speedEvents"][-1]["endTime"] = 1000000000
-        min_st = (float("inf"), None)
-        for e in phi_judgeLine["speedEvents"]:
-            if e["startTime"] < min_st[0]:
-                min_st = (e["startTime"], e)
-        min_st[1]["startTime"] = -999999
         
         for index, e in enumerate(phi_judgeLine["speedEvents"]):
-            if index == len(phi_judgeLine["speedEvents"]) - 1:
-                break
-            else:
+            if index != len(phi_judgeLine["speedEvents"]) - 1:
                 ne = phi_judgeLine["speedEvents"][index + 1]
-                if e["endTime"] != ne["startTime"]:
+                if e["endTime"] < ne["startTime"]:
                     e["endTime"] = ne["startTime"]
         
     if len(phi_judgeLine["judgeLineDisappearEvents"]) > 0:
+        phi_judgeLine["judgeLineDisappearEvents"].append({
+            "startTime": -999999,
+            "endTime": min(phi_judgeLine["judgeLineDisappearEvents"], key = lambda x: x["startTime"])["startTime"],
+            "start": (v := min(phi_judgeLine["judgeLineDisappearEvents"], key = lambda x: x["startTime"])["start"]),
+            "end": v
+        })
+        phi_judgeLine["judgeLineDisappearEvents"].append({
+            "startTime": max(phi_judgeLine["judgeLineDisappearEvents"], key = lambda x: x["endTime"])["endTime"],
+            "endTime": 1000000000,
+            "start": (v := max(phi_judgeLine["judgeLineDisappearEvents"], key = lambda x: x["endTime"])["end"]),
+            "end": v
+        })
         phi_judgeLine["judgeLineDisappearEvents"].sort(key = lambda x: x["endTime"])
-        phi_judgeLine["judgeLineDisappearEvents"][-1]["endTime"] = 1000000000
-        min_st = (float("inf"), None)
-        for e in phi_judgeLine["judgeLineDisappearEvents"]:
-            if e["startTime"] < min_st[0]:
-                min_st = (e["startTime"], e)
-        min_st[1]["startTime"] = -999999
         
         oth_es = []
         for index, e in enumerate(phi_judgeLine["judgeLineDisappearEvents"]):
-            if index == len(phi_judgeLine["judgeLineDisappearEvents"]) - 1:
-                break
-            else:
+            if index != len(phi_judgeLine["judgeLineDisappearEvents"]) - 1:
                 ne = phi_judgeLine["judgeLineDisappearEvents"][index + 1]
                 if e["endTime"] < ne["startTime"]:
                     oth_es.append({
@@ -325,19 +292,23 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
         phi_judgeLine["judgeLineDisappearEvents"] += oth_es
     
     if len(phi_judgeLine["judgeLineRotateEvents"]) > 0:
+        phi_judgeLine["judgeLineRotateEvents"].append({
+            "startTime": -999999,
+            "endTime": min(phi_judgeLine["judgeLineRotateEvents"], key = lambda x: x["startTime"])["startTime"],
+            "start": (v := min(phi_judgeLine["judgeLineRotateEvents"], key = lambda x: x["startTime"])["start"]),
+            "end": v
+        })
+        phi_judgeLine["judgeLineRotateEvents"].append({
+            "startTime": max(phi_judgeLine["judgeLineRotateEvents"], key = lambda x: x["endTime"])["endTime"],
+            "endTime": 1000000000,
+            "start": (v := max(phi_judgeLine["judgeLineRotateEvents"], key = lambda x: x["endTime"])["end"]),
+            "end": v
+        })
         phi_judgeLine["judgeLineRotateEvents"].sort(key = lambda x: x["endTime"])
-        phi_judgeLine["judgeLineRotateEvents"][-1]["endTime"] = 1000000000
-        min_st = (float("inf"), None)
-        for e in phi_judgeLine["judgeLineRotateEvents"]:
-            if e["startTime"] < min_st[0]:
-                min_st = (e["startTime"], e)
-        min_st[1]["startTime"] = -999999
         
         oth_es = []
         for index, e in enumerate(phi_judgeLine["judgeLineRotateEvents"]):
-            if index == len(phi_judgeLine["judgeLineRotateEvents"]) - 1:
-                break
-            else:
+            if index != len(phi_judgeLine["judgeLineRotateEvents"]) - 1:
                 ne = phi_judgeLine["judgeLineRotateEvents"][index + 1]
                 if e["endTime"] < ne["startTime"]:
                     oth_es.append({
@@ -347,6 +318,68 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                         "end": e["end"]
                     })
         phi_judgeLine["judgeLineRotateEvents"] += oth_es
+    
+    if len(x_moves) > 0:
+        x_moves.append(Move(
+            type = "x",
+            st = -999999,
+            et = min(x_moves, key = lambda x: x.st).st,
+            sv = (v := min(x_moves, key = lambda x: x.st).sv),
+            ev = v
+        ))
+        x_moves.append(Move(
+            type = "x",
+            st = max(x_moves, key = lambda x: x.et).et,
+            et = 1000000000,
+            sv = (v := max(x_moves, key = lambda x: x.et).ev),
+            ev = v
+        ))
+        x_moves.sort(key = lambda x: x.et)
+        
+        oth_es = []
+        for index, e in enumerate(x_moves):
+            if index != len(x_moves) - 1:
+                ne = x_moves[index + 1]
+                if e.et < ne.st:
+                    oth_es.append(Move(
+                        type = "x",
+                        st = e.et,
+                        et = ne.st,
+                        sv = e.ev,
+                        ev = e.ev
+                    ))
+        x_moves += oth_es
+    
+    if len(y_moves) > 0:
+        y_moves.append(Move(
+            type = "y",
+            st = -999999,
+            et = min(y_moves, key = lambda x: x.st).st,
+            sv = (v := min(y_moves, key = lambda x: x.st).sv),
+            ev = v
+        ))
+        y_moves.append(Move(
+            type = "y",
+            st = max(y_moves, key = lambda x: x.et).et,
+            et = 1000000000,
+            sv = (v := max(y_moves, key = lambda x: x.et).ev),
+            ev = v
+        ))
+        y_moves.sort(key = lambda x: x.et)
+        
+        oth_es = []
+        for index, e in enumerate(y_moves):
+            if index != len(y_moves) - 1:
+                ne = y_moves[index + 1]
+                if e.et < ne.st:
+                    oth_es.append(Move(
+                        type = "y",
+                        st = e.et,
+                        et = ne.st,
+                        sv = e.ev,
+                        ev = e.ev
+                    ))
+        y_moves += oth_es
     
     for note in rpe_judgeLine.notes: # has bugsssssssss
         st = getReal(note.startTime)
@@ -360,170 +393,29 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
             "speed": ((get_floor_position(et / T) - get_floor_position(st / T)) / ((et - st) / T)) / T if et != st else get_speed(st),
             "floorPosition": get_floor_position(st / T)
         }
-        if note.above:
+        if note.above == 1:
             phi_judgeLine["notesAbove"].append(item)
         else:
             phi_judgeLine["notesBelow"].append(item)
-            
-            
-    MoveEventMgr_Object = MoveEventManager(moves, [])
     
-    for index, this_node in enumerate(MoveEventMgr_Object.nodes):
-        if index != len(MoveEventMgr_Object.nodes) - 1:
-            next_node = MoveEventMgr_Object.nodes[index + 1]
+    move_times = [i.st for i in (x_moves + y_moves)] + [i.et for i in (x_moves + y_moves)]
+    move_times.sort()
+    
+    for index, this_t in enumerate(move_times):
+        if index != len(move_times) - 1:
+            next_t = move_times[index + 1]
             
-            if this_node.value == next_node.value:
+            if this_t == next_t:
                 continue
             
-            two_node_hash = hash(((this_node.item.type, this_node.type), (next_node.item.type, next_node.type)))
-            
-            match two_node_hash: # uueee.
-                case rpe2phi_moveNode_hashConst.LEFT_START_X__RIGHT_START_Y:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.st,
-                        "endTime": next_node.item.et,
-                        "start": this_node.item.sv,
-                        "end": get_phimove_state_x(next_node.item.st),
-                        "start2": get_phimove_state_y(this_node.item.st),
-                        "end2": next_node.item.sv
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_START_X__RIGHT_END_Y:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.st,
-                        "endTime": next_node.item.et,
-                        "start": this_node.item.sv,
-                        "end": get_phimove_state_x(next_node.item.et),
-                        "start2": get_phimove_state_y(this_node.item.st),
-                        "end2": next_node.item.sv
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_END_X__RIGHT_START_Y:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.et,
-                        "endTime": next_node.item.st,
-                        "start": this_node.item.ev,
-                        "end": get_phimove_state_x(next_node.item.st),
-                        "start2": get_phimove_state_y(this_node.item.et),
-                        "end2": next_node.item.sv
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_END_X__RIGHT_END_Y:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.et,
-                        "endTime": next_node.item.et,
-                        "start": this_node.item.ev,
-                        "end": get_phimove_state_x(next_node.item.et),
-                        "start2": get_phimove_state_y(this_node.item.et),
-                        "end2": next_node.item.ev
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_START_Y__RIGHT_START_X:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.st,
-                        "endTime": next_node.item.st,
-                        "start": this_node.item.sv,
-                        "end": get_phimove_state_x(next_node.item.st),
-                        "start2": this_node.item.sv,
-                        "end2": get_phimove_state_y(next_node.item.st)
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_START_Y__RIGHT_END_X:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.st,
-                        "endTime": next_node.item.et,
-                        "start": get_phimove_state_x(this_node.item.st),
-                        "end": next_node.item.ev,
-                        "start2": this_node.item.sv,
-                        "end2": get_phimove_state_y(next_node.item.et)
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_END_Y__RIGHT_START_X:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.et,
-                        "endTime": next_node.item.st,
-                        "start": get_phimove_state_x(this_node.item.et),
-                        "end": next_node.item.ev,
-                        "start2": this_node.item.ev,
-                        "end2": get_phimove_state_y(next_node.item.st)
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_END_Y__RIGHT_END_X:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.et,
-                        "endTime": next_node.item.et,
-                        "start": get_phimove_state_x(this_node.item.et),
-                        "end": next_node.item.ev,
-                        "start2": this_node.item.ev,
-                        "end2": get_phimove_state_y(next_node.item.et)
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_START_X__RIGHT_START_X: # never
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.st,
-                        "endTime": next_node.item.st,
-                        "start": this_node.item.sv,
-                        "end": next_node.item.sv,
-                        "start2": get_phimove_state_y(this_node.item.st),
-                        "end2": get_phimove_state_y(next_node.item.st)
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_START_X__RIGHT_END_X:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.st,
-                        "endTime": next_node.item.et,
-                        "start": this_node.item.sv,
-                        "end": next_node.item.ev,
-                        "start2": get_phimove_state_y(this_node.item.st),
-                        "end2": get_phimove_state_y(next_node.item.et)
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_END_X__RIGHT_START_X:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.et,
-                        "endTime": next_node.item.st,
-                        "start": this_node.item.ev,
-                        "end": next_node.item.sv,
-                        "start2": get_phimove_state_y(this_node.item.et),
-                        "end2": get_phimove_state_y(next_node.item.st)
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_END_X__RIGHT_END_X: # never
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.et,
-                        "endTime": next_node.item.et,
-                        "start": this_node.item.ev,
-                        "end": next_node.item.ev,
-                        "start2": get_phimove_state_y(this_node.item.et),
-                        "end2": get_phimove_state_y(next_node.item.et)
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_START_Y__RIGHT_START_Y: # never
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.st,
-                        "endTime": next_node.item.st,
-                        "start": get_phimove_state_x(this_node.item.st),
-                        "end": get_phimove_state_x(next_node.item.st),
-                        "start2": this_node.item.sv,
-                        "end2": next_node.item.sv
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_START_Y__RIGHT_END_Y:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.st,
-                        "endTime": next_node.item.et,
-                        "start": get_phimove_state_x(this_node.item.st),
-                        "end": get_phimove_state_x(next_node.item.et),
-                        "start2": this_node.item.sv,
-                        "end2": next_node.item.ev
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_END_Y__RIGHT_START_Y:
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.et,
-                        "endTime": next_node.item.st,
-                        "start": get_phimove_state_x(this_node.item.et),
-                        "end": get_phimove_state_x(next_node.item.st),
-                        "start2": this_node.item.ev,
-                        "end2": next_node.item.sv
-                    })
-                case rpe2phi_moveNode_hashConst.LEFT_END_Y__RIGHT_END_Y: # never
-                    phi_judgeLine["judgeLineMoveEvents"].append({
-                        "startTime": this_node.item.et,
-                        "endTime": next_node.item.et,
-                        "start": get_phimove_state_x(this_node.item.et),
-                        "end": get_phimove_state_x(next_node.item.et),
-                        "start2": this_node.item.ev,
-                        "end2": next_node.item.ev,
-                    })
-                case _:
-                    print(f"Warning: Never! {this_node, next_node} hash-{two_node_hash}.")
+            phi_judgeLine["judgeLineMoveEvents"].append({
+                "startTime": this_t,
+                "endTime": next_t,
+                "start": get_phimove_state_x(this_t),
+                "end": get_phimove_state_x(next_t),
+                "start2": get_phimove_state_y(this_t),
+                "end2": get_phimove_state_y(next_t)
+            })
     
     if len(phi_judgeLine["judgeLineMoveEvents"]) > 0:
         phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["endTime"])
