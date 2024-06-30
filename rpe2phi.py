@@ -1,4 +1,5 @@
 # i can't write this file, because i don't know rpe format... how can help me?????????  welcome to my github to create a issue. thank you very much!!!
+# why lchzh3427`s player can`t play it?
 from sys import argv
 from dataclasses import dataclass
 from functools import cache
@@ -8,6 +9,7 @@ import typing
 
 import Chart_Functions_Rep
 import Chart_Objects_Rep
+import rpe2phi_moveNode_hashConst
 
 with open(argv[1],"r",encoding="utf-8") as f:
     rpe_obj = Chart_Functions_Rep.Load_Chart_Object(json.load(f))
@@ -61,6 +63,36 @@ class PhiMove:
     ev_x: float
     ev_y: float
 
+@dataclass
+class RpeMoveNode:
+    item: Move
+    type: typing.Literal["start", "end"]
+    value: float
+
+@dataclass
+class MoveEventManager:
+    moves: typing.List[Move]
+    nodes: typing.List[RpeMoveNode]
+    
+    def __post_init__(self):
+        for e in moves:
+            self.nodes.append(
+                    RpeMoveNode(
+                    item = e,
+                    type = "start",
+                    value = e.st
+                )
+            )
+            self.nodes.append(
+                    RpeMoveNode(
+                    item = e,
+                    type = "end",
+                    value = e.et
+                )
+            )
+        
+        self.nodes.sort(key = lambda x: x.value)
+
 phi_data = {
     "formatVersion": 3,
     "offset": rpe_obj.META.offset / 1000,
@@ -99,15 +131,17 @@ def linear_interpolation(
     if t == st: return sv
     return (t - st) / (et - st) * (ev - sv) + sv
 
-def get_phimove_state(t):
-    x, y = 0, 0
+def get_phimove_state_x(t):
     for move in moves:
         if move.st <= t <= move.et:
             if move.type == "x":
-                x = linear_interpolation(t, move.st, move.et, move.sv, move.ev)
-            elif move.type == "y":
-                y = linear_interpolation(t, move.st, move.et, move.sv, move.ev)
-    return (x + 675) / 1350, (y + 450) / 900
+                return linear_interpolation(t, move.st, move.et, move.sv, move.ev)
+
+def get_phimove_state_y(t):
+    for move in moves:
+        if move.st <= t <= move.et:
+            if move.type == "y":
+                return linear_interpolation(t, move.st, move.et, move.sv, move.ev)
 
 def get_floor_position(t):
     v = 0.0
@@ -207,8 +241,8 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                             type = "x",
                             st = ist / T,
                             et = iet / T,
-                            sv = isv,
-                            ev = iev
+                            sv = (isv + 675) / 1350,
+                            ev = (iev + 675) / 1350
                         )
                     )
         
@@ -231,8 +265,8 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
                             type = "y",
                             st = ist / T,
                             et = iet / T,
-                            sv = isv,
-                            ev = iev
+                            sv = (isv + 450) / 900,
+                            ev = (iev + 450) / 900
                         )
                     )
         
@@ -330,27 +364,166 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
             phi_judgeLine["notesAbove"].append(item)
         else:
             phi_judgeLine["notesBelow"].append(item)
+            
+            
+    MoveEventMgr_Object = MoveEventManager(moves, [])
     
-    moves.sort(key=lambda x: x.st)
-    phimoves = []
-    max_movet = max([i.et for i in moves])
-    t = 0.0
-    t_step = 1 / split_event_length / T
-    while t <= max_movet:
-        next_t = t + t_step
-        state_now = get_phimove_state(t)
-        state_next = get_phimove_state(next_t)
-        phi_judgeLine["judgeLineMoveEvents"].append(
-            {
-                "startTime": t,
-                "endTime": next_t,
-                "start": state_now[0],
-                "end": state_next[0],
-                "start2": state_now[1],
-                "end2": state_next[1]
-            }
-        )
-        t += t_step
+    for index, this_node in enumerate(MoveEventMgr_Object.nodes):
+        if index != len(MoveEventMgr_Object.nodes) - 1:
+            next_node = MoveEventMgr_Object.nodes[index + 1]
+            
+            if this_node.value == next_node.value:
+                continue
+            
+            two_node_hash = hash(((this_node.item.type, this_node.type), (next_node.item.type, next_node.type)))
+            
+            match two_node_hash: # uueee.
+                case rpe2phi_moveNode_hashConst.LEFT_START_X__RIGHT_START_Y:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.st,
+                        "endTime": next_node.item.et,
+                        "start": this_node.item.sv,
+                        "end": get_phimove_state_x(next_node.item.st),
+                        "start2": get_phimove_state_y(this_node.item.st),
+                        "end2": next_node.item.sv
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_START_X__RIGHT_END_Y:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.st,
+                        "endTime": next_node.item.et,
+                        "start": this_node.item.sv,
+                        "end": get_phimove_state_x(next_node.item.et),
+                        "start2": get_phimove_state_y(this_node.item.st),
+                        "end2": next_node.item.sv
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_END_X__RIGHT_START_Y:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.et,
+                        "endTime": next_node.item.st,
+                        "start": this_node.item.ev,
+                        "end": get_phimove_state_x(next_node.item.st),
+                        "start2": get_phimove_state_y(this_node.item.et),
+                        "end2": next_node.item.sv
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_END_X__RIGHT_END_Y:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.et,
+                        "endTime": next_node.item.et,
+                        "start": this_node.item.ev,
+                        "end": get_phimove_state_x(next_node.item.et),
+                        "start2": get_phimove_state_y(this_node.item.et),
+                        "end2": next_node.item.ev
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_START_Y__RIGHT_START_X:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.st,
+                        "endTime": next_node.item.st,
+                        "start": this_node.item.sv,
+                        "end": get_phimove_state_x(next_node.item.st),
+                        "start2": this_node.item.sv,
+                        "end2": get_phimove_state_y(next_node.item.st)
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_START_Y__RIGHT_END_X:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.st,
+                        "endTime": next_node.item.et,
+                        "start": get_phimove_state_x(this_node.item.st),
+                        "end": next_node.item.ev,
+                        "start2": this_node.item.sv,
+                        "end2": get_phimove_state_y(next_node.item.et)
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_END_Y__RIGHT_START_X:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.et,
+                        "endTime": next_node.item.st,
+                        "start": get_phimove_state_x(this_node.item.et),
+                        "end": next_node.item.ev,
+                        "start2": this_node.item.ev,
+                        "end2": get_phimove_state_y(next_node.item.st)
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_END_Y__RIGHT_END_X:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.et,
+                        "endTime": next_node.item.et,
+                        "start": get_phimove_state_x(this_node.item.et),
+                        "end": next_node.item.ev,
+                        "start2": this_node.item.ev,
+                        "end2": get_phimove_state_y(next_node.item.et)
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_START_X__RIGHT_START_X: # never
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.st,
+                        "endTime": next_node.item.st,
+                        "start": this_node.item.sv,
+                        "end": next_node.item.sv,
+                        "start2": get_phimove_state_y(this_node.item.st),
+                        "end2": get_phimove_state_y(next_node.item.st)
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_START_X__RIGHT_END_X:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.st,
+                        "endTime": next_node.item.et,
+                        "start": this_node.item.sv,
+                        "end": next_node.item.ev,
+                        "start2": get_phimove_state_y(this_node.item.st),
+                        "end2": get_phimove_state_y(next_node.item.et)
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_END_X__RIGHT_START_X:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.et,
+                        "endTime": next_node.item.st,
+                        "start": this_node.item.ev,
+                        "end": next_node.item.sv,
+                        "start2": get_phimove_state_y(this_node.item.et),
+                        "end2": get_phimove_state_y(next_node.item.st)
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_END_X__RIGHT_END_X: # never
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.et,
+                        "endTime": next_node.item.et,
+                        "start": this_node.item.ev,
+                        "end": next_node.item.ev,
+                        "start2": get_phimove_state_y(this_node.item.et),
+                        "end2": get_phimove_state_y(next_node.item.et)
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_START_Y__RIGHT_START_Y: # never
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.st,
+                        "endTime": next_node.item.st,
+                        "start": get_phimove_state_x(this_node.item.st),
+                        "end": get_phimove_state_x(next_node.item.st),
+                        "start2": this_node.item.sv,
+                        "end2": next_node.item.sv
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_START_Y__RIGHT_END_Y:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.st,
+                        "endTime": next_node.item.et,
+                        "start": get_phimove_state_x(this_node.item.st),
+                        "end": get_phimove_state_x(next_node.item.et),
+                        "start2": this_node.item.sv,
+                        "end2": next_node.item.ev
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_END_Y__RIGHT_START_Y:
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.et,
+                        "endTime": next_node.item.st,
+                        "start": get_phimove_state_x(this_node.item.et),
+                        "end": get_phimove_state_x(next_node.item.st),
+                        "start2": this_node.item.ev,
+                        "end2": next_node.item.sv
+                    })
+                case rpe2phi_moveNode_hashConst.LEFT_END_Y__RIGHT_END_Y: # never
+                    phi_judgeLine["judgeLineMoveEvents"].append({
+                        "startTime": this_node.item.et,
+                        "endTime": next_node.item.et,
+                        "start": get_phimove_state_x(this_node.item.et),
+                        "end": get_phimove_state_x(next_node.item.et),
+                        "start2": this_node.item.ev,
+                        "end2": next_node.item.ev,
+                    })
+                case _:
+                    print(f"Warning: Never! {this_node, next_node} hash-{two_node_hash}.")
     
     if len(phi_judgeLine["judgeLineMoveEvents"]) > 0:
         phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["endTime"])
