@@ -257,7 +257,15 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
             if e["startTime"] < min_st[0]:
                 min_st = (e["startTime"], e)
         min_st[1]["startTime"] = -999999
-    
+        
+        for index, e in enumerate(phi_judgeLine["speedEvents"]):
+            if index == len(phi_judgeLine["speedEvents"]) - 1:
+                break
+            else:
+                ne = phi_judgeLine["speedEvents"][index + 1]
+                if e["endTime"] != ne["startTime"]:
+                    e["endTime"] = ne["startTime"]
+        
     if len(phi_judgeLine["judgeLineDisappearEvents"]) > 0:
         phi_judgeLine["judgeLineDisappearEvents"].sort(key = lambda x: x["endTime"])
         phi_judgeLine["judgeLineDisappearEvents"][-1]["endTime"] = 1000000000
