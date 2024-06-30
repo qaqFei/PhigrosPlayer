@@ -67,7 +67,7 @@ phi_data = {
     "judgeLineList" :[]
 }
 
-split_event_length = 50
+split_event_length = 25
 T = 1.875 / rpe_obj.BPMList[0].bpm
 
 for index,bpm in enumerate(rpe_obj.BPMList):
@@ -112,7 +112,7 @@ def get_phimove_state(t):
 def get_floor_position(t):
     v = 0.0
     for e in phi_judgeLine["speedEvents"]:
-        if e["startTime"] <= t <= e["endTime"]:
+        if e["startTime"] < t < e["endTime"]:
             v += (t - e["startTime"]) * T * e["value"]
         elif e["endTime"] <= t:
             v += (e["endTime"] - e["startTime"]) * T * e["value"]
@@ -274,15 +274,21 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
             if e["startTime"] < min_st[0]:
                 min_st = (e["startTime"], e)
         min_st[1]["startTime"] = -999999
-    
-    if len(phi_judgeLine["judgeLineMoveEvents"]) > 0:
-        phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["endTime"])
-        phi_judgeLine["judgeLineMoveEvents"][-1]["endTime"] = 1000000000
-        min_st = (float("inf"), None)
-        for e in phi_judgeLine["judgeLineMoveEvents"]:
-            if e["startTime"] < min_st[0]:
-                min_st = (e["startTime"], e)
-        min_st[1]["startTime"] = -999999
+        
+        oth_es = []
+        for index, e in enumerate(phi_judgeLine["judgeLineDisappearEvents"]):
+            if index == len(phi_judgeLine["judgeLineDisappearEvents"]) - 1:
+                break
+            else:
+                ne = phi_judgeLine["judgeLineDisappearEvents"][index + 1]
+                if e["endTime"] < ne["startTime"]:
+                    oth_es.append({
+                        "startTime": e["endTime"],
+                        "endTime": ne["startTime"],
+                        "start": e["end"],
+                        "end": e["end"]
+                    })
+        phi_judgeLine["judgeLineDisappearEvents"] += oth_es
     
     if len(phi_judgeLine["judgeLineRotateEvents"]) > 0:
         phi_judgeLine["judgeLineRotateEvents"].sort(key = lambda x: x["endTime"])
@@ -292,6 +298,21 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
             if e["startTime"] < min_st[0]:
                 min_st = (e["startTime"], e)
         min_st[1]["startTime"] = -999999
+        
+        oth_es = []
+        for index, e in enumerate(phi_judgeLine["judgeLineRotateEvents"]):
+            if index == len(phi_judgeLine["judgeLineRotateEvents"]) - 1:
+                break
+            else:
+                ne = phi_judgeLine["judgeLineRotateEvents"][index + 1]
+                if e["endTime"] < ne["startTime"]:
+                    oth_es.append({
+                        "startTime": e["endTime"],
+                        "endTime": ne["startTime"],
+                        "start": e["end"],
+                        "end": e["end"]
+                    })
+        phi_judgeLine["judgeLineRotateEvents"] += oth_es
     
     for note in rpe_judgeLine.notes: # has bugsssssssss
         st = getReal(note.startTime)
@@ -330,6 +351,15 @@ for rpe_judgeLine in rpe_obj.JudgeLineList:
             }
         )
         t += t_step
+    
+    if len(phi_judgeLine["judgeLineMoveEvents"]) > 0:
+        phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["endTime"])
+        phi_judgeLine["judgeLineMoveEvents"][-1]["endTime"] = 1000000000
+        min_st = (float("inf"), None)
+        for e in phi_judgeLine["judgeLineMoveEvents"]:
+            if e["startTime"] < min_st[0]:
+                min_st = (e["startTime"], e)
+        min_st[1]["startTime"] = -999999
                     
     phi_data["judgeLineList"].append(phi_judgeLine)
 
