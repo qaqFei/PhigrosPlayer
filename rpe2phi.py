@@ -66,6 +66,23 @@ class PhiMove:
     ev_x: float
     ev_y: float
 
+@dataclass
+class RpeMoveNode:
+    type: typing.Literal["st", "et"]
+    item: Move
+    value: float
+
+@dataclass
+class RpeMoveNodeMgr:
+    moves: typing.List[Move]
+    nodes: typing.List[RpeMoveNode]
+    
+    def __post_init__(self):
+        for e in self.moves:
+            self.nodes.append(RpeMoveNode(type="st", item=e, value=e.st))
+            self.nodes.append(RpeMoveNode(type="et", item=e, value=e.et))
+        self.nodes.sort(key=lambda x: x.value)
+
 phi_data = {
     "formatVersion": 3,
     "offset": rpe_obj.META.offset / 1000,
@@ -104,19 +121,31 @@ def linear_interpolation(
     if t == st: return sv
     return (t - st) / (et - st) * (ev - sv) + sv
 
-def get_phimove_state_x_raw(t): # can`t: find and return, should find all and return the last value. normal it never returns 0.0 (default).
-    v = 0.0
-    for move in x_moves:
-        if move.st == t or move.et == t:
-            v = move.sv if move.st == t else move.ev
-    return v
+def get_phimove_state_x_raw(t, last:bool = False): # can`t: find and return, should find all and return the last value. normal it never returns 0.0 (default).
+    if not last:
+        for move in x_moves:
+            if move.st == t or move.et == t:
+                return move.sv if move.st == t else move.ev
+        return 0.0
+    else:
+        v = 0.0
+        for move in x_moves:
+            if move.st == t or move.et == t:
+                v = move.sv if move.st == t else move.ev
+        return v
 
-def get_phimove_state_y_raw(t):
-    v = 0.0
-    for move in y_moves:
-        if move.st == t or move.et == t:
-            v = move.sv if move.st == t else move.ev
-    return v
+def get_phimove_state_y_raw(t, last:bool = False):
+    if not last:
+        for move in y_moves:
+            if move.st == t or move.et == t:
+                return move.sv if move.st == t else move.ev
+        return 0.0
+    else:
+        v = 0.0
+        for move in y_moves:
+            if move.st == t or move.et == t:
+                v = move.sv if move.st == t else move.ev
+        return v
 
 def get_floor_position(t):
     v = 0.0
@@ -343,6 +372,8 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                         ev = e.ev
                     ))
         x_moves += oth_es
+        
+        x_moves.sort(key = lambda x: x.st)
     
     if len(y_moves) > 0:
         y_moves.sort(key = lambda x: x.st)
@@ -361,6 +392,8 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                     ))
         y_moves += oth_es
         
+        y_moves.sort(key = lambda x: x.st)
+        
     for note in rpe_judgeLine.notes:
         st = getReal(note.startTime)
         et = getReal(note.endTime)
@@ -378,28 +411,44 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
         else:
             phi_judgeLine["notesBelow"].append(item)
     
-    move_times = [i.st for i in (x_moves + y_moves)] + [i.et for i in (x_moves + y_moves)]
-    move_times.sort()
+    node_mgr = RpeMoveNodeMgr(x_moves + y_moves, [])
     
     get_phimove_state_x_cache = cache(get_phimove_state_x_raw)
     get_phimove_state_y_cache = cache(get_phimove_state_y_raw)
     
-    for index, this_t in enumerate(move_times):
-        if index != len(move_times) - 1:
-            next_t = move_times[index + 1]
+    for index, this_node in enumerate(node_mgr.nodes):
+        if index != len(node_mgr.nodes) - 1:
+            next_node = node_mgr.nodes[index + 1]
             
-            if this_t == next_t:
+            if this_node.value == next_node.value:
                 continue
             
+            startTime = this_node.value
+            endTime = next_node.value
+            
+            if this_node.item.type == "x":
+                start = this_node.item.sv if this_node.type == "st" else this_node.item.ev
+                start2 = get_phimove_state_y_cache(startTime, this_node.type == "st")
+            else: # y
+                start = get_phimove_state_x_cache(startTime, this_node.type == "st")
+                start2 = this_node.item.sv if this_node.type == "st" else this_node.item.ev
+            
+            if next_node.item.type == "x":
+                end = next_node.item.sv if next_node.type == "st" else next_node.item.ev
+                end2 = get_phimove_state_y_cache(endTime, this_node.type == "et")
+            else: # y
+                end = get_phimove_state_x_cache(endTime, this_node.type == "et")
+                end2 = next_node.item.sv if next_node.type == "st" else next_node.item.ev
+            
             phi_judgeLine["judgeLineMoveEvents"].append({
-                "startTime": this_t,
-                "endTime": next_t,
-                "start": get_phimove_state_x_cache(this_t),
-                "end": get_phimove_state_x_cache(next_t),
-                "start2": get_phimove_state_y_cache(this_t),
-                "end2": get_phimove_state_y_cache(next_t)
+                "startTime": startTime,
+                "endTime": endTime,
+                "start": start,
+                "end": end,
+                "start2": start2,
+                "end2": end2
             })
-    
+            
     if len(phi_judgeLine["judgeLineMoveEvents"]) > 0:
         phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["endTime"])
         phi_judgeLine["judgeLineMoveEvents"][-1]["endTime"] = 1000000000
