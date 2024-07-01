@@ -10,6 +10,10 @@ import typing
 import Chart_Functions_Rep
 import Chart_Objects_Rep
 
+if len(argv) < 2:
+    print("Usage: rpe2phi.py <rpe_file> <phi_target_file>")
+    raise SystemExit
+
 with open(argv[1],"r",encoding="utf-8") as f:
     rpe_obj = Chart_Functions_Rep.Load_Chart_Object(json.load(f))
 
