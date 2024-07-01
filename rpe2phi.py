@@ -104,18 +104,18 @@ def linear_interpolation(
     if t == st: return sv
     return (t - st) / (et - st) * (ev - sv) + sv
 
-def get_phimove_state_x_raw(t): # can`t: find and return, should find all and return the last value
+def get_phimove_state_x_raw(t): # can`t: find and return, should find all and return the last value. normal it never returns 0.0 (default).
     v = 0.0
     for move in x_moves:
-        if move.st <= t <= move.et:
-            v = linear_interpolation(t, move.st, move.et, move.sv, move.ev)
+        if move.st == t or move.et == t:
+            v = move.sv if move.st == t else move.ev
     return v
 
 def get_phimove_state_y_raw(t):
     v = 0.0
     for move in y_moves:
-        if move.st <= t <= move.et:
-            v = linear_interpolation(t, move.st, move.et, move.sv, move.ev)
+        if move.st == t or move.et == t:
+            v = move.sv if move.st == t else move.ev
     return v
 
 def get_floor_position(t):
@@ -327,22 +327,21 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                     })
         phi_judgeLine["judgeLineRotateEvents"] += oth_es
     
-    if len(x_moves) > 0:
-        x_moves.sort(key = lambda x: x.et)
+    x_moves.sort(key = lambda x: x.et)
         
-        oth_es = []
-        for index, e in enumerate(x_moves):
-            if index != len(x_moves) - 1:
-                ne = x_moves[index + 1]
-                if e.et < ne.st:
-                    oth_es.append(Move(
-                        type = "x",
-                        st = e.et,
-                        et = ne.st,
-                        sv = e.ev,
-                        ev = e.ev
-                    ))
-        x_moves += oth_es
+        # oth_es = []
+        # for index, e in enumerate(x_moves):
+        #     if index != len(x_moves) - 1:
+        #         ne = x_moves[index + 1]
+        #         if e.et < ne.st:
+        #             oth_es.append(Move(
+        #                 type = "x",
+        #                 st = e.et,
+        #                 et = ne.st,
+        #                 sv = e.ev,
+        #                 ev = e.ev
+        #             ))
+        # x_moves += oth_es
     
     if len(y_moves) > 0:
         y_moves.sort(key = lambda x: x.et)
@@ -404,6 +403,21 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
         phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["endTime"])
         phi_judgeLine["judgeLineMoveEvents"][-1]["endTime"] = 1000000000
         min(phi_judgeLine["judgeLineMoveEvents"], key = lambda x: x["startTime"])["startTime"] = -999999
+        
+        oth_es = []
+        for index, e in enumerate(phi_judgeLine["judgeLineMoveEvents"]):
+            if index != len(phi_judgeLine["judgeLineMoveEvents"]) - 1:
+                ne = phi_judgeLine["judgeLineMoveEvents"][index + 1]
+                if e["endTime"] < ne["startTime"]:
+                    oth_es.append({
+                        "startTime": e["endTime"],
+                        "endTime": ne["startTime"],
+                        "start": e["end"],
+                        "end": e["end"],
+                        "start2": e["end2"],
+                        "end2": e["end2"]
+                    })
+        phi_judgeLine["judgeLineMoveEvents"] += oth_es
     
     phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["startTime"])
     
