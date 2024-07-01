@@ -130,7 +130,7 @@ def get_floor_position(t):
 def get_speed(t):
     for e in phi_judgeLine["speedEvents"]:
         if e["startTime"] <= t <= e["endTime"]:
-            return e["value"]
+            return e["value"] * 0.6 # a Y
     return 1.0
 
 @cache
