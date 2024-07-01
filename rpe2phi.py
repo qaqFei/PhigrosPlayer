@@ -1,5 +1,4 @@
-# i can't write this file, because i don't know rpe format... how can help me?????????  welcome to my github to create a issue. thank you very much!!! (oh! 30/6/2024, i can write some code, because i get re:phiedit.)
-# why lchzh3427`s player can`t play it? (maybe is the speed events read ways is different from my project ?)
+# special event will not processing
 from sys import argv
 from dataclasses import dataclass
 from functools import cache
