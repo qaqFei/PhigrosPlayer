@@ -706,6 +706,9 @@ def GetFrameRenderTask_Phi(
                     )
                 )
                 
+                if note_now_floorPosition > PHIGROS_Y * 2 and not render_range_more:
+                    continue
+                
                 rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
                     *judgeLine_cfg.pos,-judgeLine_cfg.rotate,note_item.positionX * PHIGROS_X
                 )
