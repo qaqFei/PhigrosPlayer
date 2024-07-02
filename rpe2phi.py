@@ -155,12 +155,6 @@ def get_floor_position(t):
             v += (e["endTime"] - e["startTime"]) * T * e["value"]
     return v
 
-def get_speed(t):
-    for e in phi_judgeLine["speedEvents"]:
-        if e["startTime"] <= t <= e["endTime"]:
-            return e["value"] * 0.6 # a Y
-    return 1.0
-
 @cache
 def conv_note(n):
     return {1:1, 2:3, 3:4, 4:2}[n]
@@ -402,7 +396,7 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
             "time": st / T,
             "holdTime": (et - st) / T,
             "positionX": note.positionX / 1350 / 0.05625,
-            "speed": ((get_floor_position(et / T) - get_floor_position(st / T)) / ((et - st) / T)) / T if et != st else get_speed(st),
+            "speed": ((get_floor_position(et / T) - get_floor_position(st / T)) / ((et - st) / T)) / T if et != st else 1.0,
             "floorPosition": get_floor_position(st / T)
         }
         if note.above == 1:
