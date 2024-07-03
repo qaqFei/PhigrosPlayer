@@ -153,7 +153,9 @@ def Load_Chart_Object(chart):
                         isFake = Note_item["isFake"],
                         speed = Note_item["speed"],
                         yOffset = Note_item["yOffset"],
-                        visibleTime = Note_item["visibleTime"]
+                        visibleTime = Note_item["visibleTime"],
+                        width = Note_item["size"],
+                        alpha = Note_item["alpha"]
                     )
                     for Note_item in judgeLine_item["notes"]
                 ] if "notes" in judgeLine_item else []

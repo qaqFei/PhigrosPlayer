@@ -3121,5 +3121,8 @@ windll.kernel32.ExitProcess(0)
               return lambda *args, **kwargs: None
   ```
 
+## 些许可能代码会存在误解的地方
+- `Chart_Functions_Rep` 和 `Chart_Objects_Rep` 中`Note`的`width`属性为`JSON`数据中的`size`
+
 ## 一些使用技巧
 - 在使用命令行参数并要使用一些值时, 可输入 `Python` 的表达式, 也可使用 `Const` 模块的一些值, 如: `Const.INF` 等等...

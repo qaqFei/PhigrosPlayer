@@ -794,9 +794,10 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname_end)},\
                                 {holdend_x},\
                                 {holdend_y},\
-                                {Note_width},\
+                                {Note_width * note_item.width},\
                                 {Note_width / this_note_img_end.width * this_note_img_end.height},\
-                                {judgeLine_rotate}\
+                                {judgeLine_rotate},\
+                                {note_item.alpha}\
                             );",
                             add_code_array = True
                         )
@@ -808,9 +809,10 @@ def GetFrameRenderTask_Phi(
                                     {root.get_img_jsvarname(this_note_imgname_body)},\
                                     {holdbody_x},\
                                     {holdbody_y},\
-                                    {Note_width},\
+                                    {Note_width * note_item.width},\
                                     {holdbody_length},\
-                                    {judgeLine_rotate}\
+                                    {judgeLine_rotate},\
+                                    {note_item.alpha}\
                                 );",
                                 add_code_array = True
                             )
@@ -822,9 +824,10 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname)},\
                                 {x},\
                                 {y},\
-                                {Note_width},\
+                                {Note_width * note_item.width},\
                                 {Note_width / this_note_img.width * this_note_img.height},\
-                                {judgeLine_rotate}\
+                                {judgeLine_rotate},\
+                                {note_item.alpha}\
                             );",
                             add_code_array = True #eq wait_exec true
                         )
@@ -1802,10 +1805,10 @@ background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - 
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
-window_hwnd = root.winfo_hwnd()
-print(f"Window Hwnd: {window_hwnd}")
-window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
-SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
+# window_hwnd = root.winfo_hwnd()
+# print(f"Window Hwnd: {window_hwnd}")
+# window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
+# SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
 Chart_Functions_Phi.Init(

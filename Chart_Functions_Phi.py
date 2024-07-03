@@ -84,6 +84,8 @@ def Load_Chart_Object(
                         holdTime = notesAbove_item.get("holdTime", 0.0),
                         speed = notesAbove_item.get("speed", -1.0),
                         floorPosition = notesAbove_item.get("floorPosition", -1.0),
+                        width = notesAbove_item.get("--QFPPR-Note-Width", 1.0),
+                        alpha = notesAbove_item.get("--QFPPR-Note-Alpha", 1.0),
                         id = Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         effect_random_blocks = Tool_Functions.get_effect_random_blocks()
@@ -98,6 +100,8 @@ def Load_Chart_Object(
                         holdTime = notesBelow_item.get("holdTime", 0.0),
                         speed = notesBelow_item.get("speed", -1.0),
                         floorPosition = notesBelow_item.get("floorPosition", -1.0),
+                        width = notesBelow_item.get("--QFPPR-Note-Width", 1.0),
+                        alpha = notesBelow_item.get("--QFPPR-Note-Alpha", 1.0),
                         id = Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         effect_random_blocks = Tool_Functions.get_effect_random_blocks()

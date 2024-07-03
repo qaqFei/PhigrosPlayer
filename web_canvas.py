@@ -534,7 +534,7 @@ class WebCanvas:
         
         while True:
             self._web_hwnd = windll.user32.FindWindowW(None,self._web.title)
-            if self._web_hwnd != 0:
+            if self._web_hwnd:
                 break
         
         self._web_port = int(self._web._server.address.split(":")[2].split("/")[0])

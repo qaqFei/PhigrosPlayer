@@ -13,6 +13,8 @@ class note:
     holdTime:typing.Union[int,float]
     speed:typing.Union[int,float]
     floorPosition:typing.Union[int,float]
+    width:typing.Union[int,float]
+    alpha:typing.Union[int,float]
     effect_random_blocks:typing.Tuple[int]
     id:typing.Union[int,None] = None
     by_judgeLine_id:typing.Union[int,None] = None

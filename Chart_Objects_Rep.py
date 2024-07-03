@@ -26,6 +26,8 @@ class Note:
     speed:float
     yOffset:float
     visibleTime:float
+    width:float
+    alpha:int
 
 @dataclass
 class LineEvent:
