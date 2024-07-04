@@ -110,8 +110,8 @@ def Load_Chart_Object(chart):
                             start = LineEvent_item["start"],
                             end = LineEvent_item["end"],
                             easingType = LineEvent_item["easingType"]
-                        ) for LineEvent_item in judgeLine_item["scaleXEvents"]
-                    ] if "scaleXEvents" in judgeLine_item and judgeLine_item["scaleXEvents"] is not None else None,
+                        ) for LineEvent_item in judgeLine_item["extended"]["scaleXEvents"]
+                    ] if "scaleXEvents" in judgeLine_item["extended"] and judgeLine_item["extended"]["scaleXEvents"] is not None else None,
                     scaleYEvents = [
                         Chart_Objects_Rep.LineEvent(
                             startTime = Chart_Objects_Rep.Beat(
@@ -123,8 +123,8 @@ def Load_Chart_Object(chart):
                             start = LineEvent_item["start"],
                             end = LineEvent_item["end"],
                             easingType = LineEvent_item["easingType"]
-                        ) for LineEvent_item in judgeLine_item["scaleYEvents"]
-                    ] if "scaleYEvents" in judgeLine_item and judgeLine_item["scaleYEvents"] is not None else None,
+                        ) for LineEvent_item in judgeLine_item["extended"]["scaleYEvents"]
+                    ] if "scaleYEvents" in judgeLine_item["extended"] and judgeLine_item["extended"]["scaleYEvents"] is not None else None,
                     colorEvents = [
                         Chart_Objects_Rep.LineEvent(
                             startTime = Chart_Objects_Rep.Beat(
@@ -136,8 +136,22 @@ def Load_Chart_Object(chart):
                             start = LineEvent_item["start"],
                             end = LineEvent_item["end"],
                             easingType = LineEvent_item["easingType"]
-                        ) for LineEvent_item in judgeLine_item["colorEvents"]
-                    ] if "colorEvents" in judgeLine_item and judgeLine_item["colorEvents"] is not None else None,
+                        ) for LineEvent_item in judgeLine_item["extended"]["colorEvents"]
+                    ] if "colorEvents" in judgeLine_item["extended"] and judgeLine_item["extended"]["colorEvents"] is not None else None,
+                    textEvents = [
+                        Chart_Objects_Rep.LineEvent(
+                            startTime = Chart_Objects_Rep.Beat(
+                                *LineEvent_item["startTime"]
+                            ),
+                            endTime = Chart_Objects_Rep.Beat(
+                                *LineEvent_item["endTime"]
+                            ),
+                            start = LineEvent_item["start"],
+                            end = LineEvent_item["end"],
+                            easingType = LineEvent_item["easingType"]
+                        )
+                        for LineEvent_item in judgeLine_item["extended"]["textEvents"]
+                    ] if "textEvents" in judgeLine_item["extended"] and judgeLine_item["extended"]["textEvents"] is not None else None,
                 ) if "extended" in judgeLine_item and judgeLine_item["extended"] is not None else None,
                 notes = [
                     Chart_Objects_Rep.Note(

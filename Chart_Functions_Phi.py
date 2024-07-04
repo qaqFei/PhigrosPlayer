@@ -44,7 +44,7 @@ def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects_Phi.judgeLine,time:float
     dy = last_speed_event.floorPosition + (time - last_speed_event.endTime) * judgeLine.T * last_speed_event.value
     return dy * PHIGROS_Y
 
-def Update_JudgeLine_Configs(judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,now_t:typing.Union[int,float]):
+def Update_JudgeLine_Configs(judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,now_t:float):
     for judgeLine_cfg in judgeLine_Configs.Configs:
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
         judgeLine_cfg.time = now_t / judgeLine.T
@@ -154,6 +154,14 @@ def Load_Chart_Object(
                         end = judgeLineDisappearEvent_item.get("end", 0.0)
                     )
                     for judgeLineDisappearEvent_item in judgeLine_item.get("judgeLineDisappearEvents", [])
+                ],
+                TextJudgeLine = judgeLine_item.get("--QFPPR-JudgeLine-TextJudgeLine", False),
+                TextEvents = [
+                    Chart_Objects_Phi.TextEvent(
+                        startTime = TextEvent_item.get("startTime", -1.0),
+                        value = TextEvent_item.get("value", ""),
+                    )
+                    for TextEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-TextEvents", [])
                 ]
             )
             for index,judgeLine_item in enumerate(phigros_chart.get("judgeLineList", []))

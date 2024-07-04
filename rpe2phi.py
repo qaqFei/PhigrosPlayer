@@ -169,7 +169,9 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
         "speedEvents": [],
         "judgeLineMoveEvents": [],
         "judgeLineRotateEvents": [],
-        "judgeLineDisappearEvents": []
+        "judgeLineDisappearEvents": [],
+        "--QFPPR-JudgeLine-TextJudgeLine": False,
+        "--QFPPR-JudgeLine-TextEvents": []
     }
     
     x_moves:typing.List[Move] = []
@@ -282,6 +284,20 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                         "value": (v * 120) / 900 / 0.6
                     }
                 )
+    
+    if rpe_judgeLine.extended is not None:
+        if rpe_judgeLine.extended.textEvents is not None and len(rpe_judgeLine.extended.textEvents) > 0:
+            phi_judgeLine["--QFPPR-JudgeLine-TextJudgeLine"] = True
+            for e in rpe_judgeLine.extended.textEvents:
+                phi_judgeLine["--QFPPR-JudgeLine-TextEvents"].append({
+                    "startTime": getReal(e.startTime) / T,
+                    "value": e.start
+                })
+                if e.start != e.end:
+                    phi_judgeLine["--QFPPR-JudgeLine-TextEvents"].append({
+                        "startTime": getReal(e.endTime) / T,
+                        "value": e.end
+                    })
     
     if len(phi_judgeLine["speedEvents"]) > 0:
         phi_judgeLine["speedEvents"].sort(key = lambda x: x["endTime"])
@@ -452,6 +468,10 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
     phi_judgeLine["judgeLineDisappearEvents"].sort(key = lambda x: x["startTime"])
     phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["startTime"])
     phi_judgeLine["judgeLineRotateEvents"].sort(key = lambda x: x["startTime"])
+    
+    if not phi_judgeLine["--QFPPR-JudgeLine-TextJudgeLine"]:
+        del phi_judgeLine["--QFPPR-JudgeLine-TextJudgeLine"]
+        del phi_judgeLine["--QFPPR-JudgeLine-TextEvents"]
     
     phi_data["judgeLineList"].append(phi_judgeLine)
 

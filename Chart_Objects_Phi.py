@@ -7,23 +7,23 @@ import Tool_Functions
 
 @dataclass
 class note:
-    type:typing.Literal[1,2,3,4]
-    time:typing.Union[int,float]
-    positionX:typing.Union[int,float]
-    holdTime:typing.Union[int,float]
-    speed:typing.Union[int,float]
-    floorPosition:typing.Union[int,float]
-    width:typing.Union[int,float]
-    alpha:typing.Union[int,float]
-    effect_random_blocks:typing.Tuple[int]
-    id:typing.Union[int,None] = None
-    by_judgeLine_id:typing.Union[int,None] = None
-    clicked:bool = False
-    morebets:bool = False
-    master:typing.Union[judgeLine,None] = None
-    show_effected:bool = False
-    show_effected_hold:bool = False
-    effect_times:typing.Union[typing.List[typing.Tuple[int]],typing.Tuple] = ()
+    type: typing.Literal[1,2,3,4]
+    time: int|float
+    positionX: int|float
+    holdTime: int|float
+    speed: int|float
+    floorPosition: int|float
+    width: int|float
+    alpha: int|float
+    effect_random_blocks: tuple[int]
+    id: int|None = None
+    by_judgeLine_id: int|None = None
+    clicked: bool = False
+    morebets: bool = False
+    master: judgeLine|None = None
+    show_effected: bool = False
+    show_effected_hold: bool = False
+    effect_times: list[tuple[int]] | tuple = ()
     
     def __eq__(self,oth:note):
         try:
@@ -67,44 +67,51 @@ class note:
 
 @dataclass
 class speedEvent:
-    startTime:typing.Union[int,float]
-    endTime:typing.Union[int,float]
-    value:typing.Union[int,float]
-    floorPosition:typing.Union[typing.Union[int,float],None] = None
+    startTime: int|float
+    endTime: int|float
+    value: int|float
+    floorPosition: int|float|None = None
 
 @dataclass
 class judgeLineMoveEvent:
-    startTime:typing.Union[int,float]
-    endTime:typing.Union[int,float]
-    start:typing.Union[int,float]
-    end:typing.Union[int,float]
-    start2:typing.Union[int,float]
-    end2:typing.Union[int,float]
+    startTime: int|float
+    endTime: int|float
+    start: int|float
+    end: int|float
+    start2: int|float
+    end2: int|float
 
 @dataclass
 class judgeLineRotateEvent:
-    startTime:typing.Union[int,float]
-    endTime:typing.Union[int,float]
-    start:typing.Union[int,float]
-    end:typing.Union[int,float]
+    startTime: int|float
+    endTime: int|float
+    start: int|float
+    end: int|float
 
 @dataclass
 class judgeLineDisappearEvent:
-    startTime:typing.Union[int,float]
-    endTime:typing.Union[int,float]
-    start:typing.Union[int,float]
-    end:typing.Union[int,float]
+    startTime: int|float
+    endTime: int|float
+    start: int|float
+    end: int|float
+
+@dataclass
+class TextEvent:
+    startTime: int|float
+    value: str
 
 @dataclass
 class judgeLine:
-    id:int
-    bpm:typing.Union[int,float]
-    notesAbove:list[note]
-    notesBelow:list[note]
-    speedEvents:list[speedEvent]
-    judgeLineMoveEvents:list[judgeLineMoveEvent]
-    judgeLineRotateEvents:list[judgeLineRotateEvent]
-    judgeLineDisappearEvents:list[judgeLineDisappearEvent]
+    id: int
+    bpm: int|float
+    notesAbove: list[note]
+    notesBelow: list[note]
+    speedEvents: list[speedEvent]
+    judgeLineMoveEvents: list[judgeLineMoveEvent]
+    judgeLineRotateEvents: list[judgeLineRotateEvent]
+    judgeLineDisappearEvents: list[judgeLineDisappearEvent]
+    TextJudgeLine: bool
+    TextEvents: list[TextEvent]
 
     def __eq__(self,oth):
         try:
@@ -117,9 +124,10 @@ class judgeLine:
     
     def __repr__(self):
         return f"JudgeLine-{self.id}"
-    
-    def _cal_T(self):
+
+    def _init(self):
         self.T = 1.875 / self.bpm
+        self.TextEvents.sort(key = lambda x: x.startTime, reverse = True)
     
     def set_master_to_notes(self):
         for note in self.notesAbove:
@@ -148,16 +156,22 @@ class judgeLine:
                 )
         return (w * 0.5,h * 0.5) #never
 
+    def get_datavar_text(self,now_time):
+        for e in self.TextEvents: # sort by startTime and reverse
+            if e.startTime <= now_time:
+                return e.value
+        return ""
+
 @dataclass
 class Phigros_Chart:
-    formatVersion:int
-    offset:typing.Union[int,float]
-    judgeLineList:list[judgeLine]
+    formatVersion: int
+    offset: int|float
+    judgeLineList: list[judgeLine]
     
     def init(self):
         for judgeLine in self.judgeLineList:
-            #cal T
-            judgeLine._cal_T()
+            #init
+            judgeLine._init()
             
             #set_master_to_notes
             judgeLine.set_master_to_notes()
@@ -183,10 +197,10 @@ class Phigros_Chart:
             for note in judgeLine.notesBelow:
                 note._cal_holdlength(PHIGROS_Y)
     
-    def _specification_events(self,event:typing.Union[
-        typing.List[judgeLineMoveEvent],
-        typing.List[judgeLineDisappearEvent],
-        typing.List[judgeLineRotateEvent]
+    def _specification_events(self,event: typing.Union[
+        list[judgeLineMoveEvent],
+        list[judgeLineDisappearEvent],
+        list[judgeLineRotateEvent]
     ]):
         if not event: #empty
             return
@@ -215,9 +229,9 @@ class Phigros_Chart:
         event[-1].endTime = 9999999.0
     
     def _is_specification_events(self,event:typing.Union[
-        typing.List[judgeLineMoveEvent],
-        typing.List[judgeLineDisappearEvent],
-        typing.List[judgeLineRotateEvent]
+        list[judgeLineMoveEvent],
+        list[judgeLineDisappearEvent],
+        list[judgeLineRotateEvent]
     ]) -> bool:
         for index,e in enumerate(event):
             if index != len(event) - 1:
@@ -230,40 +244,40 @@ class Phigros_Chart:
 
 @dataclass
 class RenderTask:
-    func:typing.Callable
-    args:typing.Iterable
-    kwargs:typing.Mapping
+    func: typing.Callable
+    args: typing.Iterable
+    kwargs: typing.Mapping
 
 @dataclass
 class FrameRenderTask:
-    RenderTasks:list[RenderTask]
-    ExTask:typing.List[tuple]
+    RenderTasks: list[RenderTask]
+    ExTask: list[tuple]
     
     def __call__(
         self,
-        func:typing.Callable,
-        *args:typing.Iterable,
-        **kwargs:typing.Mapping
+        func: typing.Callable,
+        *args: typing.Iterable,
+        **kwargs: typing.Mapping
     ):
-        self.RenderTasks.append(RenderTask(func,args,kwargs))
+        self.RenderTasks.append(RenderTask(func, args, kwargs))
     
     def ExecTask(
         self
     ):
         for t in self.RenderTasks:
-            t.func(*t.args,**t.kwargs)
+            t.func(*t.args, **t.kwargs)
         self.RenderTasks.clear()
 
 @dataclass
 class judgeLine_Config_Item:
-    line:judgeLine
-    rotate:float = 0.0
-    disappear:float = 0.0
-    pos:typing.Tuple[float,float] = (0.0, 0.0)
-    time:float = 0.0
+    line: judgeLine
+    rotate: float = 0.0
+    disappear: float = 0.0
+    pos: tuple[float,float] = (0.0, 0.0)
+    time: float = 0.0
 
 @dataclass
 class judgeLine_Configs:
-    Configs:typing.List[judgeLine_Config_Item]
+    Configs: list[judgeLine_Config_Item]
 
 del typing,dataclass

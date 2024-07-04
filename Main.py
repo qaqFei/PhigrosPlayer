@@ -653,8 +653,9 @@ def GetFrameRenderTask_Phi(
             *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h),
             *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h)
         )
-        judgeLine_strokeStyle = (254, 255, 169, judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
-        if judgeLine_strokeStyle[-1] > 0.0 and show_judgeline:
+        judgeLine_color = (254, 255, 169, judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
+        judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
+        if judgeLine_color[-1] > 0.0 and show_judgeline:
             if judgeLine_can_render(judgeLine_DrawPos) or render_range_more:
                 if render_range_more:
                     Task(
@@ -662,13 +663,26 @@ def GetFrameRenderTask_Phi(
                         f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
                         add_code_array = True
                     )
-                Task(
-                    root.create_line,
-                    *judgeLine_DrawPos,
-                    lineWidth = JUDGELINE_WIDTH,
-                    strokeStyle=f"rgba{judgeLine_strokeStyle}",
-                    wait_execute = True
-                )
+                if judgeLine.TextJudgeLine:
+                    Task(
+                        root.create_text,
+                        *judgeLine_cfg.pos,
+                        text = judgeLine.get_datavar_text(judgeLine_cfg.time),
+                        font = f"{int((w + h) / 75 / 0.75)}px PhigrosFont",
+                        textAlign = "center",
+                        textBaseline = "middle",
+                        strokeStyle = judgeLine_webCanvas_color,
+                        fillStyle = judgeLine_webCanvas_color,
+                        wait_execute = True
+                    )
+                else:
+                    Task(
+                        root.create_line,
+                        *judgeLine_DrawPos,
+                        lineWidth = JUDGELINE_WIDTH,
+                        strokeStyle = judgeLine_webCanvas_color,
+                        wait_execute = True
+                    )
                 Render_JudgeLine_Count += 1
                 if render_range_more:
                     Task(
