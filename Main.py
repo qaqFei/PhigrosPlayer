@@ -1,6 +1,6 @@
 from threading import Thread
 from ctypes import windll
-from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
+from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
 from os.path import exists,abspath,dirname
 from sys import argv
 from time import time,sleep
