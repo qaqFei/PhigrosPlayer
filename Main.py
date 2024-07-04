@@ -13,9 +13,7 @@ import base64
 import importlib.util
 
 from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
-from win32gui import GetWindowLong,SetWindowLong
 from pygame import mixer
-import win32con
 import cv2
 import numpy
 
