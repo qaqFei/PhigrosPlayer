@@ -14,6 +14,7 @@ INF = float("inf")
 NAN = float("nan")
 JUDGELINE_PERFECT_COLOR = "#feffa9"
 RENDER_RANGE_MORE_FRAME_LINE_COLOR = "rgba(0, 94, 255, 0.65)"
+NOTE_DUB_FIXSCALE = 1089 / 989
 
 EVENT_JSON_TYPE = typing.Dict[
     str, typing.Union[

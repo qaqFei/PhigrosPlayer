@@ -736,6 +736,8 @@ def GetFrameRenderTask_Phi(
                         this_note_img_end_keyname = f"{note_item.type_string}_End{dub_text}"
                         this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
                         this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
+                    
+                    fix_scale = Const.NOTE_DUB_FIXSCALE if note_item.morebets else 1.0 # because the note img if has morebets frame, the note will be look small, so we will `*` a fix scale to fix the frame size make the note look is small.
                         
                     if this_note_ishold:
                         if note_item.clicked:
@@ -753,7 +755,7 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname_end)},\
                                 {holdend_x},\
                                 {holdend_y},\
-                                {Note_width * note_item.width},\
+                                {Note_width * note_item.width * fix_scale},\
                                 {Note_width / this_note_img_end.width * this_note_img_end.height},\
                                 {judgeLine_rotate},\
                                 {note_item.alpha}\
@@ -768,7 +770,7 @@ def GetFrameRenderTask_Phi(
                                     {root.get_img_jsvarname(this_note_imgname_body)},\
                                     {holdbody_x},\
                                     {holdbody_y},\
-                                    {Note_width * note_item.width},\
+                                    {Note_width * note_item.width * fix_scale},\
                                     {holdbody_length},\
                                     {judgeLine_rotate},\
                                     {note_item.alpha}\
@@ -783,7 +785,7 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname)},\
                                 {x},\
                                 {y},\
-                                {Note_width * note_item.width},\
+                                {Note_width * note_item.width * fix_scale},\
                                 {Note_width / this_note_img.width * this_note_img.height},\
                                 {judgeLine_rotate},\
                                 {note_item.alpha}\
