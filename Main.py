@@ -6,8 +6,8 @@ from sys import argv
 from time import time,sleep
 from shutil import rmtree
 from tempfile import gettempdir
+from ntpath import basename
 import typing
-import csv
 import json
 import base64
 import importlib.util
@@ -29,6 +29,7 @@ import dialog
 import Phigros_Tips
 import default_extend
 import Image_open
+import info_loader
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
@@ -127,15 +128,6 @@ if len(chart_files_dict["audio"]) == 0:
     windll.kernel32.ExitProcess(1)
 if len(chart_files_dict["images"]) == 0:
     chart_files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
-    
-defualt_information = {
-    "Name": "Unknow",
-    "Artist": "Unknow",
-    "Level": "SP Lv.?",
-    "Illustrator": "Unknow",
-    "Charter": "Unknow",
-    "BackgroundDim": 0.6
-}
 
 phigros_chart_index = 0
 chart_image_index = 0
@@ -175,54 +167,8 @@ audio_length = mixer.Sound(audio_file).get_length()
 all_inforamtion = {}
 print("Loading Chart Information...")
 
-if not exists(f"{temp_dir}\\info.csv"):
-    print("No info.csv Found.")
-    chart_information = defualt_information
-else:
-    path_head = f"{temp_dir}\\"
-    _process_path = lambda path: abspath(path_head + path)
-    _process_path2 = lambda path: abspath(path)
-    info_csv_map = {name: None for name in "Chart,Music,Image,Name,Artist,Level,Illustrator,Charter,AspectRatio,NoteScale,GlobalAlpha".split(",")}
-    with open(f"{temp_dir}\\info.csv", "r", encoding="utf-8") as f:
-        reader = csv.reader(f)
-        for index,row in enumerate(reader):
-            if index == 0:
-                for index_csv_map,item in enumerate(row):
-                    info_csv_map[item] = index_csv_map
-                break
-            
-        for row in reader:
-            try:
-                all_inforamtion[
-                    (
-                        _process_path(row[info_csv_map["Chart"] if info_csv_map["Chart"] is not None else 0]),
-                        _process_path(row[info_csv_map["Music"] if info_csv_map["Music"] is not None else 1]),
-                        _process_path(row[info_csv_map["Image"] if info_csv_map["Image"] is not None else 2])
-                    )
-                ] = {
-                    name:row[info_csv_map[name]] for name in info_csv_map.keys() if info_csv_map[name] is not None and info_csv_map[name] < len(row)
-                }
-            except Exception as e:
-                print(f"Warning: {e} in info.csv.")
-    now_key = (
-        _process_path2(phigros_chart_filepath),
-        _process_path2(audio_file),
-        _process_path2(chart_image_filepath)
-    )
-    for keys in all_inforamtion.keys():
-        if keys == now_key:
-            chart_information = {
-                "Name":all_inforamtion[keys]["Name"] if "Name" in all_inforamtion[keys] else "Unknow",
-                "Artist":all_inforamtion[keys]["Artist"] if "Artist" in all_inforamtion[keys] else "Unknow",
-                "Level":all_inforamtion[keys]["Level"] if "Level" in all_inforamtion[keys] else "SP Lv.?",
-                "Illustrator":all_inforamtion[keys]["Illustrator"] if "Illustrator" in all_inforamtion[keys] else "Unknow",
-                "Charter":all_inforamtion[keys]["Charter"] if "Charter" in all_inforamtion[keys] else "Unknow",
-                "BackgroundDim":float(all_inforamtion[keys]["BackgroundDim"] if "BackgroundDim" in all_inforamtion[keys] else 0.6)
-            }
-            
-    if "chart_information" not in globals():
-        print("info.cvs Found. But cannot find information of this chart.")
-        chart_information = defualt_information
+ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}/info.csv", f"{temp_dir}/info.txt", f"{temp_dir}/info.yml"])
+chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(audio_file), basename(chart_image_filepath))
 
 if "formatVersion" in phigros_chart:
     CHART_TYPE = Const.CHART_TYPE.PHI
