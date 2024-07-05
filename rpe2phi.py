@@ -48,6 +48,8 @@ ease_funcs = [
   lambda t: 0 if t == 0 else (1 if t == 0 else (-2 ** (20 * t - 10) * math.sin((20 * t - 11.125) * ((2 * math.pi) / 4.5))) / 2 if t < 0.5 else (2 ** (-20 * t + 10) * math.sin((20 * t - 11.125) * ((2 * math.pi) / 4.5))) / 2 + 1) # io elastic - 29
 ]
 
+linear = ease_funcs[0]
+
 @dataclass
 class Move:
     type: typing.Literal["x", "y"]
@@ -185,21 +187,31 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                 sv = (255 & e.start) / 255
                 ev = (255 & e.end) / 255
                 ef = ease_funcs[e.easingType - 1]
-                for i in range(split_event_length):
-                    ist = st + i * (et - st) / split_event_length
-                    iet = st + (i + 1) * (et - st) / split_event_length
-                    isvp = ef(i / split_event_length)
-                    ievp = ef((i + 1) / split_event_length)
-                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
-                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                if ef is linear:
                     phi_judgeLine["judgeLineDisappearEvents"].append(
                         {
-                            "startTime": ist / T,
-                            "endTime": iet / T,
-                            "start": isv,
-                            "end": iev
+                            "startTime": st / T,
+                            "endTime": et / T,
+                            "start": sv,
+                            "end": ev
                         }
                     )
+                else:
+                    for i in range(split_event_length):
+                        ist = st + i * (et - st) / split_event_length
+                        iet = st + (i + 1) * (et - st) / split_event_length
+                        isvp = ef(i / split_event_length)
+                        ievp = ef((i + 1) / split_event_length)
+                        isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                        iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                        phi_judgeLine["judgeLineDisappearEvents"].append(
+                            {
+                                "startTime": ist / T,
+                                "endTime": iet / T,
+                                "start": isv,
+                                "end": iev
+                            }
+                        )
         
         if eventLayer.rotateEvents is not None:
             for e in eventLayer.rotateEvents:
@@ -208,21 +220,31 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                 sv = - e.start
                 ev = - e.end
                 ef = ease_funcs[e.easingType - 1]
-                for i in range(split_event_length):
-                    ist = st + i * (et - st) / split_event_length
-                    iet = st + (i + 1) * (et - st) / split_event_length
-                    isvp = ef(i / split_event_length)
-                    ievp = ef((i + 1) / split_event_length)
-                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
-                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                if ef is linear:
                     phi_judgeLine["judgeLineRotateEvents"].append(
                         {
-                            "startTime": ist / T,
-                            "endTime": iet / T,
-                            "start": isv,
-                            "end": iev
+                            "startTime": st / T,
+                            "endTime": et / T,
+                            "start": sv,
+                            "end": ev
                         }
                     )
+                else:
+                    for i in range(split_event_length):
+                        ist = st + i * (et - st) / split_event_length
+                        iet = st + (i + 1) * (et - st) / split_event_length
+                        isvp = ef(i / split_event_length)
+                        ievp = ef((i + 1) / split_event_length)
+                        isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                        iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                        phi_judgeLine["judgeLineRotateEvents"].append(
+                            {
+                                "startTime": ist / T,
+                                "endTime": iet / T,
+                                "start": isv,
+                                "end": iev
+                            }
+                        )
         
         if eventLayer.moveXEvents is not None:
             for e in eventLayer.moveXEvents:
@@ -468,6 +490,7 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
     phi_judgeLine["judgeLineDisappearEvents"].sort(key = lambda x: x["startTime"])
     phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["startTime"])
     phi_judgeLine["judgeLineRotateEvents"].sort(key = lambda x: x["startTime"])
+    phi_judgeLine["--QFPPR-JudgeLine-TextEvents"].sort(key = lambda x: x["startTime"])
     
     if not phi_judgeLine["--QFPPR-JudgeLine-TextJudgeLine"]:
         del phi_judgeLine["--QFPPR-JudgeLine-TextJudgeLine"]

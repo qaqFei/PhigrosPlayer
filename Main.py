@@ -264,8 +264,9 @@ def Load_Resource():
     Thread(target=WaitLoading_FadeIn, daemon = True).start()
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
-    Note_width = int(PHIGROS_X * 1.75 * (eval(argv[argv.index("-scale-note") + 1]) if "-scale-note" in argv else 1.0))
-    ClickEffect_Size = int(Note_width * 1.5)
+    Note_width_raw = (0.125 * w + 0.2 * h) / 2
+    Note_width = (Note_width_raw) * (eval(argv[argv.index("-scale-note") + 1]) if "-scale-note" in argv else 1.0)
+    ClickEffect_Size = Note_width * 1.375
     Resource = {
         "Notes":{
             "Tap": Image.open("./Resources/Notes/Tap.png"),
@@ -335,7 +336,7 @@ def Load_Resource():
     
     for k,v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
         if v.width > Note_width:
-            Resource["Notes"][k] = v.resize((Note_width,int(Note_width / v.width * v.height)))
+            Resource["Notes"][k] = v.resize((int(Note_width),int(Note_width / v.width * v.height)))
         root.reg_img(Resource["Notes"][k], f"Note_{k}")
     
     for i in range(30): # reg click effect
