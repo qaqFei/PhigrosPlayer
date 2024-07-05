@@ -90,7 +90,7 @@ phi_data = {
     "judgeLineList" :[]
 }
 
-split_event_length = 15
+split_event_length = 30
 T = 1.875 / rpe_obj.BPMList[0].bpm
 
 for index,bpm in enumerate(rpe_obj.BPMList):
