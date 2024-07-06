@@ -4,6 +4,7 @@ import typing
 
 import Const
 import Tool_Functions
+import rpe_easing
 
 @dataclass
 class note:
@@ -169,6 +170,8 @@ class Phigros_Chart:
     formatVersion: int
     offset: int|float
     judgeLineList: list[judgeLine]
+    Extra_Enable: bool
+    Extra: dict
     
     def __post_init__(self):
         self.note_num = 0
@@ -243,6 +246,25 @@ class Phigros_Chart:
     
     def get_all_note(self) -> list[note]:
        return [j for i in self.judgeLineList for j in i.notesAbove + i.notesBelow]
+    
+    def get_datavar_extra(self,now_time): # now_time: sec
+        target_item = []
+        for extra_efct_item in self.Extra["effects"]:
+            if extra_efct_item["startTime"] <= now_time <= extra_efct_item["endTime"]:
+                values = {k: 0.0 for k in extra_efct_item["vars"].keys()}
+                for k, v in extra_efct_item["vars"].items():
+                    for e in v:
+                        if e["startTime"] <= now_time <= e["endTime"]:
+                            values[k] = Tool_Functions.easing_interpolation(now_time, e["startTime"], e["endTime"], e["start"], e["end"], rpe_easing.ease_funcs[e["easingType"]])
+                            break
+                target_item.append({
+                    "shader": extra_efct_item["shader"],
+                    "vars": values
+                })
+        
+        # print(target_item)
+        
+        return target_item
 
 @dataclass
 class RenderTask:

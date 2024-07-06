@@ -54,6 +54,17 @@ def linear_interpolation(
     if t == st: return sv
     return (t - st) / (et - st) * (ev - sv) + sv
 
+def easing_interpolation(
+    t:float,
+    st:float,
+    et:float,
+    sv:float,
+    ev:float,
+    f:typing.Callable
+):
+    if t == st: return sv
+    return f((t - st) / (et - st)) * (ev - sv) + sv
+
 @numba.jit
 def cosint(p, dx = 1 / 5e2): # f\left(m\right)=\int_{0}^{m}\left(\cos\left(\pi x\right)+1\right)dx
     if p >= 1.0: return 1.0

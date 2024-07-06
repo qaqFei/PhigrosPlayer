@@ -171,7 +171,9 @@ def Load_Chart_Object(
                 ]
             )
             for index,judgeLine_item in enumerate(phigros_chart.get("judgeLineList", []))
-        ]
+        ],
+        Extra_Enable = phigros_chart.get("--QFPPR-Extra-Enable", False),
+        Extra = phigros_chart.get("--QFPPR-Extra", {})
     )
     
     print("Finding Chart More Bets...")

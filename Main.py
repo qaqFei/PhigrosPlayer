@@ -590,6 +590,10 @@ def GetFrameRenderTask_Phi(
             f"ctx.translate({fr_x},{fr_y});",
             add_code_array = True
         )
+    
+    if phigros_chart_obj.Extra_Enable:
+        extra_render_task = phigros_chart_obj.get_datavar_extra(now_t)
+    
     for judgeLine_cfg in judgeLine_Configs.Configs:
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
         this_judgeLine_T = judgeLine.T

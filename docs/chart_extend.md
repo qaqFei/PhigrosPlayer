@@ -97,3 +97,13 @@
         "--QFPPR-Note-VisibleTime": 0.25
     }
     ```
+
+## `--QFPPR-Extra-Enable`
+- 位于 谱面文件的`/`
+- 类型为`bool`, 默认为`false`
+- 只有为`true`时, `--QFPPR-Extra`才生效
+
+## `--QFPPR-Extra`
+- 位于 谱面文件的`/`
+- 类型为`int|float`
+- 类似`rpe`中的`extra.json`
