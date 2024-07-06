@@ -1,12 +1,13 @@
 from threading import Thread
 from ctypes import windll
-from os import chdir,environ,listdir,popen ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
+from os import chdir,environ,listdir,popen,system,mkdir ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
 from os.path import exists,abspath,dirname
 from sys import argv
 from time import time,sleep
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
+from random import randint
 import typing
 import json
 import base64
@@ -43,9 +44,19 @@ selfdir = dirname(argv[0])
 if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
-if not exists(".\\7z.exe") or not exists(".\\7z.dll"):
+if not exists("./7z.exe") or not exists("./7z.dll"):
     print("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
+
+if not (exists("./rpe2phi.py") or exists("./rpe2phi.exe")):
+    print("rpe2phi.py or rpe2phi.exe Not Found.")
+    windll.kernel32.ExitProcess(1)
+rpe2phi_prgm = ".\\rpe2phi.exe" if exists("./rpe2phi.exe") else ".\\rpe2phi.py"
+
+if not (exists("./Main.py") or exists("./Main.exe")):
+    print("Please change this file name to Main.py or Main.exe.")
+    windll.kernel32.ExitProcess(1)
+self_fp = "./Main.exe" if exists("./Main.exe") else "./Main.py"
 
 temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time()}"
 for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_chart_temp_")]:
@@ -104,19 +115,19 @@ chart_files_dict = {
 for item in chart_files:
     try:
         chart_files_dict["images"].append([item,Image.open(item).convert("RGB")])
-        print(f"Add Resource (image): {item.replace(temp_dir + "\\", "")}")
+        print(f"Add Resource (image): {item.replace(f"{temp_dir}\\", "")}")
     except Exception:
         try:
             mixer.music.load(item)
             chart_files_dict["audio"].append(item)
-            print(f"Add Resource (audio): {item.replace(temp_dir + "\\", "")}")
+            print(f"Add Resource (audio): {item.replace(f"{temp_dir}\\", "")}")
         except Exception:
             try:
                 with open(item, "r", encoding="utf-8") as f:
                     chart_files_dict["charts"].append([item, json.load(f)])
-                    print(f"Add Resource (chart): {item.replace(temp_dir + "\\", "")}")
+                    print(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
             except Exception:
-                name = item.replace(temp_dir + "\\", "")
+                name = item.replace(f"{temp_dir}\\", "")
                 if name not in ["info.csv"]:
                     print(f"Warning: Unknown Resource Type. Path = {name}")
                     
@@ -192,7 +203,22 @@ def LoadChartObject():
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart)
     elif CHART_TYPE == Const.CHART_TYPE.REP:
-        print("Please run rpe2phi.py.")
+        temp_rpe_fdir = f"{gettempdir()}/qfppr_cctemp_{time() + randint(0, 2 << 31)}"
+        try: mkdir(temp_rpe_fdir)
+        except Exception: pass
+        temp_rpe_fp = f"{temp_rpe_fdir}/{basename(phigros_chart_filepath)}"
+        temp_7z_fp = f"{temp_rpe_fdir}/{basename(phigros_chart_filepath)}.7z"
+        info_fp = f"{temp_dir}/info.txt" if exists(f"{temp_dir}/info.txt") else f"{temp_dir}/info.csv" if exists(f"{temp_dir}/info.csv") else f"{temp_dir}/info.yml" if exists(f"{temp_dir}/info.yml") else None
+        print("running rpe2phi...")
+        popen(f"{rpe2phi_prgm} {phigros_chart_filepath} {temp_rpe_fp}").read() # if call read function, we will wait still the program finish.
+        popen(
+            f"\
+                .\\7z.exe a -t7z \"{temp_7z_fp}\"\
+                \"{temp_rpe_fp}\" \"{chart_image_filepath}\" \"{audio_file}\"\
+            " + f" \"{info_fp}\"" if info_fp is not None else "" + " -mmt"
+        ).read()
+        print("rpe2phi finished, restart...")
+        system(f"start {self_fp} {temp_7z_fp} " + " ".join(map(lambda x: f"\"{x}\"", argv[2:]))) # restart!
         windll.kernel32.ExitProcess(0)
 LoadChartObject()
 extend_object.chart_loaded(phigros_chart_obj)
@@ -1740,7 +1766,7 @@ def Re_Init():
     phigros_chart_obj.init_holdlength(PHIGROS_Y)
 
 print("Loading Window...")
-# root.iconbitmap(".\\icon.ico")
+# root.iconbitmap("./icon.ico")
 root = web_canvas.WebCanvas(
     width = 1,height = 1,
     x = 0,y = 0,
@@ -1792,4 +1818,13 @@ Chart_Functions_Phi.Init(
 extend_object.loaded()
 Thread(target=Show_Start,daemon=True).start()
 root.loop_to_close()
+
+for item in [item for item in listdir(gettempdir()) if item.startswith("qfppr_cctemp_")]:
+    item = f"{gettempdir()}\\{item}"
+    try:
+        rmtree(item)
+        print(f"Remove Temp Dir: {item}")
+    except Exception as e:
+        print(f"Warning: {e}")
+
 windll.kernel32.ExitProcess(0)

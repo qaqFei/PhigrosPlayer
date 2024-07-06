@@ -38,7 +38,7 @@ for JudgeLine in Chart["judgeLineList"]:
 
 print("Merge...")
 for i,seg in enumerate(ChartAudio_Split_Audio_List):
-    ChartAudio = ChartAudio.overlay(seg, i * ChartAudio_Split_Audio_Block_Length)
+    ChartAudio = ChartAudio.overlay(seg, i * ChartAudio_Split_Audio_Block_Length + Chart["offset"] * 1000)
 
 ChartAudio.export(argv[3])
 
