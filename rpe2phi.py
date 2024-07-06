@@ -437,7 +437,9 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
             "speed": ((get_floor_position(et / T) - get_floor_position(st / T)) / ((et - st) / T)) / T if et != st else note.speed,
             "floorPosition": get_floor_position(st / T),
             "--QFPPR-Note-Width": note.width,
-            "--QFPPR-Note-Alpha": (255 & note.alpha) / 255
+            "--QFPPR-Note-Alpha": (255 & note.alpha) / 255,
+            "--QFPPR-Note-Fake": note.isFake,
+            "--QFPPR-Note-VisibleTime": note.visibleTime
         }
         if note.above == 1:
             phi_judgeLine["notesAbove"].append(item)

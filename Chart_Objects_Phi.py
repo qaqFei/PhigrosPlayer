@@ -15,6 +15,8 @@ class note:
     floorPosition: int|float
     width: int|float
     alpha: int|float
+    fake: bool
+    VisibleTime: int|float
     effect_random_blocks: tuple[int]
     id: int|None = None
     by_judgeLine_id: int|None = None
@@ -43,7 +45,7 @@ class note:
         }[self.type]
         return f"{self.master.id}+{self.by_judgeLine_id}{note_t}"
     
-    def _cal_holdlength(self,PHIGROS_Y):
+    def _init(self,PHIGROS_Y):
         self.hold_length_sec = self.holdTime * self.master.T
         self.hold_length_px = (self.speed * self.hold_length_sec) * PHIGROS_Y
         self.hold_endtime = self.time * self.master.T + self.hold_length_sec
@@ -113,6 +115,10 @@ class judgeLine:
     TextJudgeLine: bool
     TextEvents: list[TextEvent]
 
+    def __post_init__(self):
+        self.T = 1.875 / self.bpm
+        self.TextEvents.sort(key = lambda x: x.startTime, reverse = True)
+
     def __eq__(self,oth):
         try:
             return self.id == oth.id
@@ -124,10 +130,6 @@ class judgeLine:
     
     def __repr__(self):
         return f"JudgeLine-{self.id}"
-
-    def _init(self):
-        self.T = 1.875 / self.bpm
-        self.TextEvents.sort(key = lambda x: x.startTime, reverse = True)
     
     def set_master_to_notes(self):
         for note in self.notesAbove:
@@ -168,11 +170,9 @@ class Phigros_Chart:
     offset: int|float
     judgeLineList: list[judgeLine]
     
-    def init(self):
+    def __post_init__(self):
+        self.note_num = 0
         for judgeLine in self.judgeLineList:
-            #init
-            judgeLine._init()
-            
             #set_master_to_notes
             judgeLine.set_master_to_notes()
             
@@ -186,16 +186,18 @@ class Phigros_Chart:
             for speedEvent in judgeLine.speedEvents:
                 speedEvent.floorPosition = last_speedEvent_floorPosition
                 last_speedEvent_floorPosition += (speedEvent.endTime - speedEvent.startTime) * speedEvent.value * judgeLine.T
-        
-        #cal_note_num
-        self.note_num = sum([len(judgeLine.notesAbove) + len(judgeLine.notesBelow) for judgeLine in self.judgeLineList])
+
+            #count
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+                if not note.fake:
+                    self.note_num += 1
     
     def init_holdlength(self,PHIGROS_Y):
         for judgeLine in self.judgeLineList:
             for note in judgeLine.notesAbove:
-                note._cal_holdlength(PHIGROS_Y)
+                note._init(PHIGROS_Y)
             for note in judgeLine.notesBelow:
-                note._cal_holdlength(PHIGROS_Y)
+                note._init(PHIGROS_Y)
     
     def _specification_events(self,event: typing.Union[
         list[judgeLineMoveEvent],

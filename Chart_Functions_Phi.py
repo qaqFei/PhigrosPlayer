@@ -1,5 +1,4 @@
 from threading import Thread
-import typing
 
 import Chart_Objects_Phi
 import Const
@@ -22,6 +21,9 @@ def Cal_Combo(now_time:float) -> int:
     combo = 0
     for judgeLine in phigros_chart_obj.judgeLineList:
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
+            if note.fake:
+                continue
+            
             if note.time * judgeLine.T <= now_time and note.type != Const.Note.HOLD:
                 combo += 1
             elif note.type == Const.Note.HOLD:
@@ -86,6 +88,8 @@ def Load_Chart_Object(
                         floorPosition = notesAbove_item.get("floorPosition", -1.0),
                         width = notesAbove_item.get("--QFPPR-Note-Width", 1.0),
                         alpha = notesAbove_item.get("--QFPPR-Note-Alpha", 1.0),
+                        fake = notesAbove_item.get("--QFPPR-Note-Fake", False),
+                        VisibleTime = notesAbove_item.get("--QFPPR-Note-VisibleTime", float("inf")),
                         id = Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         effect_random_blocks = Tool_Functions.get_effect_random_blocks()
@@ -102,6 +106,8 @@ def Load_Chart_Object(
                         floorPosition = notesBelow_item.get("floorPosition", -1.0),
                         width = notesBelow_item.get("--QFPPR-Note-Width", 1.0),
                         alpha = notesBelow_item.get("--QFPPR-Note-Alpha", 1.0),
+                        fake = notesBelow_item.get("--QFPPR-Note-Fake", False),
+                        VisibleTime = notesBelow_item.get("--QFPPR-Note-VisibleTime", float("inf")),
                         id = Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         effect_random_blocks = Tool_Functions.get_effect_random_blocks()
@@ -181,6 +187,5 @@ def Load_Chart_Object(
             note.morebets = True
     del notes,note_times
         
-    phigros_chart_obj.init()
     print("Load Chart Object Successfully.")
     return phigros_chart_obj

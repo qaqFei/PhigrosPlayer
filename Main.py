@@ -598,6 +598,7 @@ def GetFrameRenderTask_Phi(
             *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h),
             *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h)
         )
+        negative_alpha = judgeLine_cfg.disappear < 0.0
         judgeLine_color = (254, 255, 169, judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
         if judgeLine_color[-1] > 0.0 and show_judgeline:
@@ -645,11 +646,12 @@ def GetFrameRenderTask_Phi(
                 
                 if this_noteitem_clicked and not note_item.clicked:
                     note_item.clicked = True
-                    Task.ExTask.append((
-                        "thread-call",
-                        "PlaySound.Play",
-                        f'(Resource["Note_Click_Audio"]["{note_item.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
-                    ))
+                    if not note_item.fake:
+                        Task.ExTask.append((
+                            "thread-call",
+                            "PlaySound.Play",
+                            f'(Resource["Note_Click_Audio"]["{note_item.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
+                        ))
                     
                 if not this_note_ishold and this_noteitem_clicked:
                     continue
@@ -718,7 +720,11 @@ def GetFrameRenderTask_Phi(
                         ])
                     )
                 
-                if note_iscan_render:
+                if (
+                    note_iscan_render and 
+                    not negative_alpha and
+                    abs(now_t - this_note_sectime) < note_item.VisibleTime
+                ): # if judgeline`s alpha value < 0.0, we will not render the notes of judgeline.
                     judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
                     dub_text = "_dub" if note_item.morebets else ""
                     if not this_note_ishold:
@@ -813,6 +819,8 @@ def GetFrameRenderTask_Phi(
             if not note_ishold and note.show_effected:
                 continue
             elif note_ishold and note.show_effected_hold:
+                continue
+            elif note.fake:
                 continue
             
             if note_time <= now_t:
