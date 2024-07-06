@@ -12,7 +12,7 @@ NoteClickAudios = {
     Const.Note.FLICK: AudioSegment.from_file("./Resources/Note_Click_Audio/Flick.wav")
 }
 
-with open(argv[1],"r") as f:
+with open(argv[1], "r", encoding="utf-8") as f:
     Chart = load(f)
 ChartAudio:AudioSegment = AudioSegment.from_file(argv[2])
 ChartAudio_Length = ChartAudio.duration_seconds
