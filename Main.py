@@ -618,7 +618,7 @@ def GetFrameRenderTask_Phi(
                         root.create_text,
                         *judgeLine_cfg.pos,
                         text = judgeLine.get_datavar_text(judgeLine_cfg.time),
-                        font = f"{int((w + h) / 75 / 0.75)}px PhigrosFont",
+                        font = f"{(w + h) / 75}px PhigrosFont",
                         textAlign = "center",
                         textBaseline = "middle",
                         strokeStyle = judgeLine_webCanvas_color,
