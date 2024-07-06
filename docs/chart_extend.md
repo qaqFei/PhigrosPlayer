@@ -82,7 +82,7 @@
     }
     ```
 
-## `--QFPPR-Note-VisibleTime`
+## `--QFPPR-Note-VisibleTime` (已实现)
 - 位于 谱面文件的`notesAbove`或`notesBelow`的元素中
 - 类型为`int|float`
 - 距离打击...秒时, 才显示`note`
