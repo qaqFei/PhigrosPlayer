@@ -8,8 +8,6 @@ from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
 from random import randint
-from base64 import b64decode
-import io
 import typing
 import json
 import base64
