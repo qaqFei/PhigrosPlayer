@@ -137,19 +137,51 @@
                 "startTime": -999999.0,
                 "endTime": 0.0,
                 "start": 0.1,
-                "end": 0.1
+                "end": 0.1,
+                "easingType": 1
             },
             {
                 "startTime": 0.0,
                 "endTime": 128.0,
                 "start": 1.0,
-                "end": 0.3
+                "end": 0.3,
+                "easingType": 2
             },
             {
                 "startTime": 128.0,
                 "endTime": 1000000000.0,
                 "start": 1.0,
-                "end": 1.0
+                "end": 1.0,
+                "easingType": 1
+            },
+        ]
+    }
+
+## `--QFPPR-JudgeLine-ColorEvents`
+- 位于 谱面文件的`judgeLineList`的元素中
+- 类型为`list`
+- 示例:
+    ```json
+    {
+        "bpm": 140.0,
+        "notesAbove": [],
+        "notesBelow": [],
+        "speedEvents": [{"startTime": 0.0, "endTime": 1000000000.0, "value": 1.0}],
+        "judgeLineMoveEvents": [{"startTime": -999999.0, "endTime": 1000000000.0, "start": 0.5, "end": 0.5, "start2": 0.2, "end2": 0.2}],
+        "judgeLineRotateEvents": [{"startTime": -999999.0, "endTime": 1000000000.0, "start": 0.0, "end": 0.0}],
+        "judgeLineDisappearEvents": [{"startTime": -999999.0, "endTime": 1000000000.0, "start": 1.0, "end": 1.0}],
+        "--QFPPR-JudgeLine-ColorEvents": [
+            {
+                "startTime": -999999.0,
+                "value": [255, 255, 255],
+            },
+            {
+                "startTime": 0.0,
+                "value": [114, 51, 4]
+            },
+            {
+                "startTime": 128.0,
+                "value": [0, 0, 0]
             },
         ]
     }

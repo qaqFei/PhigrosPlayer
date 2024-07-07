@@ -113,6 +113,16 @@ class ScaleEvent:
     endTime: int|float
     start: int|float
     end: int|float
+    easingType: int
+    easingFunc: typing.Callable|None = None
+    
+    def __post_init__(self):
+        self.easingFunc = rpe_easing.ease_funcs[self.easingType - 1]
+
+@dataclass
+class ColorEvent:
+    startTime: int|float
+    value: list[int]
 
 @dataclass
 class judgeLine:
@@ -130,6 +140,7 @@ class judgeLine:
     Texture: str|None
     ScaleXEvents: list[ScaleEvent]
     ScaleYEvents: list[ScaleEvent]
+    ColorEvents: list[ColorEvent]
 
     def __post_init__(self):
         self.T = 1.875 / self.bpm
@@ -143,9 +154,10 @@ class judgeLine:
         self.judgeLineMoveEvents.sort(key = lambda x: x.startTime)
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
         self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)
-        self.TextEvents.sort(key = lambda x: x.startTime)
+        self.TextEvents.sort(key = lambda x: x.startTime, reverse = True)
         self.ScaleXEvents.sort(key = lambda x: x.startTime)
         self.ScaleYEvents.sort(key = lambda x: x.startTime)
+        self.ColorEvents.sort(key = lambda x: x.startTime, reverse = True)
 
     def __eq__(self,oth):
         try:
@@ -184,7 +196,7 @@ class judgeLine:
                     Tool_Functions.interpolation_phi(now_time,move_event.startTime,move_event.endTime,move_event.start,move_event.end) * w,
                     h - Tool_Functions.interpolation_phi(now_time,move_event.startTime,move_event.endTime,move_event.start2,move_event.end2) * h
                 )
-        return (w * 0.5,h * 0.5) #never
+        return (w * 0.5, h * 0.5) #never
 
     def get_datavar_text(self,now_time):
         for e in self.TextEvents: # sort by startTime and reverse
@@ -197,15 +209,25 @@ class judgeLine:
         
         for ce_x in self.ScaleXEvents:
             if ce_x.startTime <= now_time <= ce_x.endTime:
-                xs = Tool_Functions.interpolation_phi(now_time, ce_x.startTime, ce_x.endTime, ce_x.start, ce_x.end)
+                xs = Tool_Functions.easing_interpolation(now_time, ce_x.startTime, ce_x.endTime, ce_x.start, ce_x.end, ce_x.easingFunc)
                 break
         
         for ce_y in self.ScaleYEvents:
             if ce_y.startTime <= now_time <= ce_y.endTime:
-                ys = Tool_Functions.interpolation_phi(now_time, ce_y.startTime, ce_y.endTime, ce_y.start, ce_y.end)
+                ys = Tool_Functions.easing_interpolation(now_time, ce_y.startTime, ce_y.endTime, ce_y.start, ce_y.end, ce_x.easingFunc)
                 break
         
         return xs, ys
+    
+    def get_datavar_color(self, now_time):
+        if not self.ColorEvents:
+            return [254, 255, 169]
+        
+        for e in self.ColorEvents: # sort by startTime and reverse
+            if e.startTime <= now_time:
+                return e.value
+        
+        return [254, 255, 169]
 
 @dataclass
 class Phigros_Chart:

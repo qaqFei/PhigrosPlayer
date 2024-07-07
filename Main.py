@@ -630,7 +630,7 @@ def GetFrameRenderTask_Phi(
             *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h)
         )
         negative_alpha = judgeLine_cfg.disappear < 0.0
-        judgeLine_color = (254, 255, 169, judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
+        judgeLine_color = (*judgeLine.get_datavar_color(judgeLine_cfg.time), judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
         if judgeLine_color[-1] > 0.0 and show_judgeline:
             if judgeLine_can_render(judgeLine_DrawPos) or render_range_more:
@@ -701,9 +701,9 @@ def GetFrameRenderTask_Phi(
                             f'(Resource["Note_Click_Audio"]["{note_item.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
                         ))
                     
-                if not this_note_ishold and this_noteitem_clicked and not note_item.fake:
+                if not this_note_ishold and this_noteitem_clicked:
                     continue
-                elif this_note_ishold and now_t > note_item.hold_endtime and not note_item.fake:
+                elif this_note_ishold and now_t > note_item.hold_endtime:
                     continue
                 
                 note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (

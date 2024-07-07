@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from functools import cache
 from base64 import b64encode
 from os.path import dirname
+from numba import jit
 import json
 import typing
 
@@ -61,10 +62,10 @@ extra_fp = argv[argv.index("-extra") + 1] if "-extra" in argv else None
 phi_data = {
     "formatVersion": 3,
     "offset": rpe_obj.META.offset / 1000,
-    "judgeLineList" :[]
+    "judgeLineList": []
 }
 
-split_event_length = 30
+split_event_length = 25
 T = 1.875 / rpe_obj.BPMList[0].bpm
 
 for index,bpm in enumerate(rpe_obj.BPMList):
@@ -86,6 +87,7 @@ def getReal(b:Chart_Objects_Rep.Beat):
     return realtime
 
 @cache
+@jit
 def linear_interpolation(
     t:float,
     st:float,
@@ -131,7 +133,6 @@ def get_floor_position(t):
             v += (e["endTime"] - e["startTime"]) * T * e["value"]
     return v
 
-@cache
 def conv_note(n):
     return {1:1, 2:3, 3:4, 4:2}[n]
 
@@ -152,6 +153,7 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
         "--QFPPR-JudgeLine-Texture": rpe_judgeLine.Texture,
         "--QFPPR-JudgeLine-ScaleXEvents": [],
         "--QFPPR-JudgeLine-ScaleYEvents": [],
+        "--QFPPR-JudgeLine-ColorEvents": []
     }
     
     x_moves:typing.List[Move] = []
@@ -323,27 +325,13 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                 sv = e.start
                 ev = e.end
                 ef = ease_funcs[e.easingType - 1]
-                if ef is linear:
-                    phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].append({
-                        "startTime": st / T,
-                        "endTime": et / T,
-                        "start": sv,
-                        "end": ev
-                    })
-                else:
-                    for i in range(split_event_length):
-                        ist = st + i * (et - st) / split_event_length
-                        iet = st + (i + 1) * (et - st) / split_event_length
-                        isvp = ef(i / split_event_length)
-                        ievp = ef((i + 1) / split_event_length)
-                        isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
-                        iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
-                        phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].append({
-                            "startTime": ist / T,
-                            "endTime": iet / T,
-                            "start": isv,
-                            "end": iev
-                        })
+                phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].append({
+                    "startTime": st / T,
+                    "endTime": et / T,
+                    "start": sv,
+                    "end": ev,
+                    "easingType": e.easingType
+                })
         
         if rpe_judgeLine.extended.scaleYEvents is not None and len(rpe_judgeLine.extended.scaleYEvents) > 0:
             for e in rpe_judgeLine.extended.scaleYEvents:
@@ -352,27 +340,27 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                 sv = e.start
                 ev = e.end
                 ef = ease_funcs[e.easingType - 1]
-                if ef is linear:
-                    phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].append({
-                        "startTime": st / T,
-                        "endTime": et / T,
-                        "start": sv,
-                        "end": ev
+                phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].append({
+                    "startTime": st / T,
+                    "endTime": et / T,
+                    "start": sv,
+                    "end": ev,
+                    "easingType": e.easingType
+                })
+        
+        if rpe_judgeLine.extended.colorEvents is not None and len(rpe_judgeLine.extended.colorEvents) > 0:
+            for e in rpe_judgeLine.extended.colorEvents:
+                st = getReal(e.startTime)
+                et = getReal(e.endTime)
+                phi_judgeLine["--QFPPR-JudgeLine-ColorEvents"].append({
+                    "startTime": ist / T,
+                    "value": e.start,
+                })
+                if e.start != e.end:
+                    phi_judgeLine["--QFPPR-JudgeLine-ColorEvents"].append({
+                        "startTime": iet / T,
+                        "value": e.end,
                     })
-                else:
-                    for i in range(split_event_length):
-                        ist = st + i * (et - st) / split_event_length
-                        iet = st + (i + 1) * (et - st) / split_event_length
-                        isvp = ef(i / split_event_length)
-                        ievp = ef((i + 1) / split_event_length)
-                        isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
-                        iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
-                        phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].append({
-                            "startTime": ist / T,
-                            "endTime": iet / T,
-                            "start": isv,
-                            "end": iev
-                        })
     
     if len(phi_judgeLine["speedEvents"]) > 0:
         phi_judgeLine["speedEvents"].sort(key = lambda x: x["startTime"])
@@ -637,8 +625,10 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
     if not phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"]:
         del phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"]
     
-    phi_data["judgeLineList"].append(phi_judgeLine)
+    if not phi_judgeLine["--QFPPR-JudgeLine-ColorEvents"]:
+        del phi_judgeLine["--QFPPR-JudgeLine-ColorEvents"]
     
+    phi_data["judgeLineList"].append(phi_judgeLine)
 
 if extra_fp is not None:
     with open(extra_fp, "r", encoding="utf-8") as f:

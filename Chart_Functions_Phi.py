@@ -177,7 +177,8 @@ def Load_Chart_Object(
                         startTime = scaleXEvent_item.get("startTime", -1.0),
                         endTime = scaleXEvent_item.get("endTime", -1.0),
                         start = scaleXEvent_item.get("start", 0.0),
-                        end = scaleXEvent_item.get("end", 0.0)
+                        end = scaleXEvent_item.get("end", 0.0),
+                        easingType = scaleXEvent_item.get("easingType", 1)
                     )
                     for scaleXEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-ScaleXEvents", [])
                 ],
@@ -186,9 +187,17 @@ def Load_Chart_Object(
                         startTime = scaleYEvent_item.get("startTime", -1.0),
                         endTime = scaleYEvent_item.get("endTime", -1.0),
                         start = scaleYEvent_item.get("start", 0.0),
-                        end = scaleYEvent_item.get("end", 0.0)
+                        end = scaleYEvent_item.get("end", 0.0),
+                        easingType = scaleYEvent_item.get("easingType", 1)
                     )
                     for scaleYEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-ScaleYEvents", [])
+                ],
+                ColorEvents = [
+                    Chart_Objects_Phi.ColorEvent(
+                        startTime = colorEvent_item.get("startTime", -1.0),
+                        value = colorEvent_item.get("value", [254, 255, 169])
+                    )
+                    for colorEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-ColorEvents", [])
                 ]
             )
             for index,judgeLine_item in enumerate(phigros_chart.get("judgeLineList", []))
