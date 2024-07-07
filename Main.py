@@ -18,6 +18,7 @@ from pygame import mixer
 import cv2
 import numpy
 
+import PlaySound # using at eval.
 import Chart_Objects_Phi
 import Chart_Functions_Phi
 import Const
@@ -67,7 +68,7 @@ print(f"Temp Dir: {temp_dir}")
 Image._open = Image.open
 Image.open = Image_open.open
 
-enableclicksound = "-noclicksound" not in argv
+enable_clicksound = "-noclicksound" not in argv
 debug = "-debug" in argv
 show_holdbody = "-holdbody" in argv
 show_judgeline = "-nojudgeline" not in argv
@@ -237,7 +238,7 @@ def Load_Resource():
     Note_width = (Note_width_raw) * (eval(argv[argv.index("-scale-note") + 1]) if "-scale-note" in argv else 1.0)
     ClickEffect_Size = Note_width * 1.375
     Resource = {
-        "Notes": {
+        "Notes":{
             "Tap": Image.open("./Resources/Notes/Tap.png"),
             "Tap_dub": Image.open("./Resources/Notes/Tap_dub.png"),
             "Drag": Image.open("./Resources/Notes/Drag.png"),
@@ -251,13 +252,13 @@ def Load_Resource():
             "Hold_Body": Image.open("./Resources/Notes/Hold_Body.png"),
             "Hold_Body_dub": Image.open("./Resources/Notes/Hold_Body_dub.png")
         },
-        "Note_Click_Effect": {
+        "Note_Click_Effect":{
             "Perfect":[
                 Image.open(f"./Resources/Note_Click_Effect/Perfect/{i + 1}.png")
                 for i in range(30)
             ]
         },
-        "Levels": {
+        "Levels":{
             "AP": Image.open("./Resources/Levels/AP.png"),
             "FC": Image.open("./Resources/Levels/FC.png"),
             "V": Image.open("./Resources/Levels/V.png"),
@@ -267,11 +268,11 @@ def Load_Resource():
             "C": Image.open("./Resources/Levels/C.png"),
             "F": Image.open("./Resources/Levels/F.png")
         },
-        "ClickSound": {
-            Const.Note.TAP: mixer.Sound("./Resources/Note_Click_Audio/Tap.wav"),
-            Const.Note.DRAG: mixer.Sound("./Resources/Note_Click_Audio/Drag.wav"),
-            Const.Note.HOLD: mixer.Sound("./Resources/Note_Click_Audio/Hold.wav"),
-            Const.Note.FLICK: mixer.Sound("./Resources/Note_Click_Audio/Flick.wav")
+        "Note_Click_Audio":{
+            "Tap": open("./Resources/Note_Click_Audio/Tap.wav", "rb").read(),
+            "Drag": open("./Resources/Note_Click_Audio/Drag.wav", "rb").read(),
+            "Hold": open("./Resources/Note_Click_Audio/Hold.wav", "rb").read(),
+            "Flick": open("./Resources/Note_Click_Audio/Flick.wav", "rb").read()
         },
         "Start": Image.open("./Resources/Start.png"),
         "Button_Left": Image.open("./Resources/Button_Left.png"),
@@ -714,11 +715,11 @@ def GetFrameRenderTask_Phi(
                 
                 if this_noteitem_clicked and not note_item.clicked:
                     note_item.clicked = True
-                    if enableclicksound and not note_item.fake:
+                    if enable_clicksound and not note_item.fake:
                         Task.ExTask.append((
                             "thread-call",
-                            f"Resource[\"ClickSound\"][{note_item.type}].play",
-                            '()' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
+                            "PlaySound.Play",
+                            f'(Resource["Note_Click_Audio"]["{note_item.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
                         ))
                     
                 if not this_note_ishold and this_noteitem_clicked:
@@ -1794,6 +1795,15 @@ def PlayerStart_Phi():
     else:
         root.destroy()
 
+def Re_Init():
+    (
+        Chart_Functions_Phi.w,
+        Chart_Functions_Phi.h,
+        Chart_Functions_Phi.PHIGROS_X,
+        Chart_Functions_Phi.PHIGROS_Y
+    ) = w,h,PHIGROS_X,PHIGROS_Y
+    phigros_chart_obj.init_holdlength(PHIGROS_Y)
+
 print("Loading Window...")
 # root.iconbitmap("./icon.ico")
 root = web_canvas.WebCanvas(
@@ -1822,6 +1832,7 @@ else:
     del w_legacy,h_legacy
     root.resize(w + dw_legacy,h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
+root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
 
 if render_range_more:
     root.run_js_code("render_range_more = true;")
@@ -1836,6 +1847,10 @@ background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - 
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
+# window_hwnd = root.winfo_hwnd()
+# print(f"Window Hwnd: {window_hwnd}")
+# window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
+# SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
 Chart_Functions_Phi.Init(
@@ -1851,7 +1866,7 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("qfppr_cc
     item = f"{gettempdir()}\\{item}"
     try:
         rmtree(item)
-        print(f"Remove Rpe2phi Temp Dir: {item}")
+        print(f"Remove Temp Dir: {item}")
     except Exception as e:
         print(f"Warning: {e}")
 
