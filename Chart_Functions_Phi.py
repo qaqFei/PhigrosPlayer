@@ -198,17 +198,18 @@ def Load_Chart_Object(
     )
     
     print("Finding Chart More Bets...")
-    notes = [item for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow]
-    note_times = {}
-    for note in notes:
-        if note.time not in note_times:
-            note_times[note.time] = (False, note)
-        else:
-            if not note_times[note.time][0]:
-                if not note.fake: note_times[note.time][-1].morebets = True
-                note_times[note.time] = (True, note)
-            if not note.fake: note.morebets = True
-    del notes,note_times
+    def prcmorebets(notes):
+        note_times = {}
+        for note in notes:
+            if note.time not in note_times:
+                note_times[note.time] = (False, note)
+            else:
+                if not note_times[note.time][0]:
+                    note_times[note.time][-1].morebets = True
+                    note_times[note.time] = (True, note)
+                note.morebets = True
+    prcmorebets(list(filter(lambda x: x.fake,[item for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
+    prcmorebets(list(filter(lambda x: not x.fake,[item for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
         
     print("Load Chart Object Successfully.")
     return phigros_chart_obj

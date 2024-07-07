@@ -367,6 +367,7 @@ def Load_Resource():
     return Resource
 
 def Format_Time(t:typing.Union[int,float]) -> str:
+    if t < 0.0: t = 0.0
     m,s = t // 60,t % 60
     m,s = int(m), int(s)
     return f"{m}:{s:>2}".replace(" ", "0")

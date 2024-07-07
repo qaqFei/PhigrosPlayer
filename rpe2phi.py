@@ -396,7 +396,7 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
             "start": (v := max(phi_judgeLine["judgeLineDisappearEvents"], key = lambda x: x["endTime"])["end"]),
             "end": v
         })
-        phi_judgeLine["judgeLineDisappearEvents"].sort(key = lambda x: x["endTime"])
+        phi_judgeLine["judgeLineDisappearEvents"].sort(key = lambda x: x["startTime"])
         
         oth_es = []
         for index, e in enumerate(phi_judgeLine["judgeLineDisappearEvents"]):
@@ -424,7 +424,7 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
             "start": (v := max(phi_judgeLine["judgeLineRotateEvents"], key = lambda x: x["endTime"])["end"]),
             "end": v
         })
-        phi_judgeLine["judgeLineRotateEvents"].sort(key = lambda x: x["endTime"])
+        phi_judgeLine["judgeLineRotateEvents"].sort(key = lambda x: x["startTime"])
         
         oth_es = []
         for index, e in enumerate(phi_judgeLine["judgeLineRotateEvents"]):
@@ -452,7 +452,7 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
             "start": (v := max(phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"], key = lambda x: x["endTime"])["end"]),
             "end": v
         })
-        phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].sort(key = lambda x: x["endTime"])
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].sort(key = lambda x: x["startTime"])
         
         oth_es = []
         for index, e in enumerate(phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"]):
@@ -480,7 +480,7 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
             "start": (v := max(phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"], key = lambda x: x["endTime"])["end"]),
             "end": v
         })
-        phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].sort(key = lambda x: x["endTime"])
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].sort(key = lambda x: x["startTime"])
         
         oth_es = []
         for index, e in enumerate(phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"]):

@@ -133,12 +133,19 @@ class judgeLine:
 
     def __post_init__(self):
         self.T = 1.875 / self.bpm
-        self.TextEvents.sort(key = lambda x: x.startTime, reverse = True)
         if self.EnableTexture:
             try:
                 self.TexturePillowObject = Image.open(io.BytesIO(bytes(b64decode(self.Texture))))
             except Exception:
                 self.EnableTexture = False
+        
+        self.speedEvents.sort(key = lambda x: x.startTime)
+        self.judgeLineMoveEvents.sort(key = lambda x: x.startTime)
+        self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
+        self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)
+        self.TextEvents.sort(key = lambda x: x.startTime)
+        self.ScaleXEvents.sort(key = lambda x: x.startTime)
+        self.ScaleYEvents.sort(key = lambda x: x.startTime)
 
     def __eq__(self,oth):
         try:
@@ -214,11 +221,6 @@ class Phigros_Chart:
             #set_master_to_notes
             judgeLine.set_master_to_notes()
             
-            #specification_events
-            self._specification_events(judgeLine.judgeLineMoveEvents)
-            self._specification_events(judgeLine.judgeLineDisappearEvents)
-            self._specification_events(judgeLine.judgeLineRotateEvents)
-            
             #init_speed_floorposition
             last_speedEvent_floorPosition = 0.0
             for speedEvent in judgeLine.speedEvents:
@@ -236,48 +238,6 @@ class Phigros_Chart:
                 note._init(PHIGROS_Y)
             for note in judgeLine.notesBelow:
                 note._init(PHIGROS_Y)
-    
-    def _specification_events(self,event: typing.Union[
-        list[judgeLineMoveEvent],
-        list[judgeLineDisappearEvent],
-        list[judgeLineRotateEvent]
-    ]):
-        if not event: #empty
-            return
-        
-        event.sort(key=lambda x:x.startTime)
-        
-        for e in event:
-            if e.startTime > e.endTime:
-                e.endTime = e.startTime
-                e.start = e.end
-                if hasattr(e,"start2"):
-                    e.start2 = e.end2
-
-        while True:
-            for index,e in enumerate(event):
-                start = e.startTime
-                if index != len(event) - 1:
-                    end = event[index + 1].startTime
-                else:
-                    end = 9999999.0
-                e.startTime,e.endTime = start,end
-            if self._is_specification_events(event):
-                break
-        
-        event[0].startTime = -9999999.0
-        event[-1].endTime = 9999999.0
-    
-    def _is_specification_events(self,event:typing.Union[
-        list[judgeLineMoveEvent],
-        list[judgeLineDisappearEvent],
-        list[judgeLineRotateEvent]
-    ]) -> bool:
-        for index,e in enumerate(event):
-            if index != len(event) - 1:
-                if e.endTime != event[index + 1].startTime:
-                    return False
-        return True
     
     def get_all_note(self) -> list[note]:
        return [j for i in self.judgeLineList for j in i.notesAbove + i.notesBelow]
