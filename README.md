@@ -10,7 +10,7 @@
 
 ## 命令行参数 (大部分 仅对phigros官谱生效)
 - `-hideconsole` 隐藏控制台
-- `-debug` 显示WebView调试工具
+- `-debug` 显示WebView调试工具, 并显示判定线定位点
 - `-combotips <string-value>` 设置连击下的提示 默认为`Autoplay`
 - `-fullscreen` 全屏
 - `-hidemouse` 隐藏鼠标

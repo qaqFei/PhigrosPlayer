@@ -676,6 +676,29 @@ def GetFrameRenderTask_Phi(
                         strokeStyle = judgeLine_webCanvas_color,
                         wait_execute = True
                     )
+                
+                if debug:
+                    Task(
+                        root.create_text,
+                        *Tool_Functions.rotate_point(*judgeLine_cfg.pos, 90 - judgeLine_cfg.rotate - 180, (w + h) / 75),
+                        text = f"{judgeLine.id}",
+                        font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
+                        textAlign = "center",
+                        textBaseline = "middle",
+                        strokeStyle = "rgba(254, 255, 169, 0.5)",
+                        fillStyle = "rgba(254, 255, 169, 0.5)",
+                        wait_execute = True
+                    )
+                    
+                    Task(
+                        root.create_rectangle,
+                        judgeLine_cfg.pos[0] - (w + h) / 250,
+                        judgeLine_cfg.pos[1] - (w + h) / 250,
+                        judgeLine_cfg.pos[0] + (w + h) / 250,
+                        judgeLine_cfg.pos[1] + (w + h) / 250,
+                        fillStyle = "rgb(238, 130, 238)",
+                        wait_execute = True
+                    )
                     
                 Render_JudgeLine_Count += 1
                 if render_range_more:
