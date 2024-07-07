@@ -8,6 +8,8 @@ from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
 from random import randint
+from base64 import b64decode
+import io
 import typing
 import json
 import base64
@@ -331,7 +333,7 @@ def Load_Resource():
     root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
     while not root.run_js_code("font_loaded;"):
         sleep(0.1)
-        
+    
     root.shutdown_fileserver()
     print("Loading Resource Successfully.")
     note_max_width = max(
@@ -639,6 +641,7 @@ def GetFrameRenderTask_Phi(
                         f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
                         add_code_array = True
                     )
+                    
                 if judgeLine.TextJudgeLine:
                     Task(
                         root.create_text,
@@ -651,6 +654,21 @@ def GetFrameRenderTask_Phi(
                         fillStyle = judgeLine_webCanvas_color,
                         wait_execute = True
                     )
+                elif judgeLine.EnableTexture:
+                    xscale, yscale = judgeLine.get_datavar_scale(judgeLine_cfg.time)
+                    Task(
+                        root.run_js_code,
+                        f"ctx.drawRotateImage(\
+                            {root.get_img_jsvarname(f"JudgeLine_Texture_{judgeLine.id}")},\
+                            {judgeLine_cfg.pos[0]},\
+                            {judgeLine_cfg.pos[1]},\
+                            {judgeLine.TexturePillowObject.width * 0.75 * xscale},\
+                            {judgeLine.TexturePillowObject.height * 0.75 * yscale},\
+                            {- judgeLine_cfg.rotate},\
+                            {judgeLine_cfg.disappear}\
+                        );",
+                        add_code_array = True
+                    )
                 else:
                     Task(
                         root.create_line,
@@ -659,6 +677,7 @@ def GetFrameRenderTask_Phi(
                         strokeStyle = judgeLine_webCanvas_color,
                         wait_execute = True
                     )
+                    
                 Render_JudgeLine_Count += 1
                 if render_range_more:
                     Task(
@@ -1798,6 +1817,10 @@ root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGRO
 if render_range_more:
     root.run_js_code("render_range_more = true;")
     root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
+
+for line in phigros_chart_obj.judgeLineList:
+    if line.EnableTexture:
+        root.reg_img(line.TexturePillowObject, f"JudgeLine_Texture_{line.id}")
 
 background_image_blur = chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
 background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])

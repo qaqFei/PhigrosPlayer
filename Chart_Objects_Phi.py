@@ -1,6 +1,10 @@
 from __future__ import annotations
+from base64 import b64decode
 from dataclasses import dataclass
+import io
 import typing
+
+from PIL import Image
 
 import Const
 import Tool_Functions
@@ -104,6 +108,13 @@ class TextEvent:
     value: str
 
 @dataclass
+class ScaleEvent:
+    startTime: int|float
+    endTime: int|float
+    start: int|float
+    end: int|float
+
+@dataclass
 class judgeLine:
     id: int
     bpm: int|float
@@ -115,10 +126,19 @@ class judgeLine:
     judgeLineDisappearEvents: list[judgeLineDisappearEvent]
     TextJudgeLine: bool
     TextEvents: list[TextEvent]
+    EnableTexture: bool
+    Texture: str|None
+    ScaleXEvents: list[ScaleEvent]
+    ScaleYEvents: list[ScaleEvent]
 
     def __post_init__(self):
         self.T = 1.875 / self.bpm
         self.TextEvents.sort(key = lambda x: x.startTime, reverse = True)
+        if self.EnableTexture:
+            try:
+                self.TexturePillowObject = Image.open(io.BytesIO(bytes(b64decode(self.Texture))))
+            except Exception:
+                self.EnableTexture = False
 
     def __eq__(self,oth):
         try:
@@ -164,6 +184,21 @@ class judgeLine:
             if e.startTime <= now_time:
                 return e.value
         return ""
+
+    def get_datavar_scale(self,now_time):
+        xs, ys = 1.0, 1.0
+        
+        for ce_x in self.ScaleXEvents:
+            if ce_x.startTime <= now_time <= ce_x.endTime:
+                xs = Tool_Functions.interpolation_phi(now_time, ce_x.startTime, ce_x.endTime, ce_x.start, ce_x.end)
+                break
+        
+        for ce_y in self.ScaleYEvents:
+            if ce_y.startTime <= now_time <= ce_y.endTime:
+                ys = Tool_Functions.interpolation_phi(now_time, ce_y.startTime, ce_y.endTime, ce_y.start, ce_y.end)
+                break
+        
+        return xs, ys
 
 @dataclass
 class Phigros_Chart:

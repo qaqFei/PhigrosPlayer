@@ -1,4 +1,5 @@
 from threading import Thread
+from random import randint
 
 import Chart_Objects_Phi
 import Const
@@ -168,6 +169,26 @@ def Load_Chart_Object(
                         value = TextEvent_item.get("value", ""),
                     )
                     for TextEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-TextEvents", [])
+                ],
+                EnableTexture = judgeLine_item.get("--QFPPR-JudgeLine-EnableTexture", False),
+                Texture = judgeLine_item.get("--QFPPR-JudgeLine-Texture", None),
+                ScaleXEvents = [
+                    Chart_Objects_Phi.ScaleEvent(
+                        startTime = scaleXEvent_item.get("startTime", -1.0),
+                        endTime = scaleXEvent_item.get("endTime", -1.0),
+                        start = scaleXEvent_item.get("start", 0.0),
+                        end = scaleXEvent_item.get("end", 0.0)
+                    )
+                    for scaleXEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-ScaleXEvents", [])
+                ],
+                ScaleYEvents = [
+                    Chart_Objects_Phi.ScaleEvent(
+                        startTime = scaleYEvent_item.get("startTime", -1.0),
+                        endTime = scaleYEvent_item.get("endTime", -1.0),
+                        start = scaleYEvent_item.get("start", 0.0),
+                        end = scaleYEvent_item.get("end", 0.0)
+                    )
+                    for scaleYEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-ScaleYEvents", [])
                 ]
             )
             for index,judgeLine_item in enumerate(phigros_chart.get("judgeLineList", []))
@@ -184,9 +205,9 @@ def Load_Chart_Object(
             note_times[note.time] = (False, note)
         else:
             if not note_times[note.time][0]:
-                note_times[note.time][-1].morebets = True
+                if not note.fake: note_times[note.time][-1].morebets = True
                 note_times[note.time] = (True, note)
-            note.morebets = True
+            if not note.fake: note.morebets = True
     del notes,note_times
         
     print("Load Chart Object Successfully.")

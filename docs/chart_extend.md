@@ -107,3 +107,49 @@
 - 位于 谱面文件的`/`
 - 类型为`int|float`
 - 类似`rpe`中的`extra.json`
+
+## `--QFPPR-JudgeLine-EnableTexture` (已实现)
+- 位于 谱面文件的`judgeLineList`的元素中
+- 类型为`bool`, 默认为`false`
+- 只有为`true`时, `--QFPPR-JudgeLine-Texture`才生效
+
+## `--QFPPR-JudgeLine-Texture` (已实现)
+- 位于 谱面文件的`judgeLineList`的元素中
+- 类型为`str`, 为图片的`base64`编码
+
+## `--QFPPR-JudgeLine-ScaleXEvents` & `--QFPPR-JudgeLine-ScaleYEvents`
+- 位于 谱面文件的`judgeLineList`的元素中
+- 类型为`list`
+- 示例:
+    ```json
+    {
+        "bpm": 140.0,
+        "notesAbove": [],
+        "notesBelow": [],
+        "speedEvents": [{"startTime": 0.0, "endTime": 1000000.0, "value": 1.0}],
+        "judgeLineMoveEvents": [{"startTime": -999999.0, "endTime": 1000000.0, "start": 0.5, "end": 0.5, "start2": 0.2, "end2": 0.2}],
+        "judgeLineRotateEvents": [{"startTime": -999999.0, "endTime": 1000000.0, "start": 0.0, "end": 0.0}],
+        "judgeLineDisappearEvents": [{"startTime": -999999.0, "endTime": 1000000.0, "start": 1.0, "end": 1.0}],
+        "--QFPPR-JudgeLine-EnableTexture": true,
+        "--QFPPR-JudgeLine-Texture": "Texture Base64 Data",
+        "--QFPPR-JudgeLine-ScaleXEvents": [
+            {
+                "startTime": -999999.0,
+                "endTime": 0.0,
+                "start": 0.1,
+                "end": 0.1
+            },
+            {
+                "startTime": 0.0,
+                "endTime": 128.0,
+                "start": 1.0,
+                "end": 0.3
+            },
+            {
+                "startTime": 128.0,
+                "endTime": 1000000.0,
+                "start": 1.0,
+                "end": 1.0
+            },
+        ]
+    }

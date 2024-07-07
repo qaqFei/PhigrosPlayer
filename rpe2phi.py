@@ -2,6 +2,8 @@
 from sys import argv
 from dataclasses import dataclass
 from functools import cache
+from base64 import b64encode
+from os.path import dirname
 import json
 import typing
 
@@ -145,7 +147,11 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
         "judgeLineRotateEvents": [],
         "judgeLineDisappearEvents": [],
         "--QFPPR-JudgeLine-TextJudgeLine": False,
-        "--QFPPR-JudgeLine-TextEvents": []
+        "--QFPPR-JudgeLine-TextEvents": [],
+        "--QFPPR-JudgeLine-EnableTexture": rpe_judgeLine.Texture != "line.png",
+        "--QFPPR-JudgeLine-Texture": rpe_judgeLine.Texture,
+        "--QFPPR-JudgeLine-ScaleXEvents": [],
+        "--QFPPR-JudgeLine-ScaleYEvents": [],
     }
     
     x_moves:typing.List[Move] = []
@@ -270,15 +276,32 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
             for e in eventLayer.speedEvents:
                 st = getReal(e.startTime)
                 et = getReal(e.endTime)
-                v = (e.start + e.end) / 2 # normal, e.start == e.end is True
-                phi_judgeLine["speedEvents"].append(
-                    {
-                        "startTime": st / T,
-                        "endTime": et / T,
-                        "value": (v * 120) / 900 / 0.6
-                    }
-                )
-    
+                if e.start == e.end:
+                    phi_judgeLine["speedEvents"].append(
+                        {
+                            "startTime": st / T,
+                            "value": (e.start * 120) / 900 / 0.6
+                        }
+                    )
+                else:
+                    for i in range(split_event_length):
+                        ist = st + i * (et - st) / split_event_length
+                        iet = st + (i + 1) * (et - st) / split_event_length
+                        isp = i / split_event_length
+                        isv = linear_interpolation(isp, 0.0, 1.0, e.start, e.end)
+                        phi_judgeLine["speedEvents"].append(
+                            {
+                                "startTime": ist / T,
+                                "value": (isv * 120) / 900 / 0.6
+                            }
+                        )
+                    phi_judgeLine["speedEvents"].append(
+                        {
+                            "startTime": (st + ((split_event_length - 1) + 1) * (et - st) / split_event_length) / T,
+                            "value": (e.end * 120) / 900 / 0.6
+                        }
+                    )
+                        
     if rpe_judgeLine.extended is not None:
         if rpe_judgeLine.extended.textEvents is not None and len(rpe_judgeLine.extended.textEvents) > 0:
             phi_judgeLine["--QFPPR-JudgeLine-TextJudgeLine"] = True
@@ -292,16 +315,73 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                         "startTime": getReal(e.endTime) / T,
                         "value": e.end
                     })
+        
+        if rpe_judgeLine.extended.scaleXEvents is not None and len(rpe_judgeLine.extended.scaleXEvents) > 0:
+            for e in rpe_judgeLine.extended.scaleXEvents:
+                st = getReal(e.startTime)
+                et = getReal(e.endTime)
+                sv = e.start
+                ev = e.end
+                ef = ease_funcs[e.easingType - 1]
+                if ef is linear:
+                    phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].append({
+                        "startTime": st / T,
+                        "endTime": et / T,
+                        "start": sv,
+                        "end": ev
+                    })
+                else:
+                    for i in range(split_event_length):
+                        ist = st + i * (et - st) / split_event_length
+                        iet = st + (i + 1) * (et - st) / split_event_length
+                        isvp = ef(i / split_event_length)
+                        ievp = ef((i + 1) / split_event_length)
+                        isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                        iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                        phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].append({
+                            "startTime": ist / T,
+                            "endTime": iet / T,
+                            "start": isv,
+                            "end": iev
+                        })
+        
+        if rpe_judgeLine.extended.scaleYEvents is not None and len(rpe_judgeLine.extended.scaleYEvents) > 0:
+            for e in rpe_judgeLine.extended.scaleYEvents:
+                st = getReal(e.startTime)
+                et = getReal(e.endTime)
+                sv = e.start
+                ev = e.end
+                ef = ease_funcs[e.easingType - 1]
+                if ef is linear:
+                    phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].append({
+                        "startTime": st / T,
+                        "endTime": et / T,
+                        "start": sv,
+                        "end": ev
+                    })
+                else:
+                    for i in range(split_event_length):
+                        ist = st + i * (et - st) / split_event_length
+                        iet = st + (i + 1) * (et - st) / split_event_length
+                        isvp = ef(i / split_event_length)
+                        ievp = ef((i + 1) / split_event_length)
+                        isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                        iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                        phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].append({
+                            "startTime": ist / T,
+                            "endTime": iet / T,
+                            "start": isv,
+                            "end": iev
+                        })
     
     if len(phi_judgeLine["speedEvents"]) > 0:
-        phi_judgeLine["speedEvents"].sort(key = lambda x: x["endTime"])
-        phi_judgeLine["speedEvents"][-1]["endTime"] = 1000000000
-        
+        phi_judgeLine["speedEvents"].sort(key = lambda x: x["startTime"])
         for index, e in enumerate(phi_judgeLine["speedEvents"]):
             if index != len(phi_judgeLine["speedEvents"]) - 1:
                 ne = phi_judgeLine["speedEvents"][index + 1]
-                if e["endTime"] < ne["startTime"]:
-                    e["endTime"] = ne["startTime"]
+                e["endTime"] = ne["startTime"]
+            else:
+                e["endTime"] = 1000000000
         
     if len(phi_judgeLine["judgeLineDisappearEvents"]) > 0:
         phi_judgeLine["judgeLineDisappearEvents"].append({
@@ -358,6 +438,62 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                         "end": e["end"]
                     })
         phi_judgeLine["judgeLineRotateEvents"] += oth_es
+    
+    if len(phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"]) > 0:
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].append({
+            "startTime": -999999,
+            "endTime": min(phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"], key = lambda x: x["startTime"])["startTime"],
+            "start": (v := min(phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"], key = lambda x: x["startTime"])["start"]),
+            "end": v
+        })
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].append({
+            "startTime": max(phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"], key = lambda x: x["endTime"])["endTime"],
+            "endTime": 1000000000,
+            "start": (v := max(phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"], key = lambda x: x["endTime"])["end"]),
+            "end": v
+        })
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].sort(key = lambda x: x["endTime"])
+        
+        oth_es = []
+        for index, e in enumerate(phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"]):
+            if index != len(phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"]) - 1:
+                ne = phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"][index + 1]
+                if e["endTime"] < ne["startTime"]:
+                    oth_es.append({
+                        "startTime": e["endTime"],
+                        "endTime": ne["startTime"],
+                        "start": e["end"],
+                        "end": e["end"]
+                    })
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"] += oth_es
+    
+    if len(phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"]) > 0:
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].append({
+            "startTime": -999999,
+            "endTime": min(phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"], key = lambda x: x["startTime"])["startTime"],
+            "start": (v := min(phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"], key = lambda x: x["startTime"])["start"]),
+            "end": v
+        })
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].append({
+            "startTime": max(phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"], key = lambda x: x["endTime"])["endTime"],
+            "endTime": 1000000000,
+            "start": (v := max(phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"], key = lambda x: x["endTime"])["end"]),
+            "end": v
+        })
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].sort(key = lambda x: x["endTime"])
+        
+        oth_es = []
+        for index, e in enumerate(phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"]):
+            if index != len(phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"]) - 1:
+                ne = phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"][index + 1]
+                if e["endTime"] < ne["startTime"]:
+                    oth_es.append({
+                        "startTime": e["endTime"],
+                        "endTime": ne["startTime"],
+                        "start": e["end"],
+                        "end": e["end"]
+                    })
+        phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"] += oth_es
 
     if len(x_moves) > 0:
         x_moves.sort(key = lambda x: x.st)
@@ -478,10 +614,28 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
     phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["startTime"])
     phi_judgeLine["judgeLineRotateEvents"].sort(key = lambda x: x["startTime"])
     phi_judgeLine["--QFPPR-JudgeLine-TextEvents"].sort(key = lambda x: x["startTime"])
+    phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].sort(key = lambda x: x["startTime"])
+    phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].sort(key = lambda x: x["startTime"])
     
     if not phi_judgeLine["--QFPPR-JudgeLine-TextJudgeLine"]:
         del phi_judgeLine["--QFPPR-JudgeLine-TextJudgeLine"]
         del phi_judgeLine["--QFPPR-JudgeLine-TextEvents"]
+    
+    if not phi_judgeLine["--QFPPR-JudgeLine-EnableTexture"]:
+        del phi_judgeLine["--QFPPR-JudgeLine-EnableTexture"]
+        del phi_judgeLine["--QFPPR-JudgeLine-Texture"]
+    else:
+        try:
+            with open(f"{dirname(argv[1])}\\{phi_judgeLine["--QFPPR-JudgeLine-Texture"]}", "rb") as Texture_f:
+                phi_judgeLine["--QFPPR-JudgeLine-Texture"] = b64encode(Texture_f.read()).decode("utf-8")
+        except Exception:
+            print(f"Warning: Texture file {phi_judgeLine['--QFPPR-JudgeLine-Texture']} not found.")
+    
+    if not phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"]:
+        del phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"]
+    
+    if not phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"]:
+        del phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"]
     
     phi_data["judgeLineList"].append(phi_judgeLine)
     
