@@ -703,9 +703,9 @@ def GetFrameRenderTask_Phi(
                             f'(Resource["Note_Click_Audio"]["{note_item.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
                         ))
                     
-                if not this_note_ishold and this_noteitem_clicked:
+                if not this_note_ishold and this_noteitem_clicked and not note_item.fake:
                     continue
-                elif this_note_ishold and now_t > note_item.hold_endtime:
+                elif this_note_ishold and now_t > note_item.hold_endtime and not note_item.fake:
                     continue
                 
                 note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (
