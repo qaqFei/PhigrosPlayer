@@ -159,12 +159,6 @@ class judgeLine:
         self.ScaleYEvents.sort(key = lambda x: x.startTime)
         self.ColorEvents.sort(key = lambda x: x.startTime, reverse = True)
 
-    def __eq__(self,oth):
-        try:
-            return self.id == oth.id
-        except AttributeError:
-            return False
-
     def __hash__(self):
         return self.id
     
@@ -178,25 +172,37 @@ class judgeLine:
             note.master = self
     
     def get_datavar_rotate(self,now_time):
-        for rotate_event in self.judgeLineRotateEvents:
-            if rotate_event.startTime <= now_time <= rotate_event.endTime:
-                return Tool_Functions.interpolation_phi(now_time,rotate_event.startTime,rotate_event.endTime,rotate_event.start,rotate_event.end)
+        for e in self.judgeLineRotateEvents:
+            if e.startTime <= now_time <= e.endTime:
+                return Tool_Functions.interpolation_phi(
+                    now_time,
+                    e.startTime,
+                    e.endTime,
+                    e.start,
+                    e.end
+                )
         return 0.0 #never
     
     def get_datavar_disappear(self,now_time):
-        for disappear_event in self.judgeLineDisappearEvents:
-            if disappear_event.startTime <= now_time <= disappear_event.endTime:
-                return Tool_Functions.linear_interpolation(now_time,disappear_event.startTime,disappear_event.endTime,disappear_event.start,disappear_event.end)
+        for e in self.judgeLineDisappearEvents:
+            if e.startTime <= now_time <= e.endTime:
+                return Tool_Functions.linear_interpolation(
+                    now_time,
+                    e.startTime,
+                    e.endTime,
+                    e.start,
+                    e.end
+                )
         return 0.0 #never
     
     def get_datavar_move(self,now_time,w,h):
-        for move_event in self.judgeLineMoveEvents:
-            if move_event.startTime <= now_time <= move_event.endTime:
+        for e in self.judgeLineMoveEvents:
+            if e.startTime <= now_time <= e.endTime:
                 return (
-                    Tool_Functions.interpolation_phi(now_time,move_event.startTime,move_event.endTime,move_event.start,move_event.end) * w,
-                    h - Tool_Functions.interpolation_phi(now_time,move_event.startTime,move_event.endTime,move_event.start2,move_event.end2) * h
+                    Tool_Functions.interpolation_phi(now_time, e.startTime, e.endTime, e.start, e.end) * w,
+                    h - Tool_Functions.interpolation_phi(now_time, e.startTime, e.endTime, e.start2, e.end2) * h
                 )
-        return (w * 0.5, h * 0.5) #never
+        return (0.0, 0.0) #never
 
     def get_datavar_text(self,now_time):
         for e in self.TextEvents: # sort by startTime and reverse
