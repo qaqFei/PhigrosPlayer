@@ -428,7 +428,7 @@ def draw_ui(
         textAlign = "right",
         strokeStyle = "white",
         fillStyle = "white",
-        font = f"{int((w + h) / 75 / 0.75)}px PhigrosFont",
+        font = f"{((w + h) / 75 / 0.75)}px PhigrosFont",
         wait_execute = True
     )
     
@@ -441,7 +441,7 @@ def draw_ui(
             textAlign = "center",
             strokeStyle = "white",
             fillStyle = "white",
-            font = f"{int((w + h) / 75 / 0.75)}px PhigrosFont",
+            font = f"{((w + h) / 75 / 0.75)}px PhigrosFont",
             wait_execute = True
         )
         
@@ -453,7 +453,7 @@ def draw_ui(
             textAlign = "center",
             strokeStyle = "white",
             fillStyle = "white",
-            font = f"{int((w + h) / 100 / 0.75)}px PhigrosFont",
+            font = f"{((w + h) / 100 / 0.75)}px PhigrosFont",
             wait_execute = True
         )
         
@@ -465,7 +465,7 @@ def draw_ui(
         textAlign = "left",
         strokeStyle = "white",
         fillStyle = "white",
-        font = f"{int((w + h) / 175 / 0.75)}px PhigrosFont",
+        font = f"{((w + h) / 175 / 0.75)}px PhigrosFont",
         wait_execute = True
     )
     
@@ -474,25 +474,25 @@ def draw_ui(
     
     root.create_text(
         text = chart_information["Name"],
-        x = w * 0.01,
-        y = h * 0.99,
+        x = w * 0.0125,
+        y = h * 0.98,
         textBaseline = "bottom",
         textAlign = "left",
         strokeStyle = "white",
         fillStyle = "white",
-        font = f"{int((w + h) / 125 / 0.75)}px PhigrosFont",
+        font = f"{((w + h) / 125 / 0.75)}px PhigrosFont",
         wait_execute = True
     )
     
     root.create_text(
         text = chart_information["Level"],
-        x = w * 0.99,
-        y = h * 0.99,
+        x = w * 0.9875,
+        y = h * 0.98,
         textBaseline = "bottom",
         textAlign = "right",
         strokeStyle = "white",
         fillStyle = "white",
-        font = f"{int((w + h) / 125 / 0.75)}px PhigrosFont",
+        font = f"{((w + h) / 125 / 0.75)}px PhigrosFont",
         wait_execute = True
     )
     
@@ -1117,7 +1117,7 @@ def PlayerStart_Phi():
                 infoframe_x + infoframe_ltr * 2,
                 infoframe_y - infoframe_height * 0.65,
                 text = chart_name_text,
-                font = f"{int(chart_name_font_size)}px PhigrosFont",
+                font = f"{(chart_name_font_size)}px PhigrosFont",
                 textBaseline = "middle",
                 fillStyle = "#FFFFFF",
                 wait_execute = True
@@ -1127,7 +1127,7 @@ def PlayerStart_Phi():
                 infoframe_x + infoframe_ltr * 2,
                 infoframe_y - infoframe_height * 0.31,
                 text = chart_artist_text,
-                font = f"{int(chart_artist_text_font_size)}px PhigrosFont",
+                font = f"{(chart_artist_text_font_size)}px PhigrosFont",
                 textBaseline = "middle",
                 fillStyle = "#FFFFFF",
                 wait_execute = True
@@ -1137,7 +1137,7 @@ def PlayerStart_Phi():
                 infoframe_x + w * 0.225 + infoframe_ltr + infoframe_width * 0.215 / 2 - infoframe_ltr / 2,
                 infoframe_y - infoframe_height * 1.03 * 0.58,
                 text = chart_level_number,
-                font = f"{int(chart_level_number_font_size)}px PhigrosFont",
+                font = f"{(chart_level_number_font_size)}px PhigrosFont",
                 textAlign = "center",
                 textBaseline = "middle",
                 fillStyle = "#2F2F2F",
@@ -1148,7 +1148,7 @@ def PlayerStart_Phi():
                 infoframe_x + w * 0.225 + infoframe_ltr + infoframe_width * 0.215 / 2 - infoframe_ltr / 2,
                 infoframe_y - infoframe_height * 1.03 * 0.31,
                 text = chart_level_text,
-                font = f"{int(chart_level_text_font_size)}px PhigrosFont",
+                font = f"{(chart_level_text_font_size)}px PhigrosFont",
                 textAlign = "center",
                 textBaseline = "middle",
                 fillStyle = "#2F2F2F",
