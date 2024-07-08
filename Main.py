@@ -616,8 +616,7 @@ def GetFrameRenderTask_Phi(
             add_code_array = True
         )
     
-    if phigros_chart_obj.Extra_Enable:
-        extra_render_task = phigros_chart_obj.get_datavar_extra(now_t)
+    extra_render_task = phigros_chart_obj.get_datavar_extra(now_t) if phigros_chart_obj.Extra_Enable else []
     
     for judgeLine_cfg in judgeLine_Configs.Configs:
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
@@ -984,7 +983,51 @@ def GetFrameRenderTask_Phi(
             "ctx.closePath(); ctx.stroke();",
             add_code_array = True
         )
-
+    
+    def do_extra(item:dict):
+        match item["shader"]:
+            case "chromatic":
+                power = int(item["vars"]["power"] * (w + h) / 2)
+                Task(
+                    root.run_js_code,
+                    f"rcf.Chromatic({power}, {power}, 0, 0, -{power}, -{power});",
+                    add_code_array = True
+                )
+            
+            case "circleBlur":
+                pass
+            
+            case "fisheye":
+                pass
+            
+            case "glitch":
+                pass
+            
+            case "grayscale":
+                pass
+            
+            case "noise":
+                pass
+            
+            case "pixel":
+                pass
+            
+            case "radialBlur":
+                pass
+            
+            case "shockwave":
+                pass
+            
+            case "vignette":
+                pass
+            
+            case _:
+                print(f"Unknown shader: {item["shader"]}")
+    
+    for extra_item in extra_render_task:
+        if not extra_item["global"]:
+            do_extra(extra_item)
+        
     combo = Chart_Functions_Phi.Cal_Combo(now_t)
     time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
     Task(
@@ -997,6 +1040,10 @@ def GetFrameRenderTask_Phi(
         clear=False,
         background=False
     )
+    
+    for extra_item in extra_render_task:
+        if extra_item["global"]:
+            do_extra(extra_item)
     
     now_t += phigros_chart_obj.offset
     if not lfdaot: # 2 "if" layer is more readable
@@ -1847,16 +1894,12 @@ background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - 
 root.reg_img(background_image,"background")
 PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
-# window_hwnd = root.winfo_hwnd()
-# print(f"Window Hwnd: {window_hwnd}")
-# window_style = GetWindowLong(window_hwnd,win32con.GWL_STYLE)
-# SetWindowLong(window_hwnd,win32con.GWL_STYLE,window_style & ~win32con.WS_SYSMENU) ; del window_style
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
 Chart_Functions_Phi.Init(
     phigros_chart_obj_ = phigros_chart_obj,
-    PHIGROS_X_ = PHIGROS_X,PHIGROS_Y_ = PHIGROS_Y,
-    w_ = w,h_ = h
+    PHIGROS_X_ = PHIGROS_X, PHIGROS_Y_ = PHIGROS_Y,
+    w_ = w, h_ = h
 )
 extend_object.loaded()
 Thread(target=Show_Start,daemon=True).start()

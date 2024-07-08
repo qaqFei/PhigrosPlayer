@@ -34,7 +34,7 @@
     body_ele = html_ele.children[1];
     canvas_ele = document.createElement("canvas");
     body_ele.appendChild(canvas_ele);
-    ctx = canvas_ele.getContext("2d");
+    ctx = canvas_ele.getContext("2d", {willReadFrequently: true});
     JavaScript_WaitToExecute_CodeArray = new Array();
     resize_task = false;
     lfdaot_render_fcount = 0;
@@ -43,6 +43,37 @@
     font_loaded = false;
     uploadFrame_addQueue = false;
     uploadFrame_finish = false;
+
+    class RpeChartEffects {
+        constructor(ctx) {this._ctx = ctx}
+        _clamp(v, s, e) {
+            return v < s ? s : (v > e ? e : v)
+        }
+        _Coords2Index(x, y, width, height) {
+            let nx = this._clamp(x, 0, width);
+            let ny = this._clamp(y, 0, height);
+            return (nx + ny * width) * 4;
+        }
+
+        Chromatic(dxr, dyr, dxg, dyg, dxb, dyb) {
+            let width = this._ctx.canvas.width;
+            let height = this._ctx.canvas.height;
+            let imgData = this._ctx.getImageData(0, 0, width, height);
+            let imgData2 = this._ctx.getImageData(0, 0, width, height);
+            for (let x = 0; x < width; x++) {
+                for (let y = 0; y < height; y++) {
+                    let ldx = this._Coords2Index(x, y, width, height);
+                    let ro = this._Coords2Index(x - dxr, y - dyr, width, height);
+                    let go = this._Coords2Index(x - dxg, y - dyg, width, height);
+                    let bo = this._Coords2Index(x - dxb, y - dyb, width, height);
+                    imgData2.data[ldx] = imgData.data[ro];
+                    imgData2.data[ldx + 1] = imgData.data[go + 1];
+                    imgData2.data[ldx + 2] = imgData.data[bo + 2];
+                }
+            }
+            this._ctx.putImageData(imgData2, 0, 0);
+        }
+    }
 
     class Queue {
         constructor() {this.items = []}
@@ -191,4 +222,6 @@
     window.addEventListener("resize",function(){
         resize_task = true;
     });
+
+    rcf = new RpeChartEffects(ctx);
 </script>

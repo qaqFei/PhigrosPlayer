@@ -282,10 +282,9 @@ class Phigros_Chart:
                             break
                 target_item.append({
                     "shader": extra_efct_item["shader"],
+                    "global": extra_efct_item["global"],
                     "vars": values
                 })
-        
-        # print(target_item)
         
         return target_item
 
