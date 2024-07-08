@@ -43,6 +43,9 @@ def ease_out(x:float) -> float:
 def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
     return tuple((randint(1,90) for _ in range(random_block_num)))
 
+def extra_power(power:float) -> float:
+    return (2 ** power - 1) / 4
+
 @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
 def linear_interpolation(
     t:float,

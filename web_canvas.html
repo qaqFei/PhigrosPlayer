@@ -45,7 +45,13 @@
     uploadFrame_finish = false;
 
     class RpeChartEffects {
-        constructor(ctx) {this._ctx = ctx}
+        constructor(ctx) {
+            this._ctx = ctx;
+            this._offscreen_cv = document.createElement("canvas");
+            this._offscreen_cv.width = this._ctx.canvas.width;
+            this._offscreen_cv.height = this._ctx.canvas.height;
+            this._offscreen_ctx = this._offscreen_cv.getContext("2d");
+        }
         _clamp(v, s, e) {
             return v < s ? s : (v > e ? e : v)
         }
@@ -53,6 +59,12 @@
             let nx = this._clamp(x, 0, width);
             let ny = this._clamp(y, 0, height);
             return (nx + ny * width) * 4;
+        }
+        _RadialBlur_AlphaImg(imgData, alpha) {
+            for (let i = 0; i < imgData.data.length; i += 4) {
+                imgData.data[i + 3] *= alpha;
+            }
+            return imgData;
         }
 
         Chromatic(dxr, dyr, dxg, dyg, dxb, dyb) {
@@ -72,6 +84,65 @@
                 }
             }
             this._ctx.putImageData(imgData2, 0, 0);
+        }
+
+        CircleBlur() {
+
+        }
+
+        Fisheye() {
+
+        }
+
+        Glitch() {
+
+        }
+
+        Grayscale() {
+
+        }
+
+        Noise() {
+
+        }
+
+        Pixel() {
+
+        }
+
+        RadialBlur(centerX, centerY, offset, sampleCount) {
+            if (offset == 0.0) return;
+            let width = this._ctx.canvas.width;
+            let height = this._ctx.canvas.height;
+            this._offscreen_cv.width = width;
+            this._offscreen_cv.height = height;
+            let imgData = this._ctx.getImageData(0, 0, width, height);
+            this._offscreen_ctx.putImageData(imgData, 0, 0);
+            
+            for (let i = 0; i < sampleCount; i++) {
+                let im_offset = offset * (i + 1) / sampleCount;
+                let im_size_width = (1.0 + im_offset) * width;
+                let im_size_height = (1.0 + im_offset) * height;
+                let alpha = 1.0 - (i + 1) / sampleCount;
+                this._ctx.save()
+                this._ctx.globalAlpha = alpha;
+                this._ctx.drawImage(
+                    this._offscreen_cv,
+                    centerX * width - im_size_width / 2,
+                    centerY * height - im_size_height / 2,
+                    im_size_width,
+                    im_size_height
+                )
+                this._ctx.restore()
+            }
+        }
+
+        Shockwave() {
+
+        }
+
+        Vignette() {
+
         }
     }
 

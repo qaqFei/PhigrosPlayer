@@ -1013,7 +1013,15 @@ def GetFrameRenderTask_Phi(
                 pass
             
             case "radialBlur":
-                pass
+                centerX = item["vars"]["centerX"]
+                centerY = item["vars"]["centerY"]
+                offset = Tool_Functions.extra_power(item["vars"]["power"]) ** 0.5
+                sampleCount = item["vars"]["sampleCount"] * 10
+                Task(
+                    root.run_js_code,
+                    f"rcf.RadialBlur({centerX}, {centerY}, {offset}, {sampleCount});",
+                    add_code_array = True
+                )
             
             case "shockwave":
                 pass
