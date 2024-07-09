@@ -16,14 +16,22 @@ class InfoLoader:
         for file in infofiles:
             self.load(file)
     
-    def load(self, filename):
+    def load(self, filename, encoding="utf-8", _failed=False):
         "if load failed, return None. else return True"
         
         if not exists(filename):
             return None
         
-        with open(filename, "r", encoding="utf-8") as f:
-            raw_data = f.read()
+        with open(filename, "r", encoding=encoding) as f:
+            try:
+                raw_data = f.read()
+            except Exception:
+                if not _failed:
+                    try:
+                        return self.load(filename, "gbk", True)
+                    except Exception:
+                        pass
+                return None
             file_type = filename.split(".")[-1]
             
             match file_type:
