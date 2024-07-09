@@ -60,27 +60,22 @@
             let ny = this._clamp(y, 0, height);
             return (nx + ny * width) * 4;
         }
-        _RadialBlur_AlphaImg(imgData, alpha) {
-            for (let i = 0; i < imgData.data.length; i += 4) {
-                imgData.data[i + 3] *= alpha;
-            }
-            return imgData;
-        }
 
         Chromatic(dxr, dyr, dxg, dyg, dxb, dyb) {
             let width = this._ctx.canvas.width;
             let height = this._ctx.canvas.height;
             let imgData = this._ctx.getImageData(0, 0, width, height);
-            let imgData2 = this._ctx.getImageData(0, 0, width, height);
+            let imgData2 = this._ctx.createImageData(width, height);
             for (let x = 0; x < width; x++) {
                 for (let y = 0; y < height; y++) {
-                    let ldx = this._Coords2Index(x, y, width, height);
+                    let idx = this._Coords2Index(x, y, width, height);
                     let ro = this._Coords2Index(x - dxr, y - dyr, width, height);
                     let go = this._Coords2Index(x - dxg, y - dyg, width, height);
                     let bo = this._Coords2Index(x - dxb, y - dyb, width, height);
-                    imgData2.data[ldx] = imgData.data[ro];
-                    imgData2.data[ldx + 1] = imgData.data[go + 1];
-                    imgData2.data[ldx + 2] = imgData.data[bo + 2];
+                    imgData2.data[idx] = imgData.data[ro];
+                    imgData2.data[idx + 1] = imgData.data[go + 1];
+                    imgData2.data[idx + 2] = imgData.data[bo + 2];
+                    imgData2.data[idx + 3] = 255;
                 }
             }
             this._ctx.putImageData(imgData2, 0, 0);
@@ -98,16 +93,30 @@
 
         }
 
-        Grayscale() {
-
+        Grayscale(factor) {
+            this._ctx.save()
+            this._ctx.filter = `grayscale(${factor * 100}%)`;
+            this._ctx.drawImage(this._ctx.canvas, 0, 0);
+            this._ctx.restore();
         }
 
         Noise() {
 
         }
 
-        Pixel() {
-
+        Pixel(size) {
+            let width = this._ctx.canvas.width;
+            let height = this._ctx.canvas.height;
+            let pixsize = parseInt(size);
+            let pixwidthnum = parseInt(width / pixsize);
+            let pixheightnum = parseInt(height / pixsize);
+            this._offscreen_cv.width = pixwidthnum;
+            this._offscreen_cv.height = pixheightnum;
+            this._offscreen_ctx.drawImage(this._ctx.canvas, 0, 0, pixwidthnum, pixheightnum);
+            this._ctx.save()
+            this._ctx.imageSmoothingEnabled = false;
+            this._ctx.drawImage(this._offscreen_cv, 0, 0, width, height);
+            this._ctx.restore();
         }
 
         RadialBlur(centerX, centerY, offset, sampleCount) {

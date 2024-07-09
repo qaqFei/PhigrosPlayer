@@ -985,6 +985,8 @@ def GetFrameRenderTask_Phi(
         )
     
     def do_extra(item:dict):
+        print(item)
+        
         match item["shader"]:
             case "chromatic":
                 power = int(item["vars"]["power"] * (w + h) / 2)
@@ -1004,13 +1006,23 @@ def GetFrameRenderTask_Phi(
                 pass
             
             case "grayscale":
-                pass
+                factor = item["vars"]["factor"]
+                Task(
+                    root.run_js_code,
+                    f"rcf.Grayscale({factor});",
+                    add_code_array = True
+                )
             
             case "noise":
                 pass
             
             case "pixel":
-                pass
+                size = item["vars"]["size"]
+                Task(
+                    root.run_js_code,
+                    f"rcf.Pixel({size});",
+                    add_code_array = True
+                )
             
             case "radialBlur":
                 centerX = item["vars"]["centerX"]

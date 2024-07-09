@@ -38,4 +38,53 @@ CHART_JSON_TYPE = typing.Dict[
     ]
 ]
 
+EXTRA_DEFAULTS = { # no using
+    "chromatic": {
+        "sampleCount": 3,
+        "power": 0.01
+    },
+    "circleBlur": {
+        "size": 10.0
+    },
+    "fisheye": {
+        "power": -0.1
+    },
+    "glitch": {
+        "power": 0.3,
+        "rate": 0.6,
+        "speed": 5.0,
+        "blockCount": 30.5,
+        "colorRate": 0.01
+    },
+    "grayscale": {
+        "factor": 1.0
+    },
+    "noise": {
+        "seed": 81.0,
+        "power": 0.03
+    },
+    "pixel": {
+        "size": 10.0
+    },
+    "radialBlur": {
+        "centerX": 0.5,
+        "centerY": 0.5,
+        "power": 0.01,
+        "sampleCount": 3,
+    },
+    "shockwave": {
+        "progress": 0.2,
+        "centerX": 0.5,
+        "centerY": 0.5,
+        "width": 0.1,
+        "distortion": 0.8,
+        "expand": 10.0
+    },
+    "vignette": {
+        "color": [0, 0, 0],
+        "extend": 0.25,
+        "radius": 15.0
+    }
+}
+
 del typing
