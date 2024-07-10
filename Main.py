@@ -420,9 +420,9 @@ def draw_ui(
     
     root.create_text(
         text = score,
-        x = w * 0.99,
-        y = h * 0.01,
-        textBaseline = "top",
+        x = w * 0.988,
+        y = h * 0.045,
+        textBaseline = "middle",
         textAlign = "right",
         strokeStyle = "white",
         fillStyle = "white",
@@ -434,8 +434,8 @@ def draw_ui(
         root.create_text(
             text = f"{combo}",
             x = w / 2,
-            y = h * 0.01,
-            textBaseline = "top",
+            y = h * 0.05,
+            textBaseline = "middle",
             textAlign = "center",
             strokeStyle = "white",
             fillStyle = "white",
@@ -446,8 +446,8 @@ def draw_ui(
         root.create_text(
             text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],
             x = w / 2,
-            y = h * 0.1,
-            textBaseline = "bottom",
+            y = h * 0.095,
+            textBaseline = "middle",
             textAlign = "center",
             strokeStyle = "white",
             fillStyle = "white",
@@ -1028,7 +1028,7 @@ def GetFrameRenderTask_Phi(
                 centerX = item["vars"]["centerX"]
                 centerY = item["vars"]["centerY"]
                 offset = item["vars"]["power"]
-                sampleCount = item["vars"]["sampleCount"] * 10
+                sampleCount = item["vars"]["sampleCount"] * 4
                 Task(
                     root.run_js_code,
                     f"rcf.RadialBlur({centerX}, {centerY}, {offset}, {sampleCount});",
