@@ -989,7 +989,7 @@ def GetFrameRenderTask_Phi(
         
         match item["shader"]:
             case "chromatic":
-                power = int(item["vars"]["power"] * (w + h) / 2)
+                power = int(item["vars"]["power"] * (w + h) / 5)
                 Task(
                     root.run_js_code,
                     f"rcf.Chromatic({power}, {power}, 0, 0, -{power}, -{power});",
@@ -1027,7 +1027,7 @@ def GetFrameRenderTask_Phi(
             case "radialBlur":
                 centerX = item["vars"]["centerX"]
                 centerY = item["vars"]["centerY"]
-                offset = Tool_Functions.extra_power(item["vars"]["power"]) ** 0.5
+                offset = item["vars"]["power"]
                 sampleCount = item["vars"]["sampleCount"] * 10
                 Task(
                     root.run_js_code,
