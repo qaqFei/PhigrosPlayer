@@ -634,5 +634,5 @@ if extra_fp is not None:
         phi_data["--QFPPR-Extra-Enable"] = True
         phi_data["--QFPPR-Extra"] = _rpe2phi_extra.process_extra(json.load(f))
 
-with open(argv[2],"w",encoding="utf-8") as f:
+with open(argv[2], "w", encoding="utf-8") as f:
     f.write(json.dumps(phi_data,ensure_ascii=False))

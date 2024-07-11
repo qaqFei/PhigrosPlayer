@@ -72,4 +72,4 @@ tips = [
 ]
 
 def get_tip():
-    return tips[randint(0,len(tips) - 1)]
+    return tips[randint(0, len(tips) - 1)]

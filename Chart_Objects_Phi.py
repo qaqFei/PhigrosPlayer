@@ -50,12 +50,11 @@ class note:
         }[self.type]
         return f"{self.master.id}+{self.by_judgeLine_id}{note_t}"
     
-    def _init(self,PHIGROS_Y):
+    def _init(self, PHIGROS_Y):
         self.hold_length_sec = self.holdTime * self.master.T
         self.hold_length_px = (self.speed * self.hold_length_sec) * PHIGROS_Y
         self.hold_endtime = self.time * self.master.T + self.hold_length_sec
         
-        #do other... hehehehe
         self.effect_times = []
         hold_starttime = self.time * self.master.T
         hold_effect_blocktime = (1 / self.master.bpm * 30)
@@ -63,7 +62,7 @@ class note:
             hold_starttime += hold_effect_blocktime
             if hold_starttime >= self.hold_endtime:
                 break
-            self.effect_times.append((hold_starttime,Tool_Functions.get_effect_random_blocks()))
+            self.effect_times.append((hold_starttime, Tool_Functions.get_effect_random_blocks()))
         
         self.type_string = {
             Const.Note.TAP:"Tap",

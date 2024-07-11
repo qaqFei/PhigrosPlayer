@@ -3,7 +3,7 @@ from sys import argv
 
 Resource_Path = "./Resources" if "-res" not in argv else argv[argv.index("-res") + 1]
 
-def open(fp:str, *args, **kwargs): # try load res from user
+def open(fp, *args, **kwargs): # try load res from user
     if isinstance(fp, str):
         fp_user = fp.replace("./Resources", Resource_Path)
         try:

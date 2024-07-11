@@ -7,16 +7,16 @@ import Tool_Functions
 
 def Init(
     phigros_chart_obj_:Chart_Objects_Phi.Phigros_Chart,
-    PHIGROS_X_:float,PHIGROS_Y_:float,
-    w_:int,h_:int
+    PHIGROS_X_:float, PHIGROS_Y_:float,
+    w_:int, h_:int
 ):
     global phigros_chart_obj
-    global PHIGROS_X,PHIGROS_Y
-    global w,h
+    global PHIGROS_X, PHIGROS_Y
+    global w, h
     
     phigros_chart_obj = phigros_chart_obj_
-    PHIGROS_X,PHIGROS_Y = PHIGROS_X_,PHIGROS_Y_
-    w,h = w_,h_
+    PHIGROS_X, PHIGROS_Y = PHIGROS_X_, PHIGROS_Y_
+    w, h = w_, h_
 
 def Cal_Combo(now_time:float) -> int:
     combo = 0
@@ -53,7 +53,7 @@ def Update_JudgeLine_Configs(judgeLine_Configs:Chart_Objects_Phi.judgeLine_Confi
         judgeLine_cfg.time = now_t / judgeLine.T
         judgeLine_cfg.rotate = judgeLine.get_datavar_rotate(judgeLine_cfg.time)
         judgeLine_cfg.disappear = judgeLine.get_datavar_disappear(judgeLine_cfg.time)
-        judgeLine_cfg.pos = judgeLine.get_datavar_move(judgeLine_cfg.time,w,h)
+        judgeLine_cfg.pos = judgeLine.get_datavar_move(judgeLine_cfg.time, w,h)
 
 def FrameData_ProcessExTask(ExTask,eval_func):
     break_flag = False
@@ -64,7 +64,11 @@ def FrameData_ProcessExTask(ExTask,eval_func):
         elif ext[0] == "set":
             eval_func(f"exec('global {ext[1]}; {ext[1]} = {ext[2]}')")
         elif ext[0] == "thread-call":
-            Thread(target=eval_func(ext[1]),args=eval_func(ext[2]),daemon=True).start()
+            Thread(
+                target = eval_func(ext[1]),
+                args = eval_func(ext[2]),
+                daemon = True
+            ).start()
         
     return break_flag
 
