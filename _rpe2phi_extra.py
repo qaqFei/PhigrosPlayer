@@ -1,11 +1,9 @@
-from functools import cache
 from dataclasses import fields, asdict
 
 import Chart_Objects_Rep
 
 upn_rpeobj = {i.upper().replace("ExtraVar_".upper(), ""): i for i in dir(Chart_Objects_Rep)}
 
-@cache
 def get_shader_cnf_cls(name:str):
     name = name.title()
     upn = name.upper()
