@@ -157,7 +157,7 @@
         ]
     }
 
-## `--QFPPR-JudgeLine-ColorEvents`
+## `--QFPPR-JudgeLine-ColorEvents` (已实现)
 - 位于 谱面文件的`judgeLineList`的元素中
 - 类型为`list`
 - 示例:

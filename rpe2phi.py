@@ -1,4 +1,3 @@
-# special event will not processing
 from sys import argv
 from dataclasses import dataclass
 from functools import cache
