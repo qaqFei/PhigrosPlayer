@@ -35,7 +35,7 @@ def Cal_Combo(now_time:float) -> int:
                     combo += 1
     return combo
 
-def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects_Phi.judgeLine,time:float) -> float:
+def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects_Phi.judgeLine, time:float) -> float:
     if not judgeLine.speedEvents: return 0.0
     for speed_event in judgeLine.speedEvents:
         if speed_event.startTime <= time <= speed_event.endTime:
@@ -47,9 +47,9 @@ def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects_Phi.judgeLine,time:float
     dy = last_speed_event.floorPosition + (time - last_speed_event.endTime) * judgeLine.T * last_speed_event.value
     return dy * PHIGROS_Y
 
-def Update_JudgeLine_Configs(judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,now_t:float):
+def Update_JudgeLine_Configs(judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs, now_t:float):
     for judgeLine_cfg in judgeLine_Configs.Configs:
-        judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
+        judgeLine = judgeLine_cfg.line
         judgeLine_cfg.time = now_t / judgeLine.T
         judgeLine_cfg.rotate = judgeLine.get_datavar_rotate(judgeLine_cfg.time)
         judgeLine_cfg.disappear = judgeLine.get_datavar_disappear(judgeLine_cfg.time)

@@ -596,6 +596,39 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
         phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["endTime"])
         phi_judgeLine["judgeLineMoveEvents"][-1]["endTime"] = 1000000000
         min(phi_judgeLine["judgeLineMoveEvents"], key = lambda x: x["startTime"])["startTime"] = -999999
+        
+        # optimize event
+        while True:
+            no_optimize = True
+            phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["startTime"])
+            new_es = []
+            ncontinue = False
+            for index, e in enumerate(phi_judgeLine["judgeLineMoveEvents"]):
+                if ncontinue:
+                    ncontinue = False
+                    continue
+                if index != len(phi_judgeLine["judgeLineMoveEvents"]) - 1:
+                    ne = phi_judgeLine["judgeLineMoveEvents"][index + 1]
+                    if e["start"] == e["end"] == ne["start"] == ne["end"] and e["start2"] == e["end2"] == ne["start2"] == ne["end2"]:
+                        ncontinue = True
+                        new_es.append({
+                            "startTime": e["startTime"],
+                            "endTime": ne["endTime"],
+                            "start": e["start"],
+                            "end": e["end"],
+                            "start2": e["start2"],
+                            "end2": e["end2"]
+                        })
+                        no_optimize = False
+                    else:
+                        new_es.append(e)
+                else:
+                    new_es.append(e)
+            
+            phi_judgeLine["judgeLineMoveEvents"] = new_es
+            
+            if no_optimize:
+                break
     
     phi_judgeLine["judgeLineDisappearEvents"].sort(key = lambda x: x["startTime"])
     phi_judgeLine["judgeLineMoveEvents"].sort(key = lambda x: x["startTime"])
