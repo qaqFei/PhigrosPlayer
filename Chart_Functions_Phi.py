@@ -73,7 +73,7 @@ def FrameData_ProcessExTask(ExTask,eval_func):
     return break_flag
 
 def Load_Chart_Object(
-    phigros_chart:Const.CHART_JSON_TYPE
+    phigros_chart:dict
 ):
     print("Loading Chart Object...")
     phigros_chart_obj = Chart_Objects_Phi.Phigros_Chart(

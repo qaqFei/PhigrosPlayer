@@ -32,11 +32,10 @@ class note:
     show_effected_hold: bool = False
     effect_times: list[tuple[int]] | tuple = ()
     
-    def __eq__(self,oth:note):
-        try:
-            return self.id == oth.id
-        except AttributeError:
-            return False
+    def __eq__(self, oth:object):
+        if not isinstance(oth, note):
+            return NotImplemented
+        return self.id == oth.id
 
     def __hash__(self):
         return self.id
@@ -302,7 +301,7 @@ class FrameRenderTask:
         self,
         func: typing.Callable,
         *args: typing.Iterable,
-        **kwargs: typing.Mapping
+        **kwargs: typing.Mapping[str, typing.Any]
     ):
         self.RenderTasks.append(RenderTask(func, args, kwargs))
     

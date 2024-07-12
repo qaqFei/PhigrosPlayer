@@ -1,6 +1,7 @@
 import math
+import typing
 
-ease_funcs = [
+ease_funcs:list[typing.Callable[[float], float]] = [
   lambda t: t, # linear - 1
   lambda t: math.sin((t * math.pi) / 2), # out sine - 2
   lambda t: 1 - math.cos((t * math.pi) / 2), # in sine - 3

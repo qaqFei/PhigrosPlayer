@@ -65,7 +65,6 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_
         print(f"Warning: {e}")
 print(f"Temp Dir: {temp_dir}")
 
-Image._open = Image.open
 Image.open = Image_open.open
 
 enable_clicksound = "-noclicksound" not in argv
@@ -512,7 +511,7 @@ def Note_CanRender(
         typing.Tuple[float,float],
         typing.Tuple[float,float],
         typing.Tuple[float,float]
-    ],None] = None
+    ], None] = None
 ) -> bool:
     if hold_points is None: # type != HOLD
         if (
@@ -529,14 +528,14 @@ def Note_CanRender(
             return True
         return any(batch_is_intersect(
             [
-                [hold_points[0],hold_points[1]],
-                [hold_points[1],hold_points[2]],
-                [hold_points[2],hold_points[3]],
-                [hold_points[3],hold_points[0]]
+                (hold_points[0], hold_points[1]),
+                (hold_points[1], hold_points[2]),
+                (hold_points[2], hold_points[3]),
+                (hold_points[3], hold_points[0])
             ],
             [
-                [(0,0),(w,0)],[(0,0),(0,h)],
-                [(w,0),(w,h)],[(0,h),(w,h)]
+                ((0, 0), (w, 0)), ((0, 0), (0, h)),
+                ((w, 0), (w, h)), ((0, h), (w, h))
             ]
         ))
 

@@ -38,7 +38,7 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
 
 class JsApi:
     def __init__(self) -> None:
-        self.things = {}
+        self.things:dict[str, typing.Any] = {}
     
     def __repr__(self):
         return "JsApi"
@@ -94,10 +94,10 @@ class WebCanvas:
         }
         self._destroyed = False
         self.debug = debug
-        self._regims = {}
-        self._regres = {}
-        self._is_loadimg = {}
-        self._JavaScript_WaitToExecute_CodeArray = []
+        self._regims:dict[str, Image.Image] = {}
+        self._regres:dict[str, bytes] = {}
+        self._is_loadimg:dict[str, bool] = {}
+        self._JavaScript_WaitToExecute_CodeArray:list[str] = []
         threading.Thread(target=webview.start,kwargs={"debug":self.debug},daemon=True).start()
         self._init()
         if hidden:
@@ -476,9 +476,9 @@ class WebCanvas:
     
     def reg_event(
         self,name:str,
-        callback:typing.Callable[[]]
+        callback:typing.Callable
     ) -> None:
-        setattr(self._web.events,name,getattr(self._web.events,name) + callback)
+        setattr(self._web.events,name,getattr(self._web.events, name) + callback)
     
     def loop_to_close(
         self
@@ -529,7 +529,7 @@ class WebCanvas:
     ) -> None:
         self._web.resize(width=self._web_init_var["width"],height=self._web_init_var["height"])
         self._web.move(x=self._web_init_var["x"],y=self._web_init_var["y"])
-        self._web_init_var = None
+        self._web_init_var.clear()
         self._web.events.closed += self._closed_callback
         
         while True:

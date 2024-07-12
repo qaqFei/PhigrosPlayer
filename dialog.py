@@ -16,7 +16,7 @@ def _base_dialog(
     return dlg.GetPathName()
 
 def openfile(**kwargs) -> str:
-    return _base_dialog(1,**kwargs)
+    return _base_dialog(True, **kwargs)
 
 def savefile(**kwargs) -> str:
-    return _base_dialog(0,**kwargs)
+    return _base_dialog(False, **kwargs)

@@ -17,10 +17,10 @@ def Get_Animation_Gr(fps:float,t:float):
     step_time = t / len(gr)
     return [item / gr_sum for item in gr],step_time
 
-def rotate_point(x,y,θ,r) -> float:
+def rotate_point(x, y, θ, r) -> tuple[float, float]:
     xo = r * math.cos(math.radians(θ))
     yo = r * math.sin(math.radians(θ))
-    return x + xo,y + yo
+    return x + xo, y + yo
 
 def Get_A_New_NoteId_By_judgeLine(judgeLine_item:dict):
     if "_note_count" not in judgeLine_item:
@@ -34,14 +34,14 @@ def Get_A_New_NoteId():
     note_id += 1
     return note_id
 
-def unpack_pos(number:int) -> tuple[int,int]:
+def unpack_pos(number:int) -> tuple[int, int]:
     return (number - number % 1000) // 1000,number % 1000
 
 def ease_out(x:float) -> float:
     return math.sqrt(1.0 - (1.0 - x) ** 2)
 
-def get_effect_random_blocks() -> typing.Tuple[int,int,int,int]:
-    return tuple((randint(1,90) for _ in range(random_block_num)))
+def get_effect_random_blocks() -> tuple[int, ...]:
+    return tuple((randint(1, 90) for _ in range(random_block_num)))
 
 def extra_power(power:float) -> float:
     return (2 ** power - 1) / 4
@@ -104,7 +104,7 @@ else:
         return (t - st) / (et - st) * (ev - sv) + sv
 
 bae_bs = 2.15
-class begin_animation_eases:
+class begin_animation_eases_class:
     @staticmethod
     def im_ease(x):
         if x <= (1 / bae_bs): return 0.0
@@ -136,7 +136,7 @@ class begin_animation_eases:
         if x <= 0.0: return 0.0
         return (1 - x ** 2) ** 0.5
 
-class finish_animation_eases:
+class finish_animation_eases_class:
     @staticmethod
     def all_ease(x):
         if x <= 0.0: return 0.0
@@ -187,5 +187,5 @@ class finish_animation_eases:
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 interpolation_phi(0.5,0.1,0.8,-114.514,314.159)
-begin_animation_eases = begin_animation_eases()
-finish_animation_eases = finish_animation_eases()
+begin_animation_eases = begin_animation_eases_class()
+finish_animation_eases = finish_animation_eases_class()
