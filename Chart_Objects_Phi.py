@@ -148,7 +148,7 @@ class judgeLine:
             except Exception:
                 self.EnableTexture = False
         
-        self.speedEvents.sort(key = lambda x: x.startTime)
+        # self.speedEvents.sort(key = lambda x: x.startTime) # it cannot sort, if sort it -> cal floorPosition will be error. (i donot know why...)
         self.judgeLineMoveEvents.sort(key = lambda x: x.startTime)
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
         self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)
