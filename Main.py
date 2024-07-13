@@ -17,6 +17,7 @@ from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
 from pygame import mixer
 import cv2
 import numpy
+import webcvapis
 
 import PlaySound # using at eval.
 import Chart_Objects_Phi
@@ -24,7 +25,6 @@ import Chart_Functions_Phi
 import Const
 import Find_Files
 import ConsoleWindow
-import web_canvas
 import Tool_Functions
 import dialog
 import Phigros_Tips
@@ -1863,7 +1863,7 @@ def PlayerStart_Phi():
 
 print("Loading Window...")
 # root.iconbitmap("./icon.ico")
-root = web_canvas.WebCanvas(
+root = webcvapis.WebCanvas(
     width = 1,height = 1,
     x = 0,y = 0,
     title = "Phigros Chart Player",

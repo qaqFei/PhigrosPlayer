@@ -1,8 +1,8 @@
 Pillow
 pywin32
 pygame
-pywebview
 pydub
 numba
 opencv-python
 numpy
+webcvapis==0.0.2
