@@ -1326,7 +1326,7 @@ def PlayerStart_Phi():
     Begin_Animation()
     ChartStart_Animation()
     
-    phigros_chart_obj.init_holdlength(PHIGROS_Y)
+    phigros_chart_obj.init_notes(PHIGROS_Y)
 
     show_start_time = time()
     now_t = 0
@@ -1861,15 +1861,6 @@ def PlayerStart_Phi():
     else:
         root.destroy()
 
-def Re_Init():
-    (
-        Chart_Functions_Phi.w,
-        Chart_Functions_Phi.h,
-        Chart_Functions_Phi.PHIGROS_X,
-        Chart_Functions_Phi.PHIGROS_Y
-    ) = w,h,PHIGROS_X,PHIGROS_Y
-    phigros_chart_obj.init_holdlength(PHIGROS_Y)
-
 print("Loading Window...")
 # root.iconbitmap("./icon.ico")
 root = web_canvas.WebCanvas(
@@ -1898,7 +1889,6 @@ else:
     del w_legacy,h_legacy
     root.resize(w + dw_legacy,h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
-root.reg_event("resized",lambda *args,**kwargs:exec("global w,h,PHIGROS_X,PHIGROS_Y; args = list(args); args[0] -= dw_legacy; args[1] -= dh_legacy; w,h = args; PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h; Re_Init()"))
 
 if render_range_more:
     root.run_js_code("render_range_more = true;")

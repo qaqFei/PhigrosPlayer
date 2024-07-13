@@ -13,15 +13,15 @@ import rpe_easing
 @dataclass
 class note:
     type: typing.Literal[1,2,3,4]
-    time: int|float
-    positionX: int|float
-    holdTime: int|float
-    speed: int|float
-    floorPosition: int|float
-    width: int|float
-    alpha: int|float
+    time: float
+    positionX: float
+    holdTime: float
+    speed: float
+    floorPosition: float
+    width: float
+    alpha: float
     fake: bool
-    VisibleTime: int|float
+    VisibleTime: float
     effect_random_blocks: tuple[int]
     id: int|None = None
     by_judgeLine_id: int|None = None
@@ -72,45 +72,45 @@ class note:
 
 @dataclass
 class speedEvent:
-    startTime: int|float
-    endTime: int|float
-    value: int|float
-    floorPosition: int|float|None = None
+    startTime: float
+    endTime: float
+    value: float
+    floorPosition: float|None = None
 
 @dataclass
 class judgeLineMoveEvent:
-    startTime: int|float
-    endTime: int|float
-    start: int|float
-    end: int|float
-    start2: int|float
-    end2: int|float
+    startTime: float
+    endTime: float
+    start: float
+    end: float
+    start2: float
+    end2: float
 
 @dataclass
 class judgeLineRotateEvent:
-    startTime: int|float
-    endTime: int|float
-    start: int|float
-    end: int|float
+    startTime: float
+    endTime: float
+    start: float
+    end: float
 
 @dataclass
 class judgeLineDisappearEvent:
-    startTime: int|float
-    endTime: int|float
-    start: int|float
-    end: int|float
+    startTime: float
+    endTime: float
+    start: float
+    end: float
 
 @dataclass
 class TextEvent:
-    startTime: int|float
+    startTime: float
     value: str
 
 @dataclass
 class ScaleEvent:
-    startTime: int|float
-    endTime: int|float
-    start: int|float
-    end: int|float
+    startTime: float
+    endTime: float
+    start: float
+    end: float
     easingType: int
     easingFunc: typing.Callable|None = None
     
@@ -119,13 +119,13 @@ class ScaleEvent:
 
 @dataclass
 class ColorEvent:
-    startTime: int|float
+    startTime: float
     value: list[int]
 
 @dataclass
 class judgeLine:
     id: int
-    bpm: int|float
+    bpm: float
     notesAbove: list[note]
     notesBelow: list[note]
     speedEvents: list[speedEvent]
@@ -236,7 +236,7 @@ class judgeLine:
 @dataclass
 class Phigros_Chart:
     formatVersion: int
-    offset: int|float
+    offset: float
     judgeLineList: list[judgeLine]
     Extra_Enable: bool
     Extra: dict
@@ -258,11 +258,9 @@ class Phigros_Chart:
                 if not note.fake:
                     self.note_num += 1
     
-    def init_holdlength(self,PHIGROS_Y):
+    def init_notes(self, PHIGROS_Y:float):
         for judgeLine in self.judgeLineList:
-            for note in judgeLine.notesAbove:
-                note._init(PHIGROS_Y)
-            for note in judgeLine.notesBelow:
+            for note in judgeLine.notesAbove + judgeLine.notesBelow:
                 note._init(PHIGROS_Y)
     
     def get_all_note(self) -> list[note]:
