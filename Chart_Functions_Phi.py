@@ -1,5 +1,4 @@
 from threading import Thread
-from random import randint
 
 import Chart_Objects_Phi
 import Const
@@ -34,18 +33,6 @@ def Cal_Combo(now_time:float) -> int:
                 elif note.time * judgeLine.T <= now_time:
                     combo += 1
     return combo
-
-def Cal_judgeLine_NoteDy_ByTime(judgeLine:Chart_Objects_Phi.judgeLine, time:float) -> float:
-    if not judgeLine.speedEvents: return 0.0
-    for speed_event in judgeLine.speedEvents:
-        if speed_event.startTime <= time <= speed_event.endTime:
-            dy = speed_event.floorPosition + (
-                time - speed_event.startTime
-            ) * judgeLine.T * speed_event.value
-            return dy * PHIGROS_Y
-    last_speed_event = judgeLine.speedEvents[-1]
-    dy = last_speed_event.floorPosition + (time - last_speed_event.endTime) * judgeLine.T * last_speed_event.value
-    return dy * PHIGROS_Y
 
 def Update_JudgeLine_Configs(judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs, now_t:float):
     for judgeLine_cfg in judgeLine_Configs.Configs:

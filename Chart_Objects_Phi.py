@@ -10,6 +10,16 @@ import Const
 import Tool_Functions
 import rpe_easing
 
+def getFloorPosition(line:judgeLine, t:float) -> float:
+    if not line.speedEvents: return 0.0
+    for speed_event in line.speedEvents:
+        if speed_event.startTime <= t <= speed_event.endTime:
+            return speed_event.floorPosition + (
+                t - speed_event.startTime
+            ) * line.T * speed_event.value
+    last_speed_event = line.speedEvents[-1]
+    return last_speed_event.floorPosition + (t - last_speed_event.endTime) * line.T * last_speed_event.value
+
 @dataclass
 class note:
     type: typing.Literal[1,2,3,4]
@@ -69,6 +79,8 @@ class note:
             Const.Note.HOLD:"Hold",
             Const.Note.FLICK:"Flick"
         }[self.type]
+        
+        self.floorPosition = getFloorPosition(self.master, self.time)
 
 @dataclass
 class speedEvent:
@@ -148,7 +160,20 @@ class judgeLine:
             except Exception:
                 self.EnableTexture = False
         
-        # self.speedEvents.sort(key = lambda x: x.startTime) # it cannot sort, if sort it -> cal floorPosition will be error. (i donot know why...)
+        spes = []
+        self.speedEvents.sort(key = lambda x: x.startTime)
+        for i, e in enumerate(self.speedEvents):
+            if i != len(self.speedEvents) - 1:
+                ne = self.speedEvents[i + 1]
+                if ne.startTime != e.endTime:
+                    if ne.startTime < e.endTime:
+                        ne.startTime = e.endTime
+                        ne.floorPosition = None
+                    elif ne.startTime > e.endTime:
+                        spes.append(speedEvent(e.endTime, ne.startTime, e.value, None))
+        self.speedEvents += spes
+        
+        self.speedEvents.sort(key = lambda x: x.startTime) # it cannot sort, if sort it -> cal floorPosition will be error. (i donot know why...)
         self.judgeLineMoveEvents.sort(key = lambda x: x.startTime)
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
         self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)

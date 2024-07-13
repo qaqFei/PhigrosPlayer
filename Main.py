@@ -620,7 +620,7 @@ def GetFrameRenderTask_Phi(
     for judgeLine_cfg in judgeLine_Configs.Configs:
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
         this_judgeLine_T = judgeLine.T
-        judgeLine_note_dy = Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(judgeLine, judgeLine_cfg.time)
+        judgeLine_note_dy = Chart_Objects_Phi.getFloorPosition(judgeLine, judgeLine_cfg.time) * PHIGROS_Y
         judgeLine_DrawPos = (
             *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h),
             *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h)
@@ -728,9 +728,9 @@ def GetFrameRenderTask_Phi(
                 note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (
                         judgeLine_note_dy
                         if not (this_note_ishold and note_item.clicked) else (
-                        Chart_Functions_Phi.Cal_judgeLine_NoteDy_ByTime(
+                        Chart_Objects_Phi.getFloorPosition(
                             judgeLine,note_item.time
-                        ) + Tool_Functions.linear_interpolation(note_item.hold_endtime - now_t, 0, note_item.hold_length_sec, note_item.hold_length_px, 0)
+                        ) * PHIGROS_Y + Tool_Functions.linear_interpolation(note_item.hold_endtime - now_t, 0, note_item.hold_length_sec, note_item.hold_length_px, 0)
                     )
                 )
                 
