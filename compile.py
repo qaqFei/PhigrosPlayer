@@ -4,6 +4,7 @@ from sys import argv
 debug = "--debug" in argv
 compile_files = [
     "Main.py",
+    "GUI_Launcher.py",
     "rpe2phi.py",
     "ProcessChartAudio.py"
 ]
