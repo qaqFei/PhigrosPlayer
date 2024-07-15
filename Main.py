@@ -1929,8 +1929,8 @@ def PlayerStart_Phi():
 print("Loading Window...")
 # root.iconbitmap("./icon.ico")
 root = webcvapis.WebCanvas(
-    width = 1,height = 1,
-    x = 0,y = 0,
+    width = 1, height = 1,
+    x = 0, y = 0,
     title = "Phigros Chart Player",
     debug = "-debug" in argv,
     resizable = False,
