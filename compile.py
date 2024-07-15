@@ -2,6 +2,9 @@ from threading import Thread
 from os import system
 from sys import argv
 
+if input("Sure? (y/n) ").lower() not in ("yes", "y"):
+    raise SystemExit
+
 def compile(file:str, hideconsole:bool):
     system(f"{pyinstaller} \"{file}\" -i icon.ico {"-w" if hideconsole and not debug else ""}")
     system(f"del {file.replace(".py", ".spec")}")
