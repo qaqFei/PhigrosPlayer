@@ -15,6 +15,7 @@ NAN = float("nan")
 JUDGELINE_PERFECT_COLOR = "#feffa9"
 RENDER_RANGE_MORE_FRAME_LINE_COLOR = "rgba(0, 94, 255, 0.65)"
 NOTE_DUB_FIXSCALE = 1089 / 989
+FINISH_UI_BUTTON_SIZE = 0.095
 
 EXTRA_DEFAULTS = { # no using
     "chromatic": {

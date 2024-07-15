@@ -275,11 +275,13 @@ def Load_Resource():
         },
         "Start": Image.open("./Resources/Start.png"),
         "Button_Left": Image.open("./Resources/Button_Left.png"),
-        "Button_Right": Image.open("./Resources/Button_Right.png"),
+        "Button_Right": None,
         "Retry": Image.open("./Resources/Retry.png"),
         "Arrow_Right": Image.open("./Resources/Arrow_Right.png"),
         "Over": mixer.Sound("./Resources/Over.wav")
     }
+    
+    Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     
     animation_image = chart_image.copy()
     animation_image = animation_image.convert("RGBA")
@@ -401,7 +403,7 @@ def draw_ui(
         draw_background()
     
     if animationing:
-        root.run_js_code(f"ctx.translate(0,{- h / 9 + dy});",add_code_array=True)
+        root.run_js_code(f"ctx.translate(0,{- h / 7 + dy});",add_code_array=True)
     
     root.create_rectangle(
         0, 0,
@@ -467,7 +469,7 @@ def draw_ui(
     )
     
     if animationing:
-        root.run_js_code(f"ctx.translate(0,-2 * {- h / 9 + dy});",add_code_array=True)
+        root.run_js_code(f"ctx.translate(0,-2 * {- h / 7 + dy});",add_code_array=True)
     
     root.create_text(
         text = chart_information["Name"],
@@ -494,7 +496,7 @@ def draw_ui(
     )
     
     if animationing:
-        root.run_js_code(f"ctx.translate(0,{- h / 9 + dy});",add_code_array=True)
+        root.run_js_code(f"ctx.translate(0,{- h / 7 + dy});",add_code_array=True)
 
 def draw_background():
     root.create_image(
@@ -1314,7 +1316,7 @@ def PlayerStart_Phi():
         while time() - st < 0.65:
             p = (time() - st) / 0.65
             val = 1 - (1 - p) ** 2
-            draw_ui(animationing = True,dy = h / 9 * val)
+            draw_ui(animationing = True,dy = h / 7 * val)
             root.create_line(
                 w / 2 - (val * w / 2),h / 2,
                 w / 2 + (val * w / 2),h / 2,
@@ -1533,34 +1535,8 @@ def PlayerStart_Phi():
                 
                 Lfdaot_VideoWriter.release()
     
-    def Chart_Finish_Animation():
-        animation_1_time = 0.75
-        animation_1_start_time = time()
-        
-        while time() - animation_1_start_time < animation_1_time:
-            p = (time() - animation_1_start_time) / animation_1_time
-            v = p ** 2
-            draw_ui(
-                process = 1.0,
-                score = "1000000",
-                combo_state = True,
-                combo = phigros_chart_obj.note_num,
-                now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
-                animationing = True,
-                dy = h / 9 * (1 - v)
-            )
-            root.run_js_wait_code()
-        
-        mixer.music.fadeout(250)
-        sleep(0.25)
-        Resource["Over"].play(-1)
-    
-        animation_2_time = 3.5
-        animation_2_start_time = time()
-        
-        while time() - animation_2_start_time < animation_2_time:
+    def Chart_Finish_Animation_Frame(p:float):
             root.clear_canvas(wait_execute = True)
-            p = (time() - animation_2_start_time) / animation_2_time
             im_ease_value = Tool_Functions.finish_animation_eases.all_ease(p)
             im_ease_pos = w * 1.25 * (1 - im_ease_value)
             data_block_1_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.015)
@@ -1573,8 +1549,7 @@ def PlayerStart_Phi():
             im_size = 0.475
             level_size = 0.125
             level_size *= Tool_Functions.finish_animation_eases.level_size_ease(p)
-            button_size = 0.095
-            button_ease_pos = - w * button_size * (1 - button_ease_value)
+            button_ease_pos = - w * Const.FINISH_UI_BUTTON_SIZE * (1 - button_ease_value)
             
             draw_background()
             
@@ -1831,9 +1806,12 @@ def PlayerStart_Phi():
                 add_code_array = True
             )
             
-            Retry_Button_Width = w * button_size
-            Retry_Button_Height = w * button_size / 190 * 145
+            Retry_Button_Width = w * Const.FINISH_UI_BUTTON_SIZE
+            Retry_Button_Height = w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145
             Retry_imsize = Retry_Button_Height * 0.3
+            
+            Continue_Button_Width, Continue_Button_Height = Retry_Button_Width, Retry_Button_Height
+            Continue_imsize = Retry_imsize
             
             root.create_image( # Retry Button
                 "Button_Left",
@@ -1845,23 +1823,108 @@ def PlayerStart_Phi():
             
             root.create_image(
                 "Retry",
-                button_ease_pos + w * button_size * 0.3 - Retry_imsize / 2,
+                button_ease_pos + w * Const.FINISH_UI_BUTTON_SIZE * 0.3 - Retry_imsize / 2,
                 Retry_Button_Height / 2 - (Retry_Button_Height * (8 / 145)) - Retry_imsize / 2,
                 width = Retry_imsize,
                 height = Retry_imsize,
                 wait_execute = True
             )
             
-            root.run_js_wait_code()
+            root.create_image( # Continue Button
+                "Button_Right",
+                w - button_ease_pos - Continue_Button_Width, h - Continue_Button_Height,
+                width = Continue_Button_Width,
+                height = Continue_Button_Height,
+                wait_execute = True
+            )
             
+            root.create_image(
+                "Arrow_Right",
+                w - (button_ease_pos + w * Const.FINISH_UI_BUTTON_SIZE * 0.35 + Continue_imsize / 2),
+                h - (Continue_Button_Height / 2 - (Continue_Button_Height * (8 / 145)) * 1.15 + Continue_imsize / 2),
+                width = Continue_imsize,
+                height = Continue_imsize,
+                wait_execute = True
+            )
+            root.run_js_wait_code()
     
-    Chart_Finish_Animation()
+    def Chart_Finish_Animation():
+        animation_1_time = 0.75
+        animation_1_start_time = time()
         
-    if loop:
-        LoadChartObject()
-        PlayerStart_Phi()
-    else:
-        root.destroy()
+        while time() - animation_1_start_time < animation_1_time:
+            p = (time() - animation_1_start_time) / animation_1_time
+            v = p ** 2
+            draw_ui(
+                process = 1.0,
+                score = "1000000",
+                combo_state = True,
+                combo = phigros_chart_obj.note_num,
+                now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
+                animationing = True,
+                dy = h / 7 * (1 - v)
+            )
+            root.run_js_wait_code()
+        
+        mixer.music.fadeout(250)
+        sleep(0.25)
+        Resource["Over"].play(-1)
+    
+        animation_2_time = 3.5
+        animation_2_start_time = time()
+        a2_loop_clicked = False
+        a2_continue_clicked = False
+        a2_break = False
+        
+        def whileCheck():
+            nonlocal a2_break
+            while True:
+                if a2_loop_clicked or (loop and (time() - animation_2_start_time) > 2.75):
+                    def _f():
+                        LoadChartObject()
+                        PlayerStart_Phi()
+                    Thread(target=_f, daemon=True).start()
+                    break
+                
+                if a2_continue_clicked:
+                    root.destroy()
+                    break
+                    
+                sleep(1 / 240)
+            
+            root.run_js_code("window.removeEventListener('click', _loopClick);")
+            root.run_js_code("window.removeEventListener('click', _continueClick);")
+            delattr(root.jsapi, "loopClick")
+            delattr(root.jsapi, "continueClick")
+            a2_break = True
+        
+        Thread(target=whileCheck, daemon=True).start()
+        
+        def loopClick(clientX, clientY):
+            nonlocal a2_loop_clicked
+            if clientX <= w * Const.FINISH_UI_BUTTON_SIZE and clientY <= w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145:
+                a2_loop_clicked = True
+        
+        def continueClick(clientX, clientY):
+            nonlocal a2_continue_clicked
+            if clientX >= w - w * Const.FINISH_UI_BUTTON_SIZE and clientY >= h - w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145:
+                a2_continue_clicked = True
+        
+        root.jsapi.set_attr("loopClick", loopClick)
+        root.jsapi.set_attr("continueClick", continueClick)
+        root.run_js_code("_loopClick = (e) => {pywebview.api.call_attr('loopClick', e.clientX, e.clientY);}")
+        root.run_js_code("_continueClick = (e) => {pywebview.api.call_attr('continueClick', e.clientX, e.clientY);}")
+        root.run_js_code("window.addEventListener('click', _loopClick);")
+        root.run_js_code("window.addEventListener('click', _continueClick);")
+        
+        while time() - animation_2_start_time < animation_2_time and not a2_break:
+            p = (time() - animation_2_start_time) / animation_2_time
+            Chart_Finish_Animation_Frame(p)
+        
+        while not a2_break:
+            Chart_Finish_Animation_Frame(1.0)
+            
+    Chart_Finish_Animation()
 
 print("Loading Window...")
 # root.iconbitmap("./icon.ico")
