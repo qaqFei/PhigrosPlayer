@@ -16,10 +16,17 @@ def check_new_version():
         
         if have_new_ver:
             from tkinter.messagebox import showinfo
+            import webbrowser
             showinfo(
-                title="New Version! / 新版本!",
-                message="New version available! You can download it at https://github.com/qaqFei/PhigrosPlayer/releases\n\n新版本可用! 你可以下载它在https://github.com/qaqFei/PhigrosPlayer/releases"
+                title="New Version!  新版本!",
+                message=f"\
+New version available! You can download it at https://github.com/qaqFei/PhigrosPlayer/releases\n\n\
+新版本可用! 你可以下载它在https://github.com/qaqFei/PhigrosPlayer/releases\n\n\
+\n当前版本: {PPR_VERSION}\n最新版本: {".".join(new_ver)}\n\n\
+Current version: {PPR_VERSION}\nThe latest version: {".".join(new_ver)}\
+"
             )
+            webbrowser.open("https://github.com/qaqFei/PhigrosPlayer/releases")
         # else:
         #     print("This PPR is the latest version.")
     except Exception as e:
