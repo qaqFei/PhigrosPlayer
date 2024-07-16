@@ -255,15 +255,15 @@ class judgeLine:
         
         return xs, ys
     
-    def get_datavar_color(self, now_time):
+    def get_datavar_color(self, now_time, default:list[int]):
         if not self.ColorEvents:
-            return [254, 255, 169]
+            return default
         
         for e in self.ColorEvents: # sort by startTime and reverse
             if e.startTime <= now_time:
-                return e.value
+                return tuple(e.value)
         
-        return [254, 255, 169]
+        return default
 
 @dataclass
 class Phigros_Chart:
