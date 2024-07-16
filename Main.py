@@ -886,6 +886,7 @@ def GetFrameRenderTask_Phi(
             add_code_array = True
         )
     effect_time = 0.5
+    miss_effect_time = 0.225
     def process_effect_base(x:float, y:float, p:float, effect_random_blocks, perfect:bool):
         nonlocal Render_ClickEffect_Count
         Render_ClickEffect_Count += 1
@@ -939,6 +940,42 @@ def GetFrameRenderTask_Phi(
             note.positionX * PHIGROS_X
         )
         process_effect_base(*pos, p, effect_random_blocks, perfect)
+    
+    def process_miss(
+        note:Chart_Objects_Phi.note
+    ):
+        t = now_t / note.master.T
+        p = (now_t - note.time * note.master.T) / miss_effect_time
+        will_show_effect_pos = judgeLine.get_datavar_move(t, w, h)
+        will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
+        pos = Tool_Functions.rotate_point(
+            *will_show_effect_pos,
+            -will_show_effect_rotate,
+            note.positionX * PHIGROS_X
+        )
+        floorp = note.floorPosition - Chart_Objects_Phi.getFloorPosition(note.master, t)
+        x,y = Tool_Functions.rotate_point(
+            *pos,
+            (-90 if note.above else 90) - will_show_effect_rotate,
+            floorp * PHIGROS_Y
+        )
+        img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
+        this_note_img = Resource["Notes"][img_keyname]
+        this_note_imgname = f"Note_{img_keyname}"
+        # print(p, x, y)
+        Task(
+            root.run_js_code,
+            f"ctx.drawRotateImage(\
+                {root.get_img_jsvarname(this_note_imgname)},\
+                {x},\
+                {y},\
+                {Note_width * note.width * (Const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
+                {Note_width / this_note_img.width * this_note_img.height},\
+                {- will_show_effect_rotate},\
+                {note.alpha * (1 - p ** 0.5)}\
+            );",
+            add_code_array = True
+        )
         
     for judgeLine in phigros_chart_obj.judgeLineList:
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
@@ -971,17 +1008,20 @@ def GetFrameRenderTask_Phi(
                             note.show_effected_hold = True
             else: # noautoplay
                 if note.state == Const.NOTE_STATE.PERFECT or note.state == Const.NOTE_STATE.GOOD and note.player_clicked:
-                    if note_time + note.player_click_offset <= now_t:
-                        if now_t - (note_time + note.player_click_offset) <= effect_time:
+                    if note_time - note.player_click_offset <= now_t:
+                        if now_t - (note_time - note.player_click_offset) <= effect_time:
                             process_effect(
                                 note,
-                                note.time + note.player_click_offset / note.master.T,
+                                note.time - note.player_click_offset / note.master.T,
                                 note.effect_random_blocks,
                                 note.state == Const.NOTE_STATE.PERFECT,
                                 note.player_click_offset
                             )
                         else:
                             note.show_effected = True
+                elif note.state == Const.NOTE_STATE.MISS:
+                    if 0.0 <= now_t - note_time <= miss_effect_time and note.type != Const.Note.HOLD:
+                        process_miss(note)
                     
     if render_range_more:
         Task(
