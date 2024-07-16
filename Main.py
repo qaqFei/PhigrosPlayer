@@ -31,6 +31,9 @@ import Phigros_Tips
 import default_extend
 import Image_open
 import info_loader
+import version
+
+version.print_hello()
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
@@ -683,7 +686,7 @@ def PlayChart_ThreadFunction():
             abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= (0.2 if i.type == Const.Note.TAP else 0.16)
         )]
         
-        can_judge_notes.sort(key = lambda x: x[1])
+        can_judge_notes.sort(key = lambda x: abs(x[1]))
         
         if can_judge_notes:
             n, offset = can_judge_notes[0]
