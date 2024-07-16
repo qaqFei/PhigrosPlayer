@@ -41,6 +41,8 @@ selfdir = dirname(argv[0])
 if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
+Kill_PlayThread_Flag = False
+
 if not exists("./7z.exe") or not exists("./7z.dll"):
     print("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
@@ -596,11 +598,142 @@ def get_stringscore(score:float) -> str:
     score_integer = int(score + 0.5)
     return f"{score_integer:>7}".replace(" ","0")
 
+class PhigrosPlayManager:
+    def __init__(self, noteCount:int):
+        self.events:list[typing.Literal["P", "G", "B", "M"]] = []
+        self.noteCount:int = noteCount
+    
+    def addEvent(self, event:typing.Literal["P", "G", "B", "M"]): # Perfect, Good, Bad, Miss
+        self.events.append(event)
+    
+    def getJudgelineColor(self) -> tuple[int]:
+        if "B" in self.events or "M" in self.events:
+            return (255, 255, 255) # White
+        if "G" in self.events:
+            return (162, 238, 255) # FC
+        return (254, 255, 169) # AP
+
+    def getCombo(self) -> int:
+        cut = 0
+        for e in reversed(self.events):
+            if e == "P" or e == "G":
+                cut += 1
+        return cut
+    
+    def getAcc(self) -> float:
+        acc = 0.0
+        allcut = len(self.events)
+        for e in self.events:
+            if e == "P":
+                acc += 1.0 / allcut
+            elif e == "G":
+                acc += 0.65 / allcut
+        return acc
+    
+    def getMaxCombo(self) -> int:
+        r = 0
+        cut = 0
+        for e in reversed(self.events):
+            if e == "P" or e == "G":
+                cut += 1
+            else:
+                r = max(r, cut)
+                cut = 0
+        return max(r, cut)
+    
+    def getScore(self) -> float:
+        return self.getAcc() * 900000 + self.getMaxCombo() / self.noteCount * 1000000
+
+def PlayChart_ThreadFunction():
+    global PhigrosPlayManagerObject, Kill_PlayThread_Flag, PlayChart_NowTime
+    PlayChart_NowTime = - float("inf")
+    PhigrosPlayManagerObject = PhigrosPlayManager(phigros_chart_obj.note_num)
+    KeyDownCount = 0
+    keymap = {chr(i):False for i in range(97, 123)}
+    
+    def _KeyDown(key:str):
+        nonlocal KeyDownCount
+        key = key.lower()
+        if len(key) != 1: return
+        if not (97 <= ord(key) <= 122): return
+        if keymap[key]: return
+        keymap[key] = True
+        KeyDownCount += 1
+    
+    def _KeyUp(key:str):
+        nonlocal KeyDownCount
+        key = key.lower()
+        if len(key) != 1: return
+        if not (97 <= ord(key) <= 122): return
+        if KeyDownCount > 0: KeyDownCount -= 1
+        keymap[key] = False
+    
+    root.jsapi.set_attr("PhigrosPlay_KeyDown", _KeyDown)
+    root.jsapi.set_attr("PhigrosPlay_KeyUp", _KeyUp)
+    root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', e.key);});")
+    root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyUp', e.key);});")
+    root.run_js_code("window.addEventListener('keydown', _PhigrosPlay_KeyDown);")
+    root.run_js_code("window.addEventListener('keyup', _PhigrosPlay_KeyUp);")
+    notes = [i for line in phigros_chart_obj.judgeLineList for i in line.notesAbove + line.notesBelow]
+    
+    while True:
+        keydown = KeyDownCount > 0
+        
+        for note in notes:
+            note_time_sec = note.time * note.master.T
+            
+            if ( # (Drag / Flick) judge
+                keydown and
+                not note.player_clicked and
+                note.type in (Const.Note.FLICK, Const.Note.DRAG) and
+                abs((cktime := note_time_sec - PlayChart_NowTime)) <= 0.16 # +- 160ms
+            ):
+                note.player_will_click = True
+                
+                if cktime <= 0.0: #late
+                    note.player_click_offset = cktime
+            
+            if ( # if Drag / Flick it`s time to click and judged, click it and update it.
+                note.player_will_click and 
+                not note.player_clicked and 
+                note_time_sec <= PlayChart_NowTime
+            ):
+                note.player_clicked = True
+                note.state = Const.NOTE_STATE.PERFECT
+                PhigrosPlayManagerObject.addEvent("P")
+            
+            if ( # play click sound
+                note.player_clicked and
+                not note.player_click_sound_played
+            ):
+                Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
+                note.player_click_sound_played = True
+            
+            if ( # miss judge
+                not note.player_clicked
+                and not note.player_missed
+                and note_time_sec - PlayChart_NowTime < - 0.2
+            ):
+                note.player_missed = True
+                PhigrosPlayManagerObject.addEvent("M")
+            
+        if Kill_PlayThread_Flag:
+            delattr(root.jsapi, "PhigrosPlay_KeyDown")
+            delattr(root.jsapi, "PhigrosPlay_KeyUp")
+            root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
+            root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
+            root.run_js_code("delete _PhigrosPlay_KeyDown; delete _PhigrosPlay_KeyUp;")
+            Kill_PlayThread_Flag = False
+            return
+        sleep(1 / 480)
+
 def GetFrameRenderTask_Phi(
     now_t:float,
     judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,
     show_start_time:float
 ):
+    global PlayChart_NowTime; PlayChart_NowTime = now_t
+    
     GetFrameRenderTask_Phi_CallTime = time() #use in some extend
     Render_JudgeLine_Count = 0
     Render_Note_Count = 0
@@ -721,7 +854,7 @@ def GetFrameRenderTask_Phi(
                 
                 if this_noteitem_clicked and not note_item.clicked:
                     note_item.clicked = True
-                    if enable_clicksound and not note_item.fake:
+                    if enable_clicksound and not note_item.fake and not noautoplay:
                         Task.ExTask.append((
                             "thread-call",
                             "PlaySound.Play",
@@ -830,6 +963,8 @@ def GetFrameRenderTask_Phi(
                             )
                             holdbody_length = note_item.hold_length_px - this_note_img.height / 2 - this_note_img_end.height / 2
                         
+                        miss_alpha_change = 0.5 if noautoplay and note_item.player_missed else 1.0
+                        
                         Task(
                             root.run_js_code,
                             f"ctx.drawRotateImage(\
@@ -839,7 +974,7 @@ def GetFrameRenderTask_Phi(
                                 {Note_width * note_item.width * fix_scale},\
                                 {Note_width / this_note_img_end.width * this_note_img_end.height},\
                                 {judgeLine_rotate},\
-                                {note_item.alpha}\
+                                {note_item.alpha * miss_alpha_change}\
                             );",
                             add_code_array = True
                         )
@@ -854,7 +989,7 @@ def GetFrameRenderTask_Phi(
                                     {Note_width * note_item.width * fix_scale},\
                                     {holdbody_length},\
                                     {judgeLine_rotate},\
-                                    {note_item.alpha}\
+                                    {note_item.alpha * miss_alpha_change}\
                                 );",
                                 add_code_array = True
                             )
@@ -886,7 +1021,7 @@ def GetFrameRenderTask_Phi(
             add_code_array = True
         )
     effect_time = 0.5
-    miss_effect_time = 0.225
+    miss_effect_time = 0.2
     def process_effect_base(x:float, y:float, p:float, effect_random_blocks, perfect:bool):
         nonlocal Render_ClickEffect_Count
         Render_ClickEffect_Count += 1
@@ -962,7 +1097,6 @@ def GetFrameRenderTask_Phi(
         img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
         this_note_img = Resource["Notes"][img_keyname]
         this_note_imgname = f"Note_{img_keyname}"
-        # print(p, x, y)
         Task(
             root.run_js_code,
             f"ctx.drawRotateImage(\
@@ -1425,6 +1559,8 @@ def PlayerStart_Phi():
         while not mixer.music.get_busy(): pass
     
     if not lfdaot:
+        Thread(target=PlayChart_ThreadFunction, daemon=True).start()
+        while "PhigrosPlayManagerObject" not in globals(): pass # Waiting to load PhigrosPlayManagerObject.
         while True:
             now_t = time() - show_start_time
             Task = GetFrameRenderTask_Phi(
@@ -1441,6 +1577,9 @@ def PlayerStart_Phi():
             
             if break_flag:
                 break
+        global Kill_PlayThread_Flag
+        Kill_PlayThread_Flag = True
+        while Kill_PlayThread_Flag: pass
     else:
         lfdaot_tasks = {}
         frame_speed = 60

@@ -46,6 +46,8 @@ class note:
     player_clicked: bool = False
     player_click_offset: float = 0.0
     player_click_sound_played: bool = False
+    player_will_click: bool = False
+    player_missed: bool = False
     
     def __eq__(self, oth:object):
         if not isinstance(oth, note):

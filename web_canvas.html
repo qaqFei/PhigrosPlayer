@@ -256,6 +256,13 @@
         window.uploadFrame_Queue.put(dataUrl);
     }
 
+    function PhigrosPlay_KeyEvent(callback) {
+        return function (e) {
+            if (event.isComposing || event.keyCode === 229) reutrn;
+            callback(e);
+        }
+    }
+
     CanvasRenderingContext2D.prototype._clearRect = CanvasRenderingContext2D.prototype.clearRect;
 
     CanvasRenderingContext2D.prototype.clearRect = function(a,b,c,d) {
