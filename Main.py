@@ -2308,7 +2308,7 @@ for line in phigros_chart_obj.judgeLineList:
 background_image_blur = chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
 background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
-PHIGROS_X,PHIGROS_Y = 0.05625 * w,0.6 * h
+PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
