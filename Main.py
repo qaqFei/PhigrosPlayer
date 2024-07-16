@@ -928,10 +928,11 @@ def GetFrameRenderTask_Phi(
         perfect:bool,
         offset:float
     ):
-        p = (now_t - (t + offset) / note.master.T) / effect_time
+        p = (now_t - t * note.master.T) / effect_time
+        if not (0.0 <= p <= 1.0): return None
         offset /= note.master.T
-        will_show_effect_pos = judgeLine.get_datavar_move(t + offset, w, h)
-        will_show_effect_rotate = judgeLine.get_datavar_rotate(t + offset)
+        will_show_effect_pos = judgeLine.get_datavar_move(t, w, h)
+        will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
         pos = Tool_Functions.rotate_point(
             *will_show_effect_pos,
             -will_show_effect_rotate,

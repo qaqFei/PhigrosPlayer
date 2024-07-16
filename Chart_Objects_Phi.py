@@ -42,7 +42,7 @@ class note:
     show_effected: bool = False
     show_effected_hold: bool = False
     effect_times: list[tuple[int]] | tuple = ()
-    state: int = Const.NOTE_STATE.GOOD
+    state: int = Const.NOTE_STATE.MISS
     player_clicked: bool = False
     player_click_offset: float = 0.0
     player_click_sound_played: bool = False
