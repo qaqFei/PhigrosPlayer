@@ -34,6 +34,7 @@ import info_loader
 import version
 
 version.print_hello()
+Thread(target=version.check_new_version, daemon=True).start()
 
 if "-hideconsole" in argv:
     ConsoleWindow.Hide()
