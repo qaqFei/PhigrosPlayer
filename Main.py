@@ -2279,23 +2279,23 @@ root = webcvapis.WebCanvas(
     frameless = "-frameless" in argv
 )
 if "-window-host" in argv:
-    windll.user32.SetParent(root.winfo_hwnd(),eval(argv[argv.index("-window-host") + 1]))
+    windll.user32.SetParent(root.winfo_hwnd(), eval(argv[argv.index("-window-host") + 1]))
 if hidemouse:
     root.run_js_code("hide_mouse();")
 if "-fullscreen" in argv:
-    w,h = root.winfo_screenwidth(),root.winfo_screenheight()
+    w, h = root.winfo_screenwidth(), root.winfo_screenheight()
     root._web.toggle_fullscreen()
 else:
     if "-size" not in argv:
-        w,h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564),int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+        w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
     else:
-        w,h = int(eval(argv[argv.index("-size") + 1])),int(eval(argv[argv.index("-size") + 2]))
-    root.resize(w,h)
-    w_legacy,h_legacy = root.winfo_legacywindowwidth(),root.winfo_legacywindowheight()
-    dw_legacy,dh_legacy = w - w_legacy,h - h_legacy
-    del w_legacy,h_legacy
-    root.resize(w + dw_legacy,h + dh_legacy)
-    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2),int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
+        w, h = int(eval(argv[argv.index("-size") + 1])), int(eval(argv[argv.index("-size") + 2]))
+    root.resize(w, h)
+    w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
+    dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
+    del w_legacy, h_legacy
+    root.resize(w + dw_legacy, h + dh_legacy)
+    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
 
 if render_range_more:
     root.run_js_code("render_range_more = true;")
