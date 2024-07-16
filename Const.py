@@ -10,6 +10,12 @@ class CHART_TYPE: #no random :>
     PHI = 0x6ae92a9
     REP = 0x6cd0b78
 
+class NOTE_STATE:
+    PERFECT = 1
+    GOOD = 2
+    BAD = 3
+    MISS = 4
+
 INF = float("inf")
 NAN = float("nan")
 JUDGELINE_PERFECT_COLOR = "#feffa9"

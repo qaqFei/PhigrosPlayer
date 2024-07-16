@@ -82,6 +82,7 @@ render_range_more_scale = 2.0 if "-render-range-more-scale" not in argv else eva
 lfdaot_render_video = "-lfdaot-render-video" in argv
 extend_file = argv[argv.index("-extend") + 1] if "-extend" in argv else "./default_extend.py"
 no_mixer_reset_chart_time = "-no-mixer-reset-chart-time" in argv
+noautoplay = "-noautoplay" in argv
 
 extend_file_spec = importlib.util.spec_from_file_location("extend", extend_file)
 extend = importlib.util.module_from_spec(extend_file_spec)
@@ -255,6 +256,10 @@ def Load_Resource():
             "Perfect":[
                 Image.open(f"./Resources/Note_Click_Effect/Perfect/{i + 1}.png")
                 for i in range(30)
+            ],
+            "Good":[
+                Image.open(f"./Resources/Note_Click_Effect/Good/{i + 1}.png")
+                for i in range(30)
             ]
         },
         "Levels":{
@@ -312,6 +317,7 @@ def Load_Resource():
     
     for i in range(30): # reg click effect
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
+        root.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
         
     for k,v in Resource["Levels"].items(): # reg levels img
         root.reg_img(v, f"Level_{k}")
@@ -445,7 +451,7 @@ def draw_ui(
         )
         
         root.create_text(
-            text="Autoplay" if "-combotips" not in argv else argv[argv.index("-combotips") + 1],
+            text=("Autoplay" if not noautoplay else "Combo") if "-combotips" not in argv else argv[argv.index("-combotips") + 1],
             x = w / 2,
             y = h * 0.095,
             textBaseline = "middle",
@@ -893,13 +899,15 @@ def GetFrameRenderTask_Phi(
                 continue
             
             if note_time <= now_t:
-                def process(et,t,effect_random_blocks):
+                def process(et, t, effect_random_blocks, perfect:bool):
                     nonlocal Render_ClickEffect_Count
                     Render_ClickEffect_Count += 1
                     effect_process = (now_t - et) / effect_time
                     will_show_effect_pos = judgeLine.get_datavar_move(t,w,h)
                     will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
                     effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
+                    color = (254, 255, 169) if perfect else (162, 238, 255)
+                    imn = "Note_Click_Effect_" + ("Perfect" if perfect else "Good")
                     if clickeffect_randomblock:
                         for index,random_deg in enumerate(effect_random_blocks):
                             block_alpha = (1.0 - effect_process) * 0.85
@@ -918,12 +926,12 @@ def GetFrameRenderTask_Phi(
                                 effect_random_point[1] - block_size,
                                 effect_random_point[0] + block_size,
                                 effect_random_point[1] + block_size,
-                                fillStyle = f"rgba{(254,255,169,block_alpha)}",
+                                fillStyle = f"rgba{color + (block_alpha, )}",
                                 wait_execute = True
                             )
                     Task(
                         root.create_image,
-                        f"Note_Click_Effect_Perfect_{int(effect_process * (30 - 1)) + 1}",
+                        f"{imn}_{int(effect_process * (30 - 1)) + 1}",
                         effect_pos[0] - ClickEffect_Size / 2,
                         effect_pos[1] - ClickEffect_Size / 2,
                         ClickEffect_Size,ClickEffect_Size,
@@ -931,7 +939,7 @@ def GetFrameRenderTask_Phi(
                     )
                             
                 if now_t - note_time <= effect_time:
-                    process(note_time, note.time, note.effect_random_blocks)
+                    process(note_time, note.time, note.effect_random_blocks, True)
                 else:
                     note.show_effected = True
                 
@@ -942,7 +950,7 @@ def GetFrameRenderTask_Phi(
                         for temp_time,hold_effect_random_blocks in note.effect_times:
                             if temp_time < now_t:
                                 if now_t - temp_time <= effect_time:
-                                    process(temp_time, temp_time / judgeLine.T, hold_effect_random_blocks)
+                                    process(temp_time, temp_time / judgeLine.T, hold_effect_random_blocks, True)
                                     is_processed = True
                     if not is_processed and efct_et < now_t:
                         note.show_effected_hold = True
@@ -1894,6 +1902,7 @@ def PlayerStart_Phi():
             
             root.run_js_code("window.removeEventListener('click', _loopClick);")
             root.run_js_code("window.removeEventListener('click', _continueClick);")
+            root.run_js_code("delete _loopClick; delete _continueClick;")
             delattr(root.jsapi, "loopClick")
             delattr(root.jsapi, "continueClick")
             a2_break = True
