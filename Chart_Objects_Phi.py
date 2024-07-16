@@ -40,7 +40,6 @@ class note:
     morebets: bool = False
     master: judgeLine|None = None
     show_effected: bool = False
-    show_effected_hold: bool = False
     effect_times: list[tuple[int]] | tuple = ()
     state: int = Const.NOTE_STATE.MISS
     player_clicked: bool = False
@@ -49,6 +48,10 @@ class note:
     player_will_click: bool = False
     player_missed: bool = False
     player_badtime: float = float("nan")
+    player_holdmiss_time: float = float("inf")
+    player_last_testholdismiss_time: float = -float("inf")
+    player_holdjudged: bool = False
+    player_holdclickstate: int = Const.NOTE_STATE.MISS
     
     def __eq__(self, oth:object):
         if not isinstance(oth, note):

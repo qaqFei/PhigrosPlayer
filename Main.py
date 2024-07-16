@@ -658,7 +658,7 @@ class PhigrosPlayManager:
         return max(r, cut)
     
     def getScore(self) -> float:
-        return self.getAccOfAll() * 900000 + self.getMaxCombo() / self.noteCount * 1000000
+        return self.getAccOfAll() * 900000 + self.getMaxCombo() / self.noteCount * 100000
 
 def PlayChart_ThreadFunction():
     global PhigrosPlayManagerObject, Kill_PlayThread_Flag, PlayChart_NowTime
@@ -691,9 +691,15 @@ def PlayChart_ThreadFunction():
             if 0.0 <= abs_offset <= 0.08:
                 n.state = Const.NOTE_STATE.PERFECT
                 PhigrosPlayManagerObject.addEvent("P")
+                if n.type == Const.Note.HOLD:
+                    n.player_holdjudged = True
+                    n.player_holdclickstate = n.state
             elif 0.08 < abs_offset <= 0.16:
                 n.state = Const.NOTE_STATE.GOOD
                 PhigrosPlayManagerObject.addEvent("G")
+                if n.type == Const.Note.HOLD:
+                    n.player_holdjudged = True
+                    n.player_holdclickstate = n.state
             elif 0.16 < abs_offset <= 0.2:
                 n.player_badtime = PlayChart_NowTime
                 n.state = Const.NOTE_STATE.BAD
@@ -759,6 +765,20 @@ def PlayChart_ThreadFunction():
             ):
                 note.player_missed = True
                 PhigrosPlayManagerObject.addEvent("M")
+            
+            if ( # hold hold judge
+                note.type == Const.Note.HOLD and 
+                note.player_clicked and
+                note.state != Const.NOTE_STATE.MISS and
+                note.hold_endtime - 0.2 >= PlayChart_NowTime
+            ):
+                if note.player_last_testholdismiss_time + 0.16 <= time():
+                    if keydown:
+                        note.player_last_testholdismiss_time = time()
+                    else:
+                        note.player_holdmiss_time = PlayChart_NowTime
+                        note.state = Const.NOTE_STATE.MISS
+                        note.player_missed = True
             
         if Kill_PlayThread_Flag:
             delattr(root.jsapi, "PhigrosPlay_KeyDown")
@@ -1196,38 +1216,44 @@ def GetFrameRenderTask_Phi(
             note_ishold = note.type == Const.Note.HOLD
             if not note_ishold and note.show_effected:
                 continue
-            elif note_ishold and note.show_effected_hold:
-                continue
             elif note.fake:
                 continue
             
             if not noautoplay:
                 if note_time <= now_t:
                     if now_t - note_time <= effect_time:
-                        process_effect(note, note.time, note.effect_random_blocks, True, 0.0)
+                        process_effect(
+                            note,
+                            note.time,
+                            note.effect_random_blocks,
+                            True,
+                            0.0
+                        )
                     else:
                         note.show_effected = True
                     
                     if note_ishold:
-                        is_processed = False
                         efct_et = note.hold_endtime + effect_time
                         if efct_et >= now_t:
                             for temp_time,hold_effect_random_blocks in note.effect_times:
                                 if temp_time < now_t:
                                     if now_t - temp_time <= effect_time:
-                                        process_effect(note, temp_time / judgeLine.T, hold_effect_random_blocks, True, 0.0)
-                                        is_processed = True
-                        if not is_processed and efct_et < now_t:
-                            note.show_effected_hold = True
+                                        process_effect(
+                                            note,
+                                            temp_time / judgeLine.T,
+                                            hold_effect_random_blocks,
+                                            True,
+                                            0.0
+                                        )
             else: # noautoplay
-                if note.state == Const.NOTE_STATE.PERFECT or note.state == Const.NOTE_STATE.GOOD and note.player_clicked:
+                if note.player_holdjudged or (note.state == Const.NOTE_STATE.PERFECT or note.state == Const.NOTE_STATE.GOOD and note.player_clicked):
                     if note_time - note.player_click_offset <= now_t:
                         if now_t - (note_time - note.player_click_offset) <= effect_time:
                             process_effect(
                                 note,
                                 note.time - note.player_click_offset / note.master.T,
                                 note.effect_random_blocks,
-                                note.state == Const.NOTE_STATE.PERFECT,
+                                note.state == Const.NOTE_STATE.PERFECT if note.type != Const.Note.HOLD else note.player_holdclickstate == Const.NOTE_STATE.PERFECT,
                                 note.player_click_offset
                             )
                         else:
@@ -1238,6 +1264,21 @@ def GetFrameRenderTask_Phi(
                 elif note.state == Const.NOTE_STATE.BAD:
                     if 0.0 <= now_t - note.player_badtime <= bad_effect_time:
                         process_bad(note)
+                        
+                if note_ishold and note.player_holdjudged and note.player_holdclickstate != Const.NOTE_STATE.MISS:
+                    efct_et = note.player_holdmiss_time + effect_time
+                    if efct_et >= now_t:
+                        for temp_time, hold_effect_random_blocks in note.effect_times:
+                            if temp_time < now_t:
+                                if now_t - temp_time <= effect_time:
+                                    if temp_time + effect_time <= efct_et:
+                                        process_effect(
+                                            note,
+                                            temp_time / judgeLine.T,
+                                            hold_effect_random_blocks,
+                                            note.player_holdclickstate == Const.NOTE_STATE.PERFECT,
+                                            0.0
+                                        )
                     
     if render_range_more:
         Task(

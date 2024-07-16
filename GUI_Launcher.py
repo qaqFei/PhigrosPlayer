@@ -181,7 +181,7 @@ def Launch():
     if exists(kwarg_extend_entry.get()) and isfile(kwarg_extend_entry.get()):
         launch_args.append(f"-extend \"{kwarg_extend_entry.get()}\"")
     
-    launch_args.append(f"-combotips \"{kwarg_combotips_entry.get()}\"")
+    if kwarg_combotips_entry.get() != "Autoplay": launch_args.append(f"-combotips \"{kwarg_combotips_entry.get()}\"")
     launch_args.append(f"-random-block-num \"{kwarg_random_block_num_entry.get()}\"")
     launch_args.append(f"-scale-note \"{kwarg_scale_note_entry.get()}\"")
     
