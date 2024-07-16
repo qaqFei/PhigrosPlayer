@@ -84,7 +84,8 @@ def Load_Chart_Object(
                         VisibleTime = notesAbove_item.get("--QFPPR-Note-VisibleTime", float("inf")),
                         id = Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
-                        effect_random_blocks = Tool_Functions.get_effect_random_blocks()
+                        effect_random_blocks = Tool_Functions.get_effect_random_blocks(),
+                        above = True
                     )
                     for notesAbove_item in judgeLine_item.get("notesAbove", [])
                 ],
@@ -102,7 +103,8 @@ def Load_Chart_Object(
                         VisibleTime = notesBelow_item.get("--QFPPR-Note-VisibleTime", float("inf")),
                         id = Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
-                        effect_random_blocks = Tool_Functions.get_effect_random_blocks()
+                        effect_random_blocks = Tool_Functions.get_effect_random_blocks(),
+                        above = False
                     )
                     for notesBelow_item in judgeLine_item.get("notesBelow", [])
                 ],

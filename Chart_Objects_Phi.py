@@ -33,6 +33,7 @@ class note:
     fake: bool
     VisibleTime: float
     effect_random_blocks: tuple[int]
+    above: bool
     id: int|None = None
     by_judgeLine_id: int|None = None
     clicked: bool = False
@@ -41,9 +42,9 @@ class note:
     show_effected: bool = False
     show_effected_hold: bool = False
     effect_times: list[tuple[int]] | tuple = ()
-    state: int = Const.NOTE_STATE.MISS
+    state: int = Const.NOTE_STATE.GOOD
     player_clicked: bool = False
-    player_click_offset: float = - float("inf")
+    player_click_offset: float = 0.0
     player_click_sound_played: bool = False
     
     def __eq__(self, oth:object):

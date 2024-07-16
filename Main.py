@@ -712,7 +712,7 @@ def GetFrameRenderTask_Phi(
                         add_code_array = True
                     )
         
-        def process(notes_list:typing.List[Chart_Objects_Phi.note],t:int):
+        def process(notes_list:typing.List[Chart_Objects_Phi.note], t:typing.Literal[1, -1]): # above => t = 1, below => t = -1
             nonlocal Render_Note_Count
             for note_item in notes_list:
                 this_note_sectime = note_item.time * this_judgeLine_T
@@ -748,7 +748,7 @@ def GetFrameRenderTask_Phi(
                 rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
                     *judgeLine_cfg.pos,-judgeLine_cfg.rotate,note_item.positionX * PHIGROS_X
                 )
-                judgeLine_to_note_rotate_deg = - judgeLine_cfg.rotate + (180 if t == -1 else 0) - 90
+                judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) - judgeLine_cfg.rotate
                 x,y = Tool_Functions.rotate_point(
                     *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_now_floorPosition
                 )
@@ -886,11 +886,63 @@ def GetFrameRenderTask_Phi(
             add_code_array = True
         )
     effect_time = 0.5
+    def process_effect_base(x:float, y:float, p:float, effect_random_blocks, perfect:bool):
+        nonlocal Render_ClickEffect_Count
+        Render_ClickEffect_Count += 1
+        color = (254, 255, 169) if perfect else (162, 238, 255)
+        imn = "Note_Click_Effect_" + ("Perfect" if perfect else "Good")
+        if clickeffect_randomblock:
+            for i, deg in enumerate(effect_random_blocks):
+                block_alpha = (1.0 - p) * 0.85
+                if block_alpha <= 0.0:
+                    continue
+                effect_random_point = Tool_Functions.rotate_point(
+                    x, y, deg + i * 90,
+                    ClickEffect_Size * Tool_Functions.ease_out(p) / 1.25
+                )
+                block_size = EFFECT_RANDOM_BLOCK_SIZE
+                if p > 0.65:
+                    block_size -= (p - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
+                Task(
+                    root.create_rectangle,
+                    effect_random_point[0] - block_size,
+                    effect_random_point[1] - block_size,
+                    effect_random_point[0] + block_size,
+                    effect_random_point[1] + block_size,
+                    fillStyle = f"rgba{color + (block_alpha, )}",
+                    wait_execute = True
+                )
+        Task(
+            root.create_image,
+            f"{imn}_{int(p * (30 - 1)) + 1}",
+            x - ClickEffect_Size / 2,
+            y - ClickEffect_Size / 2,
+            ClickEffect_Size,ClickEffect_Size,
+            wait_execute = True
+        )
+        
+    def process_effect(
+        note:Chart_Objects_Phi.note,
+        t:float,
+        effect_random_blocks,
+        perfect:bool,
+        offset:float
+    ):
+        p = (now_t - (t + offset) / note.master.T) / effect_time
+        offset /= note.master.T
+        will_show_effect_pos = judgeLine.get_datavar_move(t + offset, w, h)
+        will_show_effect_rotate = judgeLine.get_datavar_rotate(t + offset)
+        pos = Tool_Functions.rotate_point(
+            *will_show_effect_pos,
+            -will_show_effect_rotate,
+            note.positionX * PHIGROS_X
+        )
+        process_effect_base(*pos, p, effect_random_blocks, perfect)
+        
     for judgeLine in phigros_chart_obj.judgeLineList:
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
             note_time = note.time * judgeLine.T
             note_ishold = note.type == Const.Note.HOLD
-            
             if not note_ishold and note.show_effected:
                 continue
             elif note_ishold and note.show_effected_hold:
@@ -898,62 +950,38 @@ def GetFrameRenderTask_Phi(
             elif note.fake:
                 continue
             
-            if note_time <= now_t:
-                def process(et, t, effect_random_blocks, perfect:bool):
-                    nonlocal Render_ClickEffect_Count
-                    Render_ClickEffect_Count += 1
-                    effect_process = (now_t - et) / effect_time
-                    will_show_effect_pos = judgeLine.get_datavar_move(t,w,h)
-                    will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
-                    effect_pos = Tool_Functions.rotate_point(*will_show_effect_pos,-will_show_effect_rotate,note.positionX * PHIGROS_X)
-                    color = (254, 255, 169) if perfect else (162, 238, 255)
-                    imn = "Note_Click_Effect_" + ("Perfect" if perfect else "Good")
-                    if clickeffect_randomblock:
-                        for index,random_deg in enumerate(effect_random_blocks):
-                            block_alpha = (1.0 - effect_process) * 0.85
-                            if block_alpha <= 0.0:
-                                continue
-                            effect_random_point = Tool_Functions.rotate_point(
-                                *effect_pos, random_deg + index * 90,
-                                ClickEffect_Size * Tool_Functions.ease_out(effect_process) / 1.25
+            if not noautoplay:
+                if note_time <= now_t:
+                    if now_t - note_time <= effect_time:
+                        process_effect(note, note.time, note.effect_random_blocks, True, 0.0)
+                    else:
+                        note.show_effected = True
+                    
+                    if note_ishold:
+                        is_processed = False
+                        efct_et = note.hold_endtime + effect_time
+                        if efct_et >= now_t:
+                            for temp_time,hold_effect_random_blocks in note.effect_times:
+                                if temp_time < now_t:
+                                    if now_t - temp_time <= effect_time:
+                                        process_effect(note, temp_time / judgeLine.T, hold_effect_random_blocks, True, 0.0)
+                                        is_processed = True
+                        if not is_processed and efct_et < now_t:
+                            note.show_effected_hold = True
+            else: # noautoplay
+                if note.state == Const.NOTE_STATE.PERFECT or note.state == Const.NOTE_STATE.GOOD and note.player_clicked:
+                    if note_time + note.player_click_offset <= now_t:
+                        if now_t - (note_time + note.player_click_offset) <= effect_time:
+                            process_effect(
+                                note,
+                                note.time + note.player_click_offset / note.master.T,
+                                note.effect_random_blocks,
+                                note.state == Const.NOTE_STATE.PERFECT,
+                                note.player_click_offset
                             )
-                            block_size = EFFECT_RANDOM_BLOCK_SIZE
-                            if effect_process > 0.65:
-                                block_size -= (effect_process - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
-                            Task(
-                                root.create_rectangle,
-                                effect_random_point[0] - block_size,
-                                effect_random_point[1] - block_size,
-                                effect_random_point[0] + block_size,
-                                effect_random_point[1] + block_size,
-                                fillStyle = f"rgba{color + (block_alpha, )}",
-                                wait_execute = True
-                            )
-                    Task(
-                        root.create_image,
-                        f"{imn}_{int(effect_process * (30 - 1)) + 1}",
-                        effect_pos[0] - ClickEffect_Size / 2,
-                        effect_pos[1] - ClickEffect_Size / 2,
-                        ClickEffect_Size,ClickEffect_Size,
-                        wait_execute = True
-                    )
-                            
-                if now_t - note_time <= effect_time:
-                    process(note_time, note.time, note.effect_random_blocks, True)
-                else:
-                    note.show_effected = True
-                
-                if note_ishold:
-                    is_processed = False
-                    efct_et = note.hold_endtime + effect_time
-                    if efct_et >= now_t:
-                        for temp_time,hold_effect_random_blocks in note.effect_times:
-                            if temp_time < now_t:
-                                if now_t - temp_time <= effect_time:
-                                    process(temp_time, temp_time / judgeLine.T, hold_effect_random_blocks, True)
-                                    is_processed = True
-                    if not is_processed and efct_et < now_t:
-                        note.show_effected_hold = True
+                        else:
+                            note.show_effected = True
+                    
     if render_range_more:
         Task(
             root.run_js_code,
