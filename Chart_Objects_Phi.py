@@ -48,6 +48,7 @@ class note:
     player_click_sound_played: bool = False
     player_will_click: bool = False
     player_missed: bool = False
+    player_badtime: float = float("nan")
     
     def __eq__(self, oth:object):
         if not isinstance(oth, note):

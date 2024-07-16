@@ -256,7 +256,8 @@ def Load_Resource():
             "Hold_End": Image.open("./Resources/Notes/Hold_End.png"),
             "Hold_End_dub": Image.open("./Resources/Notes/Hold_End_dub.png"),
             "Hold_Body": Image.open("./Resources/Notes/Hold_Body.png"),
-            "Hold_Body_dub": Image.open("./Resources/Notes/Hold_Body_dub.png")
+            "Hold_Body_dub": Image.open("./Resources/Notes/Hold_Body_dub.png"),
+            "Tap_Bad": Image.open("./Resources/Notes/Tap_Bad.png")
         },
         "Note_Click_Effect":{
             "Perfect":[
@@ -694,6 +695,7 @@ def PlayChart_ThreadFunction():
                 n.state = Const.NOTE_STATE.GOOD
                 PhigrosPlayManagerObject.addEvent("G")
             elif 0.16 < abs_offset <= 0.2:
+                n.player_badtime = PlayChart_NowTime
                 n.state = Const.NOTE_STATE.BAD
                 PhigrosPlayManagerObject.addEvent("B")
                 
@@ -906,6 +908,8 @@ def GetFrameRenderTask_Phi(
                     continue
                 elif this_note_ishold and now_t > note_item.hold_endtime:
                     continue
+                elif noautoplay and note_item.state == Const.NOTE_STATE.BAD:
+                    continue
                 
                 note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (
                         judgeLine_note_dy
@@ -1063,6 +1067,7 @@ def GetFrameRenderTask_Phi(
         )
     effect_time = 0.5
     miss_effect_time = 0.2
+    bad_effect_time = 0.5
     def process_effect_base(x:float, y:float, p:float, effect_random_blocks, perfect:bool):
         nonlocal Render_ClickEffect_Count
         Render_ClickEffect_Count += 1
@@ -1144,10 +1149,43 @@ def GetFrameRenderTask_Phi(
                 {root.get_img_jsvarname(this_note_imgname)},\
                 {x},\
                 {y},\
-                {Note_width * note.width * (Const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
+                {Note_width * note.width},\
                 {Note_width / this_note_img.width * this_note_img.height},\
                 {- will_show_effect_rotate},\
                 {note.alpha * (1 - p ** 0.5)}\
+            );",
+            add_code_array = True
+        )
+    
+    def process_bad(
+        note:Chart_Objects_Phi.note
+    ):
+        t = note.player_badtime / note.master.T
+        p = (now_t - note.player_badtime) / bad_effect_time
+        will_show_effect_pos = judgeLine.get_datavar_move(t, w, h)
+        will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
+        pos = Tool_Functions.rotate_point(
+            *will_show_effect_pos,
+            -will_show_effect_rotate,
+            note.positionX * PHIGROS_X
+        )
+        floorp = note.floorPosition - Chart_Objects_Phi.getFloorPosition(note.master, t)
+        x,y = Tool_Functions.rotate_point(
+            *pos,
+            (-90 if note.above else 90) - will_show_effect_rotate,
+            floorp * PHIGROS_Y
+        )
+        this_note_img = Resource["Notes"]["Tap_Bad"]
+        Task(
+            root.run_js_code,
+            f"ctx.drawRotateImage(\
+                {root.get_img_jsvarname("Note_Tap_Bad")},\
+                {x},\
+                {y},\
+                {Note_width * note.width * (Const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
+                {Note_width / this_note_img.width * this_note_img.height},\
+                {- will_show_effect_rotate},\
+                {note.alpha * (1 - p ** 3)}\
             );",
             add_code_array = True
         )
@@ -1197,6 +1235,9 @@ def GetFrameRenderTask_Phi(
                 elif note.state == Const.NOTE_STATE.MISS:
                     if 0.0 <= now_t - note_time <= miss_effect_time and note.type != Const.Note.HOLD:
                         process_miss(note)
+                elif note.state == Const.NOTE_STATE.BAD:
+                    if 0.0 <= now_t - note.player_badtime <= bad_effect_time:
+                        process_bad(note)
                     
     if render_range_more:
         Task(
