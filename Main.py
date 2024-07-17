@@ -506,7 +506,7 @@ def draw_ui(
     root.create_text(
         text = chart_information["Name"],
         x = w * 0.0125,
-        y = h * 0.98,
+        y = h * 0.976,
         textAlign = "left",
         textBaseline = "bottom",
         strokeStyle = "white",
@@ -518,7 +518,7 @@ def draw_ui(
     root.create_text(
         text = chart_information["Level"],
         x = w * 0.9875,
-        y = h * 0.98,
+        y = h * 0.976,
         textAlign = "right",
         textBaseline = "bottom",
         strokeStyle = "white",
@@ -1788,11 +1788,11 @@ def PlayerStart_Phi():
         if noautoplay:
             Thread(target=PlayChart_ThreadFunction, daemon=True).start()
             while "PhigrosPlayManagerObject" not in globals(): pass # Waiting to load PhigrosPlayManagerObject.
-            play_restart_flag = False
-            def _f(): nonlocal play_restart_flag; play_restart_flag = True
-            root.jsapi.set_attr("Noautoplay_Restart", _f)
-            root.run_js_code("_Noautoplay_Restart = (e) => {if (e.altKey && e.ctrlKey && e.repeat && e.key.toLowerCase() == 'r') pywebview.api.call_attr('Noautoplay_Restart');};") # && e.repeat 为了判定长按
-            root.run_js_code("window.addEventListener('keydown', _Noautoplay_Restart);")
+        play_restart_flag = False
+        def _f(): nonlocal play_restart_flag; play_restart_flag = True
+        root.jsapi.set_attr("Noautoplay_Restart", _f)
+        root.run_js_code("_Noautoplay_Restart = (e) => {if (e.altKey && e.ctrlKey && e.repeat && e.key.toLowerCase() == 'r') pywebview.api.call_attr('Noautoplay_Restart');};") # && e.repeat 为了判定长按
+        root.run_js_code("window.addEventListener('keydown', _Noautoplay_Restart);")
         while True:
             now_t = time() - show_start_time
             Task = GetFrameRenderTask_Phi(
@@ -1816,15 +1816,16 @@ def PlayerStart_Phi():
             global Kill_PlayThread_Flag
             Kill_PlayThread_Flag = True
             while Kill_PlayThread_Flag: pass
-            root.run_js_code("window.removeEventListener('keydown', _Noautoplay_Restart);")
-            root.run_js_code("delete _Noautoplay_Restart;")
-            delattr(root.jsapi, "Noautoplay_Restart")
             
-            if play_restart_flag:
-                mixer.music.fadeout(250)
-                LoadChartObject()
-                Thread(target=PlayerStart_Phi, daemon=True).start()
-                return None
+        root.run_js_code("window.removeEventListener('keydown', _Noautoplay_Restart);")
+        root.run_js_code("delete _Noautoplay_Restart;")
+        delattr(root.jsapi, "Noautoplay_Restart")
+            
+        if play_restart_flag:
+            mixer.music.fadeout(250)
+            LoadChartObject()
+            Thread(target=PlayerStart_Phi, daemon=True).start()
+            return None
                 
     else:
         lfdaot_tasks = {}
