@@ -188,6 +188,9 @@ class judgeLine:
                         spes.append(speedEvent(e.endTime, ne.startTime, e.value, None))
         self.speedEvents += spes
         
+        self._sort_events()
+    
+    def _sort_events(self):
         self.speedEvents.sort(key = lambda x: x.startTime) # it cannot sort, if sort it -> cal floorPosition will be error. (i donot know why...)
         self.judgeLineMoveEvents.sort(key = lambda x: x.startTime)
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
@@ -282,6 +285,38 @@ class Phigros_Chart:
     Extra: dict
     
     def __post_init__(self):
+        if self.offset != 0.0:
+            for line in self.judgeLineList:
+                offset_time = self.offset / line.T
+                for note in line.notesAbove + line.notesBelow:
+                    note.time += offset_time
+                
+                if line.speedEvents:
+                    for e in line.speedEvents:
+                        e.startTime += offset_time
+                        e.endTime += offset_time
+                        e.floorPosition = None
+                    line.speedEvents[0].startTime = 0.0
+                
+                if line.judgeLineMoveEvents:
+                    for e in line.judgeLineMoveEvents:
+                        e.startTime += offset_time
+                        e.endTime += offset_time
+                
+                if line.judgeLineDisappearEvents:
+                    for e in line.judgeLineDisappearEvents:
+                        e.startTime += offset_time
+                        e.endTime += offset_time
+                
+                if line.judgeLineRotateEvents:
+                    for e in line.judgeLineRotateEvents:
+                        e.startTime += offset_time
+                        e.endTime += offset_time
+                
+                line._sort_events()
+                    
+            self.offset = 0.0
+            
         self.note_num = 0
         for judgeLine in self.judgeLineList:
             #set_master_to_notes

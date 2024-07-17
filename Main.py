@@ -874,7 +874,6 @@ def GetFrameRenderTask_Phi(
     Render_Note_Count = 0
     Render_ClickEffect_Count = 0
     
-    now_t -= phigros_chart_obj.offset
     Task = Chart_Objects_Phi.FrameRenderTask([],[])
     Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,now_t)
     Task(root.clear_canvas,wait_execute = True)
@@ -1477,7 +1476,6 @@ def GetFrameRenderTask_Phi(
     if now_t >= audio_length:
         Task.ExTask.append(("break",))
     
-    now_t += phigros_chart_obj.offset
     if not lfdaot: # 2 "if" layer is more readable
         if not no_mixer_reset_chart_time:
             this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
