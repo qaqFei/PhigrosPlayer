@@ -89,6 +89,7 @@ lfdaot_render_video = "-lfdaot-render-video" in argv
 extend_file = argv[argv.index("-extend") + 1] if "-extend" in argv else "./default_extend.py"
 no_mixer_reset_chart_time = "-no-mixer-reset-chart-time" in argv
 noautoplay = "-noautoplay" in argv
+rtacc = "-rtacc" in argv
 
 if lfdaot and noautoplay:
     noautoplay = False
@@ -409,6 +410,7 @@ def draw_ui(
     combo_state:bool = False,
     combo:int = 0,
     now_time:str = "0:00/0:00",
+    acc:str = "100.0%",
     clear:bool = True,
     background:bool = True,
     animationing:bool = False,
@@ -440,21 +442,34 @@ def draw_ui(
         text = score,
         x = w * 0.988,
         y = h * 0.045,
-        textBaseline = "middle",
         textAlign = "right",
+        textBaseline = "middle",
         strokeStyle = "white",
         fillStyle = "white",
         font = f"{((w + h) / 75 / 0.75)}px PhigrosFont",
         wait_execute = True
     )
     
+    if rtacc:
+        root.create_text(
+            text = acc,
+            x = w * 0.988,
+            y = h * 0.08,
+            textAlign = "right",
+            textBaseline = "middle",
+            strokeStyle = "white",
+            fillStyle = "white",
+            font = f"{((w + h) / 145 / 0.75)}px PhigrosFont",
+            wait_execute = True
+        )
+    
     if combo_state:
         root.create_text(
             text = f"{combo}",
             x = w / 2,
             y = h * 0.05,
-            textBaseline = "middle",
             textAlign = "center",
+            textBaseline = "middle",
             strokeStyle = "white",
             fillStyle = "white",
             font = f"{((w + h) / 75 / 0.75)}px PhigrosFont",
@@ -465,8 +480,8 @@ def draw_ui(
             text=("Autoplay" if not noautoplay else "Combo") if "-combotips" not in argv else argv[argv.index("-combotips") + 1],
             x = w / 2,
             y = h * 0.095,
-            textBaseline = "middle",
             textAlign = "center",
+            textBaseline = "middle",
             strokeStyle = "white",
             fillStyle = "white",
             font = f"{((w + h) / 100 / 0.75)}px PhigrosFont",
@@ -477,8 +492,8 @@ def draw_ui(
         text = now_time,
         x = 0,
         y = h * 0.01,
-        textBaseline = "top",
         textAlign = "left",
+        textBaseline = "top",
         strokeStyle = "white",
         fillStyle = "white",
         font = f"{((w + h) / 175 / 0.75)}px PhigrosFont",
@@ -492,8 +507,8 @@ def draw_ui(
         text = chart_information["Name"],
         x = w * 0.0125,
         y = h * 0.98,
-        textBaseline = "bottom",
         textAlign = "left",
+        textBaseline = "bottom",
         strokeStyle = "white",
         fillStyle = "white",
         font = f"{((w + h) / 125 / 0.75)}px PhigrosFont",
@@ -504,11 +519,23 @@ def draw_ui(
         text = chart_information["Level"],
         x = w * 0.9875,
         y = h * 0.98,
-        textBaseline = "bottom",
         textAlign = "right",
+        textBaseline = "bottom",
         strokeStyle = "white",
         fillStyle = "white",
         font = f"{((w + h) / 125 / 0.75)}px PhigrosFont",
+        wait_execute = True
+    )
+    
+    root.create_text(
+        text = "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License",
+        x = w * 0.9875,
+        y = h * 0.995,
+        textAlign = "right",
+        textBaseline = "bottom",
+        strokeStyle = "rgba(255, 255, 255, 0.5)",
+        fillStyle = "rgba(255, 255, 255, 0.5)",
+        font = f"{((w + h) / 275 / 0.75)}px PhigrosFont",
         wait_execute = True
     )
     
@@ -635,6 +662,7 @@ class PhigrosPlayManager:
         return cut
     
     def getAcc(self) -> float: # 实时 Acc
+        if not self.events: return 1.0
         acc = 0.0
         allcut = len(self.events)
         for e in self.events:
@@ -1465,6 +1493,7 @@ def GetFrameRenderTask_Phi(
         combo_state = combo >= 3,
         combo = combo,
         now_time = time_text,
+        acc = "100.00%" if not noautoplay else f"{(PhigrosPlayManagerObject.getAcc() * 100):.2f}%",
         clear = False,
         background = False
     )
@@ -2284,10 +2313,11 @@ def PlayerStart_Phi():
             if not noautoplay:
                 draw_ui(
                     process = 1.0,
-                    score = "1000000",
+                    score = ScoreString,
                     combo_state = True,
                     combo = phigros_chart_obj.note_num,
                     now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
+                    acc = AccString,
                     animationing = True,
                     dy = h / 7 * (1 - v)
                 )
@@ -2298,6 +2328,7 @@ def PlayerStart_Phi():
                     combo_state = a1_combo >= 3,
                     combo = a1_combo,
                     now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
+                    acc = AccString,
                     animationing = True,
                     dy = h / 7 * (1 - v)
                 )
