@@ -868,6 +868,7 @@ def PlayChart_ThreadFunction():
                         note.player_holdmiss_time = PlayChart_NowTime
                         note.state = Const.NOTE_STATE.MISS
                         note.player_missed = True
+                        PhigrosPlayManagerObject.addEvent("M")
             
             if ( # hold end add event to manager judge
                 note.type == Const.Note.HOLD and
@@ -1180,12 +1181,6 @@ def GetFrameRenderTask_Phi(
         process(judgeLine.notesBelow,-1)
 
     
-    if render_range_more:
-        Task(
-            root.run_js_code,
-            f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
-            add_code_array = True
-        )
     effect_time = 0.5
     miss_effect_time = 0.2
     bad_effect_time = 0.5
@@ -1266,7 +1261,7 @@ def GetFrameRenderTask_Phi(
         this_note_imgname = f"Note_{img_keyname}"
         Task(
             root.run_js_code,
-            f"ctx.drawRotateImage(\
+            f"crc2d_enable_rrm = false; ctx.drawRotateImage(\
                 {root.get_img_jsvarname(this_note_imgname)},\
                 {x},\
                 {y},\
@@ -1274,7 +1269,7 @@ def GetFrameRenderTask_Phi(
                 {Note_width / this_note_img.width * this_note_img.height},\
                 {- will_show_effect_rotate},\
                 {note.alpha * (1 - p ** 0.5)}\
-            );",
+            ); crc2d_enable_rrm = true;",
             add_code_array = True
         )
     
@@ -1299,7 +1294,7 @@ def GetFrameRenderTask_Phi(
         this_note_img = Resource["Notes"]["Tap_Bad"]
         Task(
             root.run_js_code,
-            f"ctx.drawRotateImage(\
+            f"crc2d_enable_rrm = false; ctx.drawRotateImage(\
                 {root.get_img_jsvarname("Note_Tap_Bad")},\
                 {x},\
                 {y},\
@@ -1307,7 +1302,14 @@ def GetFrameRenderTask_Phi(
                 {Note_width / this_note_img.width * this_note_img.height},\
                 {- will_show_effect_rotate},\
                 {note.alpha * (1 - p ** 3)}\
-            );",
+            ); crc2d_enable_rrm = true;",
+            add_code_array = True
+        )
+        
+    if render_range_more:
+        Task(
+            root.run_js_code,
+            f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
             add_code_array = True
         )
         
