@@ -1948,6 +1948,18 @@ def PlayerStart_Phi():
                 
                 Lfdaot_VideoWriter.release()
     
+    LevelName = "AP" if not noautoplay else PhigrosPlayManagerObject.getLevelString()
+    EarlyCount = 0 if not noautoplay else PhigrosPlayManagerObject.getEarlyCount()
+    LateCount = 0 if not noautoplay else PhigrosPlayManagerObject.getLateCount()
+    PerfectCount = phigros_chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getPerfectCount()
+    GoodCount = 0 if not noautoplay else PhigrosPlayManagerObject.getGoodCount()
+    BadCount = 0 if not noautoplay else PhigrosPlayManagerObject.getBadCount()
+    MissCount = 0 if not noautoplay else PhigrosPlayManagerObject.getMissCount()
+    Acc = 1.0 if not noautoplay else PhigrosPlayManagerObject.getAcc()
+    ScoreString = "1000000" if not noautoplay else get_stringscore(PhigrosPlayManagerObject.getScore())
+    MaxCombo = phigros_chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getMaxCombo()
+    AccString = f"{(Acc * 100):.2f}%"
+    
     def Chart_Finish_Animation_Frame(p:float):
         root.clear_canvas(wait_execute = True)
         im_ease_value = Tool_Functions.finish_animation_eases.all_ease(p)
@@ -2017,7 +2029,7 @@ def PlayerStart_Phi():
         root.create_text(
             w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.06,
             h * 0.433,
-            text = "1000000",
+            text = ScoreString,
             font = f"{(w + h) / 42}px PhigrosFont",
             fillStyle = f"rgba(255, 255, 255, {Tool_Functions.finish_animation_eases.score_alpha_ease(p)})",
             wait_execute = True
@@ -2029,7 +2041,7 @@ def PlayerStart_Phi():
         )
         
         root.create_image(
-            "Level_AP",
+            f"Level_{LevelName}",
             w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.6 - level_size * w / 2,
             h * 0.375 - level_size * w / 2,
             width = w * level_size,
@@ -2050,7 +2062,7 @@ def PlayerStart_Phi():
         root.create_text( # Max Combo
             w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 + w * im_size / 45,
             h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625,
-            text = f"{phigros_chart_obj.note_num}",
+            text = f"{MaxCombo}",
             fillStyle = "#FFFFFF",
             font = f"{(w + h) / 70}px PhigrosFont",
             wait_execute = True
@@ -2068,7 +2080,7 @@ def PlayerStart_Phi():
         root.create_text( # Accuracy
             w * 0.25 + w * im_size * 0.38 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 45,
             h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625,
-            text = "100.00%",
+            text = AccString,
             textAlign = "end",
             fillStyle = "#FFFFFF",
             font = f"{(w + h) / 70}px PhigrosFont",
@@ -2093,7 +2105,7 @@ def PlayerStart_Phi():
         root.create_text( # Perfect Count
             w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.125),
             h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-            text = f"{phigros_chart_obj.note_num}",
+            text = f"{PerfectCount}",
             textAlign = "center",
             fillStyle = "#FFFFFF",
             font = f"{(w + h) / 75}px PhigrosFont",
@@ -2113,7 +2125,7 @@ def PlayerStart_Phi():
         root.create_text( # Good Count
             w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.315),
             h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-            text = "0",
+            text = f"{GoodCount}",
             textAlign = "center",
             fillStyle = "#FFFFFF",
             font = f"{(w + h) / 75}px PhigrosFont",
@@ -2133,7 +2145,7 @@ def PlayerStart_Phi():
         root.create_text( # Bad Conut
             w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.505),
             h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-            text = "0",
+            text = f"{BadCount}",
             textAlign = "center",
             fillStyle = "#FFFFFF",
             font = f"{(w + h) / 75}px PhigrosFont",
@@ -2153,7 +2165,7 @@ def PlayerStart_Phi():
         root.create_text( # Miss Count
             w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.695),
             h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-            text = "0",
+            text = f"{MissCount}",
             textAlign = "center",
             fillStyle = "#FFFFFF",
             font = f"{(w + h) / 75}px PhigrosFont",
@@ -2184,7 +2196,7 @@ def PlayerStart_Phi():
         root.create_text(
             w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.925),
             h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.375,
-            text = "0",
+            text = f"{EarlyCount}",
             textAlign = "end",
             textBaseline = "middle",
             fillStyle = "#FFFFFF",
@@ -2206,7 +2218,7 @@ def PlayerStart_Phi():
         root.create_text(
             w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.925),
             h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.625,
-            text = "0",
+            text = f"{LateCount}",
             textAlign = "end",
             textBaseline = "middle",
             fillStyle = "#FFFFFF",
@@ -2264,19 +2276,31 @@ def PlayerStart_Phi():
     def Chart_Finish_Animation():
         animation_1_time = 0.75
         animation_1_start_time = time()
+        if noautoplay: a1_combo = PhigrosPlayManagerObject.getCombo()
         
         while time() - animation_1_start_time < animation_1_time:
             p = (time() - animation_1_start_time) / animation_1_time
             v = p ** 2
-            draw_ui(
-                process = 1.0,
-                score = "1000000",
-                combo_state = True,
-                combo = phigros_chart_obj.note_num,
-                now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
-                animationing = True,
-                dy = h / 7 * (1 - v)
-            )
+            if not noautoplay:
+                draw_ui(
+                    process = 1.0,
+                    score = "1000000",
+                    combo_state = True,
+                    combo = phigros_chart_obj.note_num,
+                    now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
+                    animationing = True,
+                    dy = h / 7 * (1 - v)
+                )
+            else:
+                draw_ui(
+                    process = 1.0,
+                    score = ScoreString,
+                    combo_state = a1_combo >= 3,
+                    combo = a1_combo,
+                    now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
+                    animationing = True,
+                    dy = h / 7 * (1 - v)
+                )
             root.run_js_wait_code()
         
         mixer.music.fadeout(250)
