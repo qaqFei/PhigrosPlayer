@@ -1002,7 +1002,7 @@ def GetFrameRenderTask_Phi(
                     continue
                 elif noautoplay and note_item.state == Const.NOTE_STATE.BAD:
                     continue
-                elif noautoplay and not note_ishold and note_item.player_clicked:
+                elif noautoplay and not this_note_ishold and note_item.player_clicked:
                     continue
                 
                 note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (

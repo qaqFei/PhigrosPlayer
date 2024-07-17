@@ -2,6 +2,8 @@ from threading import Thread
 from os import system
 from sys import argv
 
+system("cls")
+
 if input("Sure? (y/n) ").lower() not in ("yes", "y"):
     raise SystemExit
 
