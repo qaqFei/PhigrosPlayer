@@ -881,11 +881,11 @@ def PlayChart_ThreadFunction():
                 else: pass # note state is miss at clicking
             
         if Kill_PlayThread_Flag:
-            delattr(root.jsapi, "PhigrosPlay_KeyDown")
-            delattr(root.jsapi, "PhigrosPlay_KeyUp")
             root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
             root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
             root.run_js_code("delete _PhigrosPlay_KeyDown; delete _PhigrosPlay_KeyUp;")
+            delattr(root.jsapi, "PhigrosPlay_KeyDown")
+            delattr(root.jsapi, "PhigrosPlay_KeyUp")
             Kill_PlayThread_Flag = False
             return
         sleep(1 / 480)
@@ -1786,6 +1786,11 @@ def PlayerStart_Phi():
         if noautoplay:
             Thread(target=PlayChart_ThreadFunction, daemon=True).start()
             while "PhigrosPlayManagerObject" not in globals(): pass # Waiting to load PhigrosPlayManagerObject.
+            play_restart_flag = False
+            def _f(): nonlocal play_restart_flag; play_restart_flag = True
+            root.jsapi.set_attr("Noautoplay_Restart", _f)
+            root.run_js_code("_Noautoplay_Restart = (e) => {if (e.altKey && e.ctrlKey && e.repeat && e.key.toLowerCase() == 'r') pywebview.api.call_attr('Noautoplay_Restart');};") # && e.repeat 为了判定长按
+            root.run_js_code("window.addEventListener('keydown', _Noautoplay_Restart);")
         while True:
             now_t = time() - show_start_time
             Task = GetFrameRenderTask_Phi(
@@ -1802,10 +1807,23 @@ def PlayerStart_Phi():
             
             if break_flag:
                 break
+            
+            if play_restart_flag:
+                break
         if noautoplay:
             global Kill_PlayThread_Flag
             Kill_PlayThread_Flag = True
             while Kill_PlayThread_Flag: pass
+            root.run_js_code("window.removeEventListener('keydown', _Noautoplay_Restart);")
+            root.run_js_code("delete _Noautoplay_Restart;")
+            delattr(root.jsapi, "Noautoplay_Restart")
+            
+            if play_restart_flag:
+                mixer.music.fadeout(250)
+                LoadChartObject()
+                Thread(target=PlayerStart_Phi, daemon=True).start()
+                return None
+                
     else:
         lfdaot_tasks = {}
         frame_speed = 60
