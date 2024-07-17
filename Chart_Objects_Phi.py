@@ -52,16 +52,19 @@ class note:
     player_last_testholdismiss_time: float = -float("inf")
     player_holdjudged: bool = False
     player_holdclickstate: int = Const.NOTE_STATE.MISS
+    player_holdjudged_tomanager: bool = False
+    player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
+    player_drag_judge_safe_used: bool = False
     
     def __eq__(self, oth:object):
         if not isinstance(oth, note):
             return NotImplemented
         return self.id == oth.id
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.id
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         note_t = {
             Const.Note.TAP:"t",
             Const.Note.DRAG:"d",
@@ -70,10 +73,11 @@ class note:
         }[self.type]
         return f"{self.master.id}+{self.by_judgeLine_id}{note_t}"
     
-    def _init(self, PHIGROS_Y):
+    def _init(self, PHIGROS_Y) -> None:
         self.hold_length_sec = self.holdTime * self.master.T
         self.hold_length_px = (self.speed * self.hold_length_sec) * PHIGROS_Y
         self.hold_endtime = self.time * self.master.T + self.hold_length_sec
+        self.player_holdjudge_tomanager_time = self.hold_endtime - 0.2 if self.hold_length_sec >= 0.2 else self.time * self.master.T
         
         self.effect_times = []
         hold_starttime = self.time * self.master.T
@@ -92,7 +96,7 @@ class note:
         }[self.type]
         
         self.floorPosition = getFloorPosition(self.master, self.time)
-
+    
 @dataclass
 class speedEvent:
     startTime: float

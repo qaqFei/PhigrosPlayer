@@ -609,11 +609,14 @@ def get_stringscore(score:float) -> str:
 
 class PhigrosPlayManager:
     def __init__(self, noteCount:int):
-        self.events:list[typing.Literal["P", "G", "B", "M"]] = []
-        self.noteCount:int = noteCount
+        self.events: list[typing.Literal["P", "G", "B", "M"]] = []
+        self.event_offsets: list[float] = [] # the note click offset (s)
+        self.noteCount: int = noteCount
     
-    def addEvent(self, event:typing.Literal["P", "G", "B", "M"]): # Perfect, Good, Bad, Miss
+    def addEvent(self, event:typing.Literal["P", "G", "B", "M"], offset:float|None = None): # Perfect, Good, Bad, Miss
         self.events.append(event)
+        if offset is not None: # offset is only good judge.
+            self.event_offsets.append(offset)
     
     def getJudgelineColor(self) -> tuple[int]:
         if "B" in self.events or "M" in self.events:
@@ -663,6 +666,44 @@ class PhigrosPlayManager:
     
     def getScore(self) -> float:
         return self.getAccOfAll() * 900000 + self.getMaxCombo() / self.noteCount * 100000
+    
+    def getPerfectCount(self) -> int:
+        return self.events.count("P")
+    
+    def getGoodCount(self) -> int:
+        return self.events.count("G")
+    
+    def getBadCount(self) -> int:
+        return self.events.count("B")
+    
+    def getMissCount(self) -> int:
+        return self.events.count("M")
+    
+    def getEarlyCount(self) -> int:
+        return len(list(filter(lambda x: x > 0, self.event_offsets)))
+    
+    def getLateCount(self) -> int:
+        return len(list(filter(lambda x: x < 0, self.event_offsets)))
+    
+    def getLevelString(self) -> typing.Literal["AP", "FC", "V", "S", "A", "B", "C", "F"]:
+        score = self.getScore()
+        if self.getPerfectCount() == self.noteCount: return "AP"
+        elif self.getBadCount() == 0 and self.getMissCount() == 0: return "FC"
+        
+        if 0 <= score < 700000:
+            return "F"
+        elif 700000 <= score < 820000:
+            return "C"
+        elif 820000 <= score < 880000:
+            return "B"
+        elif 880000 <= score < 920000:
+            return "A"
+        elif 920000 <= score < 960000:
+            return "S"
+        elif 960000 <= score < 1000000:
+            return "V"
+        elif 1000000 <= score:
+            return "AP"
 
 def PlayChart_ThreadFunction():
     global PhigrosPlayManagerObject, Kill_PlayThread_Flag, PlayChart_NowTime
@@ -686,25 +727,41 @@ def PlayChart_ThreadFunction():
             i.type in (Const.Note.TAP, Const.Note.HOLD) and
             abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= (0.2 if i.type == Const.Note.TAP else 0.16)
         )]
+        can_use_safedrag = [(i, offset) for i in notes if (
+            i.type == Const.Note.DRAG and
+            not i.player_drag_judge_safe_used and
+            abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= 0.16
+        )]
         
         can_judge_notes.sort(key = lambda x: abs(x[1]))
+        can_use_safedrag.sort(key = lambda x: abs(x[1]))
         
         if can_judge_notes:
             n, offset = can_judge_notes[0]
             abs_offset = abs(offset)
             if 0.0 <= abs_offset <= 0.08:
                 n.state = Const.NOTE_STATE.PERFECT
-                PhigrosPlayManagerObject.addEvent("P")
                 if n.type == Const.Note.HOLD:
                     n.player_holdjudged = True
                     n.player_holdclickstate = n.state
+                else: # TAP
+                    PhigrosPlayManagerObject.addEvent("P")
             elif 0.08 < abs_offset <= 0.16:
                 n.state = Const.NOTE_STATE.GOOD
-                PhigrosPlayManagerObject.addEvent("G")
                 if n.type == Const.Note.HOLD:
                     n.player_holdjudged = True
                     n.player_holdclickstate = n.state
-            elif 0.16 < abs_offset <= 0.2:
+                else: # TAP
+                    PhigrosPlayManagerObject.addEvent("G", offset)
+            elif 0.16 < abs_offset <= 0.2: # only tap
+                if can_use_safedrag: # not empty
+                    drag, drag_offset = can_use_safedrag[0]
+                    if not drag.player_will_click:
+                        drag.player_will_click = True
+                        drag.player_click_offset = drag_offset
+                    drag.player_drag_judge_safe_used = True
+                    return None
+                
                 n.player_badtime = PlayChart_NowTime
                 n.state = Const.NOTE_STATE.BAD
                 PhigrosPlayManagerObject.addEvent("B")
@@ -783,6 +840,17 @@ def PlayChart_ThreadFunction():
                         note.player_holdmiss_time = PlayChart_NowTime
                         note.state = Const.NOTE_STATE.MISS
                         note.player_missed = True
+            
+            if ( # hold end add event to manager judge
+                note.type == Const.Note.HOLD and
+                note.player_holdjudged and # if judged is true, hold state is perfect/good/ miss(miss at clicking)
+                not note.player_holdjudged_tomanager and
+                note.player_holdjudge_tomanager_time <= PlayChart_NowTime
+            ):
+                note.player_holdjudged_tomanager = True
+                if note.state == Const.NOTE_STATE.PERFECT: PhigrosPlayManagerObject.addEvent("P")
+                elif note.state == Const.NOTE_STATE.GOOD: PhigrosPlayManagerObject.addEvent("G", note.player_click_offset)
+                else: pass # note state is miss at clicking
             
         if Kill_PlayThread_Flag:
             delattr(root.jsapi, "PhigrosPlay_KeyDown")
