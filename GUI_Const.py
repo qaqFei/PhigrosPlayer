@@ -30,6 +30,7 @@ class CHINESE:
         LFDAOT_RENDER_VIDEO = "在提前加载帧数据基础上并使用谱面渲染数据文件时是否导出一个视频"
         EASE_EVENT_INTERPOLATION = "在事件插值时使用缓动"
         FRAMELESS = "无边框窗口"
+        NOAUTOPLAY = "禁用 Autoplay 进行游玩"
     
     class KWARGS:
         COMBOTIPS = "Combo提示文本: "
@@ -73,6 +74,7 @@ class ENGLISH:
         LFDAOT_RENDER_VIDEO = "Export Video When Load Frame Data Ahead of Time and Use Frame Data Ahead of Time File"
         EASE_EVENT_INTERPOLATION = "Use Ease Interpolation When Interpolate Event"
         FRAMELESS = "Frame-Less Window"
+        NOAUTOPLAY = "Disable Autoplay, Play the Chart"
     
     class KWARGS:
         COMBOTIPS = "Combo Tips Text: "

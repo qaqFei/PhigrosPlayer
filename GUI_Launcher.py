@@ -157,6 +157,9 @@ def Launch():
     if frameless_checkbutton_var.get():
         launch_args.append("-frameless")
     
+    if noautoplay_checkbutton_var.get():
+        launch_args.append("-noautoplay")
+    
     if lfdaot_checkbutton_var.get():
         launch_args.append("-lfdaot")
         if kwarg_lfdaot_file_entry.get() != "":
@@ -264,6 +267,11 @@ ease_event_interpolation_checkbutton.grid(sticky="w", row=5, column=0)
 frameless_checkbutton_var = BooleanVar(value=False) # -frameless
 frameless_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.FRAMELESS, variable=frameless_checkbutton_var)
 frameless_checkbutton.grid(sticky="w", row=5, column=1)
+
+noautoplay_checkbutton_var = BooleanVar(value=False) # -noautoplay
+noautoplay_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOAUTOPLAY, variable=noautoplay_checkbutton_var)
+noautoplay_checkbutton.grid(sticky="w", row=6, column=0)
+
 
 kwarg_combotips_var = StringVar(value="Autoplay") # -combotips
 kwarg_combotips_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.COMBOTIPS)
