@@ -410,7 +410,7 @@ def draw_ui(
     combo_state:bool = False,
     combo:int = 0,
     now_time:str = "0:00/0:00",
-    acc:str = "100.0%",
+    acc:str = "100.00%",
     clear:bool = True,
     background:bool = True,
     animationing:bool = False,
