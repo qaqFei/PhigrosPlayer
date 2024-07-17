@@ -8,7 +8,7 @@
 - 目前只支持Phigros的官谱, 但有`rpe2phi.py`, 可将`rpe`谱面转化为官谱
 - 目前只能读取谱面中的`info.csv` 和 `info.txt`
 
-## 命令行参数 (大部分 仅对phigros官谱生效)
+## 命令行参数
 - `-hideconsole` 隐藏控制台
 - `-debug` 显示WebView调试工具, 并显示判定线定位点
 - `-combotips <string-value>` 设置连击下的提示 默认为`Autoplay`
