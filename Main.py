@@ -107,11 +107,6 @@ extend_object:default_extend.PhigrosPlayer_Extend = extend.PhigrosPlayer_Extend(
     lambda *args, **kwargs: globals(*args, **kwargs)
 )
 
-if len(argv) < 2 or not exists(argv[1]):
-    argv = [argv[0]] + [dialog.openfile()] + argv[0:]
-    if argv[1] == "":
-        windll.kernel32.ExitProcess(1)
-
 print("Init Pygame Mixer...")
 mixer.init()
 mixer.music.set_volume(0.85)

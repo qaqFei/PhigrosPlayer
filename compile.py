@@ -8,16 +8,23 @@ if input("Sure? (y/n) ").lower() not in ("yes", "y"):
     raise SystemExit
 
 def compile(file:str, hideconsole:bool):
-    system(f"{pyinstaller} \"{file}\" -i icon.ico {"-w" if hideconsole and not debug else ""}")
+    system(f"{pyi_makespec} \"{file}\" -i icon.ico {"-w" if hideconsole and not debug else ""}")
+    spec = f"{file.replace('.py', '')}.spec"
+    with open(spec, "r", encoding="utf-8") as f:
+        spec_data = f.read()
+    with open(spec, "w", encoding="utf-8") as f:
+        f.write(extend + spec_data)
+    system(f"{pyinstaller} \"{spec}\"")
     system(f"del {file.replace(".py", ".spec")}")
 
 debug = "--debug" in argv
 compile_files = [
-    ("Main.py", True),
+    ("Main.py", False),
     ("GUI_Launcher.py", True),
     ("rpe2phi.py", False),
     ("ProcessChartAudio.py", False),
 ]
+extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 
 system("python -m venv compile_venv")
 py = ".\\compile_venv\\Scripts\\python.exe"
@@ -26,6 +33,7 @@ system(f"{py} -m pip install --upgrade pip")
 system(f"{py} -m pip install -r requirements.txt")
 system(f"{py} -m pip install pyinstaller")
 pyinstaller = ".\\compile_venv\\Scripts\\pyinstaller.exe"
+pyi_makespec = ".\\compile_venv\\Scripts\\pyi-makespec.exe"
 ts:list[Thread] = []
 
 for file, hideconsole in compile_files:
