@@ -908,9 +908,9 @@ def GetFrameRenderTask_Phi(
     Render_Note_Count = 0
     Render_ClickEffect_Count = 0
     
-    Task = Chart_Objects_Phi.FrameRenderTask([],[])
-    Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs,now_t)
-    Task(root.clear_canvas,wait_execute = True)
+    Task = Chart_Objects_Phi.FrameRenderTask([], [])
+    Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs, now_t)
+    Task(root.clear_canvas, wait_execute = True)
     Task(draw_background)
     
     if render_range_more:
