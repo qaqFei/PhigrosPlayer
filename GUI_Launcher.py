@@ -121,7 +121,7 @@ def kwarg_extend_file_choose_callback():
 
 def Launch():
     launch_command = f"start {target_path} "
-    launch_args = ["--hideconsole"]
+    launch_args = []
     phi_fp = file_input_entry.get()
     
     if exists(phi_fp):
@@ -132,6 +132,8 @@ def Launch():
             message = TEXT.LAUNCH_FILE_ERROR_TEXT
         )
         return None
+    
+    launch_args.append("--hideconsole")
 
     if debug_checkbutton_var.get():
         launch_args.append("--debug")
@@ -193,6 +195,7 @@ def Launch():
     
     launch_command += " ".join(launch_args)
     launch_command += f" {other_args_Entry.get()}"
+    print(launch_command)
     popen(launch_command)
 
 root = Tk()
