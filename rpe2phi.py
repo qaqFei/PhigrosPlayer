@@ -3,9 +3,10 @@ from dataclasses import dataclass
 from functools import cache
 from base64 import b64encode
 from os.path import dirname
-from numba import jit
 import json
 import typing
+
+from numba import jit
 
 import Chart_Functions_Rep
 import Chart_Objects_Rep
