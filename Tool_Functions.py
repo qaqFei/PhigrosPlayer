@@ -7,8 +7,8 @@ import numba
 
 note_id = -1
 random_block_num = 4
-if "-random-block-num" in argv:
-    random_block_num = eval(argv[argv.index("-random-block-num") + 1])
+if "--random-block-num" in argv:
+    random_block_num = eval(argv[argv.index("--random-block-num") + 1])
 
 def Get_Animation_Gr(fps:float,t:float):
     gr_x = int(fps * t) + 1
@@ -78,7 +78,7 @@ def cosint(p, dx = 1 / 5e2): # f\left(m\right)=\int_{0}^{m}\left(\cos\left(\pi x
         intp += dx
     return ep if 0.0 <= ep <= 1.0 else (0.0 if ep <= 0.0 else 1.0)
 
-if "-ease-event-interpolation" in argv:
+if "--ease-event-interpolation" in argv:
     @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
     def interpolation_phi(
         t:float,

@@ -24,7 +24,7 @@ else:
     print("Can't find Main.py or Main.exe.")
     raise SystemExit
 
-if "-english" in argv or "-eng" in argv:
+if "--english" in argv or "--eng" in argv:
     english = True
 elif ctypes.windll.kernel32.GetSystemDefaultUILanguage() != 0x804:
     english = True
@@ -134,59 +134,62 @@ def Launch():
         return None
 
     if debug_checkbutton_var.get():
-        launch_args.append("-debug")
+        launch_args.append("--debug")
     
     if fullscreen_checkbutton_var.get():
-        launch_args.append("-fullscreen")
+        launch_args.append("--fullscreen")
     
     if nojudgeline_checkbutton_var.get():
-        launch_args.append("-nojudgeline")
+        launch_args.append("--nojudgeline")
     
     if judgeline_notransparent_checkbutton_var.get():
-        launch_args.append("-judgeline-notransparent")
+        launch_args.append("--judgeline-notransparent")
     
     if noclickeffect_randomblock_checkbutton_var.get():
-        launch_args.append("-noclickeffect-randomblock")
+        launch_args.append("--noclickeffect-randomblock")
     
     if loop_checkbutton_var.get():
-        launch_args.append("-loop")
+        launch_args.append("--loop")
     
     if ease_event_interpolation_checkbutton_var.get():
-        launch_args.append("-ease-event-interpolation")
+        launch_args.append("--ease-event-interpolation")
     
     if frameless_checkbutton_var.get():
-        launch_args.append("-frameless")
+        launch_args.append("--frameless")
     
     if noautoplay_checkbutton_var.get():
-        launch_args.append("-noautoplay")
+        launch_args.append("--noautoplay")
+    
+    if rtacc_checkbutton_var.get():
+        launch_args.append("--rtacc")
     
     if lfdaot_checkbutton_var.get():
-        launch_args.append("-lfdaot")
+        launch_args.append("--lfdaot")
         if kwarg_lfdaot_file_entry.get() != "":
             if exists(kwarg_lfdaot_file_entry.get()) and isfile(kwarg_lfdaot_file_entry.get()):
-                launch_args.append(f"-lfdaot-file \"{kwarg_lfdaot_file_entry.get()}\"")
-        launch_args.append(f"-lfdaot-frame-speed \"{kwarg_lfdaot_frame_speed_entry.get()}\"")
+                launch_args.append(f"--lfdaot-file \"{kwarg_lfdaot_file_entry.get()}\"")
+        launch_args.append(f"--lfdaot-frame-speed \"{kwarg_lfdaot_frame_speed_entry.get()}\"")
     
     if noclicksound_checkbutton_var.get():
-        launch_args.append("-noclicksound")
+        launch_args.append("--noclicksound")
     
     if render_range_more_checkbutton_var.get():
-        launch_args.append("-render-range-more")
-        launch_args.append(f"-render-range-more-scale \"{kwarg_render_range_more_scale_entry.get()}\"")
+        launch_args.append("--render-range-more")
+        launch_args.append(f"--render-range-more-scale \"{kwarg_render_range_more_scale_entry.get()}\"")
     
     if setsize_checkbutton_var.get():
-        launch_args.append("-size")
+        launch_args.append("--size")
         launch_args.append(f"\"{kwarg_size_x_entry.get()}\" \"{kwarg_size_y_entry.get()}\"")
     
     if lfdaot_render_video_checkbutton_var.get():
-        launch_args.append("-lfdaot-render-video")
+        launch_args.append("--lfdaot-render-video")
     
     if exists(kwarg_extend_entry.get()) and isfile(kwarg_extend_entry.get()):
-        launch_args.append(f"-extend \"{kwarg_extend_entry.get()}\"")
+        launch_args.append(f"--extend \"{kwarg_extend_entry.get()}\"")
     
-    if kwarg_combotips_entry.get() != "Autoplay": launch_args.append(f"-combotips \"{kwarg_combotips_entry.get()}\"")
-    launch_args.append(f"-random-block-num \"{kwarg_random_block_num_entry.get()}\"")
-    launch_args.append(f"-scale-note \"{kwarg_scale_note_entry.get()}\"")
+    if kwarg_combotips_entry.get() != "Autoplay": launch_args.append(f"--combotips \"{kwarg_combotips_entry.get()}\"")
+    launch_args.append(f"--random-block-num \"{kwarg_random_block_num_entry.get()}\"")
+    launch_args.append(f"--scale-note \"{kwarg_scale_note_entry.get()}\"")
     
     launch_command += " ".join(launch_args)
     launch_command += f" {other_args_Entry.get()}"
@@ -271,6 +274,10 @@ frameless_checkbutton.grid(sticky="w", row=5, column=1)
 noautoplay_checkbutton_var = BooleanVar(value=False) # -noautoplay
 noautoplay_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOAUTOPLAY, variable=noautoplay_checkbutton_var)
 noautoplay_checkbutton.grid(sticky="w", row=6, column=0)
+
+rtacc_checkbutton_var = BooleanVar(value=False) # -rtacc
+rtacc_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.RTACC, variable=rtacc_checkbutton_var)
+rtacc_checkbutton.grid(sticky="w", row=6, column=1)
 
 
 kwarg_combotips_var = StringVar(value="Autoplay") # -combotips

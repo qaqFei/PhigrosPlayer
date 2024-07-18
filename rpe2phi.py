@@ -13,7 +13,7 @@ import rpe_easing
 import _rpe2phi_extra
 
 if len(argv) < 2:
-    print("Usage: rpe2phi.py <rpe_file> <phi_target_file>")
+    print("Usage: rpe2phi.py <rpe_file> <phi_target_file> [--extra <extra_file>]")
     raise SystemExit
 
 with open(argv[1],"r",encoding="utf-8") as f:
@@ -57,7 +57,7 @@ class RpeMoveNodeMgr:
             self.nodes.append(RpeMoveNode(type="et", item=e, value=e.et))
         self.nodes.sort(key=lambda x: x.value)
 
-extra_fp = argv[argv.index("-extra") + 1] if "-extra" in argv else None
+extra_fp = argv[argv.index("--extra") + 1] if "--extra" in argv else None
 phi_data = {
     "formatVersion": 3,
     "offset": rpe_obj.META.offset / 1000,

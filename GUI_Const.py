@@ -31,6 +31,7 @@ class CHINESE:
         EASE_EVENT_INTERPOLATION = "在事件插值时使用缓动"
         FRAMELESS = "无边框窗口"
         NOAUTOPLAY = "禁用 Autoplay 进行游玩"
+        RTACC = "实时Acc显示"
     
     class KWARGS:
         COMBOTIPS = "Combo提示文本: "
@@ -75,6 +76,7 @@ class ENGLISH:
         EASE_EVENT_INTERPOLATION = "Use Ease Interpolation When Interpolate Event"
         FRAMELESS = "Frame-Less Window"
         NOAUTOPLAY = "Disable Autoplay, Play the Chart"
+        RTACC = "Realtime Acc Display"
     
     class KWARGS:
         COMBOTIPS = "Combo Tips Text: "

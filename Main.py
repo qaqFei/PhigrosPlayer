@@ -32,14 +32,19 @@ import default_extend
 import Image_open
 import info_loader
 import version
+import ppr_help
 
+if len(argv) == 1:
+    print(ppr_help.HELP_EN)
+    windll.kernel32.ExitProcess(0)
+    
 version.print_hello()
 Thread(target=version.check_new_version, daemon=True).start()
 
-if "-hideconsole" in argv:
+if "--hideconsole" in argv:
     ConsoleWindow.Hide()
 
-hidemouse = "-hidemouse" in argv
+hidemouse = "--hidemouse" in argv
 
 selfdir = dirname(argv[0])
 if selfdir == "": selfdir = abspath(".")
@@ -73,27 +78,27 @@ print(f"Temp Dir: {temp_dir}")
 
 Image.open = Image_open.open
 
-enable_clicksound = "-noclicksound" not in argv
-debug = "-debug" in argv
-show_holdbody = "-holdbody" in argv
-show_judgeline = "-nojudgeline" not in argv
-debug_noshow_transparent_judgeline = "-debug-noshow-transparent-judgeline" in argv
-judgeline_notransparent = "-judgeline-notransparent" in argv
-clickeffect_randomblock = "-noclickeffect-randomblock" not in argv
-loop = "-loop" in argv
-lfdaot = "-lfdaot" in argv
-lfdoat_file = "-lfdaot-file" in argv
-render_range_more = "-render-range-more" in argv
-render_range_more_scale = 2.0 if "-render-range-more-scale" not in argv else eval(argv[argv.index("-render-range-more-scale")+1])
-lfdaot_render_video = "-lfdaot-render-video" in argv
-extend_file = argv[argv.index("-extend") + 1] if "-extend" in argv else "./default_extend.py"
-no_mixer_reset_chart_time = "-no-mixer-reset-chart-time" in argv
-noautoplay = "-noautoplay" in argv
-rtacc = "-rtacc" in argv
+enable_clicksound = "--noclicksound" not in argv
+debug = "--debug" in argv
+show_holdbody = "--holdbody" in argv
+show_judgeline = "--nojudgeline" not in argv
+debug_noshow_transparent_judgeline = "--debug-noshow-transparent-judgeline" in argv
+judgeline_notransparent = "--judgeline-notransparent" in argv
+clickeffect_randomblock = "--noclickeffect-randomblock" not in argv
+loop = "--loop" in argv
+lfdaot = "--lfdaot" in argv
+lfdoat_file = "--lfdaot-file" in argv
+render_range_more = "--render-range-more" in argv
+render_range_more_scale = 2.0 if "--render-range-more-scale" not in argv else eval(argv[argv.index("--render-range-more-scale")+1])
+lfdaot_render_video = "--lfdaot-render-video" in argv
+extend_file = argv[argv.index("--extend") + 1] if "--extend" in argv else "./default_extend.py"
+no_mixer_reset_chart_time = "--no-mixer-reset-chart-time" in argv
+noautoplay = "--noautoplay" in argv
+rtacc = "--rtacc" in argv
 
 if lfdaot and noautoplay:
     noautoplay = False
-    print("Warning: if use -lfdaot, you cannot use -noautoplay.")
+    print("Warning: if use --lfdaot, you cannot use --noautoplay.")
 
 extend_file_spec = importlib.util.spec_from_file_location("extend", extend_file)
 extend = importlib.util.module_from_spec(extend_file_spec)
@@ -187,7 +192,7 @@ audio_length = mixer.Sound(audio_file).get_length()
 all_inforamtion = {}
 print("Loading Chart Information...")
 
-ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}/info.csv", f"{temp_dir}/info.txt", f"{temp_dir}/info.yml"])
+ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
 chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(audio_file), basename(chart_image_filepath))
 
 if "formatVersion" in phigros_chart:
@@ -215,11 +220,11 @@ def LoadChartObject():
         temp_rpe_fdir = f"{gettempdir()}/qfppr_cctemp_{time() + randint(0, 2 << 31)}"
         try: mkdir(temp_rpe_fdir)
         except Exception: pass
-        temp_rpe_fp = f"{temp_rpe_fdir}/{basename(phigros_chart_filepath)}"
-        temp_7z_fp = f"{temp_rpe_fdir}/{basename(phigros_chart_filepath)}.7z"
-        info_fp = f"{temp_dir}/info.txt" if exists(f"{temp_dir}/info.txt") else f"{temp_dir}/info.csv" if exists(f"{temp_dir}/info.csv") else f"{temp_dir}/info.yml" if exists(f"{temp_dir}/info.yml") else None
+        temp_rpe_fp = f"{temp_rpe_fdir}\\{basename(phigros_chart_filepath)}"
+        temp_7z_fp = f"{temp_rpe_fdir}\\{basename(phigros_chart_filepath)}.7z"
+        info_fp = f"{temp_dir}\\info.txt" if exists(f"{temp_dir}\\info.txt") else f"{temp_dir}\\info.csv" if exists(f"{temp_dir}\\info.csv") else f"{temp_dir}\\info.yml" if exists(f"{temp_dir}\\info.yml") else None
         print("running rpe2phi...")
-        popen(f"{rpe2phi_prgm} {phigros_chart_filepath} {temp_rpe_fp}").read() # if call read function, we will wait still the program finish.
+        popen(f"{rpe2phi_prgm} {phigros_chart_filepath} {temp_rpe_fp}{f" --extra \"{temp_dir}\\extra.json\"" if exists(f"{temp_dir}\\extra.json") else ""}").read() # if call read function, we will wait still the program finish.
         popen(
             f"\
                 .\\7z.exe a -t7z \"{temp_7z_fp}\"\
@@ -246,7 +251,7 @@ def Load_Resource():
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
     Note_width_raw = (0.125 * w + 0.2 * h) / 2
-    Note_width = (Note_width_raw) * (eval(argv[argv.index("-scale-note") + 1]) if "-scale-note" in argv else 1.0)
+    Note_width = (Note_width_raw) * (eval(argv[argv.index("--scale-note") + 1]) if "--scale-note" in argv else 1.0)
     ClickEffect_Size = Note_width * 1.375
     Resource = {
         "Notes":{
@@ -477,7 +482,7 @@ def draw_ui(
         )
         
         root.create_text(
-            text=("Autoplay" if not noautoplay else "Combo") if "-combotips" not in argv else argv[argv.index("-combotips") + 1],
+            text=("Autoplay" if not noautoplay else "Combo") if "--combotips" not in argv else argv[argv.index("--combotips") + 1],
             x = w / 2,
             y = h * 0.095,
             textAlign = "center",
@@ -1830,8 +1835,8 @@ def PlayerStart_Phi():
     else:
         lfdaot_tasks = {}
         frame_speed = 60
-        if "-lfdaot-frame-speed" in argv:
-            frame_speed = eval(argv[argv.index("-lfdaot-frame-speed") + 1])
+        if "--lfdaot-frame-speed" in argv:
+            frame_speed = eval(argv[argv.index("--lfdaot-frame-speed") + 1])
         frame_count = 0
         frame_time = 1 / frame_speed
         allframe_num = int(audio_length / frame_time) + 1
@@ -2422,22 +2427,22 @@ root = webcvapis.WebCanvas(
     width = 1, height = 1,
     x = 0, y = 0,
     title = "Phigros Chart Player",
-    debug = "-debug" in argv,
+    debug = "--debug" in argv,
     resizable = False,
     frameless = "-frameless" in argv
 )
-if "-window-host" in argv:
-    windll.user32.SetParent(root.winfo_hwnd(), eval(argv[argv.index("-window-host") + 1]))
+if "--window-host" in argv:
+    windll.user32.SetParent(root.winfo_hwnd(), eval(argv[argv.index("--window-host") + 1]))
 if hidemouse:
     root.run_js_code("hide_mouse();")
-if "-fullscreen" in argv:
+if "--fullscreen" in argv:
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
     root._web.toggle_fullscreen()
 else:
-    if "-size" not in argv:
+    if "--size" not in argv:
         w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
     else:
-        w, h = int(eval(argv[argv.index("-size") + 1])), int(eval(argv[argv.index("-size") + 2]))
+        w, h = int(eval(argv[argv.index("--size") + 1])), int(eval(argv[argv.index("--size") + 2]))
     root.resize(w, h)
     w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
     dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
