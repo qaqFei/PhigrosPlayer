@@ -33,7 +33,7 @@ Current version: {PPR_VERSION}\nThe latest version: {".".join(new_ver)}\
         print("Error checking new version: ", e)
 
 def print_hello():
-    print(f"PhigrosPlayer - Version {PPR_VERSION}{" (Beta)" if BETA else ""}")
+    print(f"PhigrosPlayer - Version {PPR_VERSION}{" Beta" if BETA else "Release"}")
     print("Welcome to github page: https://github.com/qaqFei/PhigrosPlayer")
     print("Welcome to bilibili page: https://space.bilibili.com/3537119301601486")
     
