@@ -744,7 +744,7 @@ def PlayChart_ThreadFunction():
     PhigrosPlayManagerObject = PhigrosPlayManager(phigros_chart_obj.note_num)
     KeyDownCount = 0
     keymap = {chr(i):False for i in range(97, 123)}
-    notes = [i for line in phigros_chart_obj.judgeLineList for i in line.notesAbove + line.notesBelow]
+    notes = [i for line in phigros_chart_obj.judgeLineList for i in line.notesAbove + line.notesBelow if not i.fake]
     
     def _KeyDown(key:str):
         nonlocal KeyDownCount
@@ -903,7 +903,7 @@ def GetFrameRenderTask_Phi(
 ):
     global PlayChart_NowTime; PlayChart_NowTime = now_t
     
-    GetFrameRenderTask_Phi_CallTime = time() #use in some extend
+    GetFrameRenderTask_Phi_CallTime = time() # use in some extend
     Render_JudgeLine_Count = 0
     Render_Note_Count = 0
     Render_ClickEffect_Count = 0
