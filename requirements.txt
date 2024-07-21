@@ -5,4 +5,4 @@ pydub
 numba
 opencv-python
 numpy
-webcvapis==0.0.4
+webcvapis==0.0.5
