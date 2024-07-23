@@ -5,245 +5,276 @@
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/4791672738031f39b67387b5e7d043ed38eea93d)
 - 描述:
-    - null
+    - 第一个`Commit`, 还是基于`tkinter`的, 没啥说的
 
 ## Commit 2 - `49aea513e9fdd8e4e22bd2008aeea194076cdf19`
 - 时间: `Sat Apr 27 17:55:03 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/49aea513e9fdd8e4e22bd2008aeea194076cdf19)
 - 描述:
-    - null
+    - 增加`README.md`
 
 ## Commit 3 - `d8b3e2f3c7ce137fa8bd4b275a04588780603cae`
 - 时间: `Sat Apr 27 18:00:15 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/d8b3e2f3c7ce137fa8bd4b275a04588780603cae)
 - 描述:
-    - null
+    - 修改`README`, 在已知问题处加上: 判定线有严重的锯齿问题
 
 ## Commit 4 - `1c2b7efd9765ea6029d06ce0c17215e3f8a8b503`
 - 时间: `Sat Apr 27 19:13:27 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/1c2b7efd9765ea6029d06ce0c17215e3f8a8b503)
 - 描述:
-    - null
+    - 修复了`info.csv`读取的`IndexError`, Bug原因: 忘加判断默认键值是否在`info.csv`中不存在
 
 ## Commit 5 - `6b10affb4adcb107340e9fad1e2c614ba8c0dc75`
 - 时间: `Sat Apr 27 20:07:38 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/6b10affb4adcb107340e9fad1e2c614ba8c0dc75)
 - 描述:
-    - null
+    - 增加对`formatVersion` `1`的支持
+    - 修改`README`, 增加对`formatVersion` `1`支持的描述
 
 ## Commit 6 - `a5687263915bc7ce48adc73fe5f15a886ae66a44`
 - 时间: `Sun Apr 28 20:29:57 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/a5687263915bc7ce48adc73fe5f15a886ae66a44)
 - 描述:
-    - null
+    - 修改是否传入谱面文件的判断逻辑(原本的下标写错了, 算修Bug吧...)
+    - 在加载资源结束后才显示窗口
+    - 修改判定线长度为 窗口高度 * `5.76`
+    - 修改判定线宽度为 窗口高度 * `0.0075`
+    - 修改窗口背景为黑色
+    - 增加`-nofcapline`, 去除`FC/AP`指示器
+    - 修改`README`, 增加对`-nofcapline`的说明
 
 ## Commit 7 - `7a62d6bd937d0ff5844c8af866a70064e5335fc1`
 - 时间: `Mon Apr 29 20:17:23 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/7a62d6bd937d0ff5844c8af866a70064e5335fc1)
 - 描述:
-    - null
+    - 尝试增加键盘游玩, 初步增加按键状态的全局`dict`
 
 ## Commit 8 - `e3595acab2eeaf6c76f281de24813b35da92f355`
 - 时间: `Mon Apr 29 20:49:03 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/e3595acab2eeaf6c76f281de24813b35da92f355)
 - 描述:
-    - null
+    - 回退 Commit 7 - `7a62d6bd937d0ff5844c8af866a70064e5335fc1` 的修改
 
 ## Commit 9 - `ab619a3d6c7030ab380fffbf2924e3b79cbdb5d5`
 - 时间: `Tue Apr 30 19:26:46 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/ab619a3d6c7030ab380fffbf2924e3b79cbdb5d5)
 - 描述:
-    - null
+    - 增加`note`打击特效的`cache`, 将使用后的打击特效移动到窗口之外
+    - 增加全局变量`ClickEffect_Size`
 
 ## Commit 10 - `9ba284f692fb75a4c2efb98d41c0b7cf3b6f7cd9`
 - 时间: `Tue Apr 30 19:40:38 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/9ba284f692fb75a4c2efb98d41c0b7cf3b6f7cd9)
 - 描述:
-    - null
+    - 在进度条的整数坐标发生变化时, 才移动进度条
 
 ## Commit 11 - `ace27a79620afe2f96034b4ffcd764fea5ba0e5d`
 - 时间: `Tue Apr 30 19:50:09 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/ace27a79620afe2f96034b4ffcd764fea5ba0e5d)
 - 描述:
-    - null
+    - 增加`-noclickeffect`, 禁用打击特效
+    - 修改`README`, 增加对`-noclickeffect`的说明
 
 ## Commit 12 - `a0b8e33d41ddc7abbb1aca3f7927f95078d11ca7`
 - 时间: `Tue Apr 30 20:19:25 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/a0b8e33d41ddc7abbb1aca3f7927f95078d11ca7)
 - 描述:
-    - null
+    - 在`note`打击时间到达时立即删除`note`, 而不是过了打击时间
+    - 删除`Update Score`的`log`
 
 ## Commit 13 - `ae0ae7ebab7c15e8668a52b0a74fc6401e1cc544`
 - 时间: `Tue Apr 30 20:51:42 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/ae0ae7ebab7c15e8668a52b0a74fc6401e1cc544)
 - 描述:
-    - null
+    - 修改音乐的音量为`50%`
 
 ## Commit 14 - `5180b757bae746e05e42acdc5feb593b72c97d9e`
 - 时间: `Wed May 1 17:44:23 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/5180b757bae746e05e42acdc5feb593b72c97d9e)
 - 描述:
-    - null
+    - 将`README`中的序号修改为`-`
 
 ## Commit 15 - `85035fefddd5594d595de5d06244af37a7e9acc6`
 - 时间: `Wed May 1 17:49:45 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/85035fefddd5594d595de5d06244af37a7e9acc6)
 - 描述:
-    - null
+    - 将`-hidemouse`的生效修改为创建窗口时
 
 ## Commit 16 - `acc8cc90001bad1dd03c62f6ad6de7062f5fb1cb`
 - 时间: `Wed May 1 18:56:40 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/acc8cc90001bad1dd03c62f6ad6de7062f5fb1cb)
 - 描述:
-    - null
+    - 修改周围文字的`tkinter-canvas-id`为`gui_widgets`
+    - 在文字有修改时才更新文字, 不会一直调用`tk` (连同`-showfps`)
+    - 去除每一帧的`canvas.tag_raise`
 
 ## Commit 17 - `fadbda60b35d2866fd656a553fbbd07dfb153903`
 - 时间: `Thu May 2 13:00:57 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/fadbda60b35d2866fd656a553fbbd07dfb153903)
 - 描述:
-    - null
+    - 将获取判定线状态的代码移动到`Chart_Objects.judgeLine`
+    - 移除对`python`低版本的支持
+    - 在`Const.py`中添加`note`类型的常量值, 并更改其他地方的`note`常量值到`Const.Note`
+    - 计算`Hold`的数据
+    - 对`note`对象增加`master`属性, 指向`note`的判定线
+    - 补全`Hold`其他材质, 和加载
+    - 判定线宽度加`int`取值 (判定线的宽度用来表现判定线的透明度, `tkinter`的`Canvas.create_line`画不出有`alpha`通道的线)
+    - 增加`Hold`尾的渲染
+    - 在`Hold`的还没有结束时, 渲染时会渲染`Hold`尾(没有`Hold`身)
 
 ## Commit 18 - `6797fc5ce249e9e5f67ad7671e677aba25583ae1`
 - 时间: `Thu May 2 14:12:44 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/6797fc5ce249e9e5f67ad7671e677aba25583ae1)
 - 描述:
-    - null
+    - 增加`-noclickeffect`, 禁用打击特效
+    - 每一次开始播放都初始化`Hold`数据, 算是修Bug吧
+    - 修改`README`, 增加对`-noclickeffect`的说明
 
 ## Commit 19 - `bc7b43e28ffabc8e7407d4d740fe4da2b6764b70`
 - 时间: `Thu May 2 19:50:49 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/bc7b43e28ffabc8e7407d4d740fe4da2b6764b70)
 - 描述:
-    - null
+    - 修改`Hold`特效的间隔时间为`1 / bpm * 30 s`一次
 
 ## Commit 20 - `9b158a43bb1f6c0f0fc15c8ce88d57ad45fe235b`
 - 时间: `Sat May 4 08:30:17 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/9b158a43bb1f6c0f0fc15c8ce88d57ad45fe235b)
 - 描述:
-    - null
+    - 优化`debug`变量的赋值逻辑, 直接`"-debug" in argv`
+    - 将`Note_width`设置为全局变量
+    - 增加`judgeLine_to_note_rotate_angle`变量, 减少重复计算数据
+    - 计算`Hold`身的矩形坐标
+    - 增加`-holdbody`, 显示`Hold`身为一个纯色矩形
+    - 修改`README`, 增加对`-holdbody`的说明
 
 ## Commit 21 - `7143a9c4899958c244ff724414e2e5931a20bd34`
 - 时间: `Sat May 4 09:56:32 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/7143a9c4899958c244ff724414e2e5931a20bd34)
 - 描述:
-    - null
+    - 尝试`create_line`的`smooth`参数
 
 ## Commit 22 - `bb58463f33ede4183f2a7c20ed48f62fd7e459ba`
 - 时间: `Sat May 4 15:58:02 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/bb58463f33ede4183f2a7c20ed48f62fd7e459ba)
 - 描述:
-    - null
+    - 修改`judgeLine.init_holdlength`, 无需传入`T`(1.875 / bpm)
+    - 自动删除`__pycache__`
+    - 对`Cal_judgeLine_NoteDy`进行修改, 增加`Cal_judgeLine_NoteDy_ByTime`进行计算 (`Cal_judgeLine_NoteDy`调用`Cal_judgeLine_NoteDy_ByTime`)
+    - 增加对`Hold`打击时变速的支持, 算修Bug吧
 
 ## Commit 23 - `2bc678cb08be08427d740f61a7e62445a97bd275`
 - 时间: `Sat May 4 17:35:07 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/2bc678cb08be08427d740f61a7e62445a97bd275)
 - 描述:
-    - null
+    - 再次尝试增加键盘游玩
 
 ## Commit 24 - `4c3f1e8d0c9a9b4c60939bef122a5aa0e480aa2f`
 - 时间: `Sat May 4 19:17:15 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/4c3f1e8d0c9a9b4c60939bef122a5aa0e480aa2f)
 - 描述:
-    - null
+    - 继续尝试增加键盘游玩
 
 ## Commit 25 - `73746bc72ac8aedbfcf65ef0df6fd489c8ea05ae`
 - 时间: `Sat May 4 19:35:18 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/73746bc72ac8aedbfcf65ef0df6fd489c8ea05ae)
 - 描述:
-    - null
+    - 继续尝试增加键盘游玩, 增加逻辑
 
 ## Commit 26 - `9d45e43a33106cb6e3145e4f37005719c9cfc26f`
 - 时间: `Sat May 4 20:47:47 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/9d45e43a33106cb6e3145e4f37005719c9cfc26f)
 - 描述:
-    - null
+    - 继续尝试增加键盘游玩, 增加逻辑
+    - 增加`psm.py`(Phigros Score Manager), 用来计算分数
 
 ## Commit 27 - `641bcdf2522daa385f9a59bf788f5a66b9cea34b`
 - 时间: `Sat May 4 21:59:13 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/641bcdf2522daa385f9a59bf788f5a66b9cea34b)
 - 描述:
-    - null
+    - 继续尝试增加键盘游玩, 增加逻辑
 
 ## Commit 28 - `86592e818cd736af503a7dc1f6e20a17eba33d90`
 - 时间: `Sun May 5 09:44:07 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/86592e818cd736af503a7dc1f6e20a17eba33d90)
 - 描述:
-    - null
+    - 继续尝试增加键盘游玩, 增加逻辑
 
 ## Commit 29 - `4e3d6cc9e114d313ff6477b3d8c37643b9d8614f`
 - 时间: `Sun May 5 10:00:40 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/4e3d6cc9e114d313ff6477b3d8c37643b9d8614f)
 - 描述:
-    - null
+    - 继续尝试增加键盘游玩, 增加逻辑
 
 ## Commit 30 - `7f963c91804a79ee4ac40c072897a57ee5de6025`
 - 时间: `Sun May 5 12:31:34 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/7f963c91804a79ee4ac40c072897a57ee5de6025)
 - 描述:
-    - null
+    - 放弃增加键盘游玩
 
 ## Commit 31 - `f0b712920767f44ed72f4caf54836689bb980d3e`
 - 时间: `Sun May 5 13:00:12 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/f0b712920767f44ed72f4caf54836689bb980d3e)
 - 描述:
-    - null
+    - 增加`rotate_image`, 用于旋转`note`图片
 
 ## Commit 32 - `31778ea27e39f69944cc32f676ea6e2fd9b0853c`
 - 时间: `Sun May 5 17:59:41 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/31778ea27e39f69944cc32f676ea6e2fd9b0853c)
 - 描述:
-    - null
+    - `note`可以转啦!!! (效率感人)
 
 ## Commit 33 - `60e2438e6b4c3843f7b5482725571da5532c2dbf`
 - 时间: `Sun May 5 18:05:33 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/60e2438e6b4c3843f7b5482725571da5532c2dbf)
 - 描述:
-    - null
+    - 修改`README`, 去除对 Commit 32 `31778ea27e39f69944cc32f676ea6e2fd9b0853c` 的描述
 
 ## Commit 34 - `a6dee4183d24db2e7ced65adb647e37802e3b772`
 - 时间: `Sun May 5 18:25:29 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/a6dee4183d24db2e7ced65adb647e37802e3b772)
 - 描述:
-    - null
+    - 封装ui绘制到 `draw_ui`
 
 ## Commit 35 - `d6fa9066ae8172e0a0dfcfebf17f36ff3a04b4bb`
 - 时间: `Mon May 6 16:53:08 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/d6fa9066ae8172e0a0dfcfebf17f36ff3a04b4bb)
 - 描述:
-    - null
+    - 修复`-showfps`的除以`0`的Bug
 
 ## Commit 36 - `6941cbcfdbb731a02f12032e418f591993f28431`
 - 时间: `Mon May 6 17:10:34 2024 +0800`
