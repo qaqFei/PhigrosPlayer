@@ -27,7 +27,7 @@
 - `--lfdaot-frame-speed <integer-value>` 设置在使用 `--lfdaot` 时生成 `.lfdaot` 文件的帧率 tip: 在使用 `--lfdaot-file` 时无效
 - `--render-range-more` 扩展渲染范围
 - `--render-range-more-scale <number-value>` 扩展渲染范围的缩放 默认为2.0
-- `--lfdaot-render-video` 在在使用 `--lfdaot` 和 `--lfdaot-file` 时导出一个视频 视频路径会在加载完成 `.lfdaot` 文件时 弹出文件选择框时确定
+- `--lfdaot-render-video` 在在使用 `--lfdaot` 和 `--lfdaot-file` 时导出一个视频 视频路径会在加载完成 `.lfdaot` 文件时 弹出文件选择框时确定(也可使用`--lfdaot-render-video-savefp`)
 - `--ease-event-interpolation` 在事件插值时使用缓动 tip: 适用于几乎不存在缓动的谱面 否则可能会出现在细小的线性事件中进行缓动插值 从而导致判定线出现移动或旋转卡顿
 - `--frameless` 窗口无边框
 - `--window-host <integer-hwnd-value>` 将窗口设置为指定窗口的子窗口
@@ -36,6 +36,9 @@
 - `--res <folder-path>` 使用指定的资源文件夹, 若资源文件夹中不存在需要的资源, 则从原资源处加载 (仅对图片生效)
 - `--noautoplay` 禁用`Autoplay`, 进行游玩谱面(目前仅支持键盘操作(a ~ z 26个字母才判定点击, 忽略大小写), 不支持鼠标)
 - `--rtacc` 实时`Acc`显示
+- `--lfdaot-file-savefp <filepath-string-value>` 在使用`--lfdaot`时`lfdaot`文件的保存路径
+- `--lfdaot-render-video-savefp <filepath-string-value>` 在使用`--lfdaot-render-video`的视频保存路径
+- `--lfdaot-file-output-autoexit` 在使用`--lfdaot`时 生成`lfdaot`文件后不播放 自动退出
 
 # 快捷键
 - 播放中使用长按`Ctrl + Alt + R`可重新开始 (使用`--lfdaot`时失效)

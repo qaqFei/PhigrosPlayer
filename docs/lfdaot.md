@@ -1,7 +1,7 @@
 # 关于 ```.lfdaot``` 文件
 
 ## 介绍
-- 在使用```-lfdaot```启动主程序时 如果不带```-lfdaot-file```参数 那么在计算完成渲染后 会自动生成一个 ```.lfdaot``` 文件
+- 在使用```--lfdaot```启动主程序时 如果不带```--lfdaot-file```参数 那么在计算完成渲染后 会自动生成一个 ```.lfdaot``` 文件
 
 ## 文件格式
 - 使用```JSON```格式进行存储
@@ -52,4 +52,4 @@
 
 ## 注意
 - ```<any-function-name>``` 位于 ```project/Main.py``` 中的 所有函数
-- ```<eval-tuple-args>``` 使用 ```eval(v)``` 得到最终值 类型为```typing.Tuple```
+- ```<eval-tuple-args>``` 使用 ```eval(v)``` 得到最终值 类型为```tuple```

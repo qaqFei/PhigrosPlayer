@@ -1024,7 +1024,7 @@ def GetFrameRenderTask_Phi(
                             f'(Resource["Note_Click_Audio"]["{note_item.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
                         ))
                     
-                if not this_note_ishold and this_noteitem_clicked:
+                if not this_note_ishold and note_item.clicked:
                     continue
                 elif this_note_ishold and now_t > note_item.hold_endtime:
                     continue
@@ -1055,16 +1055,13 @@ def GetFrameRenderTask_Phi(
                 
                 if this_note_ishold:
                     note_hold_draw_length = note_now_floorPosition + note_item.hold_length_px
-                    if note_hold_draw_length >= 0:
-                        holdend_x,holdend_y = Tool_Functions.rotate_point(
-                            *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_hold_draw_length
-                        )
-                    else:
-                        holdend_x,holdend_y = rotatenote_at_judgeLine_pos
-                    if note_now_floorPosition >= 0:
-                        holdhead_pos = x, y
-                    else:
+                    holdend_x, holdend_y = Tool_Functions.rotate_point(
+                        *rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_hold_draw_length
+                    )
+                    if note_item.clicked:
                         holdhead_pos = rotatenote_at_judgeLine_pos
+                    else:
+                        holdhead_pos = x, y
                     holdbody_range = (
                         Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
                         Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
@@ -1119,16 +1116,20 @@ def GetFrameRenderTask_Phi(
                         this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
                     
                     fix_scale = Const.NOTE_DUB_FIXSCALE if note_item.morebets else 1.0 # because the note img if has morebets frame, the note will be look small, so we will `*` a fix scale to fix the frame size make the note look is small.
+                    this_note_width = Note_width * fix_scale
+                    this_note_height = Note_width / this_note_img.width * this_note_img.height
                         
                     if this_note_ishold:
+                        this_noteend_height = Note_width / this_note_img_end.width * this_note_img_end.height
+                        
                         if note_item.clicked:
                             holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
-                            holdbody_length = note_hold_draw_length - this_note_img_end.height / 2
+                            holdbody_length = note_hold_draw_length - this_noteend_height / 2
                         else:
                             holdbody_x,holdbody_y = Tool_Functions.rotate_point(
-                                *holdhead_pos,judgeLine_to_note_rotate_deg,this_note_img.height / 2
+                                *holdhead_pos, judgeLine_to_note_rotate_deg, this_note_height / 2
                             )
-                            holdbody_length = note_item.hold_length_px - this_note_img.height / 2 - this_note_img_end.height / 2
+                            holdbody_length = note_item.hold_length_px - (this_note_height + this_noteend_height) / 2
                         
                         miss_alpha_change = 0.5 if noautoplay and note_item.player_missed else 1.0
                         
@@ -1138,8 +1139,8 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname_end)},\
                                 {holdend_x},\
                                 {holdend_y},\
-                                {Note_width * note_item.width * fix_scale},\
-                                {Note_width / this_note_img_end.width * this_note_img_end.height},\
+                                {this_note_width * note_item.width},\
+                                {this_noteend_height},\
                                 {judgeLine_rotate},\
                                 {note_item.alpha * miss_alpha_change}\
                             );",
@@ -1153,7 +1154,7 @@ def GetFrameRenderTask_Phi(
                                     {root.get_img_jsvarname(this_note_imgname_body)},\
                                     {holdbody_x},\
                                     {holdbody_y},\
-                                    {Note_width * note_item.width * fix_scale},\
+                                    {this_note_width * note_item.width},\
                                     {holdbody_length},\
                                     {judgeLine_rotate},\
                                     {note_item.alpha * miss_alpha_change}\
@@ -1168,8 +1169,8 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname)},\
                                 {x},\
                                 {y},\
-                                {Note_width * note_item.width * fix_scale},\
-                                {Note_width / this_note_img.width * this_note_img.height},\
+                                {this_note_width * note_item.width},\
+                                {this_note_height},\
                                 {judgeLine_rotate},\
                                 {note_item.alpha}\
                             );",
@@ -1851,9 +1852,12 @@ def PlayerStart_Phi():
                 
                 print(f"\rLoadFrameData: {frame_count} / {allframe_num}",end="")
             
-            lfdaot_fp = dialog.savefile(
-                fn = "Chart.lfdaot"
-            )
+            if "--lfdaot-file-savefp" in argv:
+                lfdaot_fp = argv[argv.index("--lfdaot-file-savefp") + 1]
+            else:
+                lfdaot_fp = dialog.savefile(
+                    fn = "Chart.lfdaot"
+                )
             
             if lfdaot_fp != "":
                 data = {
@@ -1882,8 +1886,12 @@ def PlayerStart_Phi():
                     data["data"].append(Task_data)
                 with open(lfdaot_fp,"w") as f:
                     f.write(json.dumps(data).replace(" ",""))
-        else: #-lfdaot-file
-            fp = argv[argv.index("-lfdaot-file") + 1]
+                    
+            if "--lfdaot-file-output-autoexit" in argv:
+                root.destroy()
+                return None
+        else: #--lfdaot-file
+            fp = argv[argv.index("--lfdaot-file") + 1]
             with open(fp,"r",encoding="utf-8") as f:
                 data = json.load(f)
             if data["meta"]["render_range_more"]:
@@ -1966,10 +1974,13 @@ def PlayerStart_Phi():
                     break
                 
                 sleep(max(0,frame_time - (time() - render_st)))
-        else: # -lfdaot-render-video
-            video_fp = dialog.savefile(
-                fn = "lfdaot_render_video.mp4"
-            )
+        else: # --lfdaot-render-video
+            if "--lfdaot-render-video-savefp" in argv:
+                video_fp = argv[argv.index("--lfdaot-render-video-savefp") + 1]
+            else:
+                video_fp = dialog.savefile(
+                    fn = "lfdaot_render_video.mp4"
+                )
             Lfdaot_VideoWriter = cv2.VideoWriter(
                 video_fp,
                 cv2.VideoWriter.fourcc(*"mp4v"),

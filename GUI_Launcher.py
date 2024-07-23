@@ -221,87 +221,87 @@ other_args_Label.grid(row=3, column=0, columnspan=100, padx=12, sticky="w")
 other_args_Entry = Entry(root, width=int(screen_width / 35))
 other_args_Entry.grid(row=3, column=101, columnspan=100, sticky="w")
 
-debug_checkbutton_var = BooleanVar(value=False) # -debug
+debug_checkbutton_var = BooleanVar(value=False) # --debug
 debug_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.DEBUG, variable=debug_checkbutton_var)
 debug_checkbutton.grid(sticky="w", row=0, column=0)
 
-fullscreen_checkbutton_var = BooleanVar(value=False) # -fullscreen
+fullscreen_checkbutton_var = BooleanVar(value=False) # --fullscreen
 fullscreen_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.FULLSCREEN, variable=fullscreen_checkbutton_var)
 fullscreen_checkbutton.grid(sticky="w", row=0, column=1)
 
-nojudgeline_checkbutton_var = BooleanVar(value=False) # -nojudgeline
+nojudgeline_checkbutton_var = BooleanVar(value=False) # --nojudgeline
 nojudgeline_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOJUDGELINE, variable=nojudgeline_checkbutton_var)
 nojudgeline_checkbutton.grid(sticky="w", row=0, column=2)
 
-judgeline_notransparent_checkbutton_var = BooleanVar(value=False) # -judgeline-notransparent
+judgeline_notransparent_checkbutton_var = BooleanVar(value=False) # --judgeline-notransparent
 judgeline_notransparent_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.JUDGELINE_NOTRANSPARENT, variable=judgeline_notransparent_checkbutton_var)
 judgeline_notransparent_checkbutton.grid(sticky="w", row=1, column=0)
 
-noclickeffect_randomblock_checkbutton_var = BooleanVar(value=False) # -noclickeffect-randomblock
+noclickeffect_randomblock_checkbutton_var = BooleanVar(value=False) # --noclickeffect-randomblock
 noclickeffect_randomblock_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOCLICKEFFECT_RANDOMBLOCK, variable=noclickeffect_randomblock_checkbutton_var)
 noclickeffect_randomblock_checkbutton.grid(sticky="w", row=1, column=1)
 
-loop_checkbutton_var = BooleanVar(value=False) # -loop
+loop_checkbutton_var = BooleanVar(value=False) # --loop
 loop_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LOOP, variable=loop_checkbutton_var)
 loop_checkbutton.grid(sticky="w", row=1, column=2)
 
-lfdaot_checkbutton_var = BooleanVar(value=False) # -lfdaot
+lfdaot_checkbutton_var = BooleanVar(value=False) # --lfdaot
 lfdaot_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LFDAOT,variable=lfdaot_checkbutton_var, command=lfdaot_callback)
 lfdaot_checkbutton.grid(sticky="w", row=2, column=0)
 
-noclicksound_checkbutton_var = BooleanVar(value=False) # -noclicksound
+noclicksound_checkbutton_var = BooleanVar(value=False) # --noclicksound
 noclicksound_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOCLICKSOUND, variable=noclicksound_checkbutton_var)
 noclicksound_checkbutton.grid(sticky="w", row=2, column=1)
 
-render_range_more_checkbutton_var = BooleanVar(value=False) # -render-range-more
+render_range_more_checkbutton_var = BooleanVar(value=False) # --render-range-more
 render_range_more_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.RRM,variable=render_range_more_checkbutton_var, command=render_range_more_callback)
 render_range_more_checkbutton.grid(sticky="w", row=2, column=2)
 
-setsize_checkbutton_var = BooleanVar(value=False) # -size
+setsize_checkbutton_var = BooleanVar(value=False) # --size
 setsize_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.SETSIZE,variable=setsize_checkbutton_var, command=setsize_callback)
 setsize_checkbutton.grid(sticky="w", row=3, column=0)
 
-lfdaot_render_video_checkbutton_var = BooleanVar(value=False) # -lfdaot-render-video
+lfdaot_render_video_checkbutton_var = BooleanVar(value=False) # --lfdaot-render-video
 lfdaot_render_video_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LFDAOT_RENDER_VIDEO, variable=lfdaot_render_video_checkbutton_var)
 lfdaot_render_video_checkbutton.grid(sticky="w", row=4, column=0, columnspan=500)
 lfdaot_render_video_checkbutton.configure(state = "disabled")
 
-ease_event_interpolation_checkbutton_var = BooleanVar(value=False) # -ease-event-interpolation
+ease_event_interpolation_checkbutton_var = BooleanVar(value=False) # --ease-event-interpolation
 ease_event_interpolation_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.EASE_EVENT_INTERPOLATION, variable=ease_event_interpolation_checkbutton_var)
 ease_event_interpolation_checkbutton.grid(sticky="w", row=5, column=0)
 
-frameless_checkbutton_var = BooleanVar(value=False) # -frameless
+frameless_checkbutton_var = BooleanVar(value=False) # --frameless
 frameless_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.FRAMELESS, variable=frameless_checkbutton_var)
 frameless_checkbutton.grid(sticky="w", row=5, column=1)
 
-noautoplay_checkbutton_var = BooleanVar(value=False) # -noautoplay
+noautoplay_checkbutton_var = BooleanVar(value=False) # --noautoplay
 noautoplay_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOAUTOPLAY, variable=noautoplay_checkbutton_var)
 noautoplay_checkbutton.grid(sticky="w", row=6, column=0)
 
-rtacc_checkbutton_var = BooleanVar(value=False) # -rtacc
+rtacc_checkbutton_var = BooleanVar(value=False) # --rtacc
 rtacc_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.RTACC, variable=rtacc_checkbutton_var)
 rtacc_checkbutton.grid(sticky="w", row=6, column=1)
 
 
-kwarg_combotips_var = StringVar(value="Autoplay") # -combotips
+kwarg_combotips_var = StringVar(value="Autoplay") # --combotips
 kwarg_combotips_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.COMBOTIPS)
 kwarg_combotips_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_combotips_var)
 kwarg_combotips_label.grid(row=0, column=0)
 kwarg_combotips_entry.grid(row=0, column=1)
 
-kwarg_random_block_num_var = StringVar(value="4") # -random-block-num
+kwarg_random_block_num_var = StringVar(value="4") # --random-block-num
 kwarg_random_block_num_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.RANDOM_BLOCK_NUM)
 kwarg_random_block_num_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_random_block_num_var)
 kwarg_random_block_num_label.grid(row=1, column=0)
 kwarg_random_block_num_entry.grid(row=1, column=1)
 
-kwarg_scale_note_var = StringVar(value="1.0") # -scale-note
+kwarg_scale_note_var = StringVar(value="1.0") # --scale-note
 kwarg_scale_note_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.SCALE_NOTE)
 kwarg_scale_note_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_scale_note_var)
 kwarg_scale_note_label.grid(row=2, column=0)
 kwarg_scale_note_entry.grid(row=2, column=1)
 
-kwarg_lfdaot_file_var = StringVar(value="") # -lfdaot-file
+kwarg_lfdaot_file_var = StringVar(value="") # --lfdaot-file
 kwarg_lfdaot_file_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.LFDAOT_FILE)
 kwarg_lfdaot_file_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_lfdaot_file_var)
 kwarg_lfdaot_file_choose_button = Button(kwargs_LabelFrame, text=TEXT.FILE_INPUT_FILEDIALOG_BUTTON_TEXT, command=kwarg_lfdaot_file_choose_callback)
@@ -311,7 +311,7 @@ kwarg_lfdaot_file_choose_button.grid(row=3, column=2, columnspan=100, sticky="w"
 kwarg_lfdaot_file_entry.configure(state = "disabled")
 kwarg_lfdaot_file_choose_button.configure(state = "disabled")
 
-kwarg_size_x_var = StringVar(value="NULL") # -size-file
+kwarg_size_x_var = StringVar(value="NULL") # --size-file
 kwarg_size_y_var = StringVar(value="NULL")
 kwarg_size_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.SIZE)
 kwarg_size_x_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_size_x_var)
@@ -325,21 +325,21 @@ kwarg_size_x_entry.configure(state = "disabled")
 kwarg_size_connect_label.configure(state = "disabled")
 kwarg_size_y_entry.configure(state = "disabled")
 
-kwarg_lfdaot_frame_speed_var = StringVar(value="60.0") # -lfdaot-frame-speed
+kwarg_lfdaot_frame_speed_var = StringVar(value="60.0") # --lfdaot-frame-speed
 kwarg_lfdaot_frame_speed_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.LFDAOT_FRAME_SPEED)
 kwarg_lfdaot_frame_speed_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_lfdaot_frame_speed_var)
 kwarg_lfdaot_frame_speed_label.grid(row=5, column=0)
 kwarg_lfdaot_frame_speed_entry.grid(row=5, column=1)
 kwarg_lfdaot_frame_speed_entry.configure(state = "disabled")
 
-kwarg_render_range_more_scale_var = StringVar(value="2.0") # -render-range-more-scale
+kwarg_render_range_more_scale_var = StringVar(value="2.0") # --render-range-more-scale
 kwarg_render_range_more_scale_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.RENDER_RANGE_MORE_SCALE)
 kwarg_render_range_more_scale_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_render_range_more_scale_var)
 kwarg_render_range_more_scale_label.grid(row=6, column=0)
 kwarg_render_range_more_scale_entry.grid(row=6, column=1)
 kwarg_render_range_more_scale_entry.configure(state = "disabled")
 
-kwarg_extend_var = StringVar(value="") # -extend
+kwarg_extend_var = StringVar(value="") # --extend
 kwarg_extend_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.EXTEND)
 kwarg_extend_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_extend_var)
 kwarg_extend_button = Button(kwargs_LabelFrame, text=TEXT.FILE_INPUT_FILEDIALOG_BUTTON_TEXT, command=kwarg_extend_file_choose_callback)

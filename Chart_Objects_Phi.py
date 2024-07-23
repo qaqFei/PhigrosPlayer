@@ -36,7 +36,7 @@ class note:
     above: bool
     id: int|None = None
     by_judgeLine_id: int|None = None
-    clicked: bool = False
+    clicked: bool = False # this attr mean is "this note click time is <= now time", so if disable autoplay and click time <= now time but user is not click this attr still is true.
     morebets: bool = False
     master: judgeLine|None = None
     show_effected: bool = False

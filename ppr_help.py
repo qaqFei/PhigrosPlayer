@@ -1,5 +1,5 @@
 HELP_EN = '''
-Usage: Main.py/Main.exe <chart_file> [<args>...] [<kwargs>...]
+Usage: Main <chart_file> [<args>...] [<kwargs>...]
 
 <Args>
   --hideconsole: Hide the console window.
