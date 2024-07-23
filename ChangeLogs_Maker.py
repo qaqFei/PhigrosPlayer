@@ -8,7 +8,7 @@ f = open("ChangeLogs_.md", "w", encoding="utf-8")
 f.write("# PhigrosPlayer Github Commit 修改日志\n\n")
 
 logs = git("log").split("\n")
-hashIDs = [i[7:] for i in logs if i.startswith("commit ") and len(i) == 47]
+hashIDs = [i[7:] for i in logs if i.startswith("commit ") and len(i) == 47][::-1]
 
 for index, hashID in enumerate(hashIDs):
     print(hashID)
