@@ -174,7 +174,10 @@
     function resizeCanvas() {
         canvas_ele.width = window.innerWidth;
         canvas_ele.height = window.innerHeight;
-        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        /*
+        in python, width and height is the real size of canvas, so we donot need to scale the canvas.
+        */
+        // ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     }
 
     function process_jswteca() {
@@ -272,17 +275,6 @@
         }
     }
 
-    CanvasRenderingContext2D.prototype._clearRect = CanvasRenderingContext2D.prototype.clearRect;
-
-    CanvasRenderingContext2D.prototype.clearRect = function(a,b,c,d) {
-        if (resize_task) {
-            resizeCanvas();
-        }
-        else {
-            this._clearRect(a,b,c,d);
-        }
-    }
-
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im,x,y,width,height,deg,alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();
@@ -313,10 +305,10 @@
         this.restore();
     }
 
-    resizeCanvas()
+    resizeCanvas();
 
     window.addEventListener("resize",function(){
-        resize_task = true;
+        resizeCanvas();
     });
 
     rcf = new RpeChartEffects(ctx);

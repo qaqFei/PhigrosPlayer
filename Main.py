@@ -2437,6 +2437,7 @@ root = webcvapis.WebCanvas(
     resizable = False,
     frameless = "-frameless" in argv
 )
+webdpr = root.run_js_code("window.devicePixelRatio;")
 if "--window-host" in argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(argv[argv.index("--window-host") + 1]))
 if hidemouse:
@@ -2452,9 +2453,11 @@ else:
     root.resize(w, h)
     w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
     dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
+    dw_legacy *= webdpr; dh_legacy *= webdpr
+    dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
     del w_legacy, h_legacy
     root.resize(w + dw_legacy, h + dh_legacy)
-    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / 2))
+    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
 
 if render_range_more:
     root.run_js_code("render_range_more = true;")
@@ -2464,7 +2467,7 @@ for line in phigros_chart_obj.judgeLineList:
     if line.EnableTexture:
         root.reg_img(line.TexturePillowObject, f"JudgeLine_Texture_{line.id}")
 
-background_image_blur = chart_image.resize((w,h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
+background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
 background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
 root.reg_img(background_image,"background")
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
