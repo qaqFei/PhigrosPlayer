@@ -281,231 +281,254 @@
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/6941cbcfdbb731a02f12032e418f591993f28431)
 - 描述:
-    - null
+    - 修复`note`的`__repr__`方法的返回字符串错误
+    - 移除残留的游玩逻辑
 
 ## Commit 37 - `53a0819ddba6086c6b52e9e0cbff97519fce29fc`
 - 时间: `Tue May 7 19:43:11 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/53a0819ddba6086c6b52e9e0cbff97519fce29fc)
 - 描述:
-    - null
+    - 优化`-hidemouse`的逻辑
 
 ## Commit 38 - `d7a77017d9b522163a6f61e4d600d24e745a4f71`
 - 时间: `Tue May 7 20:03:15 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/d7a77017d9b522163a6f61e4d600d24e745a4f71)
 - 描述:
-    - null
+    - 修复`-holdbody`的闪烁
 
 ## Commit 39 - `407e8994ab9231ea9613d5858951446821cffff6`
 - 时间: `Thu May 9 21:02:53 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/407e8994ab9231ea9613d5858951446821cffff6)
 - 描述:
-    - null
+    - 修复`7z.dll`缺失
 
 ## Commit 40 - `ab19c6e00b9830fce14bc1166a303acc7d4894e1`
 - 时间: `Thu May 9 21:25:06 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/ab19c6e00b9830fce14bc1166a303acc7d4894e1)
 - 描述:
-    - null
+    - 在`fps`设置>`144`时, 自动设置为`120`
 
 ## Commit 41 - `ec45004391eb3a8db414e260fd0788e36d54b0c4`
 - 时间: `Thu May 9 21:25:56 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/ec45004391eb3a8db414e260fd0788e36d54b0c4)
 - 描述:
-    - null
+    - 设置`fps`上限为: `144`
 
 ## Commit 42 - `5b8640a3fd01e52fd7e2d1642142485f58c3cadd`
 - 时间: `Sat May 11 19:07:54 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/5b8640a3fd01e52fd7e2d1642142485f58c3cadd)
 - 描述:
-    - null
+    - 增加对`python 3.8`的类型标注语法支持
 
 ## Commit 43 - `f0482eb91be2dda85741ab275594cdab850ee106`
 - 时间: `Sat May 11 20:35:40 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/f0482eb91be2dda85741ab275594cdab850ee106)
 - 描述:
-    - null
+    - 修改`note`大小
+    - 移除对`offset`的支持
+    - `fps`可以设置为`float("inf")`
+    - 还有一个点, 我现在看不懂了...... // FIXME
 
 ## Commit 44 - `28c360978b66e069540f290a7c75d3483af52ee0`
 - 时间: `Sat May 11 22:09:15 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/28c360978b66e069540f290a7c75d3483af52ee0)
 - 描述:
-    - null
+    - 增加`Create_Video.py`, 功能不完善, 用不了
+    - 移除残留的游玩逻辑
 
 ## Commit 45 - `8411548816e6166663767abaf2de8bcbf4030e0c`
 - 时间: `Sat May 11 22:11:01 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/8411548816e6166663767abaf2de8bcbf4030e0c)
 - 描述:
-    - null
+    - 完善`requirements.txt`
 
 ## Commit 46 - `591fdc8eebd8980c4289bc9568cb4fad39846e68`
 - 时间: `Sun May 12 09:28:21 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/591fdc8eebd8980c4289bc9568cb4fad39846e68)
 - 描述:
-    - null
+    - 修改`Create_Video.py`, 功能不完善, 用不了
+    - 移除残留的游玩逻辑
 
 ## Commit 47 - `c1f5ad41014200b5d20a99c641753c5d23c3008f`
 - 时间: `Sun May 12 09:36:39 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/c1f5ad41014200b5d20a99c641753c5d23c3008f)
 - 描述:
-    - null
+    - 修改`Create_Video.py`, 功能不完善, 用不了
 
 ## Commit 48 - `8c0cd1b0ca4657ef751976425cde9432c35ffff8`
 - 时间: `Sun May 12 09:37:38 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/8c0cd1b0ca4657ef751976425cde9432c35ffff8)
 - 描述:
-    - null
+    - 修改`Create_Video.py`, 功能不完善, 用不了
 
 ## Commit 49 - `33574cc40b4730bbf86ab64801b60d27584eb0ed`
 - 时间: `Sun May 12 13:43:42 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/33574cc40b4730bbf86ab64801b60d27584eb0ed)
 - 描述:
-    - null
+    - 修改`Create_Video.py`, 功能不完善, 用不了
 
 ## Commit 50 - `9ddb0550d39430bd2be1655a184eb73a6b726691`
 - 时间: `Sun May 12 13:52:16 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/9ddb0550d39430bd2be1655a184eb73a6b726691)
 - 描述:
-    - null
+    - 修改`Create_Video.py`, 功能不完善, 用不了
 
 ## Commit 51 - `240da8b8d90c36093f3e76cf666d01afb8a1133b`
 - 时间: `Sun May 12 13:53:59 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/240da8b8d90c36093f3e76cf666d01afb8a1133b)
 - 描述:
-    - null
+    - 修改`Create_Video.py`, 功能不完善, 用不了
 
 ## Commit 52 - `609b55eabb454d6fc877178dac81439e40309efe`
 - 时间: `Sun May 12 21:36:05 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/609b55eabb454d6fc877178dac81439e40309efe)
 - 描述:
-    - null
+    - 增加音画实时同步 (大于一定误差会修改谱面时间)
 
 ## Commit 53 - `b932514ea60eb5e61a5b577c8b5d10f5eeb05c37`
 - 时间: `Fri May 17 20:17:18 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/b932514ea60eb5e61a5b577c8b5d10f5eeb05c37)
 - 描述:
-    - null
+    - 移除`Create_Video.py`
+    - 增加`set_tkscale_ok`, 我现在看不懂了...... // FIXME
+    - 修改谱面名称显示坐标
+    - 只有在判定线出现变化时才调用`tk`
+    - 完善`requirements.txt`
+    - 修复低版本`python`出现`functools.cache`无法导入的问题
+    - 修复进度条可能会超出界面的问题
 
 ## Commit 54 - `5140197bd668dc7d55a4faa010642b833459b40e`
 - 时间: `Fri May 17 22:10:13 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/5140197bd668dc7d55a4faa010642b833459b40e)
 - 描述:
-    - null
+    - 增加`-nojudgeline`和`-debug-noshow-transparent-judgeline`
+    - 回退更改: 只有在判定线出现变化时才调用`tk`
+    - 减少无意义的调用`tk`
 
 ## Commit 55 - `2a33557e39c7073f1ab2e3fd98a07c53d0bcef53`
 - 时间: `Fri May 17 22:12:09 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/2a33557e39c7073f1ab2e3fd98a07c53d0bcef53)
 - 描述:
-    - null
+    - 增加`Const.INF`
 
 ## Commit 56 - `8362b7eecb490a5786b38a18eb0a346cdcb4da6d`
 - 时间: `Sat May 18 07:44:08 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/8362b7eecb490a5786b38a18eb0a346cdcb4da6d)
 - 描述:
-    - null
+    - 对`Image.open`添加输出
+    - 增加些许输出
+    - 修改`README`
 
 ## Commit 57 - `2b96b9ae7bdb185e353c17bfb565564e9d85ec39`
 - 时间: `Sat May 18 07:45:15 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/2b96b9ae7bdb185e353c17bfb565564e9d85ec39)
 - 描述:
-    - null
+    - 修改`README`
 
 ## Commit 58 - `3dcda66fc65b5813d4220026d1338e447b05e4e7`
 - 时间: `Sun May 19 12:29:22 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/3dcda66fc65b5813d4220026d1338e447b05e4e7)
 - 描述:
-    - null
+    - 增加`-judgeline-notransparent`
+    - 移除残留的游玩逻辑
+    - 修改`README`
 
 ## Commit 59 - `8345373f18de6c86367cbf79ec45492557599b19`
 - 时间: `Sun May 19 18:24:35 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/8345373f18de6c86367cbf79ec45492557599b19)
 - 描述:
-    - null
+    - 修改判定线开始动画的宽度
+    - 增加`Main_web.py`, 基于`WebView`, 但还不能用    (埋下伏笔...)
 
 ## Commit 60 - `a990a373cc1a81e3975f6f901cdfc63b2ec9dfaf`
 - 时间: `Sun May 19 19:01:06 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/a990a373cc1a81e3975f6f901cdfc63b2ec9dfaf)
 - 描述:
-    - null
+    - 完善基于`WebView`的程序
 
 ## Commit 61 - `dbdc5714b823648322e52e55e3fbf5872009a854`
 - 时间: `Sun May 19 19:37:46 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/dbdc5714b823648322e52e55e3fbf5872009a854)
 - 描述:
-    - null
+    - 完善基于`WebView`的程序
 
 ## Commit 62 - `bfcdee6cb6c2a2c26f83a87b2f750911b6fdaec7`
 - 时间: `Sun May 19 22:04:21 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/bfcdee6cb6c2a2c26f83a87b2f750911b6fdaec7)
 - 描述:
-    - null
+    - 完善基于`WebView`的程序
 
 ## Commit 63 - `4753f4a472d28cef283c9625d99a857100fa5075`
 - 时间: `Mon May 20 20:34:57 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/4753f4a472d28cef283c9625d99a857100fa5075)
 - 描述:
-    - null
+    - 将`Main_web.py`修改为`Main.py`, 正式使用`WebView`, 图像性能提升很大!
+    - 修改`README`和`requirements.txt`
 
 ## Commit 64 - `1c4449c9dd7277519c840f17cbe817ed546d6d6c`
 - 时间: `Wed May 22 21:00:09 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/1c4449c9dd7277519c840f17cbe817ed546d6d6c)
 - 描述:
-    - null
+    - 更改进度条逻辑
+    - 完善`web_canvas.py`
 
 ## Commit 65 - `0cedd0302ed3754fc228b634db7c67ad12e680db`
 - 时间: `Wed May 22 21:23:44 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/0cedd0302ed3754fc228b634db7c67ad12e680db)
 - 描述:
-    - null
+    - 在加载文件完成后关闭本地文件服务器, 节省性能
+    - 修改`README`
 
 ## Commit 66 - `dccca3d43c81d72fd50b3c5a1b8a27adb470e098`
 - 时间: `Thu May 23 20:43:36 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/dccca3d43c81d72fd50b3c5a1b8a27adb470e098)
 - 描述:
-    - null
+    - 更改进度条逻辑, 这个算修Bug吧
 
 ## Commit 67 - `28d14f3b6364a9249c7778718d105e11dc47ab30`
 - 时间: `Fri May 24 20:55:29 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/28d14f3b6364a9249c7778718d105e11dc47ab30)
 - 描述:
-    - null
+    - 修改计算`combo`的逻辑
+    - 修改`WebView`背景
 
 ## Commit 68 - `2fc01be41e2835e13c55a135784ee0c0af8a6245`
 - 时间: `Fri May 24 21:03:06 2024 +0800`
 - 提交者: `qaq_fei`
 - Commit 链接: [Click Me](https://github.com/qaqFei/PhigrosPlayer/commit/2fc01be41e2835e13c55a135784ee0c0af8a6245)
 - 描述:
-    - null
+    - 回退修改: 修改`WebView`背景
 
 ## Commit 69 - `f0ef0ffadd46343c4954bc3bfe2fcc713939152e`
 - 时间: `Fri May 24 21:51:45 2024 +0800`
