@@ -23,6 +23,7 @@ compile_files = [
     ("GUI_Launcher.py", True),
     ("rpe2phi.py", False),
     ("ProcessChartAudio.py", False),
+    ("OutputVideo.py", False)
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 
