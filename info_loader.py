@@ -57,8 +57,7 @@ class InfoLoader:
                             
                         self.infomap[key] = value
                 case "txt":
-                    text = raw_data.splitlines()
-                    lines = list(filter(lambda x: x != "#", text))
+                    lines = [i for i in raw_data.splitlines() if ":" in i]
                     info = {i.split(":")[0]: i[i.index(":") + 1:] for i in lines}
                     info = {k: v if v[0] != " " else v[1:] for k, v in info.items()}
                     keymap = {
@@ -90,6 +89,12 @@ class InfoLoader:
     
     def get(self, chart, music, image):
         info = self.infomap.get((chart, music, image), self.default_info)
+        
+        if info is self.default_info: # 谱师们别写错了啊啊啊啊啊啊啊啊啊啊
+            info = self.infomap.get((chart, music, image.replace(".jpg", ".png")), self.default_info)
+        if info is self.default_info:
+            info = self.infomap.get((chart, music, image.replace(".png", ".jpg")), self.default_info)
+            
         res = self.default_info.copy()
         res.update(info)
         return res

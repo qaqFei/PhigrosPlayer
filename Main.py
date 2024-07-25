@@ -896,6 +896,9 @@ def GetFrameRenderTask_Phi(
     judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,
     show_start_time:float
 ):
+    
+    # Important!!! note 和 note_item 不是同一个东西!!!!!
+    
     global PlayChart_NowTime; PlayChart_NowTime = now_t
     
     GetFrameRenderTask_Phi_CallTime = time() # use in some extend
@@ -925,9 +928,10 @@ def GetFrameRenderTask_Phi(
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
         this_judgeLine_T = judgeLine.T
         judgeLine_note_dy = Chart_Objects_Phi.getFloorPosition(judgeLine, judgeLine_cfg.time) * PHIGROS_Y
+        xscale, yscale = judgeLine.get_datavar_scale(judgeLine_cfg.time)
         judgeLine_DrawPos = (
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h),
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h)
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h * xscale),
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h * xscale)
         )
         negative_alpha = judgeLine_cfg.disappear < 0.0
         judgeLine_color = (*judgeLine.get_datavar_color(judgeLine_cfg.time, (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
@@ -940,13 +944,13 @@ def GetFrameRenderTask_Phi(
                         f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
                         add_code_array = True
                     )
-                    
+                
                 if judgeLine.TextJudgeLine:
                     Task(
                         root.create_text,
                         *judgeLine_cfg.pos,
                         text = judgeLine.get_datavar_text(judgeLine_cfg.time),
-                        font = f"{(w + h) / 75 * 1.35}px PhigrosFont",
+                        font = f"{(w + h) / 75 * 1.35 * (xscale + yscale) / 2}px PhigrosFont",
                         textAlign = "center",
                         textBaseline = "middle",
                         strokeStyle = judgeLine_webCanvas_color,
@@ -954,7 +958,6 @@ def GetFrameRenderTask_Phi(
                         wait_execute = True
                     )
                 elif judgeLine.EnableTexture:
-                    xscale, yscale = judgeLine.get_datavar_scale(judgeLine_cfg.time)
                     Task(
                         root.run_js_code,
                         f"ctx.drawRotateImage(\
@@ -972,7 +975,7 @@ def GetFrameRenderTask_Phi(
                     Task(
                         root.create_line,
                         *judgeLine_DrawPos,
-                        lineWidth = JUDGELINE_WIDTH,
+                        lineWidth = JUDGELINE_WIDTH, # * yscale,
                         strokeStyle = judgeLine_webCanvas_color,
                         wait_execute = True
                     )
@@ -1031,6 +1034,8 @@ def GetFrameRenderTask_Phi(
                 elif noautoplay and note_item.state == Const.NOTE_STATE.BAD:
                     continue
                 elif noautoplay and not this_note_ishold and note_item.player_clicked:
+                    continue
+                elif not note_item.clicked and (note_item.floorPosition - judgeLine_note_dy / PHIGROS_Y) < -0.001 and note_item.type != Const.Note.HOLD:
                     continue
                 
                 note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (
@@ -1189,19 +1194,17 @@ def GetFrameRenderTask_Phi(
         nonlocal Render_ClickEffect_Count
         Render_ClickEffect_Count += 1
         color = (254, 255, 169) if perfect else (162, 238, 255)
-        imn = "Note_Click_Effect_" + ("Perfect" if perfect else "Good")
+        imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
         if clickeffect_randomblock:
-            for i, deg in enumerate(effect_random_blocks):
+            beforedeg = 0
+            for deg in effect_random_blocks:
                 block_alpha = (1.0 - p) * 0.85
-                if block_alpha <= 0.0:
-                    continue
                 effect_random_point = Tool_Functions.rotate_point(
-                    x, y, deg + i * 90,
+                    x, y, beforedeg + deg,
                     ClickEffect_Size * Tool_Functions.ease_out(p) / 1.25
                 )
                 block_size = EFFECT_RANDOM_BLOCK_SIZE
-                if p > 0.65:
-                    block_size -= (p - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
+                if p > 0.65: block_size -= (p - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
                 Task(
                     root.create_rectangle,
                     effect_random_point[0] - block_size,
@@ -1211,12 +1214,13 @@ def GetFrameRenderTask_Phi(
                     fillStyle = f"rgba{color + (block_alpha, )}",
                     wait_execute = True
                 )
+                beforedeg += 90
         Task(
             root.create_image,
             f"{imn}_{int(p * (30 - 1)) + 1}",
             x - ClickEffect_Size / 2,
             y - ClickEffect_Size / 2,
-            ClickEffect_Size,ClickEffect_Size,
+            ClickEffect_Size, ClickEffect_Size,
             wait_execute = True
         )
         
@@ -1324,7 +1328,7 @@ def GetFrameRenderTask_Phi(
                 continue
             
             if not noautoplay:
-                if note_time <= now_t:
+                if note.clicked:
                     if now_t - note_time <= effect_time:
                         process_effect(
                             note,
@@ -1339,7 +1343,7 @@ def GetFrameRenderTask_Phi(
                     if note_ishold:
                         efct_et = note.hold_endtime + effect_time
                         if efct_et >= now_t:
-                            for temp_time,hold_effect_random_blocks in note.effect_times:
+                            for temp_time, hold_effect_random_blocks in note.effect_times:
                                 if temp_time < now_t:
                                     if now_t - temp_time <= effect_time:
                                         process_effect(
