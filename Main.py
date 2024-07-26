@@ -137,7 +137,7 @@ for item in chart_files:
                     print(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
             except Exception:
                 name = item.replace(f"{temp_dir}\\", "")
-                if name not in ["info.csv"]:
+                if name not in ["info.csv", "info.txt", "info.yml"]:
                     print(f"Warning: Unknown Resource Type. Path = {name}")
                     
 if len(chart_files_dict["charts"]) == 0:

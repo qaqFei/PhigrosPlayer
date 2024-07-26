@@ -133,8 +133,6 @@ def Launch():
         )
         return None
     
-    launch_args.append("--hideconsole")
-
     if debug_checkbutton_var.get():
         launch_args.append("--debug")
     

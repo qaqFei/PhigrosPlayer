@@ -285,7 +285,7 @@ class judgeLine:
         
         return xs, ys
     
-    def get_datavar_color(self, now_time, default:list[int]):
+    def get_datavar_color(self, now_time, default:tuple[int]) -> tuple[int]:
         if not self.ColorEvents:
             return default
         
