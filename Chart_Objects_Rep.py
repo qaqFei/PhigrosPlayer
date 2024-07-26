@@ -77,6 +77,7 @@ class JudgeLine:
     eventLayers: list[EventLayer]
     extended: Extended|None
     notes: list[Note]
+    father: int
 
 @dataclass
 class Rep_Chart:

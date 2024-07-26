@@ -34,7 +34,7 @@ def Cal_Combo(now_time:float) -> int:
                     combo += 1
     return combo
 
-def Update_JudgeLine_Configs(judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs, now_t:float):
+def Update_JudgeLine_Configs(judgeLine_Configs: Chart_Objects_Phi.judgeLine_Configs, now_t:float):
     for judgeLine_cfg in judgeLine_Configs.Configs:
         judgeLine = judgeLine_cfg.line
         judgeLine_cfg.time = now_t / judgeLine.T
@@ -191,7 +191,10 @@ def Load_Chart_Object(
                         value = colorEvent_item.get("value", [254, 255, 169])
                     )
                     for colorEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-ColorEvents", [])
-                ]
+                ],
+                RefID = judgeLine_item.get("--QFPPR-JudgeLine-RefID", "null-refid"),
+                EnableMasterLine = judgeLine_item.get("--QFPPR-JudgeLine-Enable-MasterLine", False),
+                MasterLine = judgeLine_item.get("--QFPPR-JudgeLine-MasterLine", None),
             )
             for index,judgeLine_item in enumerate(phigros_chart.get("judgeLineList", []))
         ],
@@ -212,6 +215,12 @@ def Load_Chart_Object(
                 note.morebets = True
     prcmorebets(list(filter(lambda x: x.fake,[item for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
     prcmorebets(list(filter(lambda x: not x.fake,[item for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
-        
+    
+    lines = {line.RefID: line for line in phigros_chart_obj.judgeLineList}
+    
+    for line in phigros_chart_obj.judgeLineList:
+        if line.EnableMasterLine and line.MasterLine is not None:
+            line.MasterLine = lines[line.MasterLine] # set to judgeLine object, no string.
+
     print("Load Chart Object Successfully.")
     return phigros_chart_obj

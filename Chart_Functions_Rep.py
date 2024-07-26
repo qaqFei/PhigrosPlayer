@@ -27,6 +27,7 @@ def Load_Chart_Object(chart):
                 numOfNotes = judgeLine_item["numOfNotes"],
                 isCover = judgeLine_item["isCover"],
                 Texture = judgeLine_item["Texture"],
+                father = judgeLine_item["father"],
                 eventLayers = [
                     Chart_Objects_Rep.EventLayer(
                         speedEvents = [

@@ -153,8 +153,13 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
         "--QFPPR-JudgeLine-Texture": rpe_judgeLine.Texture,
         "--QFPPR-JudgeLine-ScaleXEvents": [],
         "--QFPPR-JudgeLine-ScaleYEvents": [],
-        "--QFPPR-JudgeLine-ColorEvents": []
+        "--QFPPR-JudgeLine-ColorEvents": [],
+        "--QFPPR-JudgeLine-RefID": f"RefID-rpe2phi-{line_index}"
     }
+    
+    if rpe_judgeLine.father != -1:
+        phi_judgeLine["--QFPPR-JudgeLine-Enable-MasterLine"] = True
+        phi_judgeLine["--QFPPR-JudgeLine-MasterLine"] = f"RefID-rpe2phi-{rpe_judgeLine.father}"
     
     x_moves:typing.List[Move] = []
     y_moves:typing.List[Move] = []

@@ -166,6 +166,9 @@ class judgeLine:
     ScaleXEvents: list[ScaleEvent]
     ScaleYEvents: list[ScaleEvent]
     ColorEvents: list[ColorEvent]
+    RefID: str
+    EnableMasterLine: bool
+    MasterLine: str | judgeLine # string: ref id, set to judgeLine object at loaded.
 
     def __post_init__(self):
         self.T = 1.875 / self.bpm
@@ -212,7 +215,7 @@ class judgeLine:
         for note in self.notesBelow:
             note.master = self
     
-    def get_datavar_rotate(self,now_time):
+    def get_datavar_rotate(self, now_time):
         for e in self.judgeLineRotateEvents:
             if e.startTime <= now_time <= e.endTime:
                 return Tool_Functions.interpolation_phi(
@@ -222,9 +225,9 @@ class judgeLine:
                     e.start,
                     e.end
                 )
-        return 0.0 #never
+        return 0.0
     
-    def get_datavar_disappear(self,now_time):
+    def get_datavar_disappear(self, now_time):
         for e in self.judgeLineDisappearEvents:
             if e.startTime <= now_time <= e.endTime:
                 return Tool_Functions.linear_interpolation(
@@ -234,18 +237,34 @@ class judgeLine:
                     e.start,
                     e.end
                 )
-        return 0.0 #never
+        return 0.0
     
-    def get_datavar_move(self,now_time,w,h):
+    def _get_datavar_move_rawphi(self, now_time):
+        v = (0.0, 0.0)
         for e in self.judgeLineMoveEvents:
             if e.startTime <= now_time <= e.endTime:
-                return (
-                    Tool_Functions.interpolation_phi(now_time, e.startTime, e.endTime, e.start, e.end) * w,
-                    h - Tool_Functions.interpolation_phi(now_time, e.startTime, e.endTime, e.start2, e.end2) * h
+                v = (
+                    Tool_Functions.interpolation_phi(now_time, e.startTime, e.endTime, e.start, e.end),
+                    Tool_Functions.interpolation_phi(now_time, e.startTime, e.endTime, e.start2, e.end2)
                 )
-        return (0.0, 0.0) #never
+                break
+            
+        if self.EnableMasterLine and self.MasterLine is not None:
+            v1 = v
+            v2 = self.MasterLine._get_datavar_move_rawphi(now_time)
+            v1_rpe = ((v1[0] - 0.5) * 1350, (v1[1] - 0.5) * 900)
+            v2_rpe = ((v2[0] - 0.5) * 1350, (v2[1] - 0.5) * 900)
+            v = (v1_rpe[0] + v2_rpe[0], v1_rpe[1] + v2_rpe[1])
+            v = ((v[0] + 675) / 1350, (v[1] + 450) / 900)
+        
+        return v
+    
+    def get_datavar_move(self, now_time, w, h):
+        raw = self._get_datavar_move_rawphi(now_time)
+        
+        return (raw[0] * w, (1.0 - raw[1]) * h)
 
-    def get_datavar_text(self,now_time):
+    def get_datavar_text(self, now_time):
         for e in self.TextEvents: # sort by startTime and reverse
             if e.startTime <= now_time:
                 return e.value
@@ -275,7 +294,7 @@ class judgeLine:
                 return tuple(e.value)
         
         return default
-
+    
 @dataclass
 class Phigros_Chart:
     formatVersion: int

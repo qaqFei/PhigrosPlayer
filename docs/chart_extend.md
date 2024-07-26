@@ -185,3 +185,21 @@
             },
         ]
     }
+
+## `--QFPPR-JudgeLine-RefID` (已实现)
+- 位于 谱面文件的`judgeLineList`的元素中
+- 类型为`str`, 默认为`"null-refid"`
+- 判定线的唯一标识符
+
+## `--QFPPR-JudgeLine-Enable-MasterLine` (已实现)
+- 位于 谱面文件的`judgeLineList`的元素中
+- 类型为`bool`, 默认为`false`
+- 表示该判定线是否有父线
+- 只有为`true`时, `--QFPPR-JudgeLine-MasterLine`才生效
+
+## `--QFPPR-JudgeLine-MasterLine` (已实现)
+- 位于 谱面文件的`judgeLineList`的元素中
+- 类型为`str|None`, 默认为`None` // or null (in json)
+- 表示该判定线的父线`RefID`
+- 判定线会实时继承父线的坐标
+- tip: 计算时会将`phi`的坐标系转化为`rpe`的坐标系, 再进行叠加, 再转回`phi`的坐标系  // phi: (0.0 ~ 1.0, 0.0 ~ 1.0) 00LeftTop, rpe: (-675.0 ~ 675.0, -450 ~ 450) -675-450LeftBottom
