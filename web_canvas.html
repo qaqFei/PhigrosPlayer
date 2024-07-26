@@ -231,7 +231,7 @@
         }
     }
 
-    function loadFont(family,url) {
+    function loadFont(family, url) {
         var font = new FontFace(family, `url(${url})`);
         font.load().then(function(rfont) {
             document.fonts.add(rfont);
@@ -270,7 +270,7 @@
 
     function PhigrosPlay_KeyEvent(callback) {
         return function (e) {
-            if (event.isComposing || event.keyCode === 229) reutrn;
+            if (event.isComposing || event.keyCode === 229) return;
             callback(e);
         }
     }
@@ -307,9 +307,7 @@
 
     resizeCanvas();
 
-    window.addEventListener("resize",function(){
-        resizeCanvas();
-    });
+    window.addEventListener("resize", resizeCanvas);
 
     rcf = new RpeChartEffects(ctx);
 </script>
