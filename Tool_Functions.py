@@ -1,5 +1,6 @@
 from random import randint
 from sys import argv
+from threading import Thread
 import typing
 import math
 
@@ -271,3 +272,10 @@ def judgeLine_can_render(
 
 def point_in_screen(point:typing.Tuple[float,float], w: int, h: int) -> bool:
     return 0 < point[0] < w and 0 < point[1] < h
+
+def ThreadFunc(f):
+    def wrapper(*args, **kwargs):
+        t = Thread(target=f, args=args, kwargs=kwargs)
+        t.start()
+        t.join()
+    return wrapper

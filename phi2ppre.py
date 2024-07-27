@@ -26,9 +26,9 @@ for line in phi_obj.judgeLineList:
     }
     for note in line.notesAbove:
         ppre_line["notes"].append({
-            "time": note.time * 1.875,
+            "time": note.time * 1.875 / 60,
             "type": note.type,
-            "holdtime": note.holdTime * 1.875,
+            "holdtime": note.holdTime * 1.875 / 60,
             "positionX": note.positionX,
             "speed": note.speed,
             "fake": False,
@@ -36,9 +36,9 @@ for line in phi_obj.judgeLineList:
         })
     for note in line.notesBelow:
         ppre_line["notes"].append({
-            "time": note.time * 1.875,
+            "time": note.time * 1.875 / 60,
             "type": note.type,
-            "holdtime": note.holdTime * 1.875,
+            "holdtime": note.holdTime * 1.875 / 60,
             "positionX": note.positionX,
             "speed": note.speed,
             "fake": False,
@@ -46,22 +46,22 @@ for line in phi_obj.judgeLineList:
         })
     for e in line.speedEvents:
         ppre_line["speedEvents"].append({
-            "startTime": e.startTime * 1.875,
-            "endTime": e.endTime * 1.875,
+            "startTime": e.startTime * 1.875 / 60,
+            "endTime": e.endTime * 1.875 / 60,
             "value": e.value
         })
     for e in line.judgeLineDisappearEvents:
         ppre_line["alphaEvents"].append({
-            "startTime": e.startTime * 1.875,
-            "endTime": e.endTime * 1.875,
+            "startTime": e.startTime * 1.875 / 60,
+            "endTime": e.endTime * 1.875 / 60,
             "start": e.start,
             "end": e.end,
             "easingType": 1
         })
     for e in line.judgeLineMoveEvents:
         ppre_line["moveEvents"].append({
-            "startTime": e.startTime * 1.875,
-            "endTime": e.endTime * 1.875,
+            "startTime": e.startTime * 1.875 / 60,
+            "endTime": e.endTime * 1.875 / 60,
             "startX": e.start,
             "startY": e.start2,
             "endX": e.end,
@@ -70,8 +70,8 @@ for line in phi_obj.judgeLineList:
         })
     for e in line.judgeLineRotateEvents:
         ppre_line["rotateEvents"].append({
-            "startTime": e.startTime * 1.875,
-            "endTime": e.endTime * 1.875,
+            "startTime": e.startTime * 1.875 / 60,
+            "endTime": e.endTime * 1.875 / 60,
             "start": e.start,
             "end": e.end,
             "easingType": 1

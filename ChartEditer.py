@@ -134,7 +134,7 @@ def Load_Resource():
     Note_width = (0.125 * w + 0.2 * h / 2) / 2
     ClickEffect_Size = Note_width * 1.375
     Resource = {
-        "Notes":{
+        "Notes": {
             "Tap": Image.open("./Resources/Notes/Tap.png"),
             "Tap_dub": Image.open("./Resources/Notes/Tap_dub.png"),
             "Drag": Image.open("./Resources/Notes/Drag.png"),
@@ -149,17 +149,24 @@ def Load_Resource():
             "Hold_Body_dub": Image.open("./Resources/Notes/Hold_Body_dub.png"),
             "Tap_Bad": Image.open("./Resources/Notes/Tap_Bad.png")
         },
-        "Note_Click_Effect":{
+        "Note_Click_Effect": {
             "Perfect":[
                 Image.open(f"./Resources/Note_Click_Effect/Perfect/{i + 1}.png")
                 for i in range(30)
             ]
         },
-        "Note_Click_Audio":{
+        "Note_Click_Audio": {
             "Tap": open("./Resources/Note_Click_Audio/Tap.wav", "rb").read(),
             "Drag": open("./Resources/Note_Click_Audio/Drag.wav", "rb").read(),
             "Hold": open("./Resources/Note_Click_Audio/Hold.wav", "rb").read(),
             "Flick": open("./Resources/Note_Click_Audio/Flick.wav", "rb").read()
+        },
+        "Icons": {
+            "Play": Image.open("./Resources/Edit_Play.png"),
+            "Pause": Image.open("./Resources/Edit_Pause.png"),
+            "ChangeValue": Image.open("./Resources/Edit_ChangeValue.png"),
+            "Back": Image.open("./Resources/Edit_Back.png"),
+            "Save": Image.open("./Resources/Edit_Save.png")
         }
     }
     
@@ -170,6 +177,9 @@ def Load_Resource():
     
     for i in range(30): # reg click effect
         webcv.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
+    
+    for k, v in Resource["Icons"].items():
+        webcv.reg_img(v, f"Icon_{k}")
         
     with open("./Resources/font.ttf", "rb") as f:
         webcv.reg_res(f.read(), "PhigrosFont")
@@ -236,7 +246,7 @@ def renderChartView(nt: float): # sec
     webcv.create_rectangle(0, 0, w, h / 2, fillStyle="rgb(0, 120, 215)", wait_execute=True)
         
     for line in ChartObject.lines:
-        lineTime = nt / (1 / line.bpm)
+        lineTime = nt / (60 / line.bpm)
         lineAlpha = line.getAlpha(lineTime)
         linePos = line.getMove(lineTime)
         lineRotate = line.getRotate(lineTime)
@@ -263,7 +273,7 @@ def renderChartView(nt: float): # sec
             elif note.type == Const.Note.HOLD and note.time + note.holdtime < lineTime:
                 return None
             
-            holdLength = note.holdtime * (1 / line.bpm) * note.speed * PHIGROS_Y if note.type == Const.Note.HOLD else 0.0
+            holdLength = note.holdtime * (60 / line.bpm) * note.speed * PHIGROS_Y if note.type == Const.Note.HOLD else 0.0
             
             if not (note.type == Const.Note.HOLD and note.time < lineTime):
                 noteFloorPosition = line.getNoteFloorPosition(lineTime, note) * PHIGROS_Y
@@ -427,7 +437,7 @@ def renderChartView(nt: float): # sec
         )
         
     for line in ChartObject.lines:
-        beatTime = 1 / line.bpm
+        beatTime = 60 / line.bpm
         lineTime = nt / beatTime
         for note in line.notes:
             noteTimeSec = note.time * beatTime
@@ -463,17 +473,131 @@ def renderChartView(nt: float): # sec
     
     webcv.clear_rectangle(0, h / 2, w, h, wait_execute=True)
 
-def renderEventView():
-    pass
+def getEventViewTimeLengthPx(t: float):
+    return h / 2 * (t / EventEdit_viewRange)
 
-def __():
+def renderEventView():
+    global EventEdit_lineIndex
+    
+    webcv.run_js_code(f"chartViewImdata = ctx.getImageData(0, 0, {w}, {h / 2});", add_code_array=True)
+    
+    webcv.create_rectangle(0, h / 2, w, h, fillStyle="#888", wait_execute=True)
+    timeLinetime = int(EventEdit_uiDy) - 1
+    while True:
+        timeLiney = h - (h / 2) * (timeLinetime - EventEdit_uiDy) / EventEdit_viewRange
+        webcv.create_line(
+            0, timeLiney, w * (4.6 / 8), timeLiney,
+            lineWidth = JUDGELINE_WIDTH / 4 * (3.0 if timeLinetime % 1.0 == 0.0 else 1.0),
+            strokeStyle = "#EEE",
+            wait_execute = True
+        )
+        webcv.create_text(
+            w * (4.6 / 8) + 1.5, timeLiney,
+            text = f"{timeLinetime:.2f}",
+            font = f"{(w + h) / 175 * 1.25}px PhigrosFont",
+            textAlign = "start",
+            textBaseline = "middle",
+            fillStyle = "#000",
+            wait_execute = True
+        )
+        timeLinetime += EventEdit_timeLineLength
+        if timeLinetime > EventEdit_uiDy + EventEdit_viewRange:
+            break
+    
+    try:
+        line = ChartObject.lines[EventEdit_lineIndex]
+    except IndexError:
+        ChartObject.lines.append(Chart_Objects_Ppre.judgeLine(
+            bpm = 140,
+            notes = [],
+            speedEvents = [],
+            alphaEvents = [],
+            moveEvents = [],
+            rotateEvents = []
+        ))
+        line = ChartObject.lines[0]
+        EventEdit_lineIndex = 0
+    
+    for e in line.speedEvents:
+        est = e.startTime
+        eet = e.endTime
+        est_y = h - getEventViewTimeLengthPx(est) + EventEdit_uiDy / EventEdit_viewRange * h / 2
+        eet_y = h - getEventViewTimeLengthPx(eet) + EventEdit_uiDy / EventEdit_viewRange * h / 2
+        if est_y < h / 2 or eet_y > h:
+            continue
+        webcv.create_rectangle(0, est_y, w * (1 / 8), eet_y, fillStyle="#00F8", wait_execute=True)
+        webcv.create_line(0, est_y, w * (1 / 8), est_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+        webcv.create_line(0, eet_y, w * (1 / 8), eet_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+    
+    for e in line.alphaEvents:
+        est = e.startTime
+        eet = e.endTime
+        est_y = h - getEventViewTimeLengthPx(est) + EventEdit_uiDy / EventEdit_viewRange * h / 2
+        eet_y = h - getEventViewTimeLengthPx(eet) + EventEdit_uiDy / EventEdit_viewRange * h / 2
+        if est_y < h / 2 or eet_y > h:
+            continue
+        webcv.create_rectangle(w * (1.2 / 8), est_y, w * (2.2 / 8), eet_y, fillStyle="#00F8", wait_execute=True)
+        webcv.create_line(w * (1.2 / 8), est_y, w * (2.2 / 8), est_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+        webcv.create_line(w * (1.2 / 8), eet_y, w * (2.2 / 8), eet_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+    
+    for e in line.moveEvents:
+        est = e.startTime
+        eet = e.endTime
+        est_y = h - getEventViewTimeLengthPx(est) + EventEdit_uiDy / EventEdit_viewRange * h / 2
+        eet_y = h - getEventViewTimeLengthPx(eet) + EventEdit_uiDy / EventEdit_viewRange * h / 2
+        if est_y < h / 2 or eet_y > h:
+            continue
+        webcv.create_rectangle(w * (2.4 / 8), est_y, w * (3.4 / 8), eet_y, fillStyle="#00F8", wait_execute=True)
+        webcv.create_line(w * (2.4 / 8), est_y, w * (3.4 / 8), est_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+        webcv.create_line(w * (2.4 / 8), eet_y, w * (3.4 / 8), eet_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+    
+    for e in line.rotateEvents:
+        est = e.startTime
+        eet = e.endTime
+        est_y = h - getEventViewTimeLengthPx(est) + EventEdit_uiDy / EventEdit_viewRange * h / 2
+        eet_y = h - getEventViewTimeLengthPx(eet) + EventEdit_uiDy / EventEdit_viewRange * h / 2
+        if est_y < h / 2 or eet_y > h:
+            continue
+        webcv.create_rectangle(w * (3.6 / 8), est_y, w * (4.6 / 8), eet_y, fillStyle="#00F8", wait_execute=True)
+        webcv.create_line(w * (3.6 / 8), est_y, w * (4.6 / 8), est_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+        webcv.create_line(w * (3.6 / 8), eet_y, w * (4.6 / 8), eet_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+    
+    webcv.run_js_code("ctx.putImageData(chartViewImdata, 0, 0);", add_code_array=True)
+    
+@Tool_Functions.ThreadFunc
+def MouseWheel(face: int): # -1 / 1
+    global EventEdit_uiDy
+    face = face / abs(face)
+    d = EventEdit_viewRange * 0.05 * face
+    
+    lastv = 0.0
+    fcut = 80
+    added = 0.0
+    st = time()
+    while True:
+        p = (time() - st) / 0.5
+        if p > 1.0: break
+        v = 1.0 - (1.0 - p) ** 3
+        dv = v - lastv
+        lastv = v
+        EventEdit_uiDy += dv * d
+        added +=  dv * d
+        sleep(1 / fcut)
+    EventEdit_uiDy += d - added
+
+def main():
+    global EventEdit_uiDy
     updateMorebets()
+    webcv.jsapi.set_attr("MouseWheel", MouseWheel)
+    webcv.run_js_code("_MouseWheel = (e) => {pywebview.api.call_attr('MouseWheel', e.delta || e.wheelDelta);};")
+    webcv.run_js_code("window.addEventListener('wheel', _MouseWheel);")
     
     st = time()
     mixer.music.play()
     while True:
         webcv.clear_canvas(wait_execute=True)
         renderChartView(time() - st)
+        EventEdit_uiDy = (time() - st) / (60 / ChartObject.lines[0].bpm)
         renderEventView()
         webcv.run_js_wait_code()
 
@@ -498,8 +622,11 @@ webcv.move(int(webcv.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), in
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h / 2
 JUDGELINE_WIDTH = h * 0.0075 / 2
 EventEdit_uiDy = 0.0
+EventEdit_viewRange = 3.5
+EventEdit_timeLineLength = 1 / 4
+EventEdit_lineIndex = 0
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
-Thread(target=__, daemon=True).start()
+Thread(target=main, daemon=True).start()
 webcv.loop_to_close()
 exitProcess(0)

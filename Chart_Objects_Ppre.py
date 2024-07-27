@@ -102,7 +102,7 @@ class judgeLine:
     
     def _getFloorPosition(self, lineTime: float):
         fp = 0.0
-        bTime = 1 / self.bpm
+        bTime = 60 / self.bpm
         for e in self.speedEvents:
             if e.startTime <= lineTime <= e.endTime:
                 fp += (lineTime - e.startTime) * bTime * e.value
