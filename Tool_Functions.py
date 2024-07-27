@@ -189,3 +189,85 @@ linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 interpolation_phi(0.5,0.1,0.8,-114.514,314.159)
 begin_animation_eases = begin_animation_eases_class()
 finish_animation_eases = finish_animation_eases_class()
+
+def is_intersect(
+    line_1: typing.Tuple[
+        typing.Tuple[float, float],
+        typing.Tuple[float, float]
+    ],
+    line_2: typing.Tuple[
+        typing.Tuple[float, float],
+        typing.Tuple[float, float]
+    ]
+) -> bool:
+    if (
+        max(line_1[0][0], line_1[1][0]) < min(line_2[0][0], line_2[1][0]) or
+        max(line_2[0][0], line_2[1][0]) < min(line_1[0][0], line_1[1][0]) or
+        max(line_1[0][1], line_1[1][1]) < min(line_2[0][1], line_2[1][1]) or
+        max(line_2[0][1], line_2[1][1]) < min(line_1[0][1], line_1[1][1])
+    ):
+        return False
+    else:
+        return True
+
+def batch_is_intersect(
+    lines_group_1: typing.List[typing.Tuple[
+        typing.Tuple[float, float],
+        typing.Tuple[float, float]
+    ]],
+    lines_group_2: typing.List[typing.Tuple[
+        typing.Tuple[float, float],
+        typing.Tuple[float, float]
+    ]]
+) -> typing.Generator[bool, None, None]:
+    for i in lines_group_1:
+        for j in lines_group_2:
+            yield is_intersect(i, j)
+
+def Note_CanRender(
+    w: int, h: int,
+    note_max_width_half: float, note_max_height_half: float,
+    x: float, y: float,
+    hold_points: typing.Union[typing.Tuple[
+        typing.Tuple[float, float],
+        typing.Tuple[float, float],
+        typing.Tuple[float, float],
+        typing.Tuple[float, float]
+    ], None] = None
+) -> bool:
+    if hold_points is None: # type != HOLD
+        if (
+            (0 < x < w and 0 < y < h) or
+            (0 < x - note_max_width_half < w and 0 < y - note_max_height_half < h) or 
+            (0 < x - note_max_width_half < w and 0 < y + note_max_height_half < h) or
+            (0 < x + note_max_width_half < w and 0 < y - note_max_height_half < h) or
+            (0 < x + note_max_width_half < w and 0 < y + note_max_height_half < h)
+        ):
+            return True
+        return False
+    else:
+        if any((point_in_screen(point, w, h) for point in hold_points)):
+            return True
+        return any(batch_is_intersect(
+            [
+                (hold_points[0], hold_points[1]),
+                (hold_points[1], hold_points[2]),
+                (hold_points[2], hold_points[3]),
+                (hold_points[3], hold_points[0])
+            ],
+            [
+                ((0, 0), (w, 0)), ((0, 0), (0, h)),
+                ((w, 0), (w, h)), ((0, h), (w, h))
+            ]
+        ))
+
+def judgeLine_can_render(
+    judgeLine_DrawPos: typing.Tuple[
+        typing.Tuple[float, float],
+        typing.Tuple[float, float]
+    ], w: int, h: int
+) -> bool:
+    return any(batch_is_intersect([[[judgeLine_DrawPos[0],judgeLine_DrawPos[1]],[judgeLine_DrawPos[2],judgeLine_DrawPos[3]]]],[[(0,0),(w,0)],[(0,0),(0,h)],[(w,0),(w,h)],[(0,h),(w,h)]]))
+
+def point_in_screen(point:typing.Tuple[float,float], w: int, h: int) -> bool:
+    return 0 < point[0] < w and 0 < point[1] < h

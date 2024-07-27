@@ -13,7 +13,7 @@ import json
 import base64
 import importlib.util
 
-from PIL import Image,ImageDraw,ImageFilter,ImageEnhance
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 from pygame import mixer
 import cv2
 import numpy
@@ -550,86 +550,6 @@ def draw_background():
         wait_execute = True
     )
 
-def Note_CanRender(
-    x:float,y:float,
-    hold_points:typing.Union[typing.Tuple[
-        typing.Tuple[float,float],
-        typing.Tuple[float,float],
-        typing.Tuple[float,float],
-        typing.Tuple[float,float]
-    ], None] = None
-) -> bool:
-    if hold_points is None: # type != HOLD
-        if (
-            (0 < x < w and 0 < y < h) or
-            (0 < x - note_max_width_half < w and 0 < y - note_max_height_half < h) or 
-            (0 < x - note_max_width_half < w and 0 < y + note_max_height_half < h) or
-            (0 < x + note_max_width_half < w and 0 < y - note_max_height_half < h) or
-            (0 < x + note_max_width_half < w and 0 < y + note_max_height_half < h)
-        ):
-            return True
-        return False
-    else:
-        if any((point_in_screen(point) for point in hold_points)):
-            return True
-        return any(batch_is_intersect(
-            [
-                (hold_points[0], hold_points[1]),
-                (hold_points[1], hold_points[2]),
-                (hold_points[2], hold_points[3]),
-                (hold_points[3], hold_points[0])
-            ],
-            [
-                ((0, 0), (w, 0)), ((0, 0), (0, h)),
-                ((w, 0), (w, h)), ((0, h), (w, h))
-            ]
-        ))
-
-def batch_is_intersect(
-    lines_group_1:typing.List[typing.Tuple[
-        typing.Tuple[float,float],
-        typing.Tuple[float,float]
-    ]],
-    lines_group_2:typing.List[typing.Tuple[
-        typing.Tuple[float,float],
-        typing.Tuple[float,float]
-    ]]
-) -> typing.Generator[bool,None,None]:
-    for i in lines_group_1:
-        for j in lines_group_2:
-            yield is_intersect(i,j)
-
-def is_intersect(
-    line_1:typing.Tuple[
-        typing.Tuple[float,float],
-        typing.Tuple[float,float]
-    ],
-    line_2:typing.Tuple[
-        typing.Tuple[float,float],
-        typing.Tuple[float,float]
-    ]
-) -> bool:
-    if (
-        max(line_1[0][0],line_1[1][0]) < min(line_2[0][0],line_2[1][0]) or
-        max(line_2[0][0],line_2[1][0]) < min(line_1[0][0],line_1[1][0]) or
-        max(line_1[0][1],line_1[1][1]) < min(line_2[0][1],line_2[1][1]) or
-        max(line_2[0][1],line_2[1][1]) < min(line_1[0][1],line_1[1][1])
-    ):
-        return False
-    else:
-        return True
-
-def judgeLine_can_render(
-    judgeLine_DrawPos:typing.Tuple[
-        typing.Tuple[float,float],
-        typing.Tuple[float,float]
-    ]
-) -> bool:
-    return any(batch_is_intersect([[[judgeLine_DrawPos[0],judgeLine_DrawPos[1]],[judgeLine_DrawPos[2],judgeLine_DrawPos[3]]]],[[(0,0),(w,0)],[(0,0),(0,h)],[(w,0),(w,h)],[(0,h),(w,h)]]))
-
-def point_in_screen(point:typing.Tuple[float,float]) -> bool:
-    return 0 < point[0] < w and 0 < point[1] < h
-
 def get_stringscore(score:float) -> str:
     score_integer = int(score + 0.5)
     return f"{score_integer:>7}".replace(" ","0")
@@ -937,7 +857,7 @@ def GetFrameRenderTask_Phi(
         judgeLine_color = (*judgeLine.get_datavar_color(judgeLine_cfg.time, (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
         if judgeLine_color[-1] > 0.0 and show_judgeline:
-            if judgeLine_can_render(judgeLine_DrawPos) or render_range_more:
+            if Tool_Functions.judgeLine_can_render(judgeLine_DrawPos, w, h) or render_range_more:
                 if render_range_more:
                     Task(
                         root.run_js_code,
@@ -1054,8 +974,8 @@ def GetFrameRenderTask_Phi(
                     *judgeLine_cfg.pos,-judgeLine_cfg.rotate,note_item.positionX * PHIGROS_X
                 )
                 judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) - judgeLine_cfg.rotate
-                x,y = Tool_Functions.rotate_point(
-                    *rotatenote_at_judgeLine_pos,judgeLine_to_note_rotate_deg,note_now_floorPosition
+                x, y = Tool_Functions.rotate_point(
+                    *rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_now_floorPosition
                 )
                 
                 if this_note_ishold:
@@ -1076,18 +996,20 @@ def GetFrameRenderTask_Phi(
                     
                 if not render_range_more:
                     note_iscan_render = (
-                        Note_CanRender(x, y)
+                        Tool_Functions.Note_CanRender(w, h, note_max_width_half, note_max_height_half, x, y)
                         if not this_note_ishold
-                        else Note_CanRender(x, y, holdbody_range)
+                        else Tool_Functions.Note_CanRender(w, h, note_max_width_half, note_max_height_half, x, y, holdbody_range)
                     )
                 else:
                     note_iscan_render = (
-                        Note_CanRender(
+                        Tool_Functions.Note_CanRender(
+                            w, h, note_max_width_half, note_max_height_half,
                             x / render_range_more_scale + fr_x,
                             y / render_range_more_scale + fr_y
                         )
                         if not this_note_ishold
-                        else Note_CanRender(
+                        else Tool_Functions.Note_CanRender(
+                            w, h, note_max_width_half, note_max_height_half,
                             x / render_range_more_scale + fr_x,
                             y / render_range_more_scale + fr_y,[
                             (holdbody_range[0][0] / render_range_more_scale + fr_x,holdbody_range[0][1] / render_range_more_scale + fr_y),

@@ -233,7 +233,7 @@
 
     function loadFont(family, url) {
         var font = new FontFace(family, `url(${url})`);
-        font.load().then(function(rfont) {
+        font.load().then((rfont) => {
             document.fonts.add(rfont);
             font_loaded = true;
         })
