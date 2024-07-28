@@ -67,6 +67,11 @@ class judgeLine:
     moveEvents: list[moveEvent]
     rotateEvents: list[rotateEvent]
     
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, judgeLine):
+            return self is oth
+        return NotImplemented
+    
     def getAlpha(self, t: float) -> float:
         for e in self.alphaEvents:
             if e.startTime <= t <= e.endTime:

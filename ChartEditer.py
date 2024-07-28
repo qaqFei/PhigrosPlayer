@@ -129,10 +129,12 @@ def Load_Resource():
     global ClickEffect_Size, Note_width
     global note_max_width, note_max_height
     global note_max_width_half, note_max_height_half
+    global IconSize
     
     print("Loading Resource...")
     Note_width = (0.125 * w + 0.2 * h / 2) / 2
     ClickEffect_Size = Note_width * 1.375
+    IconSize = (w + h) / 100
     Resource = {
         "Notes": {
             "Tap": Image.open("./Resources/Notes/Tap.png"),
@@ -166,7 +168,8 @@ def Load_Resource():
             "Pause": Image.open("./Resources/Edit_Pause.png"),
             "ChangeValue": Image.open("./Resources/Edit_ChangeValue.png"),
             "Back": Image.open("./Resources/Edit_Back.png"),
-            "Save": Image.open("./Resources/Edit_Save.png")
+            "Save": Image.open("./Resources/Edit_Save.png"),
+            "Replay": Image.open("./Resources/Edit_Replay.png")
         }
     }
     
@@ -264,6 +267,25 @@ def renderChartView(nt: float): # sec
                 *lineDrawPos,
                 lineWidth = JUDGELINE_WIDTH,
                 strokeStyle = lineWebColor,
+                wait_execute = True
+            )
+            webcv.create_text(
+                *Tool_Functions.rotate_point(*linePos, 90 - lineRotate - 180, (w + h / 2) / 75),
+                text = f"{ChartObject.lines.index(line)}",
+                font = f"{(w + h / 2) / 85 / 0.75}px PhigrosFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                strokeStyle = "rgba(254, 255, 169, 0.5)",
+                fillStyle = "rgba(254, 255, 169, 0.5)",
+                wait_execute = True
+            )
+            
+            webcv.create_rectangle(
+                linePos[0] - (w + h / 2) / 250,
+                linePos[1] - (w + h / 2) / 250,
+                linePos[0] + (w + h / 2) / 250,
+                linePos[1] + (w + h / 2) / 250,
+                fillStyle = "rgb(238, 130, 238)",
                 wait_execute = True
             )
         
@@ -476,8 +498,30 @@ def renderChartView(nt: float): # sec
 def getEventViewTimeLengthPx(t: float):
     return h / 2 * (t / EventEdit_viewRange)
 
+def inRect(rect, x, y):
+    return rect[0] <= x <= rect[2] and rect[1] <= y <= rect[3]
+
+def MouseDown(x, y, button):
+    global EventEdit_lineIndex
+    global isPlaying
+    global EventEdit_uiDy, PlayTime
+    
+    if inRect(JudgeLineIndexChangeValueRect, x, y) and button == 0:
+        result = webcv.run_js_code(f"prompt('Please input judgeLine index(0 ~ {len(ChartObject.lines) - 1}): ');")
+        if result in list(map(str, range(0, len(ChartObject.lines)))):
+            EventEdit_lineIndex = int(result)
+        elif result is not None:
+            webcv.run_js_code("alert('Invalid index.');")
+    elif inRect(PlayButtonRect, x, y) and button == 0:
+        isPlaying = not isPlaying
+    elif inRect(ReplayButtonRect, x, y) and button == 0:
+        isPlaying, EventEdit_uiDy, PlayTime = False, 0.0, 0.0
+
 def renderEventView():
     global EventEdit_lineIndex
+    global JudgeLineIndexChangeValueRect
+    global PlayButtonRect
+    global ReplayButtonRect
     
     webcv.run_js_code(f"chartViewImdata = ctx.getImageData(0, 0, {w}, {h / 2});", add_code_array=True)
     
@@ -564,6 +608,98 @@ def renderEventView():
     
     webcv.run_js_code("ctx.putImageData(chartViewImdata, 0, 0);", add_code_array=True)
     
+    webcv.create_text(
+        w * (0.5 / 8), h / 2,
+        text = "speedEvents",
+        font = f"{(w + h) / 150 * 1.25}px PhigrosFont",
+        textAlign = "center",
+        textBaseline = "bottom",
+        fillStyle = "#000",
+        wait_execute = True
+    )
+    
+    webcv.create_text(
+        w * (1.7 / 8), h / 2,
+        text = "alphaEvents",
+        font = f"{(w + h) / 150 * 1.25}px PhigrosFont",
+        textAlign = "center",
+        textBaseline = "bottom",
+        fillStyle = "#000",
+        wait_execute = True
+    )
+    
+    webcv.create_text(
+        w * (2.9 / 8), h / 2,
+        text = "moveEvents",
+        font = f"{(w + h) / 150 * 1.25}px PhigrosFont",
+        textAlign = "center",
+        textBaseline = "bottom",
+        fillStyle = "#000",
+        wait_execute = True
+    )
+    
+    webcv.create_text(
+        w * (4.1 / 8), h / 2,
+        text = "rotateEvents",
+        font = f"{(w + h) / 150 * 1.25}px PhigrosFont",
+        textAlign = "center",
+        textBaseline = "bottom",
+        fillStyle = "#000",
+        wait_execute = True
+    )
+    
+    webcv.create_text(
+        w * (5.15 / 8), h / 2 + h / 2 * 0.03,
+        text = f"judgeLine: {EventEdit_lineIndex}",
+        font = f"{(w + h) / 125 * 1.25}px PhigrosFont",
+        textAlign = "start",
+        textBaseline = "middle",
+        fillStyle = "#000",
+        wait_execute = True
+    )
+    
+    JudgeLineIndexChangeValueRect = (
+        w * (6.33 / 8) - IconSize / 2,
+        h / 2 + h / 2 * 0.03 - IconSize / 2,
+        w * (6.33 / 8) + IconSize / 2,
+        h / 2 + h / 2 * 0.03 + IconSize / 2,
+    )
+    
+    webcv.create_image(
+        "Icon_ChangeValue",
+        *JudgeLineIndexChangeValueRect[:2],
+        width = IconSize, height = IconSize,
+        wait_execute = True
+    )
+    
+    PlayButtonRect = (
+        w * (6.65 / 8) - IconSize / 2,
+        h / 2 + h / 2 * 0.03 - IconSize / 2,
+        w * (6.65 / 8) + IconSize / 2,
+        h / 2 + h / 2 * 0.03 + IconSize / 2,
+    )
+    
+    webcv.create_image(
+        f"Icon_{"Pause" if isPlaying else "Play"}",
+        *PlayButtonRect[:2],
+        width = IconSize, height = IconSize,
+        wait_execute = True
+    )
+    
+    ReplayButtonRect = (
+        w * (6.85 / 8) - IconSize / 2,
+        h / 2 + h / 2 * 0.03 - IconSize / 2,
+        w * (6.85 / 8) + IconSize / 2,
+        h / 2 + h / 2 * 0.03 + IconSize / 2,
+    )
+    
+    webcv.create_image(
+        "Icon_Replay",
+        *ReplayButtonRect[:2],
+        width = IconSize, height = IconSize,
+        wait_execute = True
+    )
+    
 @Tool_Functions.ThreadFunc
 def MouseWheel(face: int): # -1 / 1
     global EventEdit_uiDy
@@ -587,19 +723,43 @@ def MouseWheel(face: int): # -1 / 1
 
 def main():
     global EventEdit_uiDy
+    global isPlaying, PlayTime
     updateMorebets()
     webcv.jsapi.set_attr("MouseWheel", MouseWheel)
+    webcv.jsapi.set_attr("MouseDown", MouseDown)
     webcv.run_js_code("_MouseWheel = (e) => {pywebview.api.call_attr('MouseWheel', e.delta || e.wheelDelta);};")
+    webcv.run_js_code("_MouseDown = (e) => {pywebview.api.call_attr('MouseDown', e.clientX, e.clientY, e.button);};")
     webcv.run_js_code("window.addEventListener('wheel', _MouseWheel);")
+    webcv.run_js_code("window.addEventListener('mousedown', _MouseDown);")
     
-    st = time()
-    mixer.music.play()
+    isPlaying = False
+    lastisPlaying = False
+    PlayingTimeStartTime = None
+    PlayTime = 0.0
+    
     while True:
         webcv.clear_canvas(wait_execute=True)
-        renderChartView(time() - st)
-        EventEdit_uiDy = (time() - st) / (60 / ChartObject.lines[0].bpm)
+        renderChartView(PlayTime)
         renderEventView()
         webcv.run_js_wait_code()
+        
+        if lastisPlaying is not isPlaying:
+            if isPlaying:
+                PlayTime = int(PlayTime) if PlayTime > 0.0 else 0
+                PlayingTimeStartTime = time()
+                mixer.music.play()
+                mixer.music.set_pos(PlayTime)
+            else:
+                PlayTime = EventEdit_uiDy * (60 / ChartObject.lines[EventEdit_lineIndex].bpm)
+                mixer.music.fadeout(250)
+            lastisPlaying = isPlaying
+        
+        if isPlaying:
+            PlayTime += time() - PlayingTimeStartTime
+            PlayingTimeStartTime = time()
+            EventEdit_uiDy = PlayTime / (60 / ChartObject.lines[EventEdit_lineIndex].bpm)
+        else:
+            PlayTime = EventEdit_uiDy * (60 / ChartObject.lines[EventEdit_lineIndex].bpm)
 
 webcv = webcvapis.WebCanvas(
     width = 0, height = 0,
