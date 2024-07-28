@@ -8,6 +8,7 @@ from random import randint, seed
 from threading import Thread
 import typing
 import json
+import dataclasses
 
 from PIL import Image
 from pygame import mixer
@@ -16,6 +17,7 @@ import webcvapis
 import Chart_Objects_Ppre
 import Tool_Functions
 import Const
+import rpe_easing
 
 def validFile(fp: str) -> bool:
     return exists(fp) and isfile(fp)
@@ -110,7 +112,7 @@ with open(ChartFp, "r", encoding="utf-8") as f:
                     for moveItem in lineItem.get("moveEvents", [])
                 ],
                 rotateEvents = [
-                    Chart_Objects_Ppre.alphaEvent(
+                    Chart_Objects_Ppre.rotateEvent(
                         startTime = rotateItem.get("startTime", 0.0),
                         endTime = rotateItem.get("endTime", 0.0),
                         start = rotateItem.get("start", 0.0),
@@ -505,6 +507,7 @@ def MouseDown(x, y, button):
     global EventEdit_lineIndex
     global isPlaying
     global EventEdit_uiDy, PlayTime
+    global eventEditing, EditingEvent
     
     if inRect(JudgeLineIndexChangeValueRect, x, y) and button == 0:
         result = webcv.run_js_code(f"prompt('Please input judgeLine index(0 ~ {len(ChartObject.lines) - 1}): ');")
@@ -516,6 +519,73 @@ def MouseDown(x, y, button):
         isPlaying = not isPlaying
     elif inRect(ReplayButtonRect, x, y) and button == 0:
         isPlaying, EventEdit_uiDy, PlayTime = False, 0.0, 0.0
+    elif inRect(getEventViewRect(1), x, y) and button == 0 and not eventEditing:
+        e = getEventByyPos(y, ChartObject.lines[EventEdit_lineIndex].speedEvents)
+        if e is None: return
+        eventEditing, EditingEvent = True, e
+        webcv.run_js_code(f'''
+            eventDataInput({"{"}
+                startTime: {e.startTime},
+                endTime: {e.endTime},
+                startValue: {e.value},
+                endValue: {e.value},
+                easingType: -1,
+                disableEasing: true
+            {"}"}, _editEvent);
+        ''')
+    elif inRect(getEventViewRect(2), x, y) and button == 0 and not eventEditing:
+        e = getEventByyPos(y, ChartObject.lines[EventEdit_lineIndex].alphaEvents)
+        if e is None: return
+        eventEditing, EditingEvent = True, e
+        webcv.run_js_code(f'''
+            eventDataInput({"{"}
+                startTime: {e.startTime},
+                endTime: {e.endTime},
+                startValue: {e.start},
+                endValue: {e.end},
+                easingType: {e.easingType}
+            {"}"}, _editEvent);
+        ''')
+    elif inRect(getEventViewRect(3), x, y) and button == 0 and not eventEditing:
+        e = getEventByyPos(y, ChartObject.lines[EventEdit_lineIndex].moveEvents)
+        if e is None: return
+        eventEditing, EditingEvent = True, e
+        webcv.run_js_code(f'''
+            eventDataInput({"{"}
+                startTime: {e.startTime},
+                endTime: {e.endTime},
+                startValue: '{e.startX}, {e.startY}',
+                endValue: '{e.endX}, {e.endY}',
+                easingType: {e.easingType}
+            {"}"}, _editEvent);
+        ''')
+    elif inRect(getEventViewRect(4), x, y) and button == 0 and not eventEditing:
+        e = getEventByyPos(y, ChartObject.lines[EventEdit_lineIndex].rotateEvents)
+        if e is None: return
+        eventEditing, EditingEvent = True, e
+        webcv.run_js_code(f'''
+            eventDataInput({"{"}
+                startTime: {e.startTime},
+                endTime: {e.endTime},
+                startValue: {e.start},
+                endValue: {e.end},
+                easingType: {e.easingType}
+            {"}"}, _editEvent);
+        ''')
+
+def getEventViewRect(n: int):
+    return (
+        w * (1.2 / 8 * (n - 1)), h / 2,
+        w * (1.2 / 8 * (n - 1) + 1 / 8), h
+    )
+
+def getEventByyPos(y: int, es: list[Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEvent | Chart_Objects_Ppre.moveEvent | Chart_Objects_Ppre.rotateEvent]):
+    y = (h / 2 - (y - h / 2)) / (h / 2)
+    lineTime = EventEdit_uiDy + y * EventEdit_viewRange
+    for e in es:
+        if e.startTime <= lineTime <= e.endTime:
+            return e
+    return None
 
 def renderEventView():
     global EventEdit_lineIndex
@@ -704,7 +774,7 @@ def renderEventView():
 def MouseWheel(face: int): # -1 / 1
     global EventEdit_uiDy
     face = face / abs(face)
-    d = EventEdit_viewRange * 0.05 * face
+    d = EventEdit_viewRange * 0.15 * face
     
     lastv = 0.0
     fcut = 80
@@ -721,14 +791,114 @@ def MouseWheel(face: int): # -1 / 1
         sleep(1 / fcut)
     EventEdit_uiDy += d - added
 
+def parseFloat(s: str, default: float):
+    try:
+        return float(s)
+    except Exception:
+        return default
+
+def parseRangeInt(s: str, default: int, r: range):
+    try:
+        v = int(float(s))
+        if v in r:
+            return v
+        raise Exception
+    except Exception:
+        return default
+
+def parseTwoFloats(s: str, default: tuple[int, int]):
+    s = s.replace("，", ",")
+    slist = list(map(lambda x: x.replace(" ", ""), s.split(",")))
+    if len(slist) < 2: return default
+    s1 = slist[0]
+    s2 = slist[1]
+    return (parseFloat(s1, default[0]), parseFloat(s2, default[1]))
+
+def editEvent(data: dict):
+    global EditingEvent, eventEditing
+    if not eventEditing:
+        assert False
+        
+    if isinstance(EditingEvent, Chart_Objects_Ppre.speedEvent):
+        if not data:
+            if webcv.run_js_code("prompt('delete this event(input \\'true\\' or \\'false\\')?');") == "true":
+                try: ChartObject.lines[EventEdit_lineIndex].speedEvents.remove(EditingEvent)
+                except ValueError: webcv.run_js_code("alert('event not found in line.')")
+            eventEditing, EditingEvent = False, None
+            return None
+        startTime = parseFloat(data["startTime"], EditingEvent.startTime)
+        endTime = parseFloat(data["endTime"], EditingEvent.endTime)
+        value = (parseFloat(data["startValue"], EditingEvent.value) + parseFloat(data["endValue"], EditingEvent.value)) / 2.0
+        EditingEvent.startTime, EditingEvent.endTime, EditingEvent.value = startTime, endTime, value
+        webcv.run_js_code(f'''
+            alert("changed speedEvent: {webcv.process_code_string_syntax_tostring(json.dumps(dataclasses.asdict(EditingEvent), indent=4))}");
+        ''')
+    elif isinstance(EditingEvent, Chart_Objects_Ppre.alphaEvent):
+        if not data:
+            if webcv.run_js_code("prompt('delete this event(input \\'true\\' or \\'false\\')?');") == "true":
+                try: ChartObject.lines[EventEdit_lineIndex].alphaEvents.remove(EditingEvent)
+                except ValueError: webcv.run_js_code("alert('event not found in line.')")
+            eventEditing, EditingEvent = False, None
+            return None
+        startTime = parseFloat(data["startTime"], EditingEvent.startTime)
+        endTime = parseFloat(data["endTime"], EditingEvent.endTime)
+        start = parseFloat(data["startValue"], EditingEvent.start)
+        end = parseFloat(data["endValue"], EditingEvent.end)
+        easingType = parseRangeInt(data["easingType"], EditingEvent.easingType, range(1, len(rpe_easing.ease_funcs) + 1))
+        EditingEvent.startTime, EditingEvent.endTime, EditingEvent.start, EditingEvent.end, EditingEvent.easingType = startTime, endTime, start, end, easingType
+        webcv.run_js_code(f'''
+            alert("changed alphaEvent: {webcv.process_code_string_syntax_tostring(json.dumps(dataclasses.asdict(EditingEvent), indent=4))}");
+        ''')
+    elif isinstance(EditingEvent, Chart_Objects_Ppre.moveEvent):
+        if not data:
+            if webcv.run_js_code("prompt('delete this event(input \\'true\\' or \\'false\\')?');") == "true":
+                try: ChartObject.lines[EventEdit_lineIndex].moveEvents.remove(EditingEvent)
+                except ValueError: webcv.run_js_code("alert('event not found in line.')")
+            eventEditing, EditingEvent = False, None
+            return None
+        startTime = parseFloat(data["startTime"], EditingEvent.startTime)
+        endTime = parseFloat(data["endTime"], EditingEvent.endTime)
+        startX, startY = parseTwoFloats(data["startValue"], (EditingEvent.startX, EditingEvent.startY))
+        endX, endY = parseTwoFloats(data["endValue"], (EditingEvent.endX, EditingEvent.endY))
+        easingType = parseRangeInt(data["easingType"], EditingEvent.easingType, range(1, len(rpe_easing.ease_funcs) + 1))
+        EditingEvent.startTime, EditingEvent.endTime, EditingEvent.startX, EditingEvent.startY, EditingEvent.endX, EditingEvent.endY, EditingEvent.easingType = startTime, endTime, startX, startY, endX, endY, easingType
+        webcv.run_js_code(f'''
+            alert("changed moveEvent: {webcv.process_code_string_syntax_tostring(json.dumps(dataclasses.asdict(EditingEvent), indent=4))}");
+        ''')
+    elif isinstance(EditingEvent, Chart_Objects_Ppre.rotateEvent):
+        if not data:
+            if webcv.run_js_code("prompt('delete this event(input \\'true\\' or \\'false\\')?');") == "true":
+                try: ChartObject.lines[EventEdit_lineIndex].rotateEvents.remove(EditingEvent)
+                except ValueError: webcv.run_js_code("alert('event not found in line.')")
+            eventEditing, EditingEvent = False, None
+            return None
+        startTime = parseFloat(data["startTime"], EditingEvent.startTime)
+        endTime = parseFloat(data["endTime"], EditingEvent.endTime)
+        start = parseFloat(data["startValue"], EditingEvent.start)
+        end = parseFloat(data["endValue"], EditingEvent.end)
+        easingType = parseRangeInt(data["easingType"], EditingEvent.easingType, range(1, len(rpe_easing.ease_funcs) + 1))
+        EditingEvent.startTime, EditingEvent.endTime, EditingEvent.start, EditingEvent.end, EditingEvent.easingType = startTime, endTime, start, end, easingType
+        webcv.run_js_code(f'''
+            alert("changed rotateEvent: {webcv.process_code_string_syntax_tostring(json.dumps(dataclasses.asdict(EditingEvent), indent=4))}");
+        ''')
+    else:
+        assert False
+    
+    eventEditing, EditingEvent = False, None
+
 def main():
     global EventEdit_uiDy
     global isPlaying, PlayTime
+    global eventEditing
+    global EditingEvent
+    
     updateMorebets()
     webcv.jsapi.set_attr("MouseWheel", MouseWheel)
     webcv.jsapi.set_attr("MouseDown", MouseDown)
+    webcv.jsapi.set_attr("editEvent", editEvent)
     webcv.run_js_code("_MouseWheel = (e) => {pywebview.api.call_attr('MouseWheel', e.delta || e.wheelDelta);};")
     webcv.run_js_code("_MouseDown = (e) => {pywebview.api.call_attr('MouseDown', e.clientX, e.clientY, e.button);};")
+    webcv.run_js_code("_editEvent = (data) => pywebview.api.call_attr('editEvent', data);")
     webcv.run_js_code("window.addEventListener('wheel', _MouseWheel);")
     webcv.run_js_code("window.addEventListener('mousedown', _MouseDown);")
     
@@ -736,6 +906,8 @@ def main():
     lastisPlaying = False
     PlayingTimeStartTime = None
     PlayTime = 0.0
+    eventEditing = False
+    EditingEvent = None
     
     while True:
         webcv.clear_canvas(wait_execute=True)
