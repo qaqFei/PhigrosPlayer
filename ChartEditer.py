@@ -977,9 +977,9 @@ def KeyDown(
         pass
     elif key == "d" and not repeat:
         pass
-    elif key == "f" and not repeat:
-        pass
     elif key == "h" and not repeat:
+        pass
+    elif key == "f" and not repeat:
         pass
 
 def parseFloat(s: str, default: float):
