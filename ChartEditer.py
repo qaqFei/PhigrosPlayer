@@ -626,6 +626,8 @@ def MouseDown(x, y, button):
                     {"}"}, _editNote)
                 ''')
                 break
+    elif inRect(SaveButtonRect, x, y) and button == 0:
+        pass
 
 def getNoteRect(note: Chart_Objects_Ppre.note):
     noteX = w / 2 + (note.positionX * PHIGROS_X + w / 4) * (5 / 8)
@@ -702,6 +704,7 @@ def renderEditView():
     global AddJudgeLineRect
     global DeleteJudgeLineRect
     global NoteViewRect
+    global SaveButtonRect
     
     webcv.run_js_code(f"chartViewImdata = ctx.getImageData(0, 0, {w / 2}, {h / 2});", add_code_array=True)
     
@@ -873,6 +876,20 @@ def renderEditView():
     webcv.create_image(
         "Icon_Delete",
         *DeleteJudgeLineRect[:2],
+        width = IconSize, height = IconSize,
+        wait_execute = True
+    )
+    
+    SaveButtonRect = (
+        w / 2 * (5.75 / 8) - IconSize / 2,
+        h / 2 + h / 2 * 0.125 - IconSize / 2,
+        w / 2 * (5.75 / 8) + IconSize / 2,
+        h / 2 + h / 2 * 0.125 + IconSize / 2,
+    )
+    
+    webcv.create_image(
+        "Icon_Save",
+        *SaveButtonRect[:2],
         width = IconSize, height = IconSize,
         wait_execute = True
     )
