@@ -279,3 +279,9 @@ def ThreadFunc(f):
         t.start()
         t.join()
     return wrapper
+
+def NoJoinThreadFunc(f):
+    def wrapper(*args, **kwargs):
+        t = Thread(target=f, args=args, kwargs=kwargs)
+        t.start()
+    return wrapper

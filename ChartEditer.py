@@ -943,7 +943,7 @@ def renderEditView():
     
     webcv.run_js_code("ctx.putImageData(leftImdata, 0, 0);", add_code_array=True)
     
-@Tool_Functions.ThreadFunc
+@Tool_Functions.NoJoinThreadFunc
 def MouseWheel(face: int): # -1 / 1
     global EventEdit_uiDy
     face = face / abs(face)
@@ -963,6 +963,24 @@ def MouseWheel(face: int): # -1 / 1
         added +=  dv * d
         sleep(1 / fcut)
     EventEdit_uiDy += d - added
+
+def KeyDown(
+    key: str,
+    ctrl: bool,
+    shift: bool,
+    alt: bool,
+    repeat: bool
+):
+    key = key.lower()
+    
+    if key == "t" and not repeat:
+        pass
+    elif key == "d" and not repeat:
+        pass
+    elif key == "f" and not repeat:
+        pass
+    elif key == "h" and not repeat:
+        pass
 
 def parseFloat(s: str, default: float):
     try:
@@ -1082,16 +1100,19 @@ def main():
     webcv.jsapi.set_attr("MouseDown", MouseDown)
     webcv.jsapi.set_attr("MouseUp", MouseUp)
     webcv.jsapi.set_attr("MouseMoving", MouseMoving)
+    webcv.jsapi.set_attr("KeyDown", KeyDown)
     webcv.jsapi.set_attr("editEvent", editEvent)
     webcv.run_js_code("_MouseWheel = (e) => {pywebview.api.call_attr('MouseWheel', e.delta || e.wheelDelta);};")
     webcv.run_js_code("_MouseDown = (e) => {pywebview.api.call_attr('MouseDown', e.clientX, e.clientY, e.button);};")
     webcv.run_js_code("_MouseUp = (e) => {pywebview.api.call_attr('MouseUp', e.clientX, e.clientY, e.button);};")
     webcv.run_js_code("_MouseMoving = (e) => {pywebview.api.call_attr('MouseMoving', e.clientX, e.clientY);};")
+    webcv.run_js_code("_KeyDown = (e) => {pywebview.api.call_attr('KeyDown', e.key, e.ctrlKey, e.shiftKey, e.altKey, e.repeat);};")
     webcv.run_js_code("_editEvent = (data) => pywebview.api.call_attr('editEvent', data);")
     webcv.run_js_code("window.addEventListener('wheel', _MouseWheel);")
     webcv.run_js_code("window.addEventListener('mousedown', _MouseDown);")
-    webcv.run_js_code ("window.addEventListener('mouseup', _MouseUp);")
+    webcv.run_js_code("window.addEventListener('mouseup', _MouseUp);")
     webcv.run_js_code("window.addEventListener('mousemove', _MouseMoving);")
+    webcv.run_js_code("window.addEventListener('keydown', _KeyDown);")
     
     isPlaying = False
     lastisPlaying = False
