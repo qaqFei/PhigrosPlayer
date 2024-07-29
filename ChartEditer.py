@@ -134,9 +134,9 @@ def Load_Resource():
     global IconSize
     
     print("Loading Resource...")
-    Note_width = (0.125 * w + 0.2 * h / 2) / 2
+    Note_width = (0.125 * w + 0.2 * h) / 2 / 2
     ClickEffect_Size = Note_width * 1.375
-    IconSize = (w + h) / 100
+    IconSize = (w / 2 + h) / 100
     Resource = {
         "Notes": {
             "Tap": Image.open("./Resources/Notes/Tap.png"),
@@ -172,7 +172,8 @@ def Load_Resource():
             "Back": Image.open("./Resources/Edit_Back.png"),
             "Save": Image.open("./Resources/Edit_Save.png"),
             "Replay": Image.open("./Resources/Edit_Replay.png"),
-            "Add": Image.open("./Resources/Edit_Add.png")
+            "Add": Image.open("./Resources/Edit_Add.png"),
+            "Delete": Image.open("./Resources/Edit_Delete.png")
         }
     }
     
@@ -249,7 +250,7 @@ def getEffectRandomBlocksByObject(sed: int):
     return tuple((randint(1, 90) for _ in range(4)))
 
 def renderChartView(nt: float): # sec
-    webcv.create_rectangle(0, 0, w, h / 2, fillStyle="rgb(0, 120, 215)", wait_execute=True)
+    webcv.create_rectangle(0, 0, w / 2, h / 2, fillStyle="rgb(0, 120, 215)", wait_execute=True)
         
     for line in ChartObject.lines:
         lineTime = nt / (60 / line.bpm)
@@ -257,7 +258,7 @@ def renderChartView(nt: float): # sec
         linePos = line.getMove(lineTime)
         lineRotate = line.getRotate(lineTime)
         
-        linePos = (linePos[0] * w, linePos[1] * h / 2)
+        linePos = (linePos[0] * w / 2, linePos[1] * h / 2)
         lineDrawPos = (
             *Tool_Functions.rotate_point(*linePos, -lineRotate, 5.76 * h / 2),
             *Tool_Functions.rotate_point(*linePos, -lineRotate + 180, 5.76 * h / 2)
@@ -265,7 +266,7 @@ def renderChartView(nt: float): # sec
         lineColor = (254, 255, 16, lineAlpha)
         lineWebColor = f"rgba{lineColor}"
         if lineColor[-1] > 0.0:
-            Tool_Functions.judgeLine_can_render(lineDrawPos, w, h / 2)
+            Tool_Functions.judgeLine_can_render(lineDrawPos, w / 2, h / 2)
             webcv.create_line(
                 *lineDrawPos,
                 lineWidth = JUDGELINE_WIDTH,
@@ -274,9 +275,9 @@ def renderChartView(nt: float): # sec
             )
             
         webcv.create_text(
-            *Tool_Functions.rotate_point(*linePos, 90 - lineRotate - 180, (w + h / 2) / 75),
+            *Tool_Functions.rotate_point(*linePos, 90 - lineRotate - 180, (w + h) / 75 / 2),
             text = f"{ChartObject.lines.index(line)}",
-            font = f"{(w + h / 2) / 85 / 0.75}px PhigrosFont",
+            font = f"{(w + h) / 85 / 0.75 / 2}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
             strokeStyle = "rgba(254, 255, 169, 0.5)",
@@ -285,10 +286,10 @@ def renderChartView(nt: float): # sec
         )
         
         webcv.create_rectangle(
-            linePos[0] - (w + h / 2) / 250,
-            linePos[1] - (w + h / 2) / 250,
-            linePos[0] + (w + h / 2) / 250,
-            linePos[1] + (w + h / 2) / 250,
+            linePos[0] - (w + h) / 250 / 2,
+            linePos[1] - (w + h) / 250 / 2,
+            linePos[0] + (w + h) / 250 / 2,
+            linePos[1] + (w + h) / 250 / 2,
             fillStyle = "rgb(238, 130, 238)",
             wait_execute = True
         )
@@ -334,9 +335,9 @@ def renderChartView(nt: float): # sec
                 )
         
             noteCanRender = (
-                Tool_Functions.Note_CanRender(w, h / 2, note_max_width_half, note_max_height_half, x, y)
+                Tool_Functions.Note_CanRender(w / 2, h / 2, note_max_width_half, note_max_height_half, x, y)
                 if note.type != Const.Note.HOLD
-                else Tool_Functions.Note_CanRender(w, h / 2, note_max_width_half, note_max_height_half, x, y, holdbody_range)
+                else Tool_Functions.Note_CanRender(w / 2, h / 2, note_max_width_half, note_max_height_half, x, y, holdbody_range)
             )
             
             if noteCanRender:
@@ -427,7 +428,7 @@ def renderChartView(nt: float): # sec
         p = (nt - t_sec) / effect_time
         if not (0.0 <= p <= 1.0): return None
         linePos = line.getMove(t)
-        linePos = [linePos[0] * w, linePos[1] * h / 2]
+        linePos = [linePos[0] * w / 2, linePos[1] * h / 2]
         lineRotate = line.getRotate(t)
         x, y = Tool_Functions.rotate_point(
             *linePos,
@@ -497,7 +498,8 @@ def renderChartView(nt: float): # sec
                             )
                             temp_time += efct_spt
     
-    webcv.clear_rectangle(0, h / 2, w, h, wait_execute=True)
+    webcv.clear_rectangle(0, h / 2, w / 2, h, wait_execute=True)
+    webcv.clear_rectangle(w / 2, 0, w, h, wait_execute=True)
 
 def getEventViewTimeLengthPx(t: float):
     return h / 2 * (t / EventEdit_viewRange)
@@ -531,6 +533,13 @@ def MouseDown(x, y, button):
             webcv.run_js_code(f"alert('JudgeLine added. index: {len(ChartObject.lines) - 1}');")
         else:
             webcv.run_js_code("alert('Invalid bpm.');")
+    elif inRect(DeleteJudgeLineRect, x, y) and button == 0:
+        if webcv.run_js_code("prompt('delete this judge line(input \\'true\\' or \\'false\\')?');") == "true":
+            line = ChartObject.lines[EventEdit_lineIndex]
+            EventEdit_lineIndex = max(0, EventEdit_lineIndex - 1)
+            fixOutRangeViewIndex()
+            ChartObject.lines.remove(line)
+            webcv.run_js_code("alert('JudgeLine deleted.');")
     elif inRect(getEventViewRect(1), x, y) and button == 0 and not eventEditing:
         e = getEventByyPos(y, ChartObject.lines[EventEdit_lineIndex].speedEvents)
         if e is None: return
@@ -619,8 +628,8 @@ def MouseMoving(x: int, y: int):
 
 def getEventViewRect(n: int):
     return (
-        w * (1.2 / 8 * (n - 1)), h / 2,
-        w * (1.2 / 8 * (n - 1) + 1 / 8), h
+        w / 2 * (1.2 / 8 * (n - 1)), h / 2,
+        w / 2 * (1.2 / 8 * (n - 1) + 1 / 8), h
     )
 
 def getEventByyPos(y: int, es: list[Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEvent | Chart_Objects_Ppre.moveEvent | Chart_Objects_Ppre.rotateEvent]):
@@ -648,34 +657,36 @@ def renderAEvent(e: Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEven
         left_x = w * (2.4 / 8)
     elif isinstance(e, Chart_Objects_Ppre.rotateEvent):
         left_x = w * (3.6 / 8)
-    webcv.create_rectangle(left_x, est_y, left_x + w * (1 / 8), eet_y, fillStyle=color, wait_execute=True)
-    webcv.create_line(left_x, est_y, left_x + w * (1 / 8), est_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
-    webcv.create_line(left_x, eet_y, left_x + w * (1 / 8), eet_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+    left_x /= 2
+    webcv.create_rectangle(left_x, est_y, left_x + w / 2 * (1 / 8), eet_y, fillStyle=color, wait_execute=True)
+    webcv.create_line(left_x, est_y, left_x + w / 2 * (1 / 8), est_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
+    webcv.create_line(left_x, eet_y, left_x + w / 2 * (1 / 8), eet_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
     
 
-def renderEventView():
+def renderEditView():
     global EventEdit_lineIndex
     global JudgeLineIndexChangeValueRect
     global PlayButtonRect
     global ReplayButtonRect
     global AddJudgeLineRect
+    global DeleteJudgeLineRect
     
-    webcv.run_js_code(f"chartViewImdata = ctx.getImageData(0, 0, {w}, {h / 2});", add_code_array=True)
+    webcv.run_js_code(f"chartViewImdata = ctx.getImageData(0, 0, {w / 2}, {h / 2});", add_code_array=True)
     
-    webcv.create_rectangle(0, h / 2, w, h, fillStyle="#888", wait_execute=True)
+    webcv.create_rectangle(0, h / 2, w / 2, h, fillStyle="#888", wait_execute=True)
     timeLinetime = int(EventEdit_uiDy) - 1
     while True:
         timeLiney = h - (h / 2) * (timeLinetime - EventEdit_uiDy) / EventEdit_viewRange
         webcv.create_line(
-            0, timeLiney, w * (4.6 / 8), timeLiney,
+            0, timeLiney, w / 2 * (4.6 / 8), timeLiney,
             lineWidth = JUDGELINE_WIDTH / 4 * (3.0 if timeLinetime % 1.0 == 0.0 else 1.0),
             strokeStyle = "#EEE",
             wait_execute = True
         )
         webcv.create_text(
-            w * (4.6 / 8) + 1.5, timeLiney,
+            w / 2 * (4.6 / 8) + 1.5, timeLiney,
             text = f"{timeLinetime:.2f}",
-            font = f"{(w + h) / 175 * 1.25}px PhigrosFont",
+            font = f"{(w / 2 + h) / 175 * 1.25}px PhigrosFont",
             textAlign = "start",
             textBaseline = "middle",
             fillStyle = "#000",
@@ -685,19 +696,7 @@ def renderEventView():
         if timeLinetime > EventEdit_uiDy + EventEdit_viewRange:
             break
     
-    try:
-        line = ChartObject.lines[EventEdit_lineIndex]
-    except IndexError:
-        ChartObject.lines.append(Chart_Objects_Ppre.judgeLine(
-            bpm = 140,
-            notes = [],
-            speedEvents = [],
-            alphaEvents = [],
-            moveEvents = [],
-            rotateEvents = []
-        ))
-        line = ChartObject.lines[0]
-        EventEdit_lineIndex = 0
+    line = ChartObject.lines[EventEdit_lineIndex]
     
     for e in line.speedEvents:
         renderAEvent(e, "#00F8")
@@ -717,9 +716,9 @@ def renderEventView():
     webcv.run_js_code("ctx.putImageData(chartViewImdata, 0, 0);", add_code_array=True)
     
     webcv.create_text(
-        w * (0.5 / 8), h / 2,
+        w / 2 * (0.5 / 8), h / 2,
         text = "speedEvents",
-        font = f"{(w + h) / 150 * 1.25}px PhigrosFont",
+        font = f"{(w / 2 + h) / 150 * 1.25}px PhigrosFont",
         textAlign = "center",
         textBaseline = "bottom",
         fillStyle = "#000",
@@ -727,9 +726,9 @@ def renderEventView():
     )
     
     webcv.create_text(
-        w * (1.7 / 8), h / 2,
+        w / 2 * (1.7 / 8), h / 2,
         text = "alphaEvents",
-        font = f"{(w + h) / 150 * 1.25}px PhigrosFont",
+        font = f"{(w / 2 + h) / 150 * 1.25}px PhigrosFont",
         textAlign = "center",
         textBaseline = "bottom",
         fillStyle = "#000",
@@ -737,9 +736,9 @@ def renderEventView():
     )
     
     webcv.create_text(
-        w * (2.9 / 8), h / 2,
+        w / 2 * (2.9 / 8), h / 2,
         text = "moveEvents",
-        font = f"{(w + h) / 150 * 1.25}px PhigrosFont",
+        font = f"{(w / 2 + h) / 150 * 1.25}px PhigrosFont",
         textAlign = "center",
         textBaseline = "bottom",
         fillStyle = "#000",
@@ -747,9 +746,9 @@ def renderEventView():
     )
     
     webcv.create_text(
-        w * (4.1 / 8), h / 2,
+        w / 2 * (4.1 / 8), h / 2,
         text = "rotateEvents",
-        font = f"{(w + h) / 150 * 1.25}px PhigrosFont",
+        font = f"{(w / 2 + h) / 150 * 1.25}px PhigrosFont",
         textAlign = "center",
         textBaseline = "bottom",
         fillStyle = "#000",
@@ -757,9 +756,19 @@ def renderEventView():
     )
     
     webcv.create_text(
-        w * (5.15 / 8), h / 2 + h / 2 * 0.03,
+        w / 2 * (5.15 / 8), h / 2 + h / 2 * 0.03,
         text = f"judgeLine: {EventEdit_lineIndex}",
-        font = f"{(w + h) / 125 * 1.25}px PhigrosFont",
+        font = f"{(w / 2 + h) / 125 * 1.25}px PhigrosFont",
+        textAlign = "start",
+        textBaseline = "middle",
+        fillStyle = "#000",
+        wait_execute = True
+    )
+    
+    webcv.create_text(
+        w / 2 * (5.15 / 8), h / 2 + h / 2 * 0.075,
+        text = f"bpm: {line.bpm}",
+        font = f"{(w / 2 + h) / 125 * 1.25}px PhigrosFont",
         textAlign = "start",
         textBaseline = "middle",
         fillStyle = "#000",
@@ -767,9 +776,9 @@ def renderEventView():
     )
     
     JudgeLineIndexChangeValueRect = (
-        w * (6.33 / 8) - IconSize / 2,
+        w / 2 * (6.33 / 8) - IconSize / 2,
         h / 2 + h / 2 * 0.03 - IconSize / 2,
-        w * (6.33 / 8) + IconSize / 2,
+        w / 2 * (6.33 / 8) + IconSize / 2,
         h / 2 + h / 2 * 0.03 + IconSize / 2,
     )
     
@@ -781,9 +790,9 @@ def renderEventView():
     )
     
     PlayButtonRect = (
-        w * (6.65 / 8) - IconSize / 2,
+        w / 2 * (6.65 / 8) - IconSize / 2,
         h / 2 + h / 2 * 0.03 - IconSize / 2,
-        w * (6.65 / 8) + IconSize / 2,
+        w / 2 * (6.65 / 8) + IconSize / 2,
         h / 2 + h / 2 * 0.03 + IconSize / 2,
     )
     
@@ -795,9 +804,9 @@ def renderEventView():
     )
     
     ReplayButtonRect = (
-        w * (6.85 / 8) - IconSize / 2,
+        w / 2 * (6.85 / 8) - IconSize / 2,
         h / 2 + h / 2 * 0.03 - IconSize / 2,
-        w * (6.85 / 8) + IconSize / 2,
+        w / 2 * (6.85 / 8) + IconSize / 2,
         h / 2 + h / 2 * 0.03 + IconSize / 2,
     )
     
@@ -809,10 +818,10 @@ def renderEventView():
     )
     
     AddJudgeLineRect = (
-        w * (5.25 / 8) - IconSize / 2,
-        h / 2 + h / 2 * 0.075 - IconSize / 2,
-        w * (5.25 / 8) + IconSize / 2,
-        h / 2 + h / 2 * 0.075 + IconSize / 2,
+        w / 2 * (5.2 / 8) - IconSize / 2,
+        h / 2 + h / 2 * 0.125 - IconSize / 2,
+        w / 2 * (5.2 / 8) + IconSize / 2,
+        h / 2 + h / 2 * 0.125 + IconSize / 2,
     )
     
     webcv.create_image(
@@ -821,7 +830,118 @@ def renderEventView():
         width = IconSize, height = IconSize,
         wait_execute = True
     )
+    
+    DeleteJudgeLineRect = (
+        w / 2 * (5.45 / 8) - IconSize / 2,
+        h / 2 + h / 2 * 0.125 - IconSize / 2,
+        w / 2 * (5.45 / 8) + IconSize / 2,
+        h / 2 + h / 2 * 0.125 + IconSize / 2,
+    )
+    
+    webcv.create_image(
+        "Icon_Delete",
+        *DeleteJudgeLineRect[:2],
+        width = IconSize, height = IconSize,
+        wait_execute = True
+    )
+    
+    # noteView, tip: noteView共享eventView的数据
+    webcv.run_js_code(f"leftImdata = ctx.getImageData(0, 0, {w / 2}, {h});", add_code_array=True)
+    
+    webcv.create_rectangle(w / 2, 0, w, h / 2, fillStyle="#AAA", wait_execute=True)
+    timeLinetime = int(EventEdit_uiDy) - 1
+    while True:
+        timeLiney = h / 2 - (h / 2) * (timeLinetime - EventEdit_uiDy) / EventEdit_viewRange
+        webcv.create_line(
+            w / 2, timeLiney, w / 2 + w / 2 * (5 / 8), timeLiney,
+            lineWidth = JUDGELINE_WIDTH / 4 * (3.0 if timeLinetime % 1.0 == 0.0 else 1.0),
+            strokeStyle = "#EEE",
+            wait_execute = True
+        )
+        webcv.create_text(
+            w / 2 + w / 2 * (5 / 8) + 1.5, timeLiney,
+            text = f"{timeLinetime:.2f}",
+            font = f"{(w / 2 + h) / 175 * 1.25}px PhigrosFont",
+            textAlign = "start",
+            textBaseline = "middle",
+            fillStyle = "#000",
+            wait_execute = True
+        )
+        timeLinetime += EventEdit_timeLineLength
+        if timeLinetime > EventEdit_uiDy + EventEdit_viewRange:
+            break
 
+    for note in line.notes:
+        noteY = h / 2 - getEventViewTimeLengthPx(note.time) + EventEdit_uiDy / EventEdit_viewRange * h / 2
+        holdLength = getEventViewTimeLengthPx(note.holdtime)
+        
+        if note.type != Const.Note.HOLD and not (0 <= noteY <= h / 2):
+            continue
+        elif note.type == Const.Note.HOLD and (noteY < 0.0 or noteY - holdLength > h / 2):
+            continue
+        
+        if note.type != Const.Note.HOLD:
+            this_note_img_keyname = f"{note.type_string}"
+            this_note_img = Resource["Notes"][this_note_img_keyname]
+            this_note_imgname = f"Note_{this_note_img_keyname}"
+        else:
+            this_note_img_keyname = f"{note.type_string}_Head"
+            this_note_img = Resource["Notes"][this_note_img_keyname]
+            this_note_imgname = f"Note_{this_note_img_keyname}"
+            
+            this_note_img_body_keyname = f"{note.type_string}_Body"
+            this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
+            
+            this_note_img_end_keyname = f"{note.type_string}_End"
+            this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
+            this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
+        
+        noteX = w / 2 + w / 4 * (5 / 8) + note.positionX * PHIGROS_X * (5 / 8)
+        
+        webcv.run_js_code(
+            f"ctx.drawRotateImage(\
+                {webcv.get_img_jsvarname(this_note_imgname)},\
+                {noteX},\
+                {noteY},\
+                {Note_width},\
+                {Note_width / this_note_img.width * this_note_img.height},\
+                0.0,\
+                1.0\
+            );",
+            add_code_array = True
+        )
+        
+        if note.type == Const.Note.HOLD:
+            webcv.run_js_code(
+                f"ctx.drawRotateImage(\
+                    {webcv.get_img_jsvarname(this_note_imgname_end)},\
+                    {noteX},\
+                    {noteY - this_note_img.height / 2 - holdLength - this_note_img_end.height / 2},\
+                    {this_note_img.width},\
+                    {Note_width / this_note_img_end.width * this_note_img_end.height},\
+                    0.0,\
+                    1.0\
+                );",
+                add_code_array = True
+            )
+            
+            if holdLength > 0.0:
+                webcv.run_js_code(
+                    f"ctx.drawAnchorESRotateImage(\
+                        {webcv.get_img_jsvarname(this_note_imgname_body)},\
+                        {noteX},\
+                        {noteY - this_note_img.height / 2},\
+                        {Note_width},\
+                        {holdLength},\
+                        0.0,\
+                        1.0\
+                    );",
+                    add_code_array = True
+                )
+    
+    webcv.clear_rectangle(w / 2, h / 2, w, h, wait_execute=True)
+    
+    webcv.run_js_code("ctx.putImageData(leftImdata, 0, 0);", add_code_array=True)
     
 @Tool_Functions.ThreadFunc
 def MouseWheel(face: int): # -1 / 1
@@ -866,6 +986,21 @@ def parseTwoFloats(s: str, default: tuple[int, int]):
     s1 = slist[0]
     s2 = slist[1]
     return (parseFloat(s1, default[0]), parseFloat(s2, default[1]))
+
+def fixOutRangeViewIndex():
+    global EventEdit_lineIndex
+    try:
+        ChartObject.lines[EventEdit_lineIndex]
+    except IndexError:
+        ChartObject.lines.append(Chart_Objects_Ppre.judgeLine(
+            bpm = 140,
+            notes = [],
+            speedEvents = [],
+            alphaEvents = [],
+            moveEvents = [],
+            rotateEvents = []
+        ))
+        EventEdit_lineIndex = 0
 
 def editEvent(data: dict):
     global editingEvent, eventEditing
@@ -941,6 +1076,7 @@ def main():
     global eventEditing, editingEvent
     global eventAdding, addingEvent
     
+    fixOutRangeViewIndex()
     updateMorebets()
     webcv.jsapi.set_attr("MouseWheel", MouseWheel)
     webcv.jsapi.set_attr("MouseDown", MouseDown)
@@ -966,8 +1102,10 @@ def main():
     
     while True:
         webcv.clear_canvas(wait_execute=True)
+        updateMorebets()
         renderChartView(PlayTime)
-        renderEventView()
+        fixOutRangeViewIndex()
+        renderEditView()
         webcv.run_js_wait_code()
         
         if lastisPlaying is not isPlaying:
@@ -1001,7 +1139,7 @@ webcv = webcvapis.WebCanvas(
     html_path = ".\\web_canvas_editer.html"
 )
 webdpr = webcv.run_js_code("window.devicePixelRatio;")
-w, h = int(webcv.winfo_screenwidth() * 0.61803398874989484820458683436564 * 0.7), int(webcv.winfo_screenheight() * 0.61803398874989484820458683436564 * 0.7 * 2)
+w, h = int(webcv.winfo_screenwidth() * 0.75), int(webcv.winfo_screenheight() * 0.75)
 webcv.resize(w, h)
 w_legacy, h_legacy = webcv.winfo_legacywindowwidth(), webcv.winfo_legacywindowheight()
 dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
@@ -1010,7 +1148,7 @@ dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
 del w_legacy, h_legacy
 webcv.resize(w + dw_legacy, h + dh_legacy)
 webcv.move(int(webcv.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(webcv.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
-PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h / 2
+PHIGROS_X, PHIGROS_Y = 0.05625 * w / 2, 0.6 * h / 2
 JUDGELINE_WIDTH = h * 0.0075 / 2
 EventEdit_uiDy = 0.0
 EventEdit_viewRange = 3.5
