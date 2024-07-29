@@ -60,6 +60,8 @@ selfdir = dirname(argv[0])
 if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
+MousePos = (0, 0)
+
 with open(ChartFp, "r", encoding="utf-8") as f:
     try: ChartJsonData = json.load(f)
     except Exception as e: exitProcess(1, f"load chart as json data error: {repr(e)}")
@@ -623,6 +625,8 @@ def MouseUp(x: int, y: int, button: int):
         eventAdding, addingEvent = False, None
 
 def MouseMoving(x: int, y: int):
+    global MousePos
+    MousePos = (x, y)
     if eventAdding and addingEvent is not None:
         addingEvent.endTime = getEventTimeByyPos(y)
 
@@ -662,7 +666,6 @@ def renderAEvent(e: Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEven
     webcv.create_line(left_x, est_y, left_x + w / 2 * (1 / 8), est_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
     webcv.create_line(left_x, eet_y, left_x + w / 2 * (1 / 8), eet_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
     
-
 def renderEditView():
     global EventEdit_lineIndex
     global JudgeLineIndexChangeValueRect
@@ -973,14 +976,36 @@ def KeyDown(
 ):
     key = key.lower()
     
-    if key == "t" and not repeat:
-        pass
-    elif key == "d" and not repeat:
-        pass
-    elif key == "h" and not repeat:
-        pass
-    elif key == "f" and not repeat:
-        pass
+    if not repeat and inRect((w / 2, 0, w / 2 + w / 2 * (5 / 8), h / 2), *MousePos):
+        if key in ("t", "d", "h", "f"):
+            notePositionX = ((MousePos[0] - w / 2) / (w / 2 * (5 / 8)) - 0.5) * (1 / 0.05625)
+            noteTime = (h / 2 - MousePos[1]) / (h / 2) * EventEdit_viewRange + EventEdit_uiDy
+            noteTime = int(noteTime / EventEdit_timeLineLength) * EventEdit_timeLineLength
+            noteType = {
+                "t": Const.Note.TAP,
+                "d": Const.Note.DRAG,
+                "h": Const.Note.HOLD,
+                "f": Const.Note.FLICK
+            }[key]
+            note = Chart_Objects_Ppre.note(
+                time = noteTime,
+                type = noteType,
+                holdtime = 0.0,
+                positionX = notePositionX,
+                speed = 1.0,
+                fake = False,
+                above = True
+            )
+            line = ChartObject.lines[EventEdit_lineIndex]
+            line.notes.append(note)
+            if key == "t":
+                pass
+            elif key == "d":
+                pass
+            elif key == "h":
+                pass
+            elif key == "f":
+                pass
 
 def parseFloat(s: str, default: float):
     try:
