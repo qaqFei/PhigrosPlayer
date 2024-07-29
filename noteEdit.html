@@ -1,0 +1,208 @@
+<html>
+    <head></head>
+    <body>
+        <div class="noteDataInputDivRaw">
+            <ul class="noteDataInputUl">
+                <li class="noteDataInputLi">
+                    <label for="noteTime" class="noteDataInputLabel">time:</label>
+                    <input type="text" class="noteDataInput" id="noteTime">
+                </li>
+                <li class="noteDataInputLi">
+                    <label for="noteType" class="noteDataInputLabel">type:</label>
+                    <select class="noteType" id="noteType">
+                    <option value="1">1 - tap</option>
+                    <option value="2">2 - drag</option>
+                    <option value="3">3 - hold</option>
+                    <option value="4">4 - flick</option>
+                    </select>
+                </li>
+                <li class="noteDataInputLi">
+                    <label for="noteHoldtime" class="noteDataInputLabel">holdTime:</label>
+                    <input type="text" class="noteDataInput" id="noteHoldtime">
+                </li>
+                <li class="noteDataInputLi">
+                    <label for="positionX" class="noteDataInputLabel">positionX(-1.0 ~ 1.0):</label>
+                    <input type="text" class="noteDataInput" id="notePositionX">
+                </li>
+                <li class="noteDataInputLi">
+                    <label for="noteSpeed" class="noteDataInputLabel">speed:</label>
+                    <input type="text" class="noteDataInput" id="noteSpeed">
+                </li>
+                <li class="noteDataInputLi">
+                    <label for="noteFake" class="noteDataInputLabel">fake</label>
+                    <input type="checkbox" class="noteDataCheckBox" id="noteFake">
+                </li>
+                <li class="noteDataInputLi">
+                    <label for="noteAbove" class="noteDataInputLabel">above</label>
+                    <input type="checkbox" class="noteDataCheckBox" id="noteAbove">
+                </li>
+                <li class="butli">
+                    <button class="noteChangeSubmit" id="noteDataChange">changeNote</button>
+                    <button class="noteChangeSubmit" id="noteDataDelete">deleteNote</button>
+                </li>
+            </ul>
+        </div>
+    </body>
+</html>
+
+<style>
+    html {
+        overflow-x: hidden;
+        overflow-y: hidden;
+        padding: 0;
+        border: 0;
+        margin: 0;
+    }
+
+    .noteDataInputDiv, .noteDataInputDivRaw {
+        position: absolute;
+        top: 0.5em;
+        left: 0.5em;
+        margin: 0 auto;
+        width: calc(100% - 3em);
+        height: calc(100% - 3em);
+        padding: 1em;
+        border: 1px solid #ccc;
+        border-radius: 1em;
+        align-items: center;
+        background-color: #CCC8;
+        backdrop-filter: blur(5px);
+    }
+
+    .noteDataInputDivRaw {
+        display: none;
+    }
+
+    .noteDataInputUl {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .noteDataInputDiv .noteDataInputLi + .noteDataInputLi, .butli {
+        margin-top: 1em;
+    }
+
+    .butli {
+        display: flex;
+        justify-content: center;
+    }
+
+    .noteDataInputLabel {
+        font: 1em PhigrosFont;
+        display: inline-block;
+        width: 37.5%;
+        text-align: right;
+    }
+
+    .noteDataInput {
+        font: 1em PhigrosFont;
+        width: 40%;
+        box-sizing: border-box;
+        border: 1px solid #777;
+        align-self: left;
+        border-radius: 0.5em;
+        transition: all 0.25s ease-out;
+    }
+
+    .noteDataInput:focus {
+        border-color: #222;
+        width: 47.5%;
+        transform: scale(1.0075);
+    }
+
+    .noteDataCheckBox {
+        transition: all 0.25s ease-out;
+    }
+
+    .noteDataCheckBox:hover {
+        transform: scale(1.225);
+    }
+
+    .noteType {
+        font: 1em PhigrosFont;
+        width: 35%;
+        box-sizing: border-box;
+        border: 1px solid #777;
+        align-self: left;
+        border-radius: 0.5em;
+    }
+
+    .noteChangeSubmit {
+        font: 1em PhigrosFont;
+        border: 1px solid #777;
+        border-radius: 0.5em;
+        transition: all 0.25s ease-out;
+        align-self: center;
+        margin-inline: 0.25em;
+    }
+
+    .noteChangeSubmit:hover {
+        border-color: #222;
+        transform: scale(1.075);
+        margin-inline: 1em;
+    }
+</style>
+
+<script lang="javascript">
+    const noteDataInputDiv = document.querySelector(".noteDataInputDivRaw");
+    const noteDataInputSubmitChange = document.querySelector("#noteDataChange");
+    const noteDataInputSubmitDelete = document.querySelector("#noteDataDelete");
+    const noteDataInput_noteTime = document.querySelector("#noteTime");
+    const noteDataInput_noteType = document.querySelector("#noteType");
+    const noteDataInput_noteHoldtime = document.querySelector("#noteHoldtime");
+    const noteDataInput_notePositionX = document.querySelector("#notePositionX");
+    const noteDataInput_noteSpeed = document.querySelector("#noteSpeed");
+    const noteDataInput_noteFake = document.querySelector("#noteFake");
+    const noteDataInput_noteAbove = document.querySelector("#noteAbove");
+
+    function noteDataInput_noteTypeChangeCallback() {
+        value = noteDataInput_noteType.value;
+        if (value != "3") { // Hold
+            noteDataInput_noteHoldtime.value = "0.0";
+            noteDataInput_noteHoldtime.disabled = true;
+        }
+        else {
+            noteDataInput_noteHoldtime.disabled = false;
+        }
+    }
+
+    noteDataInput_noteType.addEventListener("change", noteDataInput_noteTypeChangeCallback);
+
+    noteDataInput_noteHoldtime.value = "0.0";
+    noteDataInput_noteAbove.checked = true;
+
+    function noteDataInput(data, callback) {
+        noteDataInput_noteTime.value = data.time;
+        noteDataInput_noteType.value = data.type;
+        noteDataInput_noteHoldtime.value = data.holdtime;
+        noteDataInput_notePositionX.value = data.positionX;
+        noteDataInput_noteSpeed.value = data.speed;
+        noteDataInput_noteFake.checked = data.fake;
+        noteDataInput_noteAbove.checked = data.above;
+        noteDataInput_noteTypeChangeCallback();
+        noteDataInputDiv.className = " noteDataInputDiv";
+        _callback = () => {
+            noteDataInputDiv.className = " noteDataInputDivRaw";
+            noteDataInputSubmitChange.removeEventListener("click", _callback);
+            noteDataInputSubmitDelete.removeEventListener("click", _delete);
+            callback({
+                time: noteDataInput_noteTime.value,
+                type: noteDataInput_noteType.value,
+                holdtime: noteDataInput_noteHoldtime.value,
+                positionX: noteDataInput_notePositionX.value,
+                speed: noteDataInput_noteSpeed.value,
+                fake: noteDataInput_noteFake.checked,
+                above: noteDataInput_noteAbove.checked
+            });
+        }
+        _delete = () => {
+            noteDataInputDiv.className = " noteDataInputDivRaw";
+            noteDataInputSubmitChange.removeEventListener("click", _callback);
+            noteDataInputSubmitDelete.removeEventListener("click", _delete);
+            callback({});
+        }
+        noteDataInputSubmitChange.addEventListener("click", _callback);
+        noteDataInputSubmitDelete.addEventListener("click", _delete);
+    }
+</script>

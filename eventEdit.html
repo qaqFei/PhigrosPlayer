@@ -1,7 +1,6 @@
 <html>
     <head></head>
     <body>
-        <canvas></canvas>
         <div class="eventDataInputDivRaw">
             <ul class="eventDataInputUl">
                 <li class="eventDataInputLi">
@@ -180,11 +179,11 @@
             eventDataInputSubmitChange.removeEventListener("click", _callback);
             eventDataInputSubmitDelete.removeEventListener("click", _delete);
             callback({
-                "startTime": eventDataInput_eventStartTime.value,
-                "endTime": eventDataInput_eventEndTime.value,
-                "startValue":eventDataInput_eventStartValue.value,
-                "endValue": eventDataInput_eventEndValue.value,
-                "easingType": parseInt(eventDataInput_eventEasingType.value),
+                startTime: eventDataInput_eventStartTime.value,
+                endTime: eventDataInput_eventEndTime.value,
+                startValue:eventDataInput_eventStartValue.value,
+                endValue: eventDataInput_eventEndValue.value,
+                easingType: parseInt(eventDataInput_eventEasingType.value),
             });
         }
         _delete = () => {
@@ -196,12 +195,4 @@
         eventDataInputSubmitChange.addEventListener("click", _callback);
         eventDataInputSubmitDelete.addEventListener("click", _delete);
     }
-
-    eventDataInput({
-        "startTime": 0,
-        "endTime": 0,
-        "startValue": 0,
-        "endValue": 0,
-        "easingType": 0,
-    });
 </script>
