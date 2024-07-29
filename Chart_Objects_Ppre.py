@@ -6,8 +6,14 @@ import rpe_easing
 import Tool_Functions
 import Const
 
+class _EqByMemory:
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, type(self)):
+            return self is oth
+        return NotImplemented
+
 @dataclass
-class note:
+class note(_EqByMemory):
     time: float
     type: typing.Literal[1, 2, 3, 4]
     holdtime: float
@@ -27,13 +33,13 @@ class note:
         }[self.type]
     
 @dataclass
-class speedEvent:
+class speedEvent(_EqByMemory):
     startTime: float
     endTime: float
     value: float
 
 @dataclass
-class alphaEvent:
+class alphaEvent(_EqByMemory):
     startTime: float
     endTime: float
     start: float
@@ -41,7 +47,7 @@ class alphaEvent:
     easingType: int
 
 @dataclass
-class moveEvent:
+class moveEvent(_EqByMemory):
     startTime: float
     endTime: float
     startX: float
@@ -51,7 +57,7 @@ class moveEvent:
     easingType: int
 
 @dataclass
-class rotateEvent:
+class rotateEvent(_EqByMemory):
     startTime: float
     endTime: float
     start: float
@@ -59,18 +65,13 @@ class rotateEvent:
     easingType: int
 
 @dataclass
-class judgeLine:
+class judgeLine(_EqByMemory):
     bpm: float
     notes: list[note]
     speedEvents: list[speedEvent]
     alphaEvents: list[alphaEvent]
     moveEvents: list[moveEvent]
     rotateEvents: list[rotateEvent]
-    
-    def __eq__(self, oth: object) -> bool:
-        if isinstance(oth, judgeLine):
-            return self is oth
-        return NotImplemented
     
     def getAlpha(self, t: float) -> float:
         for e in self.alphaEvents:
@@ -119,5 +120,5 @@ class judgeLine:
         return self._getFloorPosition(note.time) - self._getFloorPosition(lineTime)
 
 @dataclass
-class Chart:
+class Chart(_EqByMemory):
     lines: list[judgeLine]

@@ -427,6 +427,7 @@ def renderChartView(nt: float): # sec
         t:float, t_sec:float, line: Chart_Objects_Ppre.judgeLine,
         effect_random_blocks
     ):
+        if note.fake: return None
         p = (nt - t_sec) / effect_time
         if not (0.0 <= p <= 1.0): return None
         linePos = line.getMove(t)
@@ -515,6 +516,7 @@ def MouseDown(x, y, button):
     global EventEdit_uiDy, PlayTime
     global eventEditing, editingEvent
     global eventAdding, addingEvent
+    global noteEditing, editingNote
     
     if inRect(JudgeLineIndexChangeValueRect, x, y) and button == 0:
         result = webcv.run_js_code(f"prompt('Please input judgeLine index(0 ~ {len(ChartObject.lines) - 1}): ');")
@@ -607,6 +609,32 @@ def MouseDown(x, y, button):
     elif inRect(getEventViewRect(4), x, y) and button == 2 and not eventAdding:
         lineTime = getEventTimeByyPos(y)
         eventAdding, addingEvent = True, Chart_Objects_Ppre.rotateEvent(lineTime, lineTime, 0, 0, 1)
+    elif inRect(NoteViewRect, x, y) and button == 0 and not noteEditing:
+        line = ChartObject.lines[EventEdit_lineIndex]
+        for note in line.notes:
+            if inRect(getNoteRect(note), x, y):
+                noteEditing, editingNote = True, note
+                webcv.run_js_code(f'''
+                    noteDataInput({"{"}
+                        time: {note.time},
+                        type: {note.type},
+                        holdtime: {note.holdtime},
+                        positionX: {note.positionX},
+                        speed: {note.speed},
+                        fake: {note.fake},
+                        above: {note.above}
+                    {"}"}, _editNote)
+                ''')
+                break
+
+def getNoteRect(note: Chart_Objects_Ppre.note):
+    noteX = w / 2 + (note.positionX * PHIGROS_X + w / 4) * (5 / 8)
+    noteY = (1.0 - (note.time - EventEdit_uiDy) / EventEdit_viewRange) * h / 2
+    holdLength = getEventViewTimeLengthPx(note.holdtime)
+    return (
+        noteX - note_max_width_half * 1.25, noteY - note_max_height_half * 1.25 - holdLength,
+        noteX + note_max_width_half * 1.25, noteY + note_max_height_half * 1.25
+    )
 
 def MouseUp(x: int, y: int, button: int):
     global eventAdding, addingEvent
@@ -673,6 +701,7 @@ def renderEditView():
     global ReplayButtonRect
     global AddJudgeLineRect
     global DeleteJudgeLineRect
+    global NoteViewRect
     
     webcv.run_js_code(f"chartViewImdata = ctx.getImageData(0, 0, {w / 2}, {h / 2});", add_code_array=True)
     
@@ -851,6 +880,11 @@ def renderEditView():
     # noteView, tip: noteView共享eventView的数据
     webcv.run_js_code(f"leftImdata = ctx.getImageData(0, 0, {w / 2}, {h});", add_code_array=True)
     
+    NoteViewRect = (
+        w / 2, 0,
+        w / 2 + w / 2 * (5 / 8), h / 2
+    )
+    
     webcv.create_rectangle(w / 2, 0, w, h / 2, fillStyle="#AAA", wait_execute=True)
     timeLinetime = int(EventEdit_uiDy) - 1
     while True:
@@ -974,6 +1008,7 @@ def KeyDown(
     alt: bool,
     repeat: bool
 ):
+    global noteEditing, editingNote
     key = key.lower()
     
     if not repeat and inRect((w / 2, 0, w / 2 + w / 2 * (5 / 8), h / 2), *MousePos):
@@ -998,13 +1033,7 @@ def KeyDown(
             )
             line = ChartObject.lines[EventEdit_lineIndex]
             line.notes.append(note)
-            if key == "t":
-                pass
-            elif key == "d":
-                pass
-            elif key == "h":
-                pass
-            elif key == "f":
+            if key == "h":
                 pass
 
 def parseFloat(s: str, default: float):
@@ -1113,11 +1142,38 @@ def editEvent(data: dict):
     
     eventEditing, editingEvent = False, None
 
+def editNote(data: dict):
+    global noteEditing, editingNote
+    
+    if not data:
+        if webcv.run_js_code("prompt('delete this note(input \\'true\\' or \\'false\\')?');") == "true":
+            try: ChartObject.lines[EventEdit_lineIndex].notes.remove(editingNote)
+            except ValueError: webcv.run_js_code("alert('note not found in line.')")
+        noteEditing, editingNote = False, None
+        return None
+    
+    time = parseFloat(data["time"], editingNote.time)
+    type = parseRangeInt(data["type"], editingNote.type, range(1, 4 + 1))
+    holdtime = parseFloat(data["holdtime"], editingNote.holdtime)
+    positionX = parseFloat(data["positionX"], editingNote.positionX)
+    speed = parseFloat(data["speed"], editingNote.speed)
+    fake = data["fake"]
+    above = data["above"]
+    
+    editingNote.time, editingNote.type, editingNote.holdtime, editingNote.positionX, editingNote.speed, editingNote.fake, editingNote.above = time, type, holdtime, positionX, speed, fake, above
+    editingNote.__post_init__()
+    webcv.run_js_code(f'''
+        alert("changed note: {webcv.process_code_string_syntax_tostring(json.dumps(dataclasses.asdict(editingNote), indent=4))}");
+    ''')
+    
+    noteEditing, editingNote = False, None
+
 def main():
     global EventEdit_uiDy
     global isPlaying, PlayTime
     global eventEditing, editingEvent
     global eventAdding, addingEvent
+    global noteEditing, editingNote
     
     fixOutRangeViewIndex()
     updateMorebets()
@@ -1127,12 +1183,14 @@ def main():
     webcv.jsapi.set_attr("MouseMoving", MouseMoving)
     webcv.jsapi.set_attr("KeyDown", KeyDown)
     webcv.jsapi.set_attr("editEvent", editEvent)
+    webcv.jsapi.set_attr("editNote", editNote)
     webcv.run_js_code("_MouseWheel = (e) => {pywebview.api.call_attr('MouseWheel', e.delta || e.wheelDelta);};")
     webcv.run_js_code("_MouseDown = (e) => {pywebview.api.call_attr('MouseDown', e.clientX, e.clientY, e.button);};")
     webcv.run_js_code("_MouseUp = (e) => {pywebview.api.call_attr('MouseUp', e.clientX, e.clientY, e.button);};")
     webcv.run_js_code("_MouseMoving = (e) => {pywebview.api.call_attr('MouseMoving', e.clientX, e.clientY);};")
     webcv.run_js_code("_KeyDown = (e) => {pywebview.api.call_attr('KeyDown', e.key, e.ctrlKey, e.shiftKey, e.altKey, e.repeat);};")
     webcv.run_js_code("_editEvent = (data) => pywebview.api.call_attr('editEvent', data);")
+    webcv.run_js_code("_editNote = (data) => pywebview.api.call_attr('editNote', data);")
     webcv.run_js_code("window.addEventListener('wheel', _MouseWheel);")
     webcv.run_js_code("window.addEventListener('mousedown', _MouseDown);")
     webcv.run_js_code("window.addEventListener('mouseup', _MouseUp);")
@@ -1145,6 +1203,7 @@ def main():
     PlayTime = 0.0
     eventEditing, editingEvent = False, None
     eventAdding, addingEvent = False, None
+    noteEditing, editingNote = False, None
     
     while True:
         webcv.clear_canvas(wait_execute=True)
