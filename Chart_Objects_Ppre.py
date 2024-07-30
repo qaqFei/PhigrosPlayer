@@ -25,6 +25,7 @@ class note(_EqByMemory):
     above: bool
     
     morebets: bool = False
+    clicked: bool = False
     
     def __post_init__(self):
         self.type_string = {

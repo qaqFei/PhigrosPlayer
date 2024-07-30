@@ -20,6 +20,7 @@ import Tool_Functions
 import Const
 import rpe_easing
 import dialog
+import PlaySound
 
 def validFile(fp: str) -> bool:
     return exists(fp) and isfile(fp)
@@ -299,6 +300,10 @@ def renderChartView(nt: float): # sec
         )
         
         def process(note: Chart_Objects_Ppre.note):
+            if not note.clicked and note.time < lineTime:
+                note.clicked = True
+                Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string], )).start()
+                
             if note.type != Const.Note.HOLD and note.time < lineTime:
                 return None
             elif note.type == Const.Note.HOLD and note.time + note.holdtime < lineTime:
@@ -724,7 +729,14 @@ def renderAEvent(e: Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEven
     webcv.create_rectangle(left_x, est_y, left_x + w / 2 * (1 / 8), eet_y, fillStyle=color, wait_execute=True)
     webcv.create_line(left_x, est_y, left_x + w / 2 * (1 / 8), est_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
     webcv.create_line(left_x, eet_y, left_x + w / 2 * (1 / 8), eet_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
-    
+
+def updateClicked(t: float):
+    for line in ChartObject.lines:
+        lineTime = t / (60 / line.bpm)
+        for note in line.notes:
+            if note.clicked and note.time > lineTime:
+                note.clicked = False
+
 def renderEditView():
     global EventEdit_lineIndex
     global JudgeLineIndexChangeValueRect
@@ -1400,6 +1412,7 @@ def main():
     
     while True:
         webcv.clear_canvas(wait_execute=True)
+        updateClicked(PlayTime)
         renderChartView(PlayTime)
         fixOutRangeViewIndex()
         renderEditView()
