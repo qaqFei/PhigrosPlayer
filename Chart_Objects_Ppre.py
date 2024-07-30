@@ -1,5 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from random import randint
+from fractions import Fraction
 import typing
 
 import rpe_easing
@@ -173,9 +175,319 @@ class Chart(_EqByMemory):
             data["lines"].append(lineData)
         
         return data
+
+    def _getRpeBeat(self, t: float) -> list:
+        t = t if t >= 0.0 else 0.0
+        f = Fraction(t % (abs(t) / t)).limit_denominator((2 << 31) - 2) if t != 0 else Fraction(0)
+        return [int(t), f.numerator, f.denominator]
         
     def saveAsRpe(self) -> dict:
-        pass
+        if not self.lines:
+            GlobalBpm = sum([i.bpm for i in self.lines]) / len(self.lines)
+        else:
+            GlobalBpm = 140.0
+        data = {
+            "BPMList": [ { "bpm": GlobalBpm, "startTime": [0, 0, 1] } ],
+            "META": {
+                "RPEVersion": 130,
+                "background": "BACKGROUND",
+                "charter": "CHARTER",
+                "composer": "COMPOSER",
+                "id": f"{randint(0, 2 << 31)}",
+                "level": "LEVEL",
+                "name": "NAME",
+                "offset": 0,
+                "song": "SONG"
+            },
+            "judgeLineGroup" : [ "Default" ],
+            "judgeLineList": []
+        }
+        
+        for line in self.lines:
+            lineData = {
+                "Group" : 0,
+                "Name" : "Untitled",
+                "Texture" : "line.png",
+                "alphaControl" : [
+                    {
+                        "alpha" : 1.0,
+                        "easing" : 1,
+                        "x" : 0.0
+                    },
+                    {
+                        "alpha" : 1.0,
+                        "easing" : 1,
+                        "x" : 9999999.0
+                    }
+                ],
+                "bpmfactor" : 1.0,
+                "eventLayers": [{"alphaEvents": [], "moveXEvents": [], "moveYEvents": [], "rotateEvents": [], "speedEvents": []}],
+                "extended" : {
+                    "inclineEvents" : [
+                    {
+                        "bezier" : 0,
+                        "bezierPoints" : [ 0.0, 0.0, 0.0, 0.0 ],
+                        "easingLeft" : 0.0,
+                        "easingRight" : 1.0,
+                        "easingType" : 0,
+                        "end" : 0.0,
+                        "endTime" : [ 1, 0, 1 ],
+                        "linkgroup" : 0,
+                        "start" : 0.0,
+                        "startTime" : [ 0, 0, 1 ]
+                    }
+                    ]
+                },
+                "father" : -1,
+                "isCover" : 1,
+                "notes": [],
+                "numOfNotes": len(line.notes),
+                "posControl" : [
+                    {
+                        "easing" : 1,
+                        "pos" : 1.0,
+                        "x" : 0.0
+                    },
+                    {
+                        "easing" : 1,
+                        "pos" : 1.0,
+                        "x" : 9999999.0
+                    }
+                ],
+                "sizeControl" : [
+                    {
+                        "easing" : 1,
+                        "size" : 1.0,
+                        "x" : 0.0
+                    },
+                    {
+                        "easing" : 1,
+                        "size" : 1.0,
+                        "x" : 9999999.0
+                    }
+                ],
+                "skewControl" : [
+                    {
+                        "easing" : 1,
+                        "skew" : 0.0,
+                        "x" : 0.0
+                    },
+                    {
+                        "easing" : 1,
+                        "skew" : 0.0,
+                        "x" : 9999999.0
+                    }
+                ],
+                "yControl" : [
+                    {
+                        "easing" : 1,
+                        "x" : 0.0,
+                        "y" : 1.0
+                    },
+                    {
+                        "easing" : 1,
+                        "x" : 9999999.0,
+                        "y" : 1.0
+                    }
+                ],
+                "zOrder" : 0
+            }
+            
+            for e in line.speedEvents:
+                lineData["eventLayers"][0]["speedEvents"].append({
+                    "start": e.value * 0.6 * 900 / 120,
+                    "end": e.value * 0.6 * 900 / 120,
+                    "startTime": self._getRpeBeat(e.startTime * (60 / line.bpm) / (60 / GlobalBpm)),
+                    "endTime": self._getRpeBeat(e.endTime * (60 / line.bpm) / (60 / GlobalBpm)),
+                    "linkgroup": 0
+                })
+            
+            for e in line.alphaEvents:
+                lineData["eventLayers"][0]["alphaEvents"].append({
+                    "bezier": 0,
+                    "bezierPoints": [0.0, 0.0, 0.0, 0.0],
+                    "easingLeft": 0.0,
+                    "easingRight": 1.0,
+                    "easingType": e.easingType,
+                    "end": int(e.end * 255),
+                    "endTime": self._getRpeBeat(e.endTime * (60 / line.bpm) / (60 / GlobalBpm)),
+                    "linkgroup": 0,
+                    "start": int(e.start * 255),
+                    "startTime": self._getRpeBeat(e.startTime * (60 / line.bpm) / (60 / GlobalBpm))
+                })
+        
+            for e in line.moveEvents:
+                lineData["eventLayers"][0]["moveXEvents"].append({
+                    "bezier": 0,
+                    "bezierPoints": [0.0, 0.0, 0.0, 0.0],
+                    "easingLeft": 0.0,
+                    "easingRight": 1.0,
+                    "easingType": e.easingType,
+                    "end": (e.endX - 0.5) * 1350,
+                    "endTime": self._getRpeBeat(e.endTime * (60 / line.bpm) / (60 / GlobalBpm)),
+                    "linkgroup": 0,
+                    "start": (e.startX - 0.5) * 1350,
+                    "startTime": self._getRpeBeat(e.startTime * (60 / line.bpm) / (60 / GlobalBpm))
+                })
+                lineData["eventLayers"][0]["moveYEvents"].append({
+                    "bezier": 0,
+                    "bezierPoints": [0.0, 0.0, 0.0, 0.0],
+                    "easingLeft": 0.0,
+                    "easingRight": 1.0,
+                    "easingType": e.easingType,
+                    "end": (e.endY - 0.5) * 900,
+                    "endTime": self._getRpeBeat(e.endTime * (60 / line.bpm) / (60 / GlobalBpm)),
+                    "linkgroup": 0,
+                    "start": (e.startY - 0.5) * 900,
+                    "startTime": self._getRpeBeat(e.startTime * (60 / line.bpm) / (60 / GlobalBpm))
+                })
+            
+            for e in line.rotateEvents:
+                lineData["eventLayers"][0]["rotateEvents"].append({
+                    "bezier": 0,
+                    "bezierPoints": [0.0, 0.0, 0.0, 0.0],
+                    "easingLeft": 0.0,
+                    "easingRight": 1.0,
+                    "easingType": e.easingType,
+                    "end": - e.end,
+                    "endTime": self._getRpeBeat(e.endTime * (60 / line.bpm) / (60 / GlobalBpm)),
+                    "linkgroup": 0,
+                    "start": - e.start,
+                    "startTime": self._getRpeBeat(e.startTime * (60 / line.bpm) / (60 / GlobalBpm))
+                })
+            
+            for note in line.notes:
+                if note.type != Const.Note.HOLD:
+                    speed = note.speed
+                else:
+                    try:
+                        speed = note.holdtime * (60 / line.bpm) * note.speed / - line.getNoteFloorPosition(note.time + note.holdtime, note)
+                    except Exception as e:
+                        speed = 1.0
+                lineData["notes"].append({
+                    "above": int(not note.above) + 1,
+                    "alpha": 255,
+                    "endTime": self._getRpeBeat((note.time + note.holdtime) * (60 / line.bpm) / (60 / GlobalBpm)),
+                    "isFake": int(note.fake),
+                    "positionX": note.positionX / (1 / 0.05625) * 1350,
+                    "size": 1.0,
+                    "speed": speed,
+                    "startTime": self._getRpeBeat(note.time * (60 / line.bpm) / (60 / GlobalBpm)),
+                    "type": {1:1, 3:2, 4:3, 2:4}[note.type],
+                    "visibleTime": 999999.0,
+                    "yOffset": 0.0
+                })
+            
+            data["judgeLineList"].append(lineData)
+        
+        return data
     
     def saveAsPigeonPhigros(self) -> dict:
-        pass
+        easingSplitNumber = 20
+        data = {
+            "formatVersion": 3,
+            "offset": 0.0,
+            "judgeLineList": []
+        }
+        
+        for line in self.lines:
+            lineData = {
+                "bpm": line.bpm,
+                "notesAbove": [],
+                "notesBelow": [],
+                "speedEvents": [],
+                "judgeLineMoveEvents": [],
+                "judgeLineRotateEvents": [],
+                "judgeLineDisappearEvents": []
+            }
+            
+            for e in line.speedEvents:
+                lineData["speedEvents"].append({
+                    "startTime": e.startTime * 60 / 1.875,
+                    "endTime": e.endTime * 60 / 1.875,
+                    "value": e.value
+                })
+            
+            for e in line.alphaEvents:
+                if e.easingType == 1:
+                    lineData["judgeLineDisappearEvents"].append({
+                        "startTime": e.startTime * 60 / 1.875,
+                        "endTime": e.endTime * 60 / 1.875,
+                        "start": e.start,
+                        "end": e.end,
+                    })
+                else:
+                    for i in range(easingSplitNumber):
+                        st = e.startTime + i / easingSplitNumber * (e.endTime - e.startTime)
+                        et = e.startTime + (i + 1) / easingSplitNumber * (e.endTime - e.startTime)
+                        sv = Tool_Functions.easing_interpolation(st, e.startTime, e.endTime, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
+                        ev = Tool_Functions.easing_interpolation(et, e.startTime, e.endTime, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
+                        lineData["judgeLineDisappearEvents"].append({
+                            "startTime": st * 60 / 1.875,
+                            "endTime": et * 60 / 1.875,
+                            "start": sv,
+                            "end": ev,
+                        })
+            
+            for e in line.moveEvents:
+                if e.easingType == 1:
+                    lineData["judgeLineMoveEvents"].append({
+                        "startTime": e.startTime * 60 / 1.875,
+                        "endTime": e.endTime * 60 / 1.875,
+                        "start": e.startX,
+                        "start2": e.startY,
+                        "end": e.endX,
+                        "end2": e.endY,
+                    })
+                else:
+                    for i in range(easingSplitNumber):
+                        st = e.startTime + i / easingSplitNumber * (e.endTime - e.startTime)
+                        et = e.startTime + (i + 1) / easingSplitNumber * (e.endTime - e.startTime)
+                        svx = Tool_Functions.easing_interpolation(st, e.startTime, e.endTime, e.startX, e.endX, rpe_easing.ease_funcs[e.easingType - 1])
+                        evx = Tool_Functions.easing_interpolation(et, e.startTime, e.endTime, e.startX, e.endX, rpe_easing.ease_funcs[e.easingType - 1])
+                        svy = Tool_Functions.easing_interpolation(st, e.startTime, e.endTime, e.startY, e.endY, rpe_easing.ease_funcs[e.easingType - 1])
+                        evy = Tool_Functions.easing_interpolation(et, e.startTime, e.endTime, e.startY, e.endY, rpe_easing.ease_funcs[e.easingType - 1])
+                        lineData["judgeLineMoveEvents"].append({
+                            "startTime": st * 60 / 1.875,
+                            "endTime": et * 60 / 1.875,
+                            "start": svx,
+                            "start2": svy,
+                            "end": evx,
+                            "end2": evy,
+                        })
+
+            for e in line.rotateEvents:
+                if e.easingType == 1:
+                    lineData["judgeLineRotateEvents"].append({
+                        "startTime": e.startTime * 60 / 1.875,
+                        "endTime": e.endTime * 60 / 1.875,
+                        "start": e.start,
+                        "end": e.end,
+                    })
+                else:
+                    for i in range(easingSplitNumber):
+                        st = e.startTime + i / easingSplitNumber * (e.endTime - e.startTime)
+                        et = e.startTime + (i + 1) / easingSplitNumber * (e.endTime - e.startTime)
+                        sv = Tool_Functions.easing_interpolation(st, e.startTime, e.endTime, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
+                        ev = Tool_Functions.easing_interpolation(et, e.startTime, e.endTime, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
+                        lineData["judgeLineRotateEvents"].append({
+                            "startTime": st * 60 / 1.875,
+                            "endTime": et * 60 / 1.875,
+                            "start": sv,
+                            "end": ev,
+                        })
+            
+            for note in line.notes:
+                noteData = {
+                    "time": note.time * 60 / 1.875,
+                    "type": note.type,
+                    "holdTime": note.holdtime * 60 / 1.875,
+                    "positionX": note.positionX,
+                    "speed": note.speed,
+                    "floorPosition": line.getNoteFloorPosition(0, note)
+                }
+                if note.above: lineData["notesAbove"].append(noteData)
+                else: lineData["notesBelow"].append(noteData)
+            data["judgeLineList"].append(lineData)
+        
+        return data
