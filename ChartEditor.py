@@ -9,6 +9,7 @@ from threading import Thread
 import typing
 import json
 import dataclasses
+import math
 
 from PIL import Image
 from pygame import mixer
@@ -18,6 +19,7 @@ import Chart_Objects_Ppre
 import Tool_Functions
 import Const
 import rpe_easing
+import dialog
 
 def validFile(fp: str) -> bool:
     return exists(fp) and isfile(fp)
@@ -27,13 +29,13 @@ def exitProcess(state: int = 0, text: str = "") -> typing.NoReturn:
     windll.kernel32.ExitProcess(state)
 
 if len(argv) < 3:
-    print("Usage: ChartEditer <chart> <audio>")
+    print("Usage: ChartEditor <chart> <audio>")
     print("    if <chart> is __create__, it will create a empty chart.")
     exitProcess()
 
 mixer.init()
 sysTempDir = gettempdir()
-tempDir = f"{sysTempDir}\\qfppr_editer_{time() * randint(0, 2 << 31)}"
+tempDir = f"{sysTempDir}\\qfppr_editor_{time() * randint(0, 2 << 31)}"
 try: mkdir(tempDir)
 except FileExistsError: pass
     
@@ -518,17 +520,19 @@ def MouseDown(x, y, button):
     global eventAdding, addingEvent
     global noteEditing, editingNote
     
-    if inRect(JudgeLineIndexChangeValueRect, x, y) and button == 0:
+    fsAlertDisplay = webcv.run_js_code("fsAlertDisplay;")
+    
+    if inRect(JudgeLineIndexChangeValueRect, x, y) and button == 0 and not fsAlertDisplay:
         result = webcv.run_js_code(f"prompt('Please input judgeLine index(0 ~ {len(ChartObject.lines) - 1}): ');")
         if result in list(map(str, range(0, len(ChartObject.lines)))):
             EventEdit_lineIndex = int(result)
         elif result is not None:
             webcv.run_js_code("alert('Invalid index.');")
-    elif inRect(PlayButtonRect, x, y) and button == 0:
+    elif inRect(PlayButtonRect, x, y) and button == 0 and not fsAlertDisplay:
         isPlaying = not isPlaying
-    elif inRect(ReplayButtonRect, x, y) and button == 0:
+    elif inRect(ReplayButtonRect, x, y) and button == 0 and not fsAlertDisplay:
         isPlaying, EventEdit_uiDy, PlayTime = False, 0.0, 0.0
-    elif inRect(AddJudgeLineRect, x, y) and button == 0:
+    elif inRect(AddJudgeLineRect, x, y) and button == 0 and not fsAlertDisplay:
         bpm = parseFloat(webcv.run_js_code("prompt('Please input bpm: ');"), -float("inf"))
         if bpm != -float("inf") and bpm > 0.0:
             ChartObject.lines.append(Chart_Objects_Ppre.judgeLine(
@@ -537,14 +541,14 @@ def MouseDown(x, y, button):
             webcv.run_js_code(f"alert('JudgeLine added. index: {len(ChartObject.lines) - 1}');")
         else:
             webcv.run_js_code("alert('Invalid bpm.');")
-    elif inRect(DeleteJudgeLineRect, x, y) and button == 0:
+    elif inRect(DeleteJudgeLineRect, x, y) and button == 0 and not fsAlertDisplay:
         if webcv.run_js_code("prompt('delete this judge line(input \\'true\\' or \\'false\\')?');") == "true":
             line = ChartObject.lines[EventEdit_lineIndex]
             EventEdit_lineIndex = max(0, EventEdit_lineIndex - 1)
             fixOutRangeViewIndex()
             ChartObject.lines.remove(line)
             webcv.run_js_code("alert('JudgeLine deleted.');")
-    elif inRect(getEventViewRect(1), x, y) and button == 0 and not eventEditing:
+    elif inRect(getEventViewRect(1), x, y) and button == 0 and not eventEditing and not fsAlertDisplay:
         e = getEventByyPos(y, ChartObject.lines[EventEdit_lineIndex].speedEvents)
         if e is None: return
         eventEditing, editingEvent = True, e
@@ -558,7 +562,7 @@ def MouseDown(x, y, button):
                 disableEasing: true
             {"}"}, _editEvent);
         ''')
-    elif inRect(getEventViewRect(2), x, y) and button == 0 and not eventEditing:
+    elif inRect(getEventViewRect(2), x, y) and button == 0 and not eventEditing and not fsAlertDisplay:
         e = getEventByyPos(y, ChartObject.lines[EventEdit_lineIndex].alphaEvents)
         if e is None: return
         eventEditing, editingEvent = True, e
@@ -571,7 +575,7 @@ def MouseDown(x, y, button):
                 easingType: {e.easingType}
             {"}"}, _editEvent);
         ''')
-    elif inRect(getEventViewRect(3), x, y) and button == 0 and not eventEditing:
+    elif inRect(getEventViewRect(3), x, y) and button == 0 and not eventEditing and not fsAlertDisplay:
         e = getEventByyPos(y, ChartObject.lines[EventEdit_lineIndex].moveEvents)
         if e is None: return
         eventEditing, editingEvent = True, e
@@ -584,7 +588,7 @@ def MouseDown(x, y, button):
                 easingType: {e.easingType}
             {"}"}, _editEvent);
         ''')
-    elif inRect(getEventViewRect(4), x, y) and button == 0 and not eventEditing:
+    elif inRect(getEventViewRect(4), x, y) and button == 0 and not eventEditing and not fsAlertDisplay:
         e = getEventByyPos(y, ChartObject.lines[EventEdit_lineIndex].rotateEvents)
         if e is None: return
         eventEditing, editingEvent = True, e
@@ -597,19 +601,19 @@ def MouseDown(x, y, button):
                 easingType: {e.easingType}
             {"}"}, _editEvent);
         ''')
-    elif inRect(getEventViewRect(1), x, y) and button == 2 and not eventAdding:
+    elif inRect(getEventViewRect(1), x, y) and button == 2 and not eventAdding and not fsAlertDisplay:
         lineTime = getEventTimeByyPos(y)
         eventAdding, addingEvent = True, Chart_Objects_Ppre.speedEvent(lineTime, lineTime, 1.0)
-    elif inRect(getEventViewRect(2), x, y) and button == 2 and not eventAdding:
+    elif inRect(getEventViewRect(2), x, y) and button == 2 and not eventAdding and not fsAlertDisplay:
         lineTime = getEventTimeByyPos(y)
         eventAdding, addingEvent = True, Chart_Objects_Ppre.alphaEvent(lineTime, lineTime, 1.0, 1.0, 1)
-    elif inRect(getEventViewRect(3), x, y) and button == 2 and not eventAdding:
+    elif inRect(getEventViewRect(3), x, y) and button == 2 and not eventAdding and not fsAlertDisplay:
         lineTime = getEventTimeByyPos(y)
         eventAdding, addingEvent = True, Chart_Objects_Ppre.moveEvent(lineTime, lineTime, 0.5, 0.5, 0.5, 0.5, 1)
-    elif inRect(getEventViewRect(4), x, y) and button == 2 and not eventAdding:
+    elif inRect(getEventViewRect(4), x, y) and button == 2 and not eventAdding and not fsAlertDisplay:
         lineTime = getEventTimeByyPos(y)
         eventAdding, addingEvent = True, Chart_Objects_Ppre.rotateEvent(lineTime, lineTime, 0, 0, 1)
-    elif inRect(NoteViewRect, x, y) and button == 0 and not noteEditing:
+    elif inRect(NoteViewRect, x, y) and button == 0 and not noteEditing and not fsAlertDisplay:
         line = ChartObject.lines[EventEdit_lineIndex]
         for note in line.notes:
             if inRect(getNoteRect(note), x, y):
@@ -626,8 +630,30 @@ def MouseDown(x, y, button):
                     {"}"}, _editNote)
                 ''')
                 break
-    elif inRect(SaveButtonRect, x, y) and button == 0:
-        pass
+    elif inRect(SaveButtonRect, x, y) and button == 0 and not fsAlertDisplay:
+        text = '''\
+请选择保存谱面格式:
+    1. Ppre - PhigrosPlayer Editor 谱面格式
+    2. Rpe - Re:PhiEdit 谱面格式
+    3. PigeonPhigros 游戏谱面格式
+        '''
+        ans = webcv.run_js_code(f"prompt('{webcv.process_code_string_syntax_tostring(text)}');")
+        if isinstance(ans, str) and ans in ("1", "2", "3"):
+            match ans:
+                case "1":
+                    jsonData = ChartObject.saveAsPpre()
+                case "2":
+                    jsonData = ChartObject.saveAsRpe()
+                case "3":
+                    jsonData = ChartObject.saveAsPigeonPhigros()
+            path = dialog.savefile(fn = "chart.json")
+            if path == "chart.json": return # cancel
+            
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(json.dumps(jsonData))
+            webcv.run_js_code("alert('save successfully.');")
+        else:
+            webcv.run_js_code("alert('invalid format.');")
 
 def getNoteRect(note: Chart_Objects_Ppre.note):
     noteX = w / 2 + (note.positionX * PHIGROS_X + w / 4) * (5 / 8)
@@ -679,6 +705,7 @@ def getEventTimeByyPos(y: int):
 def renderAEvent(e: Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEvent | Chart_Objects_Ppre.moveEvent | Chart_Objects_Ppre.rotateEvent, color: str):
     est = e.startTime
     eet = e.endTime
+    est, eet = sorted((est, eet))
     est_y = h - getEventViewTimeLengthPx(est) + EventEdit_uiDy / EventEdit_viewRange * h / 2
     eet_y = h - getEventViewTimeLengthPx(eet) + EventEdit_uiDy / EventEdit_viewRange * h / 2
     if est_y < h / 2 or eet_y > h:
@@ -692,6 +719,8 @@ def renderAEvent(e: Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEven
     elif isinstance(e, Chart_Objects_Ppre.rotateEvent):
         left_x = w * (3.6 / 8)
     left_x /= 2
+    if est_y > h: est_y = h + 10
+    if eet_y < h / 2: eet_y = h / 2 - 10
     webcv.create_rectangle(left_x, est_y, left_x + w / 2 * (1 / 8), eet_y, fillStyle=color, wait_execute=True)
     webcv.create_line(left_x, est_y, left_x + w / 2 * (1 / 8), est_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
     webcv.create_line(left_x, eet_y, left_x + w / 2 * (1 / 8), eet_y, lineWidth = JUDGELINE_WIDTH / 2, strokeStyle = "#F308", wait_execute=True)
@@ -1050,8 +1079,149 @@ def KeyDown(
             )
             line = ChartObject.lines[EventEdit_lineIndex]
             line.notes.append(note)
-            if key == "h":
-                pass
+    
+    if not repeat and key == "l" and ctrl:
+        cmd = webcv.run_js_code("prompt('input command:');")
+        if not isinstance(cmd, str): return None
+        cmd = list(filter(lambda x: x, cmd.split(" ")))
+        if not cmd: return None
+        
+        match cmd[0]:
+            case "help":
+                helpContext = '''\
+· help: 显示帮助
+· deleteEvents <deleteStartTime: float> <deleteEndTime: float> <deleteEventType: eventType>: 批量删除事件
+· createEvents <loopCount: int> <eventDatas: str(py eval -> dict[str, str(py eval)])> <createEventType: eventType>: 批量添加事件 循环range(loopCount), 取i为循环变量, eventDatas为dict[str, str]
+· editEvents <editStartTime: float> <editEndTime: float> <editEventType: eventType> <editKey: str> <editType: str(py eval -> eventValueType)> <editValue: float> <editValueType: eventValueTypeString>: 批量编辑事件
+· deleteNotes <deleteStartTime: float> <deleteEndTime: float>: 批量删除音符, 计算note打击时间是否符合区间, 忽略holdtime
+· createNotes <createStartTime: float> <createEndTime: float> <noteCount: int> <createNoteType: noteType> <startPositionX: float> <endPositionX: float> <startHoldtime: float> <endHoldtime: float> <startSpeed: float> <endSpeed: float> <fake: boolStringType> <above: boolStringType> <easingType: easingTypeType>: 批量添加音符, 缓动仅对positionX和holdtime有效
+
+types:
+    eventType = typing.Literal["speedEvents", "alphaEvents", "moveEvents", "rotateEvents"]
+    editType = typing.Literal["+", "-", "*", "/", "%", "="]
+    eventValueTypeString = typing.Literal["str", "int", "float"]
+    eventValueType = typing.Union[str, int, float]
+    noteType = typing.Literal["tap", "drag", "hold", "flick"]
+    boolStringType = typing.Literal["true", "false"]
+    easingTypeType = typing.Literal[1, 2, 3, 4, 5, ..., 28, 29] # 1 ~ 29
+                '''
+                webcv.run_js_code(f"fsAlert('help', '{webcv.process_code_string_syntax_tostring(helpContext)}');")
+            case "deleteEvents":
+                try:
+                    deleteStart = float(cmd[1])
+                    deleteEnd = float(cmd[2])
+                    line = ChartObject.lines[EventEdit_lineIndex]
+                    events: list[Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEvent | Chart_Objects_Ppre.moveEvent | Chart_Objects_Ppre.rotateEvent] = {"speedEvents": line.speedEvents, "alphaEvents": line.alphaEvents, "moveEvents": line.moveEvents, "rotateEvents": line.rotateEvents}[cmd[3]]
+                    newevents = list(filter(lambda e: not (
+                        e.startTime <= deleteStart <= e.endTime or e.startTime <= deleteEnd <= e.endTime or
+                        deleteStart <= e.startTime <= deleteEnd or deleteStart <= e.endTime <= deleteEnd
+                    ), events))
+                    match cmd[3]:
+                        case "speedEvents": line.speedEvents = newevents
+                        case "alphaEvents": line.alphaEvents = newevents
+                        case "moveEvents": line.moveEvents = newevents
+                        case "rotateEvents": line.rotateEvents = newevents
+                    webcv.run_js_code(f"alert('success.');")
+                except Exception as e:
+                    webcv.run_js_code(f"alert('invalid input. {webcv.process_code_string_syntax_tostring(repr(e))}');")
+            case "createEvents":
+                try:
+                    r = range(int(float(cmd[1])))
+                    es = []
+                    etype = {"speedEvents": Chart_Objects_Ppre.speedEvent, "alphaEvents": Chart_Objects_Ppre.alphaEvent, "moveEvents": Chart_Objects_Ppre.moveEvent, "rotateEvents": Chart_Objects_Ppre.rotateEvent}[cmd[3]]
+                    for i in r:
+                        data = {k: eval(v, {attrn: getattr(math, attrn) for attrn in dir(math)}, {"i": i}) for k, v in eval(cmd[2]).items()}
+                        es.append(etype(**data))
+                    line = ChartObject.lines[EventEdit_lineIndex]
+                    match cmd[3]:
+                        case "speedEvents": line.speedEvents.extend(es)
+                        case "alphaEvents": line.alphaEvents.extend(es)
+                        case "moveEvents": line.moveEvents.extend(es)
+                        case "rotateEvents": line.rotateEvents.extend(es)
+                    webcv.run_js_code(f"alert('success.');")
+                except Exception as e:
+                    webcv.run_js_code(f"alert('invalid input. {webcv.process_code_string_syntax_tostring(repr(e))}');")
+            case "editEvents":
+                try:
+                    editStart = float(cmd[1])
+                    editEnd = float(cmd[2])
+                    editKey = cmd[4]
+                    editType = cmd[5]
+                    editValue = eval(cmd[6])
+                    editValueType = cmd[7]
+                    if editType not in ("+", "-", "*", "/", "%", "="): raise Exception("invalid editType")
+                    if editValueType not in ("str", "int", "float"): raise Exception("invalid editValueType")
+                    editValueType = {"str": str, "int": int, "float": float}[editValueType]
+                    line = ChartObject.lines[EventEdit_lineIndex]
+                    events: list[Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEvent | Chart_Objects_Ppre.moveEvent | Chart_Objects_Ppre.rotateEvent] = {"speedEvents": line.speedEvents, "alphaEvents": line.alphaEvents, "moveEvents": line.moveEvents, "rotateEvents": line.rotateEvents}[cmd[3]]
+                    changeEvents = list(filter(lambda e: (
+                        e.startTime <= editStart <= e.endTime or e.startTime <= editEnd <= e.endTime or
+                        editStart <= e.startTime <= editEnd or editStart <= e.endTime <= editEnd
+                    ), events))
+                    for e in changeEvents:
+                        match editType:
+                            case "+": setattr(e, editKey, editValueType(getattr(e, editKey) + editValue))
+                            case "-": setattr(e, editKey, editValueType(getattr(e, editKey) - editValue))
+                            case "*": setattr(e, editKey, editValueType(getattr(e, editKey) * editValue))
+                            case "/": setattr(e, editKey, editValueType(getattr(e, editKey) / editValue))
+                            case "%": setattr(e, editKey, editValueType(getattr(e, editKey) % editValue))
+                            case "=": setattr(e, editKey, editValueType(editValue))
+                    webcv.run_js_code(f"alert('success.');")
+                except Exception as e:
+                    webcv.run_js_code(f"alert('invalid input. {webcv.process_code_string_syntax_tostring(repr(e))}');")
+            case "deleteNotes":
+                try:
+                    deleteStart = float(cmd[1])
+                    deleteEnd = float(cmd[2])
+                    line = ChartObject.lines[EventEdit_lineIndex]
+                    line.notes = list(filter(lambda n: not deleteStart <= n.time <= deleteEnd, line.notes))
+                    webcv.run_js_code(f"alert('success.');")
+                except Exception as e:
+                    webcv.run_js_code(f"alert('invalid input. {webcv.process_code_string_syntax_tostring(repr(e))}');")
+            case "createNotes":
+                try:
+                    createStart = float(cmd[1])
+                    createEnd = float(cmd[2])
+                    noteCount = int(float(cmd[3]))
+                    createNoteType = cmd[4]
+                    if createNoteType not in ("tap", "drag", "hold", "flick"): raise Exception("invalid createNoteType")
+                    createNoteType = {"tap": 1, "drag": 2, "hold": 3, "flick": 4}[createNoteType]
+                    startPositionX = float(cmd[5])
+                    endPositionX = float(cmd[6])
+                    startHoldtime = float(cmd[7])
+                    endHoldtime = float(cmd[8])
+                    startSpeed = float(cmd[9])
+                    endSpeed = float(cmd[10])
+                    createNoteFake = {"true": True, "false": False}[cmd[11]]
+                    createNoteAbove = {"true": True, "false": False}[cmd[12]]
+                    easingType = int(float(cmd[13]))
+                    line = ChartObject.lines[EventEdit_lineIndex]
+                    if not (1 <= easingType <= 29): raise Exception("invalid easingType")
+                    for i in range(noteCount):
+                        p = i / (noteCount - 1)
+                        easep = rpe_easing.ease_funcs[easingType - 1](p)
+                        noteTime = createStart + (createEnd - createStart) * p
+                        noteType = createNoteType
+                        notePositionX = startPositionX + (endPositionX - startPositionX) * easep
+                        noteSpeed = startSpeed + (endSpeed - startSpeed) * p
+                        noteHoldtime = startHoldtime + (endHoldtime - startHoldtime) * easep
+                        noteFake = createNoteFake
+                        noteAbove = createNoteAbove
+                        line.notes.append(Chart_Objects_Ppre.note(
+                            time = noteTime,
+                            type = noteType,
+                            positionX = notePositionX,
+                            speed = noteSpeed,
+                            holdtime = noteHoldtime,
+                            fake = noteFake,
+                            above = noteAbove
+                        ))
+                    webcv.run_js_code(f"alert('success.');")
+                except Exception as e:
+                    webcv.run_js_code(f"alert('invalid input. {webcv.process_code_string_syntax_tostring(repr(e))}');")
+            case _:
+                webcv.run_js_code(f"alert('unknow cmd.');")
+                return None
 
 def parseFloat(s: str, default: float):
     try:
@@ -1177,6 +1347,10 @@ def editNote(data: dict):
     fake = data["fake"]
     above = data["above"]
     
+    if not (-(1 / 0.05625 / 2) <= positionX <= (1 / 0.05625 / 2)):
+        webcv.run_js_code("alert('positionX out of range.');")
+        positionX = (1 / 0.05625 / 2) if positionX > (1 / 0.05625 / 2) else -(1 / 0.05625 / 2)
+    
     editingNote.time, editingNote.type, editingNote.holdtime, editingNote.positionX, editingNote.speed, editingNote.fake, editingNote.above = time, type, holdtime, positionX, speed, fake, above
     editingNote.__post_init__()
     webcv.run_js_code(f'''
@@ -1222,9 +1396,10 @@ def main():
     eventAdding, addingEvent = False, None
     noteEditing, editingNote = False, None
     
+    Thread(target=MorebetsChecker, daemon=True).start()
+    
     while True:
         webcv.clear_canvas(wait_execute=True)
-        updateMorebets()
         renderChartView(PlayTime)
         fixOutRangeViewIndex()
         renderEditView()
@@ -1252,13 +1427,18 @@ def main():
         else:
             PlayTime = EventEdit_uiDy * (60 / ChartObject.lines[EventEdit_lineIndex].bpm)
 
+def MorebetsChecker():
+    while True:
+        updateMorebets()
+        sleep(0.5)
+
 webcv = webcvapis.WebCanvas(
     width = 0, height = 0,
     x = 0, y = 0,
     debug = "--debug" in argv,
-    title = "PhigrosPlayer - ChartEditer",
+    title = "PhigrosPlayer - ChartEditor",
     resizable = False,
-    html_path = ".\\web_canvas_editer.html"
+    html_path = ".\\web_canvas_editor.html"
 )
 webdpr = webcv.run_js_code("window.devicePixelRatio;")
 w, h = int(webcv.winfo_screenwidth() * 0.75), int(webcv.winfo_screenheight() * 0.75)

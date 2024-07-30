@@ -79,7 +79,7 @@
                     <input type="text" class="noteDataInput" id="noteHoldtime">
                 </li>
                 <li class="noteDataInputLi">
-                    <label for="positionX" class="noteDataInputLabel">positionX(-1.0 ~ 1.0):</label>
+                    <label for="positionX" class="noteDataInputLabel">positionX(-8.8 ~ 8.8, +-(1 / 0.05625 / 2)):</label>
                     <input type="text" class="noteDataInput" id="notePositionX">
                 </li>
                 <li class="noteDataInputLi">
@@ -99,6 +99,11 @@
                     <button class="noteChangeSubmit" id="noteDataDelete">deleteNote</button>
                 </li>
             </ul>
+        </div>
+        <div class="fsAlertRaw">
+            <h1 class="fsAlertTitle"></h1>
+            <div class="fsAlertText"></div>
+            <button class="fsAlertButton" onclick="fsAlertClose()">Close</button>
         </div>
     </body>
 </html>
@@ -296,6 +301,46 @@
         transform: scale(1.075);
         margin-inline: 1em;
     }
+
+    .fsAlert, .fsAlertRaw {
+        position: absolute;
+        top: 0.5em;
+        left: 0.5em;
+        margin: 0 auto;
+        width: calc(100% - 3em);
+        height: calc(100% - 3em);
+        padding: 1em;
+        border: 1px solid #ccc;
+        border-radius: 1em;
+        align-items: center;
+        background-color: #CCC8;
+        backdrop-filter: blur(5px);
+    }
+
+    .fsAlertRaw {
+        display: none;
+    }
+
+    .fsAlertTitle {
+        font: 2em PhigrosFont;
+    }
+
+    .fsAlertButton {
+        font: 1em PhigrosFont;
+        border: 1px solid #777;
+        border-radius: 0.5em;
+        transition: all 0.25s ease-out;
+    }
+
+    .fsAlertButton:hover {
+        border-color: #222;
+        transform: scale(1.075);
+    }
+
+    .fsAlertP {
+        font: 0.85em PhigrosFont;
+        margin: 0px;
+    }
 </style>
 
 <script type="text/javascript">
@@ -309,6 +354,7 @@
     resize_task = false;
     font_loaded = false;
     chart_audio_loaded = false;
+    fsAlertDisplay = false;
     const eventDataInputDiv = document.querySelector(".eventDataInputDivRaw");
     const eventDataInputSubmitChange = document.querySelector("#eventDataChange");
     const eventDataInputSubmitDelete = document.querySelector("#eventDataDelete");
@@ -327,6 +373,9 @@
     const noteDataInput_noteSpeed = document.querySelector("#noteSpeed");
     const noteDataInput_noteFake = document.querySelector("#noteFake");
     const noteDataInput_noteAbove = document.querySelector("#noteAbove");
+    const fsAlertDiv = document.querySelector(".fsAlertRaw");
+    const fsAlertH1 = document.querySelector(".fsAlertTitle");
+    const fsAlertTextDiv = document.querySelector(".fsAlertText");
     const True = true;
     const False = false;
     const None = null;
@@ -412,6 +461,25 @@
         }
         noteDataInputSubmitChange.addEventListener("click", _callback);
         noteDataInputSubmitDelete.addEventListener("click", _delete);
+    }
+
+    function fsAlertClose() {
+        fsAlertDiv.className = "fsAlertRaw";
+        setTimeout(() => { fsAlertDisplay = false; }, 100)
+    }
+
+    function fsAlert(title, text) {
+        fsAlertDisplay = true;
+        fsAlertH1.innerHTML = title;
+        fsAlertTextDiv.innerHTML = "";
+        for (i of text.split("\n")) {
+            p = document.createElement("p");
+            p.innerText = i;
+            p.className = "fsAlertP";
+            fsAlertTextDiv.appendChild(p);
+            if (!i) fsAlertTextDiv.appendChild(document.createElement("br"));
+        }
+        fsAlertDiv.className = "fsAlert";
     }
 
     function resizeCanvas() {

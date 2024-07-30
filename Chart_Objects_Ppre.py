@@ -122,3 +122,60 @@ class judgeLine(_EqByMemory):
 @dataclass
 class Chart(_EqByMemory):
     lines: list[judgeLine]
+    
+    def saveAsPpre(self) -> dict:
+        data = {
+            "lines": []
+        }
+        
+        for line in self.lines:
+            lineData = {
+                "bpm": line.bpm,
+                "notes": [{
+                    "type": note.type,
+                    "time": note.time,
+                    "holdtime": note.holdtime,
+                    "positionX": note.positionX,
+                    "speed": note.speed,
+                    "fake": note.fake,
+                    "above": note.above
+                } for note in line.notes],
+                "speedEvents": [{
+                    "startTime": se.startTime,
+                    "endTime": se.endTime,
+                    "value": se.value
+                } for se in line.speedEvents],
+                "alphaEvents": [{
+                    "startTime": ae.startTime,
+                    "endTime": ae.endTime,
+                    "start": ae.start,
+                    "end": ae.end,
+                    "easingType": ae.easingType
+                } for ae in line.alphaEvents],
+                "moveEvents": [{
+                    "startTime": me.startTime,
+                    "endTime": me.endTime,
+                    "startX": me.startX,
+                    "startY": me.startY,
+                    "endX": me.endX,
+                    "endY": me.endY,
+                    "easingType": me.easingType
+                } for me in line.moveEvents],
+                "rotateEvents": [{
+                    "startTime": re.startTime,
+                    "endTime": re.endTime,
+                    "start": re.start,
+                    "end": re.end,
+                    "easingType": re.easingType
+                } for re in line.rotateEvents],
+            }
+            
+            data["lines"].append(lineData)
+        
+        return data
+        
+    def saveAsRpe(self) -> dict:
+        pass
+    
+    def saveAsPigeonPhigros(self) -> dict:
+        pass
