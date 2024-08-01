@@ -1,7 +1,7 @@
 import Chart_Objects_Rpe
 
 def Load_Chart_Object(chart:dict):
-    meta = chart.get("meta", {})
+    meta = chart.get("META", {})
     rpe_chart_obj = Chart_Objects_Rpe.Rpe_Chart(
         META = Chart_Objects_Rpe.MetaData(
             RPEVersion = meta.get("RPEVersion", -1),
@@ -197,6 +197,6 @@ def Load_Chart_Object(chart:dict):
         for note in line.notes:
             note.floorPosition = line.GetNoteFloorPosition(0.0, note, rpe_chart_obj)
             if note.type_string == "Hold":
-                note.holdLength = line.GetFloorPosition(rpe_chart_obj.beat2sec(note.startTime.value), rpe_chart_obj.beat2sec(note.endTime.value), rpe_chart_obj)
+                note.holdLength = line.GetFloorPosition(0.0, rpe_chart_obj.beat2sec(note.endTime.value), rpe_chart_obj) - note.floorPosition
     
     return rpe_chart_obj

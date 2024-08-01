@@ -214,8 +214,8 @@ def Load_Chart_Object(
                     note_times[t][-1].morebets = True
                     note_times[t] = (True, note)
                 note.morebets = True
-    prcmorebets(list(filter(lambda x: x.fake, [(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
-    prcmorebets(list(filter(lambda x: not x.fake,[(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
+    prcmorebets(list(filter(lambda x: x[0].fake, [(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
+    prcmorebets(list(filter(lambda x: not x[0].fake,[(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
     
     lines = {line.RefID: line for line in phigros_chart_obj.judgeLineList}
     

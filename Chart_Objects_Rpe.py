@@ -36,10 +36,9 @@ class Note:
     
     clicked: bool = False
     morebets: bool = False
-    positionX2: float = 0.0
-    float_alpha: float = 0.0
     floorPosition: float = 0.0
     holdLength: float = 0.0
+    show_effected: bool = False
     
     def __post_init__(self):
         self.type_string = {
@@ -50,6 +49,17 @@ class Note:
         }[{1:1, 2:3, 3:4, 4:2}[self.type]]
         self.positionX2 = self.positionX / 1350
         self.float_alpha = (255 & int(self.alpha)) / 255
+    
+    def _init(self, master: Rpe_Chart, avgBpm: float):
+        self.effect_times = []
+        hold_starttime = master.beat2sec(self.startTime.value)
+        hold_effect_blocktime = 1 / avgBpm * 30
+        hold_endtime = master.beat2sec(self.endTime.value)
+        while True:
+            hold_starttime += hold_effect_blocktime
+            if hold_starttime >= hold_endtime:
+                break
+            self.effect_times.append((hold_starttime, Tool_Functions.get_effect_random_blocks()))
 
 @dataclass
 class LineEvent:
@@ -143,24 +153,28 @@ class JudgeLine:
     
     @lru_cache
     def GetPos(self, t: float):
+        pos = [0.0, 0.0]
         for layer in self.eventLayers:
-            return [self.GetEventValue(t, layer.moveXEvents, 0.0), self.GetEventValue(t, layer.moveYEvents, 0.0)]
-        return [0.0, 0.0]
+            pos[0] += self.GetEventValue(t, layer.moveXEvents, 0.0)
+            pos[1] += self.GetEventValue(t, layer.moveYEvents, 0.0)
+        return pos
     
     def GetSpeed(self, t: float):
+        v = 0.0
         for layer in self.eventLayers:
             for e in layer.speedEvents:
                 if e.startTime.value <= t <= e.endTime.value:
-                    return Tool_Functions.linear_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end)
-        return 0.0
+                    v += Tool_Functions.linear_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end)
+                    break # loop for other layers
+        return v
     
     def GetState(self, t: float, defaultColor: list[int, int, int], master: Rpe_Chart) -> dict:
         "linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText"
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = self.GetPos(t), 0.0, 0.0, defaultColor, 1.0, 1.0, None
         
         for layer in self.eventLayers:
-            lineAlpha = self.GetEventValue(t, layer.alphaEvents, lineAlpha)
-            lineRotate = self.GetEventValue(t, layer.rotateEvents, lineRotate)
+            lineAlpha += self.GetEventValue(t, layer.alphaEvents, lineAlpha)
+            lineRotate += self.GetEventValue(t, layer.rotateEvents, lineRotate)
         
         if self.extended:
             for e in self.extended.colorEvents: # reverse sorted
@@ -240,6 +254,12 @@ class Rpe_Chart:
     
     def __post_init__(self):
         self.BPMList.sort(key=lambda x: x.startTime.value)
+        
+        try: avgBpm = sum([e.bpm for e in self.BPMList]) / len(self.BPMList)
+        except ZeroDivisionError: avgBpm = 140.0
+        for line in self.JudgeLineList:
+            for note in line.notes:
+                note._init(self, avgBpm)
     
     @cache
     def sec2beat(self, t: float):

@@ -7,7 +7,7 @@ from time import time,sleep
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
-from random import randint
+from random import randint, seed
 import typing
 import json
 import base64
@@ -165,33 +165,6 @@ else:
     chart_json = chart_files_dict["charts"][phigros_chart_index][1]
 phigros_chart_filepath = chart_files_dict["charts"][phigros_chart_index][0]
 
-if len(chart_files_dict["images"]) > 1:
-    for index,chart_file in enumerate(chart_files_dict["images"]):
-        name = chart_file[0].split("/")[-1].split("\\")[-1]
-        print(f"{index + 1}. {name}")
-    chart_image_index = int(input("请选择谱面图片: ")) - 1
-    chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
-else:
-    chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
-chart_image_filepath = chart_files_dict["images"][chart_image_index][0]
-
-if len(chart_files_dict["audio"]) > 1:
-    for index,chart_file in enumerate(chart_files_dict["audio"]):
-        name = chart_file.split("/")[-1].split("\\")[-1]
-        print(f"{index + 1}. {name}")
-    audio_file_index = int(input("请选择音频文件: ")) - 1
-    audio_file = chart_files_dict["audio"][audio_file_index]
-else:
-    audio_file = chart_files_dict["audio"][audio_file_index]
-    
-mixer.music.load(audio_file)
-audio_length = mixer.Sound(audio_file).get_length()
-all_inforamtion = {}
-print("Loading Chart Information...")
-
-ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
-chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(audio_file), basename(chart_image_filepath))
-
 if "formatVersion" in chart_json:
     CHART_TYPE = Const.CHART_TYPE.PHI
 elif "META" in chart_json:
@@ -199,24 +172,15 @@ elif "META" in chart_json:
 else:
     print("This is what format chart???")
     windll.kernel32.ExitProcess(1)
-    
-print("Loading Chart Information Successfully.")
-print("Inforamtions: ")
-for k,v in chart_information.items():
-    print(f"              {k}: {v}")
 
-del chart_files,chart_files_dict
-
-clickeffect_cache = []
-note_id = -1
 def LoadChartObject():
     global chart_obj
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         chart_obj = Chart_Functions_Phi.Load_Chart_Object(chart_json)
     elif CHART_TYPE == Const.CHART_TYPE.RPE:
-        # chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
+        chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
         
-        if True: # TODO: Add RPE Chart Support (Deving...)
+        if False: # TODO: Add RPE Chart Support (Deving...)
             temp_rpe_fdir = f"{gettempdir()}/qfppr_cctemp_{time() + randint(0, 2 << 31)}"
             try: mkdir(temp_rpe_fdir)
             except Exception: pass
@@ -236,6 +200,48 @@ def LoadChartObject():
             windll.kernel32.ExitProcess(0)
 LoadChartObject()
 extend_object.chart_loaded(chart_obj)
+
+if len(chart_files_dict["images"]) > 1:
+    if CHART_TYPE == Const.CHART_TYPE.RPE and chart_obj.META.background in [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]]:
+        chart_image_index = [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]].index(chart_obj.META.background)
+        chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
+    else:
+        for index, file in enumerate(chart_files_dict["images"]):
+            name = file[0].split("/")[-1].split("\\")[-1]
+            print(f"{index + 1}. {name}")
+        chart_image_index = int(input("请选择谱面图片: ")) - 1
+        chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
+else:
+    chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
+chart_image_filepath = chart_files_dict["images"][chart_image_index][0]
+
+if len(chart_files_dict["audio"]) > 1:
+    if CHART_TYPE == Const.CHART_TYPE.RPE and chart_obj.META.song in [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]]:
+        audio_file_index = [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]].index(chart_obj.META.song)
+        audio_file = chart_files_dict["audio"][audio_file_index]
+    else:
+        for index, file in enumerate(chart_files_dict["audio"]):
+            name = file.split("/")[-1].split("\\")[-1]
+            print(f"{index + 1}. {name}")
+        audio_file_index = int(input("请选择音频文件: ")) - 1
+        audio_file = chart_files_dict["audio"][audio_file_index]
+else:
+    audio_file = chart_files_dict["audio"][audio_file_index]
+    
+mixer.music.load(audio_file)
+audio_length = mixer.Sound(audio_file).get_length()
+all_inforamtion = {}
+print("Loading Chart Information...")
+
+ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
+chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(audio_file), basename(chart_image_filepath))
+    
+print("Loading Chart Information Successfully.")
+print("Inforamtions: ")
+for k,v in chart_information.items():
+    print(f"              {k}: {v}")
+
+del chart_files,chart_files_dict
 
 def Load_Resource():
     global ClickEffect_Size, Note_width
@@ -1612,7 +1618,99 @@ def GetFrameRenderTask_Rpe(
                         );",
                         add_code_array = True #eq wait_exec true
                     )
+                    
+    effect_time = 0.5
+    def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perfect: bool):
+        color = (254, 255, 169) if perfect else (162, 238, 255)
+        imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
+        if clickeffect_randomblock:
+            beforedeg = 0
+            for deg in effect_random_blocks:
+                block_alpha = (1.0 - p) * 0.85
+                effect_random_point = Tool_Functions.rotate_point(
+                    x, y, beforedeg + deg,
+                    ClickEffect_Size * Tool_Functions.ease_out(p) / 1.25
+                )
+                block_size = EFFECT_RANDOM_BLOCK_SIZE
+                if p > 0.65: block_size -= (p - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
+                Task(
+                    root.create_rectangle,
+                    effect_random_point[0] - block_size,
+                    effect_random_point[1] - block_size,
+                    effect_random_point[0] + block_size,
+                    effect_random_point[1] + block_size,
+                    fillStyle = f"rgba{color + (block_alpha, )}",
+                    wait_execute = True
+                )
+                beforedeg += 90
+        Task(
+            root.create_image,
+            f"{imn}_{int(p * (30 - 1)) + 1}",
+            x - ClickEffect_Size / 2,
+            y - ClickEffect_Size / 2,
+            ClickEffect_Size, ClickEffect_Size,
+            wait_execute = True
+        )
+        
+    def process_effect(
+        note: Chart_Objects_Rpe.Note,
+        t: float,
+        effect_random_blocks,
+        perfect: bool,
+        offset: float
+    ):
+        print(123456)
+        p = (now_t - chart_obj.beat2sec(t)) / effect_time
+        if not (0.0 <= p <= 1.0): return None
+        offset = chart_obj.sec2beat(offset)
+        linePos = line.GetPos(t); linePos = [linePos[0] * w, linePos[1] * h]
+        lineRotate = sum([line.GetEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
+        pos = Tool_Functions.rotate_point(
+            *linePos,
+            lineRotate,
+            note.positionX * w
+        )
+        process_effect_base(*pos, p, effect_random_blocks, perfect)
     
+    for line in chart_obj.JudgeLineList:
+        for note in line.notes:
+            note_sectime = chart_obj.beat2sec(note.startTime.value)
+            note_ishold = note.type_string == "Hold"
+            if not note_ishold and note.show_effected:
+                continue
+            elif note.isFake:
+                continue
+            
+            if not noautoplay:
+                if note.clicked:
+                    if now_t - note_sectime <= effect_time:
+                        seed(id(note))
+                        process_effect(
+                            note,
+                            note.startTime.value,
+                            Tool_Functions.get_effect_random_blocks(),
+                            True,
+                            0.0
+                        )
+                    else:
+                        note.show_effected = True
+                    
+                    if note_ishold:
+                        efct_et = chart_obj.beat2sec(note.endTime.value) + effect_time
+                        if efct_et >= now_t:
+                            for temp_time, hold_effect_random_blocks in note.effect_times:
+                                if temp_time < now_t:
+                                    if now_t - temp_time <= effect_time:
+                                        process_effect(
+                                            note,
+                                            chart_obj.sec2beat(temp_time),
+                                            hold_effect_random_blocks,
+                                            True,
+                                            0.0
+                                        )
+            else: # noautoplay
+                pass
+                    
     now_t += chart_obj.META.offset / 1000
     CheckMusicOffsetAndEnd(now_t, Task)
     Task(root.run_js_wait_code)
