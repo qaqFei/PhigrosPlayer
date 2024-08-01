@@ -1,30 +1,30 @@
 from dataclasses import fields, asdict
 
-import Chart_Objects_Rep
+import Chart_Objects_Rpe
 
-upn_rpeobj = {i.upper().replace("ExtraVar_".upper(), ""): i for i in dir(Chart_Objects_Rep)}
+upn_rpeobj = {i.upper().replace("ExtraVar_".upper(), ""): i for i in dir(Chart_Objects_Rpe)}
 
 def get_shader_cnf_cls(name:str):
     name = name.title()
     upn = name.upper()
     if upn in upn_rpeobj.keys():
-        return getattr(Chart_Objects_Rep, upn_rpeobj[upn])
+        return getattr(Chart_Objects_Rpe, upn_rpeobj[upn])
 
     return None
 
 def load_extra(data):
-    Extra = Chart_Objects_Rep.Extra(
+    Extra = Chart_Objects_Rpe.Extra(
         bpm = [
-            Chart_Objects_Rep.BPMEvent(
-                startTime = Chart_Objects_Rep.Beat(*bpm_item["time"]),
+            Chart_Objects_Rpe.BPMEvent(
+                startTime = Chart_Objects_Rpe.Beat(*bpm_item["time"]),
                 bpm = bpm_item["bpm"]
             )
             for bpm_item in data["bpm"]
         ],
         effects = [
-            Chart_Objects_Rep.ExtraEffect(
-                start = (ms := Chart_Objects_Rep.Beat(*effect_item["start"])),
-                end = (me := Chart_Objects_Rep.Beat(*effect_item["end"])),
+            Chart_Objects_Rpe.ExtraEffect(
+                start = (ms := Chart_Objects_Rpe.Beat(*effect_item["start"])),
+                end = (me := Chart_Objects_Rpe.Beat(*effect_item["end"])),
                 shader = effect_item["shader"],
                 global_ = effect_item.get("global", False),
                 vars = get_shader_cnf_cls(effect_item["shader"])(

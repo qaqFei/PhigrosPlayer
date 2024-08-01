@@ -6,9 +6,9 @@ class Note:
     HOLD = 3
     FLICK = 4
 
-class CHART_TYPE: #no random :>
-    PHI = 0x6ae92a9
-    REP = 0x6cd0b78
+class CHART_TYPE:
+    PHI = 1
+    RPE = 2
 
 class NOTE_STATE:
     PERFECT = 1

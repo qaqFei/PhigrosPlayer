@@ -22,6 +22,8 @@ import webcvapis
 import PlaySound # using at eval.
 import Chart_Objects_Phi
 import Chart_Functions_Phi
+import Chart_Objects_Rpe
+import Chart_Functions_Rpe
 import Const
 import Find_Files
 import ConsoleWindow
@@ -158,9 +160,9 @@ if len(chart_files_dict["charts"]) > 1:
         name = chart_file[0].split("/")[-1].split("\\")[-1]
         print(f"{index + 1}. {name}")
     phigros_chart_index = int(input("请选择谱面文件: ")) - 1
-    phigros_chart = chart_files_dict["charts"][phigros_chart_index][1]
+    chart_json = chart_files_dict["charts"][phigros_chart_index][1]
 else:
-    phigros_chart = chart_files_dict["charts"][phigros_chart_index][1]
+    chart_json = chart_files_dict["charts"][phigros_chart_index][1]
 phigros_chart_filepath = chart_files_dict["charts"][phigros_chart_index][0]
 
 if len(chart_files_dict["images"]) > 1:
@@ -190,10 +192,10 @@ print("Loading Chart Information...")
 ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
 chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(audio_file), basename(chart_image_filepath))
 
-if "formatVersion" in phigros_chart:
+if "formatVersion" in chart_json:
     CHART_TYPE = Const.CHART_TYPE.PHI
-elif "META" in phigros_chart:
-    CHART_TYPE = Const.CHART_TYPE.REP
+elif "META" in chart_json:
+    CHART_TYPE = Const.CHART_TYPE.RPE
 else:
     print("This is what format chart???")
     windll.kernel32.ExitProcess(1)
@@ -208,29 +210,32 @@ del chart_files,chart_files_dict
 clickeffect_cache = []
 note_id = -1
 def LoadChartObject():
-    global phigros_chart_obj
+    global chart_obj
     if CHART_TYPE == Const.CHART_TYPE.PHI:
-        phigros_chart_obj = Chart_Functions_Phi.Load_Chart_Object(phigros_chart)
-    elif CHART_TYPE == Const.CHART_TYPE.REP:
-        temp_rpe_fdir = f"{gettempdir()}/qfppr_cctemp_{time() + randint(0, 2 << 31)}"
-        try: mkdir(temp_rpe_fdir)
-        except Exception: pass
-        temp_rpe_fp = f"{temp_rpe_fdir}\\{basename(phigros_chart_filepath)}"
-        temp_7z_fp = f"{temp_rpe_fdir}\\{basename(phigros_chart_filepath)}.7z"
-        info_fp = f"{temp_dir}\\info.txt" if exists(f"{temp_dir}\\info.txt") else f"{temp_dir}\\info.csv" if exists(f"{temp_dir}\\info.csv") else f"{temp_dir}\\info.yml" if exists(f"{temp_dir}\\info.yml") else None
-        print("running rpe2phi...")
-        popen(f"{rpe2phi_prgm} {phigros_chart_filepath} {temp_rpe_fp}{f" --extra \"{temp_dir}\\extra.json\"" if exists(f"{temp_dir}\\extra.json") else ""}").read() # if call read function, we will wait still the program finish.
-        popen(
-            f"\
-                .\\7z.exe a -t7z \"{temp_7z_fp}\"\
-                \"{temp_rpe_fp}\" \"{chart_image_filepath}\" \"{audio_file}\"\
-            " + f" \"{info_fp}\"" if info_fp is not None else "" + " -mmt"
-        ).read()
-        print("rpe2phi finished, restart...")
-        system(f"start {self_fp} {temp_7z_fp} " + " ".join(map(lambda x: f"\"{x}\"", argv[2:]))) # restart!
-        windll.kernel32.ExitProcess(0)
+        chart_obj = Chart_Functions_Phi.Load_Chart_Object(chart_json)
+    elif CHART_TYPE == Const.CHART_TYPE.RPE:
+        # chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
+        
+        if True: # TODO: Add RPE Chart Support (Deving...)
+            temp_rpe_fdir = f"{gettempdir()}/qfppr_cctemp_{time() + randint(0, 2 << 31)}"
+            try: mkdir(temp_rpe_fdir)
+            except Exception: pass
+            temp_rpe_fp = f"{temp_rpe_fdir}\\{basename(phigros_chart_filepath)}"
+            temp_7z_fp = f"{temp_rpe_fdir}\\{basename(phigros_chart_filepath)}.7z"
+            info_fp = f"{temp_dir}\\info.txt" if exists(f"{temp_dir}\\info.txt") else f"{temp_dir}\\info.csv" if exists(f"{temp_dir}\\info.csv") else f"{temp_dir}\\info.yml" if exists(f"{temp_dir}\\info.yml") else None
+            print("running rpe2phi...")
+            popen(f"{rpe2phi_prgm} {phigros_chart_filepath} {temp_rpe_fp}{f" --extra \"{temp_dir}\\extra.json\"" if exists(f"{temp_dir}\\extra.json") else ""}").read() # if call read function, we will wait still the program finish.
+            popen(
+                f"\
+                    .\\7z.exe a -t7z \"{temp_7z_fp}\"\
+                    \"{temp_rpe_fp}\" \"{chart_image_filepath}\" \"{audio_file}\"\
+                " + f" \"{info_fp}\"" if info_fp is not None else "" + " -mmt"
+            ).read()
+            print("rpe2phi finished, restart...")
+            system(f"start {self_fp} {temp_7z_fp} " + " ".join(map(lambda x: f"\"{x}\"", argv[2:]))) # restart!
+            windll.kernel32.ExitProcess(0)
 LoadChartObject()
-extend_object.chart_loaded(phigros_chart_obj)
+extend_object.chart_loaded(chart_obj)
 
 def Load_Resource():
     global ClickEffect_Size, Note_width
@@ -656,76 +661,84 @@ class PhigrosPlayManager:
 def PlayChart_ThreadFunction():
     global PhigrosPlayManagerObject, Kill_PlayThread_Flag, PlayChart_NowTime
     PlayChart_NowTime = - float("inf")
-    PhigrosPlayManagerObject = PhigrosPlayManager(phigros_chart_obj.note_num)
+    PhigrosPlayManagerObject = PhigrosPlayManager(chart_obj.note_num)
     KeyDownCount = 0
     keymap = {chr(i):False for i in range(97, 123)}
-    notes = [i for line in phigros_chart_obj.judgeLineList for i in line.notesAbove + line.notesBelow if not i.fake]
     
-    def _KeyDown(key:str):
-        nonlocal KeyDownCount
-        key = key.lower()
-        if len(key) != 1: return
-        if not (97 <= ord(key) <= 122): return
-        if keymap[key]: return
-        keymap[key] = True
-        KeyDownCount += 1
-        
-        can_judge_notes = [(i, offset) for i in notes if (
-            not i.player_clicked and
-            i.type in (Const.Note.TAP, Const.Note.HOLD) and
-            abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= (0.2 if i.type == Const.Note.TAP else 0.16)
-        )]
-        can_use_safedrag = [(i, offset) for i in notes if (
-            i.type == Const.Note.DRAG and
-            not i.player_drag_judge_safe_used and
-            abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= 0.16
-        )]
-        
-        can_judge_notes.sort(key = lambda x: abs(x[1]))
-        can_use_safedrag.sort(key = lambda x: abs(x[1]))
-        
-        if can_judge_notes:
-            n, offset = can_judge_notes[0]
-            abs_offset = abs(offset)
-            if 0.0 <= abs_offset <= 0.08:
-                n.state = Const.NOTE_STATE.PERFECT
-                if n.type == Const.Note.HOLD:
-                    n.player_holdjudged = True
-                    n.player_holdclickstate = n.state
-                else: # TAP
-                    PhigrosPlayManagerObject.addEvent("P")
-            elif 0.08 < abs_offset <= 0.16:
-                n.state = Const.NOTE_STATE.GOOD
-                if n.type == Const.Note.HOLD:
-                    n.player_holdjudged = True
-                    n.player_holdclickstate = n.state
-                else: # TAP
-                    PhigrosPlayManagerObject.addEvent("G", offset)
-            elif 0.16 < abs_offset <= 0.2: # only tap
-                if can_use_safedrag: # not empty
-                    drag, drag_offset = can_use_safedrag[0]
-                    if not drag.player_will_click:
-                        drag.player_will_click = True
-                        drag.player_click_offset = drag_offset
-                    drag.player_drag_judge_safe_used = True
-                    return None
-                
-                n.player_badtime = PlayChart_NowTime
-                n.state = Const.NOTE_STATE.BAD
-                PhigrosPlayManagerObject.addEvent("B")
-                
-            if n.state != Const.NOTE_STATE.MISS:
-                n.player_click_offset = offset
-                n.player_clicked = True
+    notes = [i for line in chart_obj.judgeLineList for i in line.notesAbove + line.notesBelow if not i.fake] if CHART_TYPE == Const.CHART_TYPE.PHI else [i for line in chart_obj.JudgeLineList for i in line.notes if not i.isFake]
     
-    def _KeyUp(key:str):
-        nonlocal KeyDownCount
-        key = key.lower()
-        if len(key) != 1: return
-        if not (97 <= ord(key) <= 122): return
-        if KeyDownCount > 0: KeyDownCount -= 1
-        keymap[key] = False
-    
+    if CHART_TYPE == Const.CHART_TYPE.PHI:
+        def _KeyDown(key:str):
+            nonlocal KeyDownCount
+            key = key.lower()
+            if len(key) != 1: return
+            if not (97 <= ord(key) <= 122): return
+            if keymap[key]: return
+            keymap[key] = True
+            KeyDownCount += 1
+            
+            can_judge_notes = [(i, offset) for i in notes if (
+                not i.player_clicked and
+                i.type in (Const.Note.TAP, Const.Note.HOLD) and
+                abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= (0.2 if i.type == Const.Note.TAP else 0.16)
+            )]
+            can_use_safedrag = [(i, offset) for i in notes if (
+                i.type == Const.Note.DRAG and
+                not i.player_drag_judge_safe_used and
+                abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= 0.16
+            )]
+            
+            can_judge_notes.sort(key = lambda x: abs(x[1]))
+            can_use_safedrag.sort(key = lambda x: abs(x[1]))
+            
+            if can_judge_notes:
+                n, offset = can_judge_notes[0]
+                abs_offset = abs(offset)
+                if 0.0 <= abs_offset <= 0.08:
+                    n.state = Const.NOTE_STATE.PERFECT
+                    if n.type == Const.Note.HOLD:
+                        n.player_holdjudged = True
+                        n.player_holdclickstate = n.state
+                    else: # TAP
+                        PhigrosPlayManagerObject.addEvent("P")
+                elif 0.08 < abs_offset <= 0.16:
+                    n.state = Const.NOTE_STATE.GOOD
+                    if n.type == Const.Note.HOLD:
+                        n.player_holdjudged = True
+                        n.player_holdclickstate = n.state
+                    else: # TAP
+                        PhigrosPlayManagerObject.addEvent("G", offset)
+                elif 0.16 < abs_offset <= 0.2: # only tap
+                    if can_use_safedrag: # not empty
+                        drag, drag_offset = can_use_safedrag[0]
+                        if not drag.player_will_click:
+                            drag.player_will_click = True
+                            drag.player_click_offset = drag_offset
+                        drag.player_drag_judge_safe_used = True
+                        return None
+                    
+                    n.player_badtime = PlayChart_NowTime
+                    n.state = Const.NOTE_STATE.BAD
+                    PhigrosPlayManagerObject.addEvent("B")
+                    
+                if n.state != Const.NOTE_STATE.MISS:
+                    n.player_click_offset = offset
+                    n.player_clicked = True
+        
+        def _KeyUp(key:str):
+            nonlocal KeyDownCount
+            key = key.lower()
+            if len(key) != 1: return
+            if not (97 <= ord(key) <= 122): return
+            if KeyDownCount > 0: KeyDownCount -= 1
+            keymap[key] = False
+    elif CHART_TYPE == Const.CHART_TYPE.RPE:
+        def _KeyDown(key:str):
+            pass
+        
+        def _KeyUp(key:str):
+            pass
+        
     root.jsapi.set_attr("PhigrosPlay_KeyDown", _KeyDown)
     root.jsapi.set_attr("PhigrosPlay_KeyUp", _KeyUp)
     root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', e.key);});")
@@ -737,69 +750,72 @@ def PlayChart_ThreadFunction():
         keydown = KeyDownCount > 0
         
         for note in notes:
-            note_time_sec = note.time * note.master.T
-            
-            if ( # (Drag / Flick) judge
-                keydown and
-                not note.player_clicked and
-                note.type in (Const.Note.FLICK, Const.Note.DRAG) and
-                abs((cktime := note_time_sec - PlayChart_NowTime)) <= 0.16 # +- 160ms
-            ):
-                note.player_will_click = True
+            if CHART_TYPE == Const.CHART_TYPE.PHI:
+                note_time_sec = note.time * note.master.T
                 
-                if cktime <= 0.0: #late
-                    note.player_click_offset = cktime
-            
-            if ( # if Drag / Flick it`s time to click and judged, click it and update it.
-                note.player_will_click and 
-                not note.player_clicked and 
-                note_time_sec <= PlayChart_NowTime
-            ):
-                note.player_clicked = True
-                note.state = Const.NOTE_STATE.PERFECT
-                PhigrosPlayManagerObject.addEvent("P")
-            
-            if ( # play click sound
-                note.player_clicked and
-                not note.player_click_sound_played and
-                note.state in (Const.NOTE_STATE.PERFECT, Const.NOTE_STATE.GOOD)
-            ):
-                Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
-                note.player_click_sound_played = True
-            
-            if ( # miss judge
-                not note.player_clicked and
-                not note.player_missed and
-                note_time_sec - PlayChart_NowTime < - 0.2
-            ):
-                note.player_missed = True
-                PhigrosPlayManagerObject.addEvent("M")
-            
-            if ( # hold hold judge
-                note.type == Const.Note.HOLD and 
-                note.player_clicked and
-                note.state != Const.NOTE_STATE.MISS and
-                note.hold_endtime - 0.2 >= PlayChart_NowTime
-            ):
-                if note.player_last_testholdismiss_time + 0.16 <= time():
-                    if keydown:
-                        note.player_last_testholdismiss_time = time()
-                    else:
-                        note.player_holdmiss_time = PlayChart_NowTime
-                        note.state = Const.NOTE_STATE.MISS
-                        note.player_missed = True
-                        PhigrosPlayManagerObject.addEvent("M")
-            
-            if ( # hold end add event to manager judge
-                note.type == Const.Note.HOLD and
-                note.player_holdjudged and # if judged is true, hold state is perfect/good/ miss(miss at clicking)
-                not note.player_holdjudged_tomanager and
-                note.player_holdjudge_tomanager_time <= PlayChart_NowTime
-            ):
-                note.player_holdjudged_tomanager = True
-                if note.state == Const.NOTE_STATE.PERFECT: PhigrosPlayManagerObject.addEvent("P")
-                elif note.state == Const.NOTE_STATE.GOOD: PhigrosPlayManagerObject.addEvent("G", note.player_click_offset)
-                else: pass # note state is miss at clicking
+                if ( # (Drag / Flick) judge
+                    keydown and
+                    not note.player_clicked and
+                    note.type in (Const.Note.FLICK, Const.Note.DRAG) and
+                    abs((cktime := note_time_sec - PlayChart_NowTime)) <= 0.16 # +- 160ms
+                ):
+                    note.player_will_click = True
+                    
+                    if cktime <= 0.0: #late
+                        note.player_click_offset = cktime
+                
+                if ( # if Drag / Flick it`s time to click and judged, click it and update it.
+                    note.player_will_click and 
+                    not note.player_clicked and 
+                    note_time_sec <= PlayChart_NowTime
+                ):
+                    note.player_clicked = True
+                    note.state = Const.NOTE_STATE.PERFECT
+                    PhigrosPlayManagerObject.addEvent("P")
+                
+                if ( # play click sound
+                    note.player_clicked and
+                    not note.player_click_sound_played and
+                    note.state in (Const.NOTE_STATE.PERFECT, Const.NOTE_STATE.GOOD)
+                ):
+                    Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
+                    note.player_click_sound_played = True
+                
+                if ( # miss judge
+                    not note.player_clicked and
+                    not note.player_missed and
+                    note_time_sec - PlayChart_NowTime < - 0.2
+                ):
+                    note.player_missed = True
+                    PhigrosPlayManagerObject.addEvent("M")
+                
+                if ( # hold hold judge
+                    note.type == Const.Note.HOLD and 
+                    note.player_clicked and
+                    note.state != Const.NOTE_STATE.MISS and
+                    note.hold_endtime - 0.2 >= PlayChart_NowTime
+                ):
+                    if note.player_last_testholdismiss_time + 0.16 <= time():
+                        if keydown:
+                            note.player_last_testholdismiss_time = time()
+                        else:
+                            note.player_holdmiss_time = PlayChart_NowTime
+                            note.state = Const.NOTE_STATE.MISS
+                            note.player_missed = True
+                            PhigrosPlayManagerObject.addEvent("M")
+                
+                if ( # hold end add event to manager judge
+                    note.type == Const.Note.HOLD and
+                    note.player_holdjudged and # if judged is true, hold state is perfect/good/ miss(miss at clicking)
+                    not note.player_holdjudged_tomanager and
+                    note.player_holdjudge_tomanager_time <= PlayChart_NowTime
+                ):
+                    note.player_holdjudged_tomanager = True
+                    if note.state == Const.NOTE_STATE.PERFECT: PhigrosPlayManagerObject.addEvent("P")
+                    elif note.state == Const.NOTE_STATE.GOOD: PhigrosPlayManagerObject.addEvent("G", note.player_click_offset)
+                    else: pass # note state is miss at clicking
+            elif CHART_TYPE == Const.CHART_TYPE.RPE:
+                pass
             
         if Kill_PlayThread_Flag:
             root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
@@ -810,7 +826,7 @@ def PlayChart_ThreadFunction():
             Kill_PlayThread_Flag = False
             return
         sleep(1 / 480)
-
+    
 def GetFrameRenderTask_Phi(
     now_t:float,
     judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,
@@ -842,7 +858,7 @@ def GetFrameRenderTask_Phi(
             add_code_array = True
         )
     
-    extra_render_task = phigros_chart_obj.get_datavar_extra(now_t) if phigros_chart_obj.Extra_Enable else []
+    extra_render_task = chart_obj.get_datavar_extra(now_t) if chart_obj.Extra_Enable else []
     
     for judgeLine_cfg in judgeLine_Configs.Configs:
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
@@ -1240,7 +1256,7 @@ def GetFrameRenderTask_Phi(
             add_code_array = True
         )
         
-    for judgeLine in phigros_chart_obj.judgeLineList:
+    for judgeLine in chart_obj.judgeLineList:
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
             note_time = note.time * judgeLine.T
             note_ishold = note.type == Const.Note.HOLD
@@ -1418,7 +1434,7 @@ def GetFrameRenderTask_Phi(
     Task(
         draw_ui,
         process = now_t / audio_length,
-        score = get_stringscore((combo * (1000000 / phigros_chart_obj.note_num)) if phigros_chart_obj.note_num != 0 else 1000000) if not noautoplay else get_stringscore(PhigrosPlayManagerObject.getScore()),
+        score = get_stringscore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else get_stringscore(PhigrosPlayManagerObject.getScore()),
         combo_state = combo >= 3,
         combo = combo,
         now_time = time_text,
@@ -1431,6 +1447,177 @@ def GetFrameRenderTask_Phi(
         if extra_item["global"]:
             do_extra(extra_item)
     
+        
+    CheckMusicOffsetAndEnd(now_t, Task)
+    Task(root.run_js_wait_code)
+    extend_object.update(locals())
+    return Task
+
+def GetFrameRenderTask_Rpe(
+    now_t:float,
+    show_start_time:float
+):
+    Task = Chart_Objects_Phi.FrameRenderTask([], [])
+    Task(root.clear_canvas, wait_execute = True)
+    Task(draw_background)
+    
+    now_t -= chart_obj.META.offset / 1000
+    beatTime = chart_obj.sec2beat(now_t)
+    
+    for line in chart_obj.JudgeLineList:
+        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t), (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
+        linePos = [linePos[0] * w, linePos[1] * h]
+        judgeLine_DrawPos = (
+            *Tool_Functions.rotate_point(*linePos, lineRotate, 5.76 * h * lineScaleX),
+            *Tool_Functions.rotate_point(*linePos, lineRotate + 180, 5.76 * h * lineScaleX)
+        )
+        negative_alpha = lineAlpha < 0.0
+        judgeLine_webCanvas_color = f"rgba{tuple(lineColor) + (lineAlpha, )}"
+        if lineAlpha > 0.0:
+            if Tool_Functions.judgeLine_can_render(judgeLine_DrawPos, w, h) or render_range_more:
+                Task(
+                    root.create_line,
+                    *judgeLine_DrawPos,
+                    lineWidth = JUDGELINE_WIDTH,
+                    strokeStyle = judgeLine_webCanvas_color,
+                    wait_execute = True
+                )
+        
+        if negative_alpha: continue
+        
+        for note in line.notes:
+            note_clicked = note.startTime.value < beatTime
+            note_ishold = note.type_string == "Hold"
+            
+            if note_clicked and not note.clicked:
+                note.clicked = True
+                if enable_clicksound and not note.isFake and not noautoplay:
+                    Task.ExTask.append((
+                        "thread-call",
+                        "PlaySound.Play",
+                        f'(Resource["Note_Click_Audio"]["{note.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
+                    ))
+            
+            if not note_ishold and note.clicked: continue
+            elif note_ishold and beatTime > note.endTime.value: continue
+            
+            noteFloorPosition = line.GetNoteFloorPosition(beatTime, note, chart_obj) * h
+            noteAtJudgeLinePos = Tool_Functions.rotate_point(
+                *linePos, lineRotate, note.positionX2 * w
+            )
+            lineToNoteRotate = (-90 if note.above == 1 else 90) + lineRotate
+            x, y = Tool_Functions.rotate_point(
+                *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
+            )
+            
+            if note_ishold:
+                holdLength = line.GetHoldLength(beatTime, note, chart_obj) * h
+                noteHoldDrawLength = noteFloorPosition + holdLength
+                holdend_x, holdend_y = Tool_Functions.rotate_point(
+                    *noteAtJudgeLinePos, lineToNoteRotate, noteHoldDrawLength
+                )
+                if note.clicked:
+                    holdhead_pos = noteAtJudgeLinePos
+                else:
+                    holdhead_pos = x, y
+                holdbody_range = (
+                    Tool_Functions.rotate_point(*holdhead_pos, lineToNoteRotate - 90, Note_width / 2),
+                    Tool_Functions.rotate_point(holdend_x, holdend_y, lineToNoteRotate - 90, Note_width / 2),
+                    Tool_Functions.rotate_point(holdend_x, holdend_y, lineToNoteRotate + 90, Note_width / 2),
+                    Tool_Functions.rotate_point(*holdhead_pos, lineToNoteRotate + 90, Note_width / 2),
+                )
+            
+            canRender = (
+                Tool_Functions.Note_CanRender(w, h, note_max_width_half, note_max_height_half, x, y)
+                if not note_ishold
+                else Tool_Functions.Note_CanRender(w, h, note_max_width_half, note_max_height_half, x, y, holdbody_range)
+            )
+            
+            if canRender and abs(now_t - chart_obj.beat2sec(note.startTime.value)) <= note.visibleTime:
+                lineRotateByNote = (lineToNoteRotate + 90) % 360
+                dub_text = "_dub" if note.morebets else ""
+                if not note_ishold:
+                    this_note_img_keyname = f"{note.type_string}{dub_text}"
+                    this_note_img = Resource["Notes"][this_note_img_keyname]
+                    this_note_imgname = f"Note_{this_note_img_keyname}"
+                else:
+                    this_note_img_keyname = f"{note.type_string}_Head{dub_text}"
+                    this_note_img = Resource["Notes"][this_note_img_keyname]
+                    this_note_imgname = f"Note_{this_note_img_keyname}"
+                    
+                    this_note_img_body_keyname = f"{note.type_string}_Body{dub_text}"
+                    this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
+                    
+                    this_note_img_end_keyname = f"{note.type_string}_End{dub_text}"
+                    this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
+                    this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
+                    
+                fix_scale = Const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
+                this_note_width = Note_width * fix_scale
+                this_note_height = Note_width / this_note_img.width * this_note_img.height
+                
+                if note_ishold:
+                    this_noteend_height = Note_width / this_note_img_end.width * this_note_img_end.height
+                    
+                    if note.clicked:
+                        holdbody_x, holdbody_y = noteAtJudgeLinePos
+                        holdbody_length = noteHoldDrawLength - this_noteend_height / 2
+                    else:
+                        holdbody_x, holdbody_y = Tool_Functions.rotate_point(
+                            *holdhead_pos, lineToNoteRotate, this_note_height / 2
+                        )
+                        holdbody_length = holdLength - (this_note_height + this_noteend_height) / 2
+                    
+                    Task(
+                        root.run_js_code,
+                        f"ctx.drawRotateImage(\
+                            {root.get_img_jsvarname(this_note_imgname_end)},\
+                            {holdend_x},\
+                            {holdend_y},\
+                            {this_note_width * note.width},\
+                            {this_noteend_height},\
+                            {lineRotate},\
+                            {note.float_alpha}\
+                        );",
+                        add_code_array = True
+                    )
+                    
+                    if holdbody_length > 0.0:
+                        Task(
+                            root.run_js_code,
+                            f"ctx.drawAnchorESRotateImage(\
+                                {root.get_img_jsvarname(this_note_imgname_body)},\
+                                {holdbody_x},\
+                                {holdbody_y},\
+                                {this_note_width * note.width},\
+                                {holdbody_length},\
+                                {lineRotate},\
+                                {note.float_alpha}\
+                            );",
+                            add_code_array = True
+                        )
+                
+                if not (note_ishold and note.startTime.value < beatTime):
+                    Task(
+                        root.run_js_code,
+                        f"ctx.drawRotateImage(\
+                            {root.get_img_jsvarname(this_note_imgname)},\
+                            {x},\
+                            {y},\
+                            {this_note_width * note.width},\
+                            {this_note_height},\
+                            {lineRotate},\
+                            {note.float_alpha}\
+                        );",
+                        add_code_array = True #eq wait_exec true
+                    )
+    
+    now_t += chart_obj.META.offset / 1000
+    CheckMusicOffsetAndEnd(now_t, Task)
+    Task(root.run_js_wait_code)
+    return Task
+
+def CheckMusicOffsetAndEnd(now_t: float, Task: Chart_Objects_Phi.FrameRenderTask):
     if now_t >= audio_length:
         Task.ExTask.append(("break",))
     
@@ -1442,12 +1629,6 @@ def GetFrameRenderTask_Phi(
                 if abs(music_offset) <= audio_length * 1000 * 0.75:
                     Task.ExTask.append(("set","show_start_time",show_start_time - music_offset / 1000))
                     print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
-    
-    Task(root.run_js_wait_code)
-    
-    extend_object.update(locals())
-        
-    return Task
 
 def Get_LevelNumber() -> str:
     lv = chart_information["Level"].lower()
@@ -1694,18 +1875,20 @@ def PlayerStart_Phi():
     Begin_Animation()
     ChartStart_Animation()
     
-    phigros_chart_obj.init_notes(PHIGROS_Y)
+    if CHART_TYPE == Const.CHART_TYPE.PHI:
+        chart_obj.init_notes(PHIGROS_Y)
 
     show_start_time = time()
     now_t = 0
-    judgeLine_Configs = Chart_Objects_Phi.judgeLine_Configs(
-        [
-            Chart_Objects_Phi.judgeLine_Config_Item(
-                line = judgeLine
-            )
-            for judgeLine in phigros_chart_obj.judgeLineList
-        ]
-    )
+    if CHART_TYPE == Const.CHART_TYPE.PHI:
+        judgeLine_Configs = Chart_Objects_Phi.judgeLine_Configs(
+            [
+                Chart_Objects_Phi.judgeLine_Config_Item(
+                    line = judgeLine
+                )
+                for judgeLine in chart_obj.judgeLineList
+            ]
+        )
     
     if not lfdaot:
         mixer.music.play()
@@ -1722,11 +1905,17 @@ def PlayerStart_Phi():
         root.run_js_code("window.addEventListener('keydown', _Noautoplay_Restart);")
         while True:
             now_t = time() - show_start_time
-            Task = GetFrameRenderTask_Phi(
-                now_t,
-                judgeLine_Configs,
-                show_start_time
-            )
+            if CHART_TYPE == Const.CHART_TYPE.PHI:
+                Task = GetFrameRenderTask_Phi(
+                    now_t,
+                    judgeLine_Configs,
+                    show_start_time
+                )
+            elif CHART_TYPE == Const.CHART_TYPE.RPE:
+                Task = GetFrameRenderTask_Rpe(
+                    now_t,
+                    show_start_time
+                )
             Task.ExecTask()
             
             break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
@@ -1768,11 +1957,17 @@ def PlayerStart_Phi():
                 if frame_count * frame_time > audio_length:
                     break
                 
-                lfdaot_tasks.update({frame_count:GetFrameRenderTask_Phi(
-                    frame_count * frame_time,
-                    judgeLine_Configs,
-                    show_start_time
-                )})
+                if CHART_TYPE == Const.CHART_TYPE.PHI:
+                    lfdaot_tasks.update({frame_count:GetFrameRenderTask_Phi(
+                        frame_count * frame_time,
+                        judgeLine_Configs,
+                        show_start_time
+                    )})
+                elif CHART_TYPE == Const.CHART_TYPE.RPE:
+                    lfdaot_tasks.update({frame_count:GetFrameRenderTask_Rpe(
+                        frame_count * frame_time,
+                        show_start_time
+                    )})
                 
                 frame_count += 1
                 
@@ -1938,13 +2133,13 @@ def PlayerStart_Phi():
     LevelName = "AP" if not noautoplay else PhigrosPlayManagerObject.getLevelString()
     EarlyCount = 0 if not noautoplay else PhigrosPlayManagerObject.getEarlyCount()
     LateCount = 0 if not noautoplay else PhigrosPlayManagerObject.getLateCount()
-    PerfectCount = phigros_chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getPerfectCount()
+    PerfectCount = chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getPerfectCount()
     GoodCount = 0 if not noautoplay else PhigrosPlayManagerObject.getGoodCount()
     BadCount = 0 if not noautoplay else PhigrosPlayManagerObject.getBadCount()
     MissCount = 0 if not noautoplay else PhigrosPlayManagerObject.getMissCount()
     Acc = 1.0 if not noautoplay else PhigrosPlayManagerObject.getAcc()
     ScoreString = "1000000" if not noautoplay else get_stringscore(PhigrosPlayManagerObject.getScore())
-    MaxCombo = phigros_chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getMaxCombo()
+    MaxCombo = chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getMaxCombo()
     AccString = f"{(Acc * 100):.2f}%"
     
     def Chart_Finish_Animation_Frame(p:float):
@@ -2273,7 +2468,7 @@ def PlayerStart_Phi():
                     process = 1.0,
                     score = ScoreString,
                     combo_state = True,
-                    combo = phigros_chart_obj.note_num,
+                    combo = chart_obj.note_num,
                     now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
                     acc = AccString,
                     animationing = True,
@@ -2389,9 +2584,10 @@ if render_range_more:
     root.run_js_code("render_range_more = true;")
     root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
 
-for line in phigros_chart_obj.judgeLineList:
-    if line.EnableTexture:
-        root.reg_img(line.TexturePillowObject, f"JudgeLine_Texture_{line.id}")
+if CHART_TYPE == Const.CHART_TYPE.PHI:
+    for line in chart_obj.judgeLineList:
+        if line.EnableTexture:
+            root.reg_img(line.TexturePillowObject, f"JudgeLine_Texture_{line.id}")
 
 background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
 background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
@@ -2401,7 +2597,7 @@ JUDGELINE_WIDTH = h * 0.0075
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
 Chart_Functions_Phi.Init(
-    phigros_chart_obj_ = phigros_chart_obj,
+    phigros_chart_obj_ = chart_obj,
     PHIGROS_X_ = PHIGROS_X, PHIGROS_Y_ = PHIGROS_Y,
     w_ = w, h_ = h
 )

@@ -3095,7 +3095,7 @@ windll.kernel32.ExitProcess(0)
 
 ## PhigrosPlayer Extend / PhigrosPlayer 扩展
 - `-extend <python_file>`参数的使用
-- `PhigrosPlayer_Extend.update`方法会在每一次计算完成渲染数据时调用
+- `PhigrosPlayer_Extend.update`方法会在每一次计算完成渲染数据时调用 (only phi chart)
 - 示例(禁用ui):
   ```python
   import typing

@@ -1,4 +1,6 @@
 import typing
+import Chart_Objects_Phi
+import Chart_Objects_Rpe
 
 class PhigrosPlayer_Extend:
     def __init__(
@@ -7,7 +9,7 @@ class PhigrosPlayer_Extend:
     ) -> None:
         self._get_globals = get_globals
     
-    def chart_loaded(self,chart_obj):
+    def chart_loaded(self, chart_obj: Chart_Objects_Phi.Phigros_Chart | Chart_Objects_Rpe.Rpe_Chart):
         pass
     
     def globals(self):

@@ -12,7 +12,7 @@ class _EqByMemory:
     def __eq__(self, oth: object) -> bool:
         if isinstance(oth, type(self)):
             return self is oth
-        return NotImplemented
+        return False
 
 @dataclass
 class note(_EqByMemory):

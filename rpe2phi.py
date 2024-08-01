@@ -8,8 +8,8 @@ import typing
 
 from numba import jit
 
-import Chart_Functions_Rep
-import Chart_Objects_Rep
+import Chart_Functions_Rpe
+import Chart_Objects_Rpe
 import rpe_easing
 import _rpe2phi_extra
 
@@ -18,7 +18,7 @@ if len(argv) < 2:
     raise SystemExit
 
 with open(argv[1],"r",encoding="utf-8") as f:
-    rpe_obj = Chart_Functions_Rep.Load_Chart_Object(json.load(f))
+    rpe_obj = Chart_Functions_Rpe.Load_Chart_Object(json.load(f))
 
 ease_funcs = rpe_easing.ease_funcs
 
@@ -76,7 +76,7 @@ for index,bpm in enumerate(rpe_obj.BPMList):
         bpm.dur = float("inf")
 
 @cache
-def getReal(b:Chart_Objects_Rep.Beat):
+def getReal(b:Chart_Objects_Rpe.Beat):
     realtime = 0.0
     for bpm in rpe_obj.BPMList:
         if bpm.startTime.value < b.value:
@@ -165,152 +165,147 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
     y_moves:typing.List[Move] = []
     
     for eventLayer in rpe_judgeLine.eventLayers:
-        if eventLayer.alphaEvents is not None:
-            for e in eventLayer.alphaEvents:
-                st = getReal(e.startTime)
-                et = getReal(e.endTime)
-                sv = (255 & e.start) / 255
-                ev = (255 & e.end) / 255
-                ef = ease_funcs[e.easingType - 1]
-                if ef is linear:
+        for e in eventLayer.alphaEvents:
+            st = getReal(e.startTime)
+            et = getReal(e.endTime)
+            sv = (255 & e.start) / 255
+            ev = (255 & e.end) / 255
+            ef = ease_funcs[e.easingType - 1]
+            if ef is linear:
+                phi_judgeLine["judgeLineDisappearEvents"].append(
+                    {
+                        "startTime": st / T,
+                        "endTime": et / T,
+                        "start": sv,
+                        "end": ev
+                    }
+                )
+            else:
+                for i in range(split_event_length):
+                    ist = st + i * (et - st) / split_event_length
+                    iet = st + (i + 1) * (et - st) / split_event_length
+                    isvp = ef(i / split_event_length)
+                    ievp = ef((i + 1) / split_event_length)
+                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
                     phi_judgeLine["judgeLineDisappearEvents"].append(
                         {
-                            "startTime": st / T,
-                            "endTime": et / T,
-                            "start": sv,
-                            "end": ev
+                            "startTime": ist / T,
+                            "endTime": iet / T,
+                            "start": isv,
+                            "end": iev
                         }
                     )
-                else:
-                    for i in range(split_event_length):
-                        ist = st + i * (et - st) / split_event_length
-                        iet = st + (i + 1) * (et - st) / split_event_length
-                        isvp = ef(i / split_event_length)
-                        ievp = ef((i + 1) / split_event_length)
-                        isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
-                        iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
-                        phi_judgeLine["judgeLineDisappearEvents"].append(
-                            {
-                                "startTime": ist / T,
-                                "endTime": iet / T,
-                                "start": isv,
-                                "end": iev
-                            }
-                        )
         
-        if eventLayer.rotateEvents is not None:
-            for e in eventLayer.rotateEvents:
-                st = getReal(e.startTime)
-                et = getReal(e.endTime)
-                sv = - e.start
-                ev = - e.end
-                ef = ease_funcs[e.easingType - 1]
-                if ef is linear:
+        for e in eventLayer.rotateEvents:
+            st = getReal(e.startTime)
+            et = getReal(e.endTime)
+            sv = - e.start
+            ev = - e.end
+            ef = ease_funcs[e.easingType - 1]
+            if ef is linear:
+                phi_judgeLine["judgeLineRotateEvents"].append(
+                    {
+                        "startTime": st / T,
+                        "endTime": et / T,
+                        "start": sv,
+                        "end": ev
+                    }
+                )
+            else:
+                for i in range(split_event_length):
+                    ist = st + i * (et - st) / split_event_length
+                    iet = st + (i + 1) * (et - st) / split_event_length
+                    isvp = ef(i / split_event_length)
+                    ievp = ef((i + 1) / split_event_length)
+                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
                     phi_judgeLine["judgeLineRotateEvents"].append(
                         {
-                            "startTime": st / T,
-                            "endTime": et / T,
-                            "start": sv,
-                            "end": ev
+                            "startTime": ist / T,
+                            "endTime": iet / T,
+                            "start": isv,
+                            "end": iev
                         }
                     )
-                else:
-                    for i in range(split_event_length):
-                        ist = st + i * (et - st) / split_event_length
-                        iet = st + (i + 1) * (et - st) / split_event_length
-                        isvp = ef(i / split_event_length)
-                        ievp = ef((i + 1) / split_event_length)
-                        isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
-                        iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
-                        phi_judgeLine["judgeLineRotateEvents"].append(
-                            {
-                                "startTime": ist / T,
-                                "endTime": iet / T,
-                                "start": isv,
-                                "end": iev
-                            }
-                        )
-        
-        if eventLayer.moveXEvents is not None:
-            for e in eventLayer.moveXEvents:
-                st = getReal(e.startTime)
-                et = getReal(e.endTime)
-                sv = e.start
-                ev = e.end
-                ef = ease_funcs[e.easingType - 1]
+    
+        for e in eventLayer.moveXEvents:
+            st = getReal(e.startTime)
+            et = getReal(e.endTime)
+            sv = e.start
+            ev = e.end
+            ef = ease_funcs[e.easingType - 1]
+            for i in range(split_event_length):
+                ist = st + i * (et - st) / split_event_length
+                iet = st + (i + 1) * (et - st) / split_event_length
+                isvp = ef(i / split_event_length)
+                ievp = ef((i + 1) / split_event_length)
+                isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                x_moves.append(
+                    Move(
+                        type = "x",
+                        st = ist / T,
+                        et = iet / T,
+                        sv = (isv + 675) / 1350,
+                        ev = (iev + 675) / 1350
+                    )
+                )
+    
+        for e in eventLayer.moveYEvents:
+            st = getReal(e.startTime)
+            et = getReal(e.endTime)
+            sv = e.start
+            ev = e.end
+            ef = ease_funcs[e.easingType - 1]
+            for i in range(split_event_length):
+                ist = st + i * (et - st) / split_event_length
+                iet = st + (i + 1) * (et - st) / split_event_length
+                isvp = ef(i / split_event_length)
+                ievp = ef((i + 1) / split_event_length)
+                isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
+                iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
+                y_moves.append(
+                    Move(
+                        type = "y",
+                        st = ist / T,
+                        et = iet / T,
+                        sv = (isv + 450) / 900,
+                        ev = (iev + 450) / 900
+                    )
+                )
+    
+        for e in eventLayer.speedEvents:
+            st = getReal(e.startTime)
+            et = getReal(e.endTime)
+            if e.start == e.end:
+                phi_judgeLine["speedEvents"].append(
+                    {
+                        "startTime": st / T,
+                        "value": (e.start * 120) / 900 / 0.6
+                    }
+                )
+            else:
                 for i in range(split_event_length):
                     ist = st + i * (et - st) / split_event_length
                     iet = st + (i + 1) * (et - st) / split_event_length
-                    isvp = ef(i / split_event_length)
-                    ievp = ef((i + 1) / split_event_length)
-                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
-                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
-                    x_moves.append(
-                        Move(
-                            type = "x",
-                            st = ist / T,
-                            et = iet / T,
-                            sv = (isv + 675) / 1350,
-                            ev = (iev + 675) / 1350
-                        )
-                    )
-        
-        if eventLayer.moveYEvents is not None:
-            for e in eventLayer.moveYEvents:
-                st = getReal(e.startTime)
-                et = getReal(e.endTime)
-                sv = e.start
-                ev = e.end
-                ef = ease_funcs[e.easingType - 1]
-                for i in range(split_event_length):
-                    ist = st + i * (et - st) / split_event_length
-                    iet = st + (i + 1) * (et - st) / split_event_length
-                    isvp = ef(i / split_event_length)
-                    ievp = ef((i + 1) / split_event_length)
-                    isv = linear_interpolation(isvp, 0.0, 1.0, sv, ev)
-                    iev = linear_interpolation(ievp, 0.0, 1.0, sv, ev)
-                    y_moves.append(
-                        Move(
-                            type = "y",
-                            st = ist / T,
-                            et = iet / T,
-                            sv = (isv + 450) / 900,
-                            ev = (iev + 450) / 900
-                        )
-                    )
-        
-        if eventLayer.speedEvents is not None:
-            for e in eventLayer.speedEvents:
-                st = getReal(e.startTime)
-                et = getReal(e.endTime)
-                if e.start == e.end:
+                    isp = i / split_event_length
+                    isv = linear_interpolation(isp, 0.0, 1.0, e.start, e.end)
                     phi_judgeLine["speedEvents"].append(
                         {
-                            "startTime": st / T,
-                            "value": (e.start * 120) / 900 / 0.6
+                            "startTime": ist / T,
+                            "value": (isv * 120) / 900 / 0.6
                         }
                     )
-                else:
-                    for i in range(split_event_length):
-                        ist = st + i * (et - st) / split_event_length
-                        iet = st + (i + 1) * (et - st) / split_event_length
-                        isp = i / split_event_length
-                        isv = linear_interpolation(isp, 0.0, 1.0, e.start, e.end)
-                        phi_judgeLine["speedEvents"].append(
-                            {
-                                "startTime": ist / T,
-                                "value": (isv * 120) / 900 / 0.6
-                            }
-                        )
-                    phi_judgeLine["speedEvents"].append(
-                        {
-                            "startTime": (st + ((split_event_length - 1) + 1) * (et - st) / split_event_length) / T,
-                            "value": (e.end * 120) / 900 / 0.6
-                        }
-                    )
-                        
+                phi_judgeLine["speedEvents"].append(
+                    {
+                        "startTime": (st + ((split_event_length - 1) + 1) * (et - st) / split_event_length) / T,
+                        "value": (e.end * 120) / 900 / 0.6
+                    }
+                )
+                    
     if rpe_judgeLine.extended is not None:
-        if rpe_judgeLine.extended.textEvents is not None and len(rpe_judgeLine.extended.textEvents) > 0:
+        if len(rpe_judgeLine.extended.textEvents) > 0:
             phi_judgeLine["--QFPPR-JudgeLine-TextJudgeLine"] = True
             for e in rpe_judgeLine.extended.textEvents:
                 phi_judgeLine["--QFPPR-JudgeLine-TextEvents"].append({
@@ -323,49 +318,46 @@ for line_index, rpe_judgeLine in enumerate(rpe_obj.JudgeLineList):
                         "value": e.end
                     })
         
-        if rpe_judgeLine.extended.scaleXEvents is not None and len(rpe_judgeLine.extended.scaleXEvents) > 0:
-            for e in rpe_judgeLine.extended.scaleXEvents:
-                st = getReal(e.startTime)
-                et = getReal(e.endTime)
-                sv = e.start
-                ev = e.end
-                ef = ease_funcs[e.easingType - 1]
-                phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].append({
-                    "startTime": st / T,
-                    "endTime": et / T,
-                    "start": sv,
-                    "end": ev,
-                    "easingType": e.easingType
-                })
-        
-        if rpe_judgeLine.extended.scaleYEvents is not None and len(rpe_judgeLine.extended.scaleYEvents) > 0:
-            for e in rpe_judgeLine.extended.scaleYEvents:
-                st = getReal(e.startTime)
-                et = getReal(e.endTime)
-                sv = e.start
-                ev = e.end
-                ef = ease_funcs[e.easingType - 1]
-                phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].append({
-                    "startTime": st / T,
-                    "endTime": et / T,
-                    "start": sv,
-                    "end": ev,
-                    "easingType": e.easingType
-                })
-        
-        if rpe_judgeLine.extended.colorEvents is not None and len(rpe_judgeLine.extended.colorEvents) > 0:
-            for e in rpe_judgeLine.extended.colorEvents:
-                st = getReal(e.startTime)
-                et = getReal(e.endTime)
+        for e in rpe_judgeLine.extended.scaleXEvents:
+            st = getReal(e.startTime)
+            et = getReal(e.endTime)
+            sv = e.start
+            ev = e.end
+            ef = ease_funcs[e.easingType - 1]
+            phi_judgeLine["--QFPPR-JudgeLine-ScaleXEvents"].append({
+                "startTime": st / T,
+                "endTime": et / T,
+                "start": sv,
+                "end": ev,
+                "easingType": e.easingType
+            })
+    
+        for e in rpe_judgeLine.extended.scaleYEvents:
+            st = getReal(e.startTime)
+            et = getReal(e.endTime)
+            sv = e.start
+            ev = e.end
+            ef = ease_funcs[e.easingType - 1]
+            phi_judgeLine["--QFPPR-JudgeLine-ScaleYEvents"].append({
+                "startTime": st / T,
+                "endTime": et / T,
+                "start": sv,
+                "end": ev,
+                "easingType": e.easingType
+            })
+    
+        for e in rpe_judgeLine.extended.colorEvents:
+            st = getReal(e.startTime)
+            et = getReal(e.endTime)
+            phi_judgeLine["--QFPPR-JudgeLine-ColorEvents"].append({
+                "startTime": ist / T,
+                "value": e.start,
+            })
+            if e.start != e.end:
                 phi_judgeLine["--QFPPR-JudgeLine-ColorEvents"].append({
-                    "startTime": ist / T,
-                    "value": e.start,
+                    "startTime": iet / T,
+                    "value": e.end,
                 })
-                if e.start != e.end:
-                    phi_judgeLine["--QFPPR-JudgeLine-ColorEvents"].append({
-                        "startTime": iet / T,
-                        "value": e.end,
-                    })
     
     if len(phi_judgeLine["speedEvents"]) > 0:
         phi_judgeLine["speedEvents"].sort(key = lambda x: x["startTime"])
