@@ -407,7 +407,7 @@ def Show_Start():
     sleep(0.5)
     root.run_js_code("show_out_animation();")
     sleep(1.25)
-    Thread(target = PlayerStart_Phi,daemon = True).start()
+    Thread(target = PlayerStart,daemon = True).start()
 
 def draw_ui(
     process:float = 0.0,
@@ -1485,6 +1485,7 @@ def GetFrameRenderTask_Rpe(
         
         if negative_alpha: continue
         
+        lineFloorPosition = line.GetFloorPosition(0.0, now_t, chart_obj)
         for note in line.notes:
             note_clicked = note.startTime.value < beatTime
             note_ishold = note.type_string == "Hold"
@@ -1501,7 +1502,8 @@ def GetFrameRenderTask_Rpe(
             if not note_ishold and note.clicked: continue
             elif note_ishold and beatTime > note.endTime.value: continue
             
-            noteFloorPosition = line.GetNoteFloorPosition(beatTime, note, chart_obj) * h
+            noteFloorPosition = (note.floorPosition - lineFloorPosition) * h
+            if noteFloorPosition < 0 and not note_ishold: continue
             noteAtJudgeLinePos = Tool_Functions.rotate_point(
                 *linePos, lineRotate, note.positionX2 * w
             )
@@ -1511,7 +1513,7 @@ def GetFrameRenderTask_Rpe(
             )
             
             if note_ishold:
-                holdLength = line.GetHoldLength(beatTime, note, chart_obj) * h
+                holdLength = note.holdLength * h
                 noteHoldDrawLength = noteFloorPosition + holdLength
                 holdend_x, holdend_y = Tool_Functions.rotate_point(
                     *noteAtJudgeLinePos, lineToNoteRotate, noteHoldDrawLength
@@ -1534,7 +1536,6 @@ def GetFrameRenderTask_Rpe(
             )
             
             if canRender and abs(now_t - chart_obj.beat2sec(note.startTime.value)) <= note.visibleTime:
-                lineRotateByNote = (lineToNoteRotate + 90) % 360
                 dub_text = "_dub" if note.morebets else ""
                 if not note_ishold:
                     this_note_img_keyname = f"{note.type_string}{dub_text}"
@@ -1644,7 +1645,7 @@ def Get_LevelNumber() -> str:
 def Get_LevelText() -> str:
     return chart_information["Level"].split(" ")[0]
 
-def PlayerStart_Phi():
+def PlayerStart():
     global show_start_time
     print("Player Start")
     root.title("Phigros Chart Player")
@@ -1940,7 +1941,7 @@ def PlayerStart_Phi():
         if play_restart_flag:
             mixer.music.fadeout(250)
             LoadChartObject()
-            Thread(target=PlayerStart_Phi, daemon=True).start()
+            Thread(target=PlayerStart, daemon=True).start()
             return None
                 
     else:
@@ -2503,7 +2504,7 @@ def PlayerStart_Phi():
                 if a2_loop_clicked or (loop and (time() - animation_2_start_time) > 2.75):
                     def _f():
                         LoadChartObject()
-                        PlayerStart_Phi()
+                        PlayerStart()
                     Thread(target=_f, daemon=True).start()
                     break
                 

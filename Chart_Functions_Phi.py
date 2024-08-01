@@ -205,16 +205,17 @@ def Load_Chart_Object(
     print("Finding Chart More Bets...")
     def prcmorebets(notes):
         note_times = {}
-        for note in notes:
-            if note.time not in note_times:
-                note_times[note.time] = (False, note)
+        for note, judgeLine in notes:
+            t = note.time * (1.875 / judgeLine.bpm)
+            if t not in note_times:
+                note_times[t] = (False, note)
             else:
-                if not note_times[note.time][0]:
-                    note_times[note.time][-1].morebets = True
-                    note_times[note.time] = (True, note)
+                if not note_times[t][0]:
+                    note_times[t][-1].morebets = True
+                    note_times[t] = (True, note)
                 note.morebets = True
-    prcmorebets(list(filter(lambda x: x.fake,[item for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
-    prcmorebets(list(filter(lambda x: not x.fake,[item for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
+    prcmorebets(list(filter(lambda x: x.fake, [(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
+    prcmorebets(list(filter(lambda x: not x.fake,[(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
     
     lines = {line.RefID: line for line in phigros_chart_obj.judgeLineList}
     

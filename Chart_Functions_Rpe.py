@@ -2,7 +2,7 @@ import Chart_Objects_Rpe
 
 def Load_Chart_Object(chart:dict):
     meta = chart.get("meta", {})
-    rep_chart_obj = Chart_Objects_Rpe.Rpe_Chart(
+    rpe_chart_obj = Chart_Objects_Rpe.Rpe_Chart(
         META = Chart_Objects_Rpe.MetaData(
             RPEVersion = meta.get("RPEVersion", -1),
             offset = meta.get("offset", 0),
@@ -178,4 +178,25 @@ def Load_Chart_Object(chart:dict):
             for judgeLine_item in chart.get("judgeLineList", [])
         ]
     )
-    return rep_chart_obj
+    
+    print("Finding Chart More Bets...")
+    def prcmorebets(notes):
+        note_times = {}
+        for note in notes:
+            if note.startTime.value not in note_times:
+                note_times[note.startTime.value] = (False, note)
+            else:
+                if not note_times[note.startTime.value][0]:
+                    note_times[note.startTime.value][-1].morebets = True
+                    note_times[note.startTime.value] = (True, note)
+                note.morebets = True
+    prcmorebets(list(filter(lambda x: x.isFake,[item for line in rpe_chart_obj.JudgeLineList for item in line.notes])))
+    prcmorebets(list(filter(lambda x: not x.isFake,[item for line in rpe_chart_obj.JudgeLineList for item in line.notes])))
+    
+    for line in rpe_chart_obj.JudgeLineList:
+        for note in line.notes:
+            note.floorPosition = line.GetNoteFloorPosition(0.0, note, rpe_chart_obj)
+            if note.type_string == "Hold":
+                note.holdLength = line.GetFloorPosition(rpe_chart_obj.beat2sec(note.startTime.value), rpe_chart_obj.beat2sec(note.endTime.value), rpe_chart_obj)
+    
+    return rpe_chart_obj

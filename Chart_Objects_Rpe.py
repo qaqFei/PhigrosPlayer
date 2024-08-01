@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, fields
-from functools import lru_cache
+from functools import lru_cache, cache
 import typing
 
 import Tool_Functions
@@ -36,7 +36,10 @@ class Note:
     
     clicked: bool = False
     morebets: bool = False
+    positionX2: float = 0.0
     float_alpha: float = 0.0
+    floorPosition: float = 0.0
+    holdLength: float = 0.0
     
     def __post_init__(self):
         self.type_string = {
@@ -71,20 +74,27 @@ class EventLayer:
         self.rotateEvents.sort(key = lambda x: x.startTime.value)
         self.alphaEvents.sort(key = lambda x: x.startTime.value)
         
-        es = []
-        for i, e in enumerate(self.speedEvents):
-            if i != len(self.speedEvents) - 1:
-                ne = self.speedEvents[i + 1]
+        self._init_events(self.speedEvents, None)
+        self._init_events(self.moveXEvents, 1)
+        self._init_events(self.moveYEvents, 1)
+        self._init_events(self.rotateEvents, 1)
+        self._init_events(self.alphaEvents, 1)
+        
+    def _init_events(self, es: list[LineEvent], et: int|None):
+        aes = []
+        for i, e in enumerate(es):
+            if i != len(es) - 1:
+                ne = es[i + 1]
                 if e.endTime.value < ne.startTime.value:
-                    es.append(LineEvent(
-                        e.endTime, ne.startTime, e.end, e.end, e.easingType
+                    aes.append(LineEvent(
+                        e.endTime, ne.startTime, e.end, e.end, et
                     ))
-        self.speedEvents.extend(es)
-        self.speedEvents.sort(key = lambda x: x.startTime.value)
-        if self.speedEvents: self.speedEvents.append(LineEvent(
-            self.speedEvents[-1].endTime, Beat(31250000, 0, 1), self.speedEvents[-1].end, self.speedEvents[-1].end, None
+        es.extend(aes)
+        es.sort(key = lambda x: x.startTime.value)
+        if es: es.append(LineEvent(
+            es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, et
         ))
-
+        
 @dataclass
 class Extended:
     scaleXEvents: list[LineEvent]
@@ -125,18 +135,13 @@ class JudgeLine:
     
     def GetEventValue(self, t:float, es: list[LineEvent], default: float):
         r = default
-        for i, e in enumerate(es):
-            r = e.end
+        for e in es:
             if e.startTime.value <= t <= e.endTime.value:
                 r = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
                 break
-            if e.startTime.value > t:
-                if i != 0:
-                    r = es[i - 1].end
-                break
         return r
     
-    @lru_cache(maxsize = 1)
+    @lru_cache
     def GetPos(self, t: float):
         for layer in self.eventLayers:
             return [self.GetEventValue(t, layer.moveXEvents, 0.0), self.GetEventValue(t, layer.moveYEvents, 0.0)]
@@ -188,8 +193,8 @@ class JudgeLine:
         return [(linePos[0] + 675) / 1350, 1.0 - (linePos[1] + 450) / 900], lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
     def GetNoteFloorPosition(self, t: float, n: Note, master: Rpe_Chart):
-        l, r = sorted((master.beat2sec(t), master.beat2sec(n.startTime.value)))
-        return self.GetFloorPosition(l, r, master)
+        l, r = master.beat2sec(t), master.beat2sec(n.startTime.value)
+        return self.GetFloorPosition(*sorted((l, r)), master) * (-1.0 if l > r else 1.0)
     
     def GetFloorPosition(self, l: float, r: float, master: Rpe_Chart):
         fp = 0.0
@@ -197,18 +202,21 @@ class JudgeLine:
             for e in layer.speedEvents:
                 st, et = master.beat2sec(e.startTime.value), master.beat2sec(e.endTime.value)
                 if l <= st <= r <= et:
-                    v1, v2 = r, st
+                    v1, v2 = st, r
                 elif st <= l <= et <= r:
-                    v1, v2 = et, l
+                    v1, v2 = st, l
                 elif l <= st <= et <= r:
                     v1, v2 = st, et
                 elif st <= l <= r <= et:
                     v1, v2 = l, r
                 else:
                     continue
-                s1 = Tool_Functions.linear_interpolation(v1, st, et, e.start, e.end)
-                s2 = Tool_Functions.linear_interpolation(v2, st, et, e.start, e.end)
-                fp += (v2 - v1) * (s1 + s2) / 2
+                if e.start == e.end:
+                    fp += (v2 - v1) * e.start
+                else:
+                    s1 = Tool_Functions.linear_interpolation(v1, st, et, e.start, e.end)
+                    s2 = Tool_Functions.linear_interpolation(v2, st, et, e.start, e.end)
+                    fp += (v2 - v1) * (s1 + s2) / 2
         return fp * 120 / 900
 
     def GetHoldLength(self, t: float, n: Note, master: Rpe_Chart):
@@ -233,7 +241,7 @@ class Rpe_Chart:
     def __post_init__(self):
         self.BPMList.sort(key=lambda x: x.startTime.value)
     
-    @lru_cache
+    @cache
     def sec2beat(self, t: float):
         beat = 0.0
         for i, e in enumerate(self.BPMList):
@@ -246,11 +254,12 @@ class Rpe_Chart:
                     t -= et_sec
                 else:
                     beat += t / (60 / e.bpm)
+                    break
             else:
                 beat += t / (60 / e.bpm)
         return beat
     
-    @lru_cache
+    @cache
     def beat2sec(self, t: float):
         sec = 0.0
         for i, e in enumerate(self.BPMList):
