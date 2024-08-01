@@ -178,9 +178,9 @@ def LoadChartObject():
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         chart_obj = Chart_Functions_Phi.Load_Chart_Object(chart_json)
     elif CHART_TYPE == Const.CHART_TYPE.RPE:
-        chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
+        # chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
         
-        if False: # TODO: Add RPE Chart Support (Deving...)
+        if 1: # TODO: Add RPE Chart Support (Deving...)
             temp_rpe_fdir = f"{gettempdir()}/qfppr_cctemp_{time() + randint(0, 2 << 31)}"
             try: mkdir(temp_rpe_fdir)
             except Exception: pass
