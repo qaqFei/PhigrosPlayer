@@ -144,20 +144,25 @@ class JudgeLine:
     father: int
     
     def GetEventValue(self, t:float, es: list[LineEvent], default: float):
-        r = default
         for e in es:
             if e.startTime.value <= t <= e.endTime.value:
-                r = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
-                break
-        return r
+                return Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
+        return default
     
     @lru_cache
-    def GetPos(self, t: float):
-        pos = [0.0, 0.0]
+    def GetPos(self, t: float, master: Rpe_Chart):
+        linePos = [0.0, 0.0]
         for layer in self.eventLayers:
-            pos[0] += self.GetEventValue(t, layer.moveXEvents, 0.0)
-            pos[1] += self.GetEventValue(t, layer.moveYEvents, 0.0)
-        return pos
+            linePos[0] += self.GetEventValue(t, layer.moveXEvents, 0.0)
+            linePos[1] += self.GetEventValue(t, layer.moveYEvents, 0.0)
+        if self.father != -1:
+            try:
+                father = master.JudgeLineList[self.father]
+                fatherPos = father.GetPos(t, master)
+                linePos = [linePos[0] + fatherPos[0], linePos[1] + fatherPos[1]]
+            except IndexError:
+                pass
+        return linePos
     
     def GetSpeed(self, t: float):
         v = 0.0
@@ -170,11 +175,11 @@ class JudgeLine:
     
     def GetState(self, t: float, defaultColor: list[int, int, int], master: Rpe_Chart) -> dict:
         "linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText"
-        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = self.GetPos(t), 0.0, 0.0, defaultColor, 1.0, 1.0, None
+        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = self.GetPos(t, master), 0.0, 0.0, defaultColor, 1.0, 1.0, None
         
         for layer in self.eventLayers:
-            lineAlpha += self.GetEventValue(t, layer.alphaEvents, lineAlpha)
-            lineRotate += self.GetEventValue(t, layer.rotateEvents, lineRotate)
+            lineAlpha += self.GetEventValue(t, layer.alphaEvents, 0.0)
+            lineRotate += self.GetEventValue(t, layer.rotateEvents, 0.0)
         
         if self.extended:
             for e in self.extended.colorEvents: # reverse sorted
@@ -196,15 +201,7 @@ class JudgeLine:
                     lineText = e.start
                     break
             
-        if self.father != -1:
-            try:
-                father = master.JudgeLineList[self.father]
-                fatherPos = father.GetPos(t)
-                linePos = [linePos[0] + fatherPos[0], linePos[1] + fatherPos[1]]
-            except IndexError:
-                pass
-        
-        return [(linePos[0] + 675) / 1350, 1.0 - (linePos[1] + 450) / 900], lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
+        return Tool_Functions.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
     def GetNoteFloorPosition(self, t: float, n: Note, master: Rpe_Chart):
         l, r = master.beat2sec(t), master.beat2sec(n.startTime.value)

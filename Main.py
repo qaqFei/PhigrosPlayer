@@ -1172,12 +1172,10 @@ def GetFrameRenderTask_Phi(
         note:Chart_Objects_Phi.note,
         t:float,
         effect_random_blocks,
-        perfect:bool,
-        offset:float
+        perfect:bool
     ):
         p = (now_t - t * note.master.T) / effect_time
         if not (0.0 <= p <= 1.0): return None
-        offset /= note.master.T
         will_show_effect_pos = judgeLine.get_datavar_move(t, w, h)
         will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
         pos = Tool_Functions.rotate_point(
@@ -1278,8 +1276,7 @@ def GetFrameRenderTask_Phi(
                             note,
                             note.time,
                             note.effect_random_blocks,
-                            True,
-                            0.0
+                            True
                         )
                     else:
                         note.show_effected = True
@@ -1294,8 +1291,7 @@ def GetFrameRenderTask_Phi(
                                             note,
                                             temp_time / judgeLine.T,
                                             hold_effect_random_blocks,
-                                            True,
-                                            0.0
+                                            True
                                         )
             else: # noautoplay
                 if note.player_holdjudged or (note.state == Const.NOTE_STATE.PERFECT or note.state == Const.NOTE_STATE.GOOD and note.player_clicked):
@@ -1305,8 +1301,7 @@ def GetFrameRenderTask_Phi(
                                 note,
                                 note.time - note.player_click_offset / note.master.T,
                                 note.effect_random_blocks,
-                                note.state == Const.NOTE_STATE.PERFECT if note.type != Const.Note.HOLD else note.player_holdclickstate == Const.NOTE_STATE.PERFECT,
-                                note.player_click_offset
+                                note.state == Const.NOTE_STATE.PERFECT if note.type != Const.Note.HOLD else note.player_holdclickstate == Const.NOTE_STATE.PERFECT
                             )
                         else:
                             note.show_effected = True
@@ -1328,8 +1323,7 @@ def GetFrameRenderTask_Phi(
                                             note,
                                             temp_time / judgeLine.T,
                                             hold_effect_random_blocks,
-                                            note.player_holdclickstate == Const.NOTE_STATE.PERFECT,
-                                            0.0
+                                            note.player_holdclickstate == Const.NOTE_STATE.PERFECT
                                         )
                     
     if render_range_more:
@@ -1472,7 +1466,7 @@ def GetFrameRenderTask_Rpe(
     
     for line in chart_obj.JudgeLineList:
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t), (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
-        linePos = [linePos[0] * w, linePos[1] * h]
+        linePos = (linePos[0] * w, linePos[1] * h)
         judgeLine_DrawPos = (
             *Tool_Functions.rotate_point(*linePos, lineRotate, 5.76 * h * lineScaleX),
             *Tool_Functions.rotate_point(*linePos, lineRotate + 180, 5.76 * h * lineScaleX)
@@ -1656,19 +1650,16 @@ def GetFrameRenderTask_Rpe(
         note: Chart_Objects_Rpe.Note,
         t: float,
         effect_random_blocks,
-        perfect: bool,
-        offset: float
+        perfect: bool
     ):
-        print(123456)
         p = (now_t - chart_obj.beat2sec(t)) / effect_time
         if not (0.0 <= p <= 1.0): return None
-        offset = chart_obj.sec2beat(offset)
-        linePos = line.GetPos(t); linePos = [linePos[0] * w, linePos[1] * h]
+        linePos = Tool_Functions.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
         lineRotate = sum([line.GetEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
         pos = Tool_Functions.rotate_point(
             *linePos,
             lineRotate,
-            note.positionX * w
+            note.positionX2 * w
         )
         process_effect_base(*pos, p, effect_random_blocks, perfect)
     
@@ -1689,8 +1680,7 @@ def GetFrameRenderTask_Rpe(
                             note,
                             note.startTime.value,
                             Tool_Functions.get_effect_random_blocks(),
-                            True,
-                            0.0
+                            True
                         )
                     else:
                         note.show_effected = True
@@ -1705,8 +1695,7 @@ def GetFrameRenderTask_Rpe(
                                             note,
                                             chart_obj.sec2beat(temp_time),
                                             hold_effect_random_blocks,
-                                            True,
-                                            0.0
+                                            True
                                         )
             else: # noautoplay
                 pass

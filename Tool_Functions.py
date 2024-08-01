@@ -285,3 +285,6 @@ def NoJoinThreadFunc(f):
         t = Thread(target=f, args=args, kwargs=kwargs)
         t.start()
     return wrapper
+
+def conrpepos(x: float, y: float):
+    return (x + 675) / 1350, 1.0 - (y + 450) / 900
