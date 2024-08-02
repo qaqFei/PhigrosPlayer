@@ -8,7 +8,7 @@
 ## 兼容性
 - 目前支持`phi`和`rpe`  暂不支持旧`pec`
 
-## 命令行参数 tip: 对于rpe谱面, 些许命令行参数不生效
+## 命令行参数
 - `--hideconsole` 隐藏控制台
 - `--debug` 显示WebView调试工具, 并显示判定线定位点
 - `--combotips <string-value>` 设置连击下的提示 默认为`Autoplay`
