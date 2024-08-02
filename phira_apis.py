@@ -94,7 +94,7 @@ def _request(url: str, api: bool = False) -> bytes:
         try:
             return urlopen(Request(url), timeout = 1.0 if api else 60.0).read()
         except Exception as e:
-            print("Warning: request failed, retrying... ", repr(e))
+            print("Warning: request failed, retrying... ", url, repr(e))
 
 def getCharts(
     pageNum: int,
@@ -106,9 +106,6 @@ def getCharts(
     notTags: list[str] = [],
     rating_leftrange: float = 0.0,
     rating_rightrange: float = 1.0,
-    stable: typing.Literal["true", "false", ""] = "",
-    stableRequest: typing.Literal["true", "false", ""] = "",
-    ranked: typing.Literal["true", "false", ""] = "",
     uploader: int|None = None
 ) -> list[PhiraChart]:
     data = _request(f"{APIURL}chart?\
@@ -118,10 +115,7 @@ order={order}&\
 division={division}&\
 search={search}&\
 tags={','.join(tags + list(map(lambda x: f"-{x}", notTags)))}&\
-rating=[{rating_leftrange},{rating_rightrange}]&\
-stable={stable}&\
-stableRequest={stableRequest}&\
-ranked={ranked}&\
+rating={rating_leftrange},{rating_rightrange}&\
 {f"uploader={uploader}&" if uploader is not None else ""}\
 ", True).decode("utf-8")
     json_data = json.loads(data)
@@ -176,3 +170,15 @@ def getAllCharts(
             break
         charts.extend(pageCharts)
     return charts
+
+if __name__ == "__main__":
+    while True:
+        code = input("Phira Api >>> ")
+        try:
+            result = eval(code)
+            if result is not None: print(result)
+        except Exception:
+            try:
+                exec(code)
+            except Exception as e:
+                print(repr(e))

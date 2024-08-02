@@ -22,7 +22,8 @@ compile_files = [
     ("Main.py", False),
     ("GUI_Launcher.py", True),
     ("ProcessChartAudio.py", False),
-    ("OutputVideo.py", False)
+    ("OutputVideo.py", False),
+    ("phira_apis.py", False)
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 
