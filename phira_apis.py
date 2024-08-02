@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from urllib.request import Request, urlopen
+from urllib.parse import quote
 import json
 import typing
 
@@ -92,7 +93,7 @@ class PhiraRecord:
 def _request(url: str, api: bool = False) -> bytes:
     while True:
         try:
-            return urlopen(Request(url), timeout = 1.0 if api else 60.0).read()
+            return urlopen(Request(quote(url)), timeout = 1.0 if api else 60.0).read()
         except Exception as e:
             print("Warning: request failed, retrying... ", url, repr(e))
 
