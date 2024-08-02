@@ -57,16 +57,6 @@ if not exists("./7z.exe") or not exists("./7z.dll"):
     print("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
 
-if not (exists("./rpe2phi.py") or exists("./rpe2phi.exe")):
-    print("rpe2phi.py or rpe2phi.exe Not Found.")
-    windll.kernel32.ExitProcess(1)
-rpe2phi_prgm = ".\\rpe2phi.exe" if exists("./rpe2phi.exe") else ".\\rpe2phi.py"
-
-if not (exists("./Main.py") or exists("./Main.exe")):
-    print("Please change this file name to Main.py or Main.exe.")
-    windll.kernel32.ExitProcess(1)
-self_fp = "./Main.exe" if exists("./Main.exe") else "./Main.py"
-
 temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time()}"
 for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_chart_temp_")]:
     item = f"{gettempdir()}\\{item}"
