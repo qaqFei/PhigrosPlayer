@@ -20,8 +20,8 @@ if len(argv) < 2:
 with open(argv[1],"r",encoding="utf-8") as f:
     rpe_obj = Chart_Functions_Rpe.Load_Chart_Object(json.load(f))
 
+Chart_Objects_Rpe._init_events = lambda *args, **kwargs: None # cannot init events, else it has bugs
 ease_funcs = rpe_easing.ease_funcs
-
 linear = ease_funcs[0]
 
 @dataclass

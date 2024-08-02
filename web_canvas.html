@@ -305,6 +305,20 @@
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawRotateText = function(text, x, y, deg, fontsize, color, xscale, yscale) {
+        if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; fontsize /= render_range_more_scale;}
+        this.save();
+        this.translate(x, y);
+        this.rotate(deg * Math.PI / 180);
+        this.scale(xscale, yscale);
+        this.fillStyle = color;
+        this.textAlign = "center";
+        this.textBaseline = "middle";
+        this.font = `${fontsize}px PhigrosFont`;
+        this.fillText(text, 0, 0);
+        this.restore();
+    }
+
     resizeCanvas();
 
     window.addEventListener("resize", resizeCanvas);

@@ -28,6 +28,7 @@ def Load_Chart_Object(chart:dict):
                 numOfNotes = judgeLine_item.get("numOfNotes", 0),
                 isCover = judgeLine_item.get("isCover", 1),
                 Texture = judgeLine_item.get("Texture", "line.png"),
+                attachUI = judgeLine_item.get("attachUI", None),
                 father = judgeLine_item.get("father", -1),
                 eventLayers = [
                     Chart_Objects_Rpe.EventLayer(
@@ -196,7 +197,7 @@ def Load_Chart_Object(chart:dict):
     for line in rpe_chart_obj.JudgeLineList:
         for note in line.notes:
             note.floorPosition = line.GetNoteFloorPosition(0.0, note, rpe_chart_obj)
-            if note.type_string == "Hold":
+            if note.ishold:
                 note.holdLength = line.GetFloorPosition(0.0, rpe_chart_obj.beat2sec(note.endTime.value), rpe_chart_obj) - note.floorPosition
     
     return rpe_chart_obj

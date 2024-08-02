@@ -1,9 +1,9 @@
 from threading import Thread
 from ctypes import windll
-from os import chdir,environ,listdir,popen,system,mkdir ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
-from os.path import exists,abspath,dirname
+from os import chdir, environ, listdir, popen, system, mkdir ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
+from os.path import exists, abspath, dirname, isfile
 from sys import argv
-from time import time,sleep
+from time import time, sleep
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
@@ -31,7 +31,6 @@ import Tool_Functions
 import dialog
 import Phigros_Tips
 import default_extend
-import Image_open
 import info_loader
 import version
 import ppr_help
@@ -77,8 +76,6 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_
     except Exception as e:
         print(f"Warning: {e}")
 print(f"Temp Dir: {temp_dir}")
-
-Image.open = Image_open.open
 
 enable_clicksound = "--noclicksound" not in argv
 debug = "--debug" in argv
@@ -169,6 +166,7 @@ if "formatVersion" in chart_json:
     CHART_TYPE = Const.CHART_TYPE.PHI
 elif "META" in chart_json:
     CHART_TYPE = Const.CHART_TYPE.RPE
+    render_range_more = False
 else:
     print("This is what format chart???")
     windll.kernel32.ExitProcess(1)
@@ -178,9 +176,9 @@ def LoadChartObject():
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         chart_obj = Chart_Functions_Phi.Load_Chart_Object(chart_json)
     elif CHART_TYPE == Const.CHART_TYPE.RPE:
-        # chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
+        chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
         
-        if 1: # TODO: Add RPE Chart Support (Deving...)
+        if 0: # TODO: Add RPE Chart Support (Deving...)
             temp_rpe_fdir = f"{gettempdir()}/qfppr_cctemp_{time() + randint(0, 2 << 31)}"
             try: mkdir(temp_rpe_fdir)
             except Exception: pass
@@ -248,7 +246,8 @@ def Load_Resource():
     global note_max_width, note_max_height
     global note_max_width_half, note_max_height_half
     global animation_image
-    global WaitLoading,LoadSuccess
+    global WaitLoading, LoadSuccess
+    global chart_res
     
     print("Loading Resource...")
     WaitLoading = mixer.Sound("./Resources/WaitLoading.mp3")
@@ -352,6 +351,33 @@ def Load_Resource():
     root.reg_img(Resource["Retry"],"Retry")
     root.reg_img(Resource["Arrow_Right"],"Arrow_Right")
     
+    chart_res = {}
+    if CHART_TYPE == Const.CHART_TYPE.RPE:
+        for line in chart_obj.JudgeLineList:
+            if line.Texture != "line.png":
+                paths = [
+                    f"{temp_dir}\\{line.Texture}",
+                    f"{temp_dir}\\{line.Texture}.png",
+                    f"{temp_dir}\\{line.Texture}.jpg",
+                    f"{temp_dir}\\{line.Texture}.jpeg",
+                    f"./Resource/{line.Texture}",
+                    f"./Resource/{line.Texture}.png",
+                    f"./Resource/{line.Texture}.jpg",
+                    f"./Resource/{line.Texture}.jpeg"
+                ]
+                for p in paths:
+                    if exists(p) and isfile(p):
+                        try:
+                            chart_res[line.Texture] = Image.open(p)
+                        except Exception as e:
+                            print(f"Can't open texture {p} : {e}")
+                            continue
+                        break
+                else:
+                    print(f"Can't find texture {line.Texture}")
+                    chart_res[line.Texture] = Image.new("RGBA", (1, 1), (0, 0, 0, 0))
+                root.reg_img(chart_res[line.Texture], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
+    
     with open("./Resources/font.ttf","rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
     root.load_allimg()
@@ -425,7 +451,45 @@ def draw_ui(
     clear:bool = True,
     background:bool = True,
     animationing:bool = False,
-    dy:float = 0.0
+    dy:float = 0.0,
+    
+    pauseUI_dx: float = 0.0,
+    pauseUI_dy: float = 0.0,
+    pauseUI_scaleX: float = 1.0,
+    pauseUI_scaleY: float = 1.0,
+    pauseUI_color = "rgb(255, 255, 255)",
+    
+    combonumberUI_dx: float = 0.0,
+    combonumberUI_dy: float = 0.0,
+    combonumberUI_scaleX: float = 1.0,
+    combonumberUI_scaleY: float = 1.0,
+    combonumberUI_color = "rgb(255, 255, 255)",
+    
+    comboUI_dx: float = 0.0,
+    comboUI_dy: float = 0.0,
+    comboUI_scaleX: float = 1.0,
+    comboUI_scaleY: float = 1.0,
+    comboUI_color = "rgb(255, 255, 255)",
+    
+    scoreUI_dx: float = 0.0,
+    scoreUI_dy: float = 0.0,
+    scoreUI_scaleX: float = 1.0,
+    scoreUI_scaleY: float = 1.0,
+    scoreUI_color = "rgb(255, 255, 255)",
+    
+    nameUI_dx: float = 0.0,
+    nameUI_dy: float = 0.0,
+    nameUI_scaleX: float = 1.0,
+    nameUI_scaleY: float = 1.0,
+    nameUI_color = "rgb(255, 255, 255)",
+    
+    levelUI_dx: float = 0.0,
+    levelUI_dy: float = 0.0,
+    levelUI_scaleX: float = 1.0,
+    levelUI_scaleY: float = 1.0,
+    levelUI_color = "rgb(255, 255, 255)",
+    
+    *args, **kwargs
 ):
     if clear:
         root.clear_canvas(wait_execute = True)
@@ -879,48 +943,50 @@ def GetFrameRenderTask_Phi(
         judgeLine_color = (*judgeLine.get_datavar_color(judgeLine_cfg.time, (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
         if judgeLine_color[-1] > 0.0 and show_judgeline:
-            if Tool_Functions.judgeLine_can_render(judgeLine_DrawPos, w, h) or render_range_more:
-                if render_range_more:
-                    Task(
-                        root.run_js_code,
-                        f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
-                        add_code_array = True
-                    )
-                
-                if judgeLine.TextJudgeLine:
-                    Task(
-                        root.create_text,
-                        *judgeLine_cfg.pos,
-                        text = judgeLine.get_datavar_text(judgeLine_cfg.time),
-                        font = f"{(w + h) / 75 * 1.35 * (xscale + yscale) / 2}px PhigrosFont",
-                        textAlign = "center",
-                        textBaseline = "middle",
-                        strokeStyle = judgeLine_webCanvas_color,
-                        fillStyle = judgeLine_webCanvas_color,
-                        wait_execute = True
-                    )
-                elif judgeLine.EnableTexture:
-                    Task(
-                        root.run_js_code,
-                        f"ctx.drawRotateImage(\
-                            {root.get_img_jsvarname(f"JudgeLine_Texture_{judgeLine.id}")},\
-                            {judgeLine_cfg.pos[0]},\
-                            {judgeLine_cfg.pos[1]},\
-                            {judgeLine.TexturePillowObject.width * 0.75 * xscale},\
-                            {judgeLine.TexturePillowObject.height * 0.75 * yscale},\
-                            {- judgeLine_cfg.rotate},\
-                            {judgeLine_cfg.disappear}\
-                        );",
-                        add_code_array = True
-                    )
-                else:
-                    Task(
-                        root.create_line,
-                        *judgeLine_DrawPos,
-                        lineWidth = JUDGELINE_WIDTH, # * yscale,
-                        strokeStyle = judgeLine_webCanvas_color,
-                        wait_execute = True
-                    )
+            if render_range_more:
+                Task(
+                    root.run_js_code,
+                    f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
+                    add_code_array = True
+                )
+            
+            if judgeLine.TextJudgeLine:
+                Task(
+                    root.run_js_code,
+                    f"ctx.drawRotateText(\
+                        '{root.process_code_string_syntax_tostring(judgeLine.get_datavar_text(judgeLine_cfg.time))}',\
+                        {judgeLine_cfg.pos[0]},\
+                        {judgeLine_cfg.pos[1]},\
+                        {- judgeLine_cfg.rotate},\
+                        {(w + h) / 75 * 1.35},\
+                        '{judgeLine_webCanvas_color}',\
+                        {xscale},\
+                        {yscale}\
+                    );",
+                    add_code_array = True
+                )
+            elif judgeLine.EnableTexture:
+                Task(
+                    root.run_js_code,
+                    f"ctx.drawRotateImage(\
+                        {root.get_img_jsvarname(f"JudgeLine_Texture_{judgeLine.id}")},\
+                        {judgeLine_cfg.pos[0]},\
+                        {judgeLine_cfg.pos[1]},\
+                        {judgeLine.TexturePillowObject.width * 0.75 * xscale},\
+                        {judgeLine.TexturePillowObject.height * 0.75 * yscale},\
+                        {- judgeLine_cfg.rotate},\
+                        {judgeLine_cfg.disappear}\
+                    );",
+                    add_code_array = True
+                )
+            else:
+                Task(
+                    root.create_line,
+                    *judgeLine_DrawPos,
+                    lineWidth = JUDGELINE_WIDTH, # * yscale,
+                    strokeStyle = judgeLine_webCanvas_color,
+                    wait_execute = True
+                )
                 
                 if debug:
                     Task(
@@ -1464,7 +1530,7 @@ def GetFrameRenderTask_Rpe(
     now_t -= chart_obj.META.offset / 1000
     beatTime = chart_obj.sec2beat(now_t)
     
-    for line in chart_obj.JudgeLineList:
+    for line_index, line in enumerate(chart_obj.JudgeLineList):
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t), (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
         linePos = (linePos[0] * w, linePos[1] * h)
         judgeLine_DrawPos = (
@@ -1474,12 +1540,67 @@ def GetFrameRenderTask_Rpe(
         negative_alpha = lineAlpha < 0.0
         judgeLine_webCanvas_color = f"rgba{tuple(lineColor) + (lineAlpha, )}"
         if lineAlpha > 0.0:
-            if Tool_Functions.judgeLine_can_render(judgeLine_DrawPos, w, h) or render_range_more:
+            if line.Texture != "line.png":
+                texture: Image.Image = chart_res[line.Texture]
+                Task(
+                    root.run_js_code,
+                    f"ctx.drawRotateImage(\
+                        {root.get_img_jsvarname(f"lineTexture_{line_index}")},\
+                        {linePos[0]},\
+                        {linePos[1]},\
+                        {texture.width * 0.75 * lineScaleX},\
+                        {texture.height * 0.75 * lineScaleY},\
+                        {lineRotate},\
+                        {lineAlpha}\
+                    );",
+                    add_code_array = True
+                )
+            elif lineText is not None:
+                Task(
+                    root.run_js_code,
+                    f"ctx.drawRotateText(\
+                        '{root.process_code_string_syntax_tostring(lineText)}',\
+                        {linePos[0]},\
+                        {linePos[1]},\
+                        {lineRotate},\
+                        {(w + h) / 75 * 1.35},\
+                        '{judgeLine_webCanvas_color}',\
+                        {lineScaleX},\
+                        {lineScaleY}\
+                    );",
+                    add_code_array = True
+                )
+            elif line.attachUI is not None:
+                pass # TODO
+            else:
                 Task(
                     root.create_line,
                     *judgeLine_DrawPos,
                     lineWidth = JUDGELINE_WIDTH,
                     strokeStyle = judgeLine_webCanvas_color,
+                    wait_execute = True
+                )
+                
+            if debug:
+                Task(
+                    root.create_text,
+                    *Tool_Functions.rotate_point(*linePos, 90 + lineRotate - 180, (w + h) / 75),
+                    text = f"{line_index}",
+                    font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
+                    textAlign = "center",
+                    textBaseline = "middle",
+                    strokeStyle = "rgba(254, 255, 169, 0.5)",
+                    fillStyle = "rgba(254, 255, 169, 0.5)",
+                    wait_execute = True
+                )
+                
+                Task(
+                    root.create_rectangle,
+                    linePos[0] - (w + h) / 250,
+                    linePos[1] - (w + h) / 250,
+                    linePos[0] + (w + h) / 250,
+                    linePos[1] + (w + h) / 250,
+                    fillStyle = "rgb(238, 130, 238)",
                     wait_execute = True
                 )
         
@@ -1488,7 +1609,6 @@ def GetFrameRenderTask_Rpe(
         lineFloorPosition = line.GetFloorPosition(0.0, now_t, chart_obj)
         for note in line.notes:
             note_clicked = note.startTime.value < beatTime
-            note_ishold = note.type_string == "Hold"
             
             if note_clicked and not note.clicked:
                 note.clicked = True
@@ -1499,11 +1619,11 @@ def GetFrameRenderTask_Rpe(
                         f'(Resource["Note_Click_Audio"]["{note.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
                     ))
             
-            if not note_ishold and note.clicked: continue
-            elif note_ishold and beatTime > note.endTime.value: continue
+            if not note.ishold and note.clicked: continue
+            elif note.ishold and beatTime > note.endTime.value: continue
             
             noteFloorPosition = (note.floorPosition - lineFloorPosition) * h
-            if noteFloorPosition < 0 and not note_ishold: continue
+            if noteFloorPosition < 0 and not note.ishold: continue
             noteAtJudgeLinePos = Tool_Functions.rotate_point(
                 *linePos, lineRotate, note.positionX2 * w
             )
@@ -1512,7 +1632,7 @@ def GetFrameRenderTask_Rpe(
                 *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
             )
             
-            if note_ishold:
+            if note.ishold:
                 holdLength = note.holdLength * h
                 noteHoldDrawLength = noteFloorPosition + holdLength
                 holdend_x, holdend_y = Tool_Functions.rotate_point(
@@ -1531,13 +1651,13 @@ def GetFrameRenderTask_Rpe(
             
             canRender = (
                 Tool_Functions.Note_CanRender(w, h, note_max_width_half, note_max_height_half, x, y)
-                if not note_ishold
+                if not note.ishold
                 else Tool_Functions.Note_CanRender(w, h, note_max_width_half, note_max_height_half, x, y, holdbody_range)
             )
             
             if canRender and abs(now_t - chart_obj.beat2sec(note.startTime.value)) <= note.visibleTime:
                 dub_text = "_dub" if note.morebets else ""
-                if not note_ishold:
+                if not note.ishold:
                     this_note_img_keyname = f"{note.type_string}{dub_text}"
                     this_note_img = Resource["Notes"][this_note_img_keyname]
                     this_note_imgname = f"Note_{this_note_img_keyname}"
@@ -1557,7 +1677,7 @@ def GetFrameRenderTask_Rpe(
                 this_note_width = Note_width * fix_scale
                 this_note_height = Note_width / this_note_img.width * this_note_img.height
                 
-                if note_ishold:
+                if note.ishold:
                     this_noteend_height = Note_width / this_note_img_end.width * this_note_img_end.height
                     
                     if note.clicked:
@@ -1598,7 +1718,7 @@ def GetFrameRenderTask_Rpe(
                             add_code_array = True
                         )
                 
-                if not (note_ishold and note.startTime.value < beatTime):
+                if not (note.ishold and note.startTime.value < beatTime):
                     Task(
                         root.run_js_code,
                         f"ctx.drawRotateImage(\
@@ -1666,8 +1786,7 @@ def GetFrameRenderTask_Rpe(
     for line in chart_obj.JudgeLineList:
         for note in line.notes:
             note_sectime = chart_obj.beat2sec(note.startTime.value)
-            note_ishold = note.type_string == "Hold"
-            if not note_ishold and note.show_effected:
+            if not note.ishold and note.show_effected:
                 continue
             elif note.isFake:
                 continue
@@ -1685,7 +1804,7 @@ def GetFrameRenderTask_Rpe(
                     else:
                         note.show_effected = True
                     
-                    if note_ishold:
+                    if note.ishold:
                         efct_et = chart_obj.beat2sec(note.endTime.value) + effect_time
                         if efct_et >= now_t:
                             for temp_time, hold_effect_random_blocks in note.effect_times:
@@ -1699,7 +1818,20 @@ def GetFrameRenderTask_Rpe(
                                         )
             else: # noautoplay
                 pass
-                    
+    
+    combo = len([i for line in chart_obj.JudgeLineList for i in line.notes if (not i.ishold and i.clicked) or (i.ishold and i.secet - 0.2 < now_t)]) if not noautoplay else PhigrosPlayManagerObject.getCombo()
+    time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
+    Task(
+        draw_ui,
+        process = now_t / audio_length,
+        score = get_stringscore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else get_stringscore(PhigrosPlayManagerObject.getScore()),
+        combo_state = combo >= 3,
+        combo = combo,
+        now_time = time_text,
+        acc = "100.00%" if not noautoplay else f"{(PhigrosPlayManagerObject.getAcc() * 100):.2f}%",
+        clear = False,
+        background = False,
+    )
     now_t += chart_obj.META.offset / 1000
     CheckMusicOffsetAndEnd(now_t, Task)
     Task(root.run_js_wait_code)

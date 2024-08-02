@@ -5,8 +5,7 @@
 - 第三方库: [requirements.txt](./requirements.txt)
 
 ## 兼容性
-- 目前只支持Phigros的官谱, 但有`rpe2phi.py`, 可将`rpe`谱面转化为官谱
-- 目前只能读取谱面中的`info.csv` 和 `info.txt`
+- 目前支持`phi`和`rpe`  暂不支持旧`pec`
 
 ## 命令行参数 tip: 对于rpe谱面, 些许命令行参数不生效
 - `--hideconsole` 隐藏控制台
@@ -25,7 +24,7 @@
 - `--size <integer-value> <integer-value>` 指定窗口大小
 - `--noclicksound` 禁用打击音效
 - `--lfdaot-frame-speed <integer-value>` 设置在使用 `--lfdaot` 时生成 `.lfdaot` 文件的帧率 tip: 在使用 `--lfdaot-file` 时无效
-- `--render-range-more` 扩展渲染范围
+- `--render-range-more` 扩展渲染范围 // 注定仅对Phi谱面生效
 - `--render-range-more-scale <number-value>` 扩展渲染范围的缩放 默认为2.0
 - `--lfdaot-render-video` 在在使用 `--lfdaot` 和 `--lfdaot-file` 时导出一个视频 视频路径会在加载完成 `.lfdaot` 文件时 弹出文件选择框时确定(也可使用`--lfdaot-render-video-savefp`)
 - `--ease-event-interpolation` 在事件插值时使用缓动 tip: 适用于几乎不存在缓动的谱面 否则可能会出现在细小的线性事件中进行缓动插值 从而导致判定线出现移动或旋转卡顿
@@ -33,7 +32,6 @@
 - `--window-host <integer-hwnd-value>` 将窗口设置为指定窗口的子窗口
 - `--extend <python_file>` 使用扩展 详见`docs/docs.md`
 - `--no-mixer-reset-chart-time` 在 `mixer` 的时间与谱面播放时间存在较大误差时 不进行纠正
-- `--res <folder-path>` 使用指定的资源文件夹, 若资源文件夹中不存在需要的资源, 则从原资源处加载 (仅对图片生效)
 - `--noautoplay` 禁用`Autoplay`, 进行游玩谱面(目前仅支持键盘操作(a ~ z 26个字母才判定点击, 忽略大小写), 不支持鼠标)
 - `--rtacc` 实时`Acc`显示
 - `--lfdaot-file-savefp <filepath-string-value>` 在使用`--lfdaot`时`lfdaot`文件的保存路径

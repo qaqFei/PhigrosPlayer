@@ -7,6 +7,22 @@ import Tool_Functions
 import rpe_easing
 import Const
 
+        
+def _init_events(es: list[LineEvent], et: int|None):
+    aes = []
+    for i, e in enumerate(es):
+        if i != len(es) - 1:
+            ne = es[i + 1]
+            if e.endTime.value < ne.startTime.value:
+                aes.append(LineEvent(
+                    e.endTime, ne.startTime, e.end, e.end, et
+                ))
+    es.extend(aes)
+    es.sort(key = lambda x: x.startTime.value)
+    if es: es.append(LineEvent(
+        es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, et
+    ))
+        
 @dataclass
 class Beat:
     var1:int
@@ -42,13 +58,14 @@ class Note:
     
     def __post_init__(self):
         self.type_string = {
-            Const.Note.TAP:"Tap",
-            Const.Note.DRAG:"Drag",
-            Const.Note.HOLD:"Hold",
-            Const.Note.FLICK:"Flick"
+            Const.Note.TAP: "Tap",
+            Const.Note.DRAG: "Drag",
+            Const.Note.HOLD: "Hold",
+            Const.Note.FLICK: "Flick"
         }[{1:1, 2:3, 3:4, 4:2}[self.type]]
         self.positionX2 = self.positionX / 1350
         self.float_alpha = (255 & int(self.alpha)) / 255
+        self.ishold = self.type_string == "Hold"
     
     def _init(self, master: Rpe_Chart, avgBpm: float):
         self.effect_times = []
@@ -60,6 +77,9 @@ class Note:
             if hold_starttime >= hold_endtime:
                 break
             self.effect_times.append((hold_starttime, Tool_Functions.get_effect_random_blocks()))
+        
+        self.secst = master.beat2sec(self.startTime.value)
+        self.secet = master.beat2sec(self.endTime.value)
 
 @dataclass
 class LineEvent:
@@ -84,26 +104,11 @@ class EventLayer:
         self.rotateEvents.sort(key = lambda x: x.startTime.value)
         self.alphaEvents.sort(key = lambda x: x.startTime.value)
         
-        self._init_events(self.speedEvents, None)
-        self._init_events(self.moveXEvents, 1)
-        self._init_events(self.moveYEvents, 1)
-        self._init_events(self.rotateEvents, 1)
-        self._init_events(self.alphaEvents, 1)
-        
-    def _init_events(self, es: list[LineEvent], et: int|None):
-        aes = []
-        for i, e in enumerate(es):
-            if i != len(es) - 1:
-                ne = es[i + 1]
-                if e.endTime.value < ne.startTime.value:
-                    aes.append(LineEvent(
-                        e.endTime, ne.startTime, e.end, e.end, et
-                    ))
-        es.extend(aes)
-        es.sort(key = lambda x: x.startTime.value)
-        if es: es.append(LineEvent(
-            es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, et
-        ))
+        _init_events(self.speedEvents, None)
+        _init_events(self.moveXEvents, 1)
+        _init_events(self.moveYEvents, 1)
+        _init_events(self.rotateEvents, 1)
+        _init_events(self.alphaEvents, 1)
         
 @dataclass
 class Extended:
@@ -113,8 +118,15 @@ class Extended:
     textEvents: list[LineEvent]
     
     def __post_init__(self):
-        self.colorEvents.sort(key = lambda x: x.startTime.value, reverse = True)
-        self.textEvents.sort(key = lambda x: x.startTime.value, reverse = True)
+        self.scaleXEvents.sort(key = lambda x: x.startTime.value)
+        self.scaleYEvents.sort(key = lambda x: x.startTime.value)
+        self.colorEvents.sort(key = lambda x: x.startTime.value)
+        self.textEvents.sort(key = lambda x: x.startTime.value)
+
+        _init_events(self.scaleXEvents, 1)
+        _init_events(self.scaleYEvents, 1)
+        _init_events(self.colorEvents, 1)
+        _init_events(self.textEvents, 1)
 
 @dataclass
 class MetaData:
@@ -138,15 +150,24 @@ class JudgeLine:
     numOfNotes: int
     isCover: int
     Texture: str
+    attachUI: str|None
     eventLayers: list[EventLayer]
     extended: Extended|None
     notes: list[Note]
     father: int
     
-    def GetEventValue(self, t:float, es: list[LineEvent], default: float):
+    def GetEventValue(self, t:float, es: list[LineEvent], default):
         for e in es:
             if e.startTime.value <= t <= e.endTime.value:
-                return Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
+                if isinstance(e.start, float|int):
+                    return Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
+                elif isinstance(e.start, str):
+                    return e.start
+                elif isinstance(e.start, list):
+                    r = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], rpe_easing.ease_funcs[e.easingType - 1])
+                    g = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], rpe_easing.ease_funcs[e.easingType - 1])
+                    b = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], rpe_easing.ease_funcs[e.easingType - 1])
+                    return [r, g, b]
         return default
     
     @lru_cache
@@ -182,24 +203,10 @@ class JudgeLine:
             lineRotate += self.GetEventValue(t, layer.rotateEvents, 0.0)
         
         if self.extended:
-            for e in self.extended.colorEvents: # reverse sorted
-                if e.endTime.value <= t:
-                    lineColor = e.end
-                    break
-                elif e.startTime.value <= t:
-                    lineColor = e.start
-                    break
-            
             lineScaleX = self.GetEventValue(t, self.extended.scaleXEvents, lineScaleX)
             lineScaleY = self.GetEventValue(t, self.extended.scaleYEvents, lineScaleY)
-
-            for e in self.extended.textEvents: # reverse sorted
-                if e.endTime.value <= t:
-                    lineText = e.end
-                    break
-                elif e.startTime.value <= t:
-                    lineText = e.start
-                    break
+            lineColor = self.GetEventValue(t, self.extended.colorEvents, lineColor)
+            lineText = self.GetEventValue(t, self.extended.textEvents, lineText)
             
         return Tool_Functions.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
@@ -257,6 +264,8 @@ class Rpe_Chart:
         for line in self.JudgeLineList:
             for note in line.notes:
                 note._init(self, avgBpm)
+        
+        self.note_num = len([i for line in self.JudgeLineList for i in line.notes])
     
     @cache
     def sec2beat(self, t: float):
