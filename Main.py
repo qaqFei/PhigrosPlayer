@@ -666,7 +666,7 @@ def PlayChart_ThreadFunction():
     PlayChart_NowTime = - float("inf")
     PhigrosPlayManagerObject = PhigrosPlayManager(chart_obj.note_num)
     KeyDownCount = 0
-    keymap = {chr(i):False for i in range(97, 123)}
+    keymap = {chr(i): False for i in range(97, 123)}
     
     notes = [i for line in chart_obj.judgeLineList for i in line.notesAbove + line.notesBelow if not i.fake] if CHART_TYPE == Const.CHART_TYPE.PHI else [i for line in chart_obj.JudgeLineList for i in line.notes if not i.isFake]
     
@@ -737,10 +737,71 @@ def PlayChart_ThreadFunction():
             keymap[key] = False
     elif CHART_TYPE == Const.CHART_TYPE.RPE:
         def _KeyDown(key:str):
-            pass
+            nonlocal KeyDownCount
+            key = key.lower()
+            if len(key) != 1: return
+            if not (97 <= ord(key) <= 122): return
+            if keymap[key]: return
+            keymap[key] = True
+            KeyDownCount += 1
+            
+            can_judge_notes = [(i, offset) for i in notes if (
+                not i.player_clicked and
+                i.phitype in (Const.Note.TAP, Const.Note.HOLD) and
+                abs((offset := (i.secst - PlayChart_NowTime))) <= (0.2 if i.phitype == Const.Note.TAP else 0.16)
+            )]
+            can_use_safedrag = [(i, offset) for i in notes if (
+                i.phitype == Const.Note.DRAG and
+                not i.player_drag_judge_safe_used and
+                abs((offset := (i.secst - PlayChart_NowTime))) <= 0.16
+            )]
+            
+            can_judge_notes.sort(key = lambda x: abs(x[1]))
+            can_use_safedrag.sort(key = lambda x: abs(x[1]))
+            
+            if can_judge_notes:
+                n, offset = can_judge_notes[0]
+                abs_offset = abs(offset)
+                if 0.0 <= abs_offset <= 0.08:
+                    n.state = Const.NOTE_STATE.PERFECT
+                    if n.ishold:
+                        n.player_holdjudged = True
+                        n.player_holdclickstate = n.state
+                    else: # TAP
+                        PhigrosPlayManagerObject.addEvent("P")
+                elif 0.08 < abs_offset <= 0.16:
+                    n.state = Const.NOTE_STATE.GOOD
+                    if n.ishold:
+                        n.player_holdjudged = True
+                        n.player_holdclickstate = n.state
+                    else: # TAP
+                        PhigrosPlayManagerObject.addEvent("G", offset)
+                elif 0.16 < abs_offset <= 0.2: # only tap
+                    if can_use_safedrag: # not empty
+                        drag, drag_offset = can_use_safedrag[0]
+                        if not drag.player_will_click:
+                            drag.player_will_click = True
+                            drag.player_click_offset = drag_offset
+                        drag.player_drag_judge_safe_used = True
+                        return None
+                    
+                    n.player_badtime = PlayChart_NowTime
+                    n.player_badtime_beat = chart_obj.sec2beat(n.player_badtime)
+                    n.player_badjudge_floorp = n.floorPosition - n.masterLine.playingFloorPosition
+                    n.state = Const.NOTE_STATE.BAD
+                    PhigrosPlayManagerObject.addEvent("B")
+                    
+                if n.state != Const.NOTE_STATE.MISS:
+                    n.player_click_offset = offset
+                    n.player_clicked = True
         
         def _KeyUp(key:str):
-            pass
+            nonlocal KeyDownCount
+            key = key.lower()
+            if len(key) != 1: return
+            if not (97 <= ord(key) <= 122): return
+            if KeyDownCount > 0: KeyDownCount -= 1
+            keymap[key] = False
         
     root.jsapi.set_attr("PhigrosPlay_KeyDown", _KeyDown)
     root.jsapi.set_attr("PhigrosPlay_KeyUp", _KeyUp)
@@ -818,7 +879,67 @@ def PlayChart_ThreadFunction():
                     elif note.state == Const.NOTE_STATE.GOOD: PhigrosPlayManagerObject.addEvent("G", note.player_click_offset)
                     else: pass # note state is miss at clicking
             elif CHART_TYPE == Const.CHART_TYPE.RPE:
-                pass
+                if ( # (Drag / Flick) judge
+                    keydown and
+                    not note.player_clicked and
+                    note.phitype in (Const.Note.FLICK, Const.Note.DRAG) and
+                    abs((cktime := note.secst - PlayChart_NowTime)) <= 0.16 # +- 160ms
+                ):
+                    note.player_will_click = True
+                    
+                    if cktime <= 0.0: #late
+                        note.player_click_offset = cktime
+                
+                if ( # if Drag / Flick it`s time to click and judged, click it and update it.
+                    note.player_will_click and 
+                    not note.player_clicked and 
+                    note.secst <= PlayChart_NowTime
+                ):
+                    note.player_clicked = True
+                    note.state = Const.NOTE_STATE.PERFECT
+                    PhigrosPlayManagerObject.addEvent("P")
+                
+                if ( # play click sound
+                    note.player_clicked and
+                    not note.player_click_sound_played and
+                    note.state in (Const.NOTE_STATE.PERFECT, Const.NOTE_STATE.GOOD)
+                ):
+                    Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
+                    note.player_click_sound_played = True
+                
+                if ( # miss judge
+                    not note.player_clicked and
+                    not note.player_missed and
+                    note.secst - PlayChart_NowTime < - 0.2
+                ):
+                    note.player_missed = True
+                    PhigrosPlayManagerObject.addEvent("M")
+                
+                if ( # hold hold judge
+                    note.ishold and 
+                    note.player_clicked and
+                    note.state != Const.NOTE_STATE.MISS and
+                    note.secet - 0.2 >= PlayChart_NowTime
+                ):
+                    if note.player_last_testholdismiss_time + 0.16 <= time():
+                        if keydown:
+                            note.player_last_testholdismiss_time = time()
+                        else:
+                            note.player_holdmiss_time = PlayChart_NowTime
+                            note.state = Const.NOTE_STATE.MISS
+                            note.player_missed = True
+                            PhigrosPlayManagerObject.addEvent("M")
+                
+                if ( # hold end add event to manager judge
+                    note.ishold and
+                    note.player_holdjudged and # if judged is true, hold state is perfect/good/ miss(miss at clicking)
+                    not note.player_holdjudged_tomanager and
+                    note.player_holdjudge_tomanager_time <= PlayChart_NowTime
+                ):
+                    note.player_holdjudged_tomanager = True
+                    if note.state == Const.NOTE_STATE.PERFECT: PhigrosPlayManagerObject.addEvent("P")
+                    elif note.state == Const.NOTE_STATE.GOOD: PhigrosPlayManagerObject.addEvent("G", note.player_click_offset)
+                    else: pass # note state is miss at clicking
             
         if Kill_PlayThread_Flag:
             root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
@@ -830,10 +951,41 @@ def PlayChart_ThreadFunction():
             return
         sleep(1 / 480)
     
+def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perfect: bool, Task: Chart_Objects_Phi.FrameRenderTask):
+    color = (254, 255, 169) if perfect else (162, 238, 255)
+    imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
+    if clickeffect_randomblock:
+        beforedeg = 0
+        for deg in effect_random_blocks:
+            block_alpha = (1.0 - p) * 0.85
+            effect_random_point = Tool_Functions.rotate_point(
+                x, y, beforedeg + deg,
+                ClickEffect_Size * Tool_Functions.ease_out(p) / 1.25
+            )
+            block_size = EFFECT_RANDOM_BLOCK_SIZE
+            if p > 0.65: block_size -= (p - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
+            Task(
+                root.create_rectangle,
+                effect_random_point[0] - block_size,
+                effect_random_point[1] - block_size,
+                effect_random_point[0] + block_size,
+                effect_random_point[1] + block_size,
+                fillStyle = f"rgba{color + (block_alpha, )}",
+                wait_execute = True
+            )
+            beforedeg += 90
+    Task(
+        root.create_image,
+        f"{imn}_{int(p * (30 - 1)) + 1}",
+        x - ClickEffect_Size / 2,
+        y - ClickEffect_Size / 2,
+        ClickEffect_Size, ClickEffect_Size,
+        wait_execute = True
+    )
+        
 def GetFrameRenderTask_Phi(
     now_t:float,
-    judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,
-    show_start_time:float
+    judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs
 ):
     
     # Important!!! note 和 note_item 不是同一个东西!!!!!
@@ -1133,39 +1285,6 @@ def GetFrameRenderTask_Phi(
     effect_time = 0.5
     miss_effect_time = 0.2
     bad_effect_time = 0.5
-    def process_effect_base(x:float, y:float, p:float, effect_random_blocks, perfect:bool):
-        nonlocal Render_ClickEffect_Count
-        Render_ClickEffect_Count += 1
-        color = (254, 255, 169) if perfect else (162, 238, 255)
-        imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
-        if clickeffect_randomblock:
-            beforedeg = 0
-            for deg in effect_random_blocks:
-                block_alpha = (1.0 - p) * 0.85
-                effect_random_point = Tool_Functions.rotate_point(
-                    x, y, beforedeg + deg,
-                    ClickEffect_Size * Tool_Functions.ease_out(p) / 1.25
-                )
-                block_size = EFFECT_RANDOM_BLOCK_SIZE
-                if p > 0.65: block_size -= (p - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
-                Task(
-                    root.create_rectangle,
-                    effect_random_point[0] - block_size,
-                    effect_random_point[1] - block_size,
-                    effect_random_point[0] + block_size,
-                    effect_random_point[1] + block_size,
-                    fillStyle = f"rgba{color + (block_alpha, )}",
-                    wait_execute = True
-                )
-                beforedeg += 90
-        Task(
-            root.create_image,
-            f"{imn}_{int(p * (30 - 1)) + 1}",
-            x - ClickEffect_Size / 2,
-            y - ClickEffect_Size / 2,
-            ClickEffect_Size, ClickEffect_Size,
-            wait_execute = True
-        )
         
     def process_effect(
         note:Chart_Objects_Phi.note,
@@ -1182,7 +1301,7 @@ def GetFrameRenderTask_Phi(
             -will_show_effect_rotate,
             note.positionX * PHIGROS_X
         )
-        process_effect_base(*pos, p, effect_random_blocks, perfect)
+        process_effect_base(*pos, p, effect_random_blocks, perfect, Task)
     
     def process_miss(
         note:Chart_Objects_Phi.note
@@ -1453,9 +1572,10 @@ def GetFrameRenderTask_Phi(
     return Task
 
 def GetFrameRenderTask_Rpe(
-    now_t:float,
-    show_start_time:float
+    now_t:float
 ):
+    global PlayChart_NowTime; PlayChart_NowTime = now_t
+    
     Task = Chart_Objects_Phi.FrameRenderTask([], [])
     Task(root.clear_canvas, wait_execute = True)
     Task(draw_background)
@@ -1540,7 +1660,7 @@ def GetFrameRenderTask_Rpe(
         
         if negative_alpha: continue
         
-        lineFloorPosition = line.GetFloorPosition(0.0, now_t, chart_obj)
+        line.playingFloorPosition = line.GetFloorPosition(0.0, now_t, chart_obj)
         for note in line.notes:
             note_clicked = note.startTime.value < beatTime
             
@@ -1553,10 +1673,16 @@ def GetFrameRenderTask_Rpe(
                         f'(Resource["Note_Click_Audio"]["{note.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
                     ))
             
-            if not note.ishold and note.clicked: continue
-            elif note.ishold and beatTime > note.endTime.value: continue
+            if not note.ishold and note.clicked:
+                continue
+            elif note.ishold and beatTime > note.endTime.value:
+                continue
+            elif noautoplay and note.state == Const.NOTE_STATE.BAD:
+                continue
+            elif noautoplay and not note.ishold and note.player_clicked:
+                continue
             
-            noteFloorPosition = (note.floorPosition - lineFloorPosition) * h
+            noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h
             if noteFloorPosition < 0 and not note.ishold: continue
             noteAtJudgeLinePos = Tool_Functions.rotate_point(
                 *linePos, lineRotate, note.positionX2 * w
@@ -1622,6 +1748,8 @@ def GetFrameRenderTask_Rpe(
                             *holdhead_pos, lineToNoteRotate, this_note_height / 2
                         )
                         holdbody_length = holdLength - (this_note_height + this_noteend_height) / 2
+                        
+                    miss_alpha_change = 0.5 if noautoplay and note.player_missed else 1.0
                     
                     Task(
                         root.run_js_code,
@@ -1632,7 +1760,7 @@ def GetFrameRenderTask_Rpe(
                             {this_note_width * note.width},\
                             {this_noteend_height},\
                             {lineRotate},\
-                            {note.float_alpha}\
+                            {note.float_alpha * miss_alpha_change}\
                         );",
                         add_code_array = True
                     )
@@ -1647,7 +1775,7 @@ def GetFrameRenderTask_Rpe(
                                 {this_note_width * note.width},\
                                 {holdbody_length},\
                                 {lineRotate},\
-                                {note.float_alpha}\
+                                {note.float_alpha * miss_alpha_change}\
                             );",
                             add_code_array = True
                         )
@@ -1668,37 +1796,8 @@ def GetFrameRenderTask_Rpe(
                     )
                     
     effect_time = 0.5
-    def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perfect: bool):
-        color = (254, 255, 169) if perfect else (162, 238, 255)
-        imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
-        if clickeffect_randomblock:
-            beforedeg = 0
-            for deg in effect_random_blocks:
-                block_alpha = (1.0 - p) * 0.85
-                effect_random_point = Tool_Functions.rotate_point(
-                    x, y, beforedeg + deg,
-                    ClickEffect_Size * Tool_Functions.ease_out(p) / 1.25
-                )
-                block_size = EFFECT_RANDOM_BLOCK_SIZE
-                if p > 0.65: block_size -= (p - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
-                Task(
-                    root.create_rectangle,
-                    effect_random_point[0] - block_size,
-                    effect_random_point[1] - block_size,
-                    effect_random_point[0] + block_size,
-                    effect_random_point[1] + block_size,
-                    fillStyle = f"rgba{color + (block_alpha, )}",
-                    wait_execute = True
-                )
-                beforedeg += 90
-        Task(
-            root.create_image,
-            f"{imn}_{int(p * (30 - 1)) + 1}",
-            x - ClickEffect_Size / 2,
-            y - ClickEffect_Size / 2,
-            ClickEffect_Size, ClickEffect_Size,
-            wait_execute = True
-        )
+    miss_effect_time = 0.2
+    bad_effect_time = 0.5
         
     def process_effect(
         note: Chart_Objects_Rpe.Note,
@@ -1715,11 +1814,77 @@ def GetFrameRenderTask_Rpe(
             lineRotate,
             note.positionX2 * w
         )
-        process_effect_base(*pos, p, effect_random_blocks, perfect)
+        process_effect_base(*pos, p, effect_random_blocks, perfect, Task)
+    
+    def process_miss(
+        note:Chart_Objects_Rpe.Note
+    ):
+        t = chart_obj.sec2beat(now_t)
+        p = (now_t - note.secst) / miss_effect_time
+        linePos = Tool_Functions.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
+        lineRotate = sum([line.GetEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
+        pos = Tool_Functions.rotate_point(
+            *linePos,
+            lineRotate,
+            note.positionX2 * w
+        )
+        floorp = note.floorPosition - line.playingFloorPosition
+        x, y = Tool_Functions.rotate_point(
+            *pos,
+            (-90 if note.above == 1 else 90) + lineRotate,
+            floorp * h
+        )
+        img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
+        this_note_img = Resource["Notes"][img_keyname]
+        this_note_imgname = f"Note_{img_keyname}"
+        Task(
+            root.run_js_code,
+            f"ctx.drawRotateImage(\
+                {root.get_img_jsvarname(this_note_imgname)},\
+                {x},\
+                {y},\
+                {Note_width * note.width},\
+                {Note_width / this_note_img.width * this_note_img.height},\
+                {lineRotate},\
+                {note.float_alpha * (1 - p ** 0.5)}\
+            );",
+            add_code_array = True
+        )
+    
+    def process_bad(
+        note:Chart_Objects_Rpe.Note
+    ):
+        t = note.player_badtime_beat
+        p = (now_t - note.player_badtime) / bad_effect_time
+        linePos = Tool_Functions.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
+        lineRotate = sum([line.GetEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
+        pos = Tool_Functions.rotate_point(
+            *linePos,
+            lineRotate,
+            note.positionX2 * w
+        )
+        x, y = Tool_Functions.rotate_point(
+            *pos,
+            (-90 if note.above == 1 else 90) + lineRotate,
+            note.player_badjudge_floorp * h
+        )
+        this_note_img = Resource["Notes"]["Tap_Bad"]
+        Task(
+            root.run_js_code,
+            f"ctx.drawRotateImage(\
+                {root.get_img_jsvarname("Note_Tap_Bad")},\
+                {x},\
+                {y},\
+                {Note_width * note.width * (Const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
+                {Note_width / this_note_img.width * this_note_img.height},\
+                {lineRotate},\
+                {note.float_alpha * (1 - p ** 3)}\
+            );",
+            add_code_array = True
+        )
     
     for line in chart_obj.JudgeLineList:
         for note in line.notes:
-            note_sectime = chart_obj.beat2sec(note.startTime.value)
             if not note.ishold and note.show_effected:
                 continue
             elif note.isFake:
@@ -1727,12 +1892,11 @@ def GetFrameRenderTask_Rpe(
             
             if not noautoplay:
                 if note.clicked:
-                    if now_t - note_sectime <= effect_time:
-                        seed(id(note))
+                    if now_t - note.secst <= effect_time:
                         process_effect(
                             note,
                             note.startTime.value,
-                            Tool_Functions.get_effect_random_blocks(),
+                            note.effect_random_blocks,
                             True
                         )
                     else:
@@ -1751,7 +1915,37 @@ def GetFrameRenderTask_Rpe(
                                             True
                                         )
             else: # noautoplay
-                pass
+                if note.player_holdjudged or (note.state == Const.NOTE_STATE.PERFECT or note.state == Const.NOTE_STATE.GOOD and note.player_clicked):
+                    if note.secst - note.player_click_offset <= now_t:
+                        if now_t - (note.secst - note.player_click_offset) <= effect_time:
+                            process_effect(
+                                note,
+                                chart_obj.sec2beat(note.secst - note.player_click_offset),
+                                note.effect_random_blocks,
+                                note.state == Const.NOTE_STATE.PERFECT if not note.ishold else note.player_holdclickstate == Const.NOTE_STATE.PERFECT
+                            )
+                        else:
+                            note.show_effected = True
+                elif note.state == Const.NOTE_STATE.MISS:
+                    if 0.0 <= now_t - note.secst <= miss_effect_time and not note.ishold:
+                        process_miss(note)
+                elif note.state == Const.NOTE_STATE.BAD:
+                    if 0.0 <= now_t - note.player_badtime <= bad_effect_time:
+                        process_bad(note)
+                        
+                if note.ishold and note.player_holdjudged and note.player_holdclickstate != Const.NOTE_STATE.MISS:
+                    efct_et = note.player_holdmiss_time + effect_time
+                    if efct_et >= now_t:
+                        for temp_time, hold_effect_random_blocks in note.effect_times:
+                            if temp_time < now_t:
+                                if now_t - temp_time <= effect_time:
+                                    if temp_time + effect_time <= efct_et:
+                                        process_effect(
+                                            note,
+                                            chart_obj.sec2beat(temp_time),
+                                            hold_effect_random_blocks,
+                                            note.player_holdclickstate == Const.NOTE_STATE.PERFECT
+                                        )
     
     combo = len([i for line in chart_obj.JudgeLineList for i in line.notes if (not i.ishold and i.clicked) or (i.ishold and i.secet - 0.2 < now_t)]) if not noautoplay else PhigrosPlayManagerObject.getCombo()
     time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
@@ -2062,13 +2256,11 @@ def PlayerStart():
             if CHART_TYPE == Const.CHART_TYPE.PHI:
                 Task = GetFrameRenderTask_Phi(
                     now_t,
-                    judgeLine_Configs,
-                    show_start_time
+                    judgeLine_Configs
                 )
             elif CHART_TYPE == Const.CHART_TYPE.RPE:
                 Task = GetFrameRenderTask_Rpe(
-                    now_t,
-                    show_start_time
+                    now_t
                 )
             Task.ExecTask()
             
@@ -2114,13 +2306,11 @@ def PlayerStart():
                 if CHART_TYPE == Const.CHART_TYPE.PHI:
                     lfdaot_tasks.update({frame_count:GetFrameRenderTask_Phi(
                         frame_count * frame_time,
-                        judgeLine_Configs,
-                        show_start_time
+                        judgeLine_Configs
                     )})
                 elif CHART_TYPE == Const.CHART_TYPE.RPE:
                     lfdaot_tasks.update({frame_count:GetFrameRenderTask_Rpe(
-                        frame_count * frame_time,
-                        show_start_time
+                        frame_count * frame_time
                     )})
                 
                 frame_count += 1

@@ -55,23 +55,45 @@ class Note:
     floorPosition: float = 0.0
     holdLength: float = 0.0
     show_effected: bool = False
+    masterLine: JudgeLine|None = None
+    
+    state: int = Const.NOTE_STATE.MISS
+    player_clicked: bool = False
+    player_click_offset: float = 0.0
+    player_click_sound_played: bool = False
+    player_will_click: bool = False
+    player_missed: bool = False
+    player_badtime: float = float("nan")
+    player_holdmiss_time: float = float("inf")
+    player_last_testholdismiss_time: float = -float("inf")
+    player_holdjudged: bool = False
+    player_holdclickstate: int = Const.NOTE_STATE.MISS
+    player_holdjudged_tomanager: bool = False
+    player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
+    player_drag_judge_safe_used: bool = False
+    
+    player_badtime_beat: float = float("nan")
+    player_badjudge_floorp: float = float("nan")
     
     def __post_init__(self):
+        self.phitype = {1:1, 2:3, 3:4, 4:2}[self.type]
         self.type_string = {
             Const.Note.TAP: "Tap",
             Const.Note.DRAG: "Drag",
             Const.Note.HOLD: "Hold",
             Const.Note.FLICK: "Flick"
-        }[{1:1, 2:3, 3:4, 4:2}[self.type]]
+        }[self.phitype]
         self.positionX2 = self.positionX / 1350
         self.float_alpha = (255 & int(self.alpha)) / 255
         self.ishold = self.type_string == "Hold"
+        self.effect_random_blocks = Tool_Functions.get_effect_random_blocks()
     
     def _init(self, master: Rpe_Chart, avgBpm: float):
         self.effect_times = []
         hold_starttime = master.beat2sec(self.startTime.value)
         hold_effect_blocktime = 1 / avgBpm * 30
         hold_endtime = master.beat2sec(self.endTime.value)
+        self.player_holdjudge_tomanager_time = max(0, master.beat2sec(self.endTime.value) - 0.2)
         while True:
             hold_starttime += hold_effect_blocktime
             if hold_starttime >= hold_endtime:
@@ -155,6 +177,8 @@ class JudgeLine:
     extended: Extended|None
     notes: list[Note]
     father: int
+    
+    playingFloorPosition: float = 0.0
     
     def GetEventValue(self, t:float, es: list[LineEvent], default):
         for e in es:
@@ -264,6 +288,7 @@ class Rpe_Chart:
         for line in self.JudgeLineList:
             for note in line.notes:
                 note._init(self, avgBpm)
+                note.masterLine = line
         
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes])
     
