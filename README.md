@@ -2,6 +2,7 @@
 
 ## 环境配置
 - Python 版本: `3.12.0`
+- Windows 版本需 >= `8.1`, `release` 也一样
 - 第三方库: [requirements.txt](./requirements.txt)
 
 ## 兼容性
