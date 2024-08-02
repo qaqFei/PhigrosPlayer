@@ -177,25 +177,6 @@ def LoadChartObject():
         chart_obj = Chart_Functions_Phi.Load_Chart_Object(chart_json)
     elif CHART_TYPE == Const.CHART_TYPE.RPE:
         chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
-        
-        if 0: # TODO: Add RPE Chart Support (Deving...)
-            temp_rpe_fdir = f"{gettempdir()}/qfppr_cctemp_{time() + randint(0, 2 << 31)}"
-            try: mkdir(temp_rpe_fdir)
-            except Exception: pass
-            temp_rpe_fp = f"{temp_rpe_fdir}\\{basename(phigros_chart_filepath)}"
-            temp_7z_fp = f"{temp_rpe_fdir}\\{basename(phigros_chart_filepath)}.7z"
-            info_fp = f"{temp_dir}\\info.txt" if exists(f"{temp_dir}\\info.txt") else f"{temp_dir}\\info.csv" if exists(f"{temp_dir}\\info.csv") else f"{temp_dir}\\info.yml" if exists(f"{temp_dir}\\info.yml") else None
-            print("running rpe2phi...")
-            popen(f"{rpe2phi_prgm} {phigros_chart_filepath} {temp_rpe_fp}{f" --extra \"{temp_dir}\\extra.json\"" if exists(f"{temp_dir}\\extra.json") else ""}").read() # if call read function, we will wait still the program finish.
-            popen(
-                f"\
-                    .\\7z.exe a -t7z \"{temp_7z_fp}\"\
-                    \"{temp_rpe_fp}\" \"{chart_image_filepath}\" \"{audio_file}\"\
-                " + f" \"{info_fp}\"" if info_fp is not None else "" + " -mmt"
-            ).read()
-            print("rpe2phi finished, restart...")
-            system(f"start {self_fp} {temp_7z_fp} " + " ".join(map(lambda x: f"\"{x}\"", argv[2:]))) # restart!
-            windll.kernel32.ExitProcess(0)
 LoadChartObject()
 extend_object.chart_loaded(chart_obj)
 
@@ -451,45 +432,7 @@ def draw_ui(
     clear:bool = True,
     background:bool = True,
     animationing:bool = False,
-    dy:float = 0.0,
-    
-    pauseUI_dx: float = 0.0,
-    pauseUI_dy: float = 0.0,
-    pauseUI_scaleX: float = 1.0,
-    pauseUI_scaleY: float = 1.0,
-    pauseUI_color = "rgb(255, 255, 255)",
-    
-    combonumberUI_dx: float = 0.0,
-    combonumberUI_dy: float = 0.0,
-    combonumberUI_scaleX: float = 1.0,
-    combonumberUI_scaleY: float = 1.0,
-    combonumberUI_color = "rgb(255, 255, 255)",
-    
-    comboUI_dx: float = 0.0,
-    comboUI_dy: float = 0.0,
-    comboUI_scaleX: float = 1.0,
-    comboUI_scaleY: float = 1.0,
-    comboUI_color = "rgb(255, 255, 255)",
-    
-    scoreUI_dx: float = 0.0,
-    scoreUI_dy: float = 0.0,
-    scoreUI_scaleX: float = 1.0,
-    scoreUI_scaleY: float = 1.0,
-    scoreUI_color = "rgb(255, 255, 255)",
-    
-    nameUI_dx: float = 0.0,
-    nameUI_dy: float = 0.0,
-    nameUI_scaleX: float = 1.0,
-    nameUI_scaleY: float = 1.0,
-    nameUI_color = "rgb(255, 255, 255)",
-    
-    levelUI_dx: float = 0.0,
-    levelUI_dy: float = 0.0,
-    levelUI_scaleX: float = 1.0,
-    levelUI_scaleY: float = 1.0,
-    levelUI_color = "rgb(255, 255, 255)",
-    
-    *args, **kwargs
+    dy:float = 0.0
 ):
     if clear:
         root.clear_canvas(wait_execute = True)
@@ -1532,6 +1475,7 @@ def GetFrameRenderTask_Rpe(
     
     for line_index, line in enumerate(chart_obj.JudgeLineList):
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t), (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
+        if judgeline_notransparent: lineAlpha = 1.0
         linePos = (linePos[0] * w, linePos[1] * h)
         judgeLine_DrawPos = (
             *Tool_Functions.rotate_point(*linePos, lineRotate, 5.76 * h * lineScaleX),
@@ -1539,7 +1483,7 @@ def GetFrameRenderTask_Rpe(
         )
         negative_alpha = lineAlpha < 0.0
         judgeLine_webCanvas_color = f"rgba{tuple(lineColor) + (lineAlpha, )}"
-        if lineAlpha > 0.0:
+        if lineAlpha > 0.0 and show_judgeline:
             if line.Texture != "line.png":
                 texture: Image.Image = chart_res[line.Texture]
                 Task(

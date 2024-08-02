@@ -21,7 +21,6 @@ debug = "--debug" in argv
 compile_files = [
     ("Main.py", False),
     ("GUI_Launcher.py", True),
-    ("rpe2phi.py", False),
     ("ProcessChartAudio.py", False),
     ("OutputVideo.py", False)
 ]
