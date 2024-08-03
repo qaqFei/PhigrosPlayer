@@ -3093,34 +3093,6 @@ window.loop_to_close()
 windll.kernel32.ExitProcess(0)
 ```
 
-## PhigrosPlayer Extend / PhigrosPlayer 扩展
-- `-extend <python_file>`参数的使用
-- `PhigrosPlayer_Extend.update`方法会在每一次计算完成渲染数据时调用 (only phi chart)
-- 示例(禁用ui):
-  ```python
-  import typing
-
-  class PhigrosPlayer_Extend:
-      def __init__(
-          self,
-          get_globals: typing.Callable[[], typing.Any]
-      ) -> None:
-          self._get_globals = get_globals
-      
-      def globals(self):
-          return self._get_globals()
-      
-      def update(self, locals_dict):
-          task = locals_dict["Task"]
-          task.RenderTasks = [i for i in task.RenderTasks if i.func.__name__ != "draw_ui"]
-      
-      def __getattribute__(self, name: str) -> typing.Any:
-          try:
-              return object.__getattribute__(self, name)
-          except AttributeError:
-              return lambda *args, **kwargs: None
-  ```
-
 ## 些许可能代码会存在误解的地方
 - `Chart_Functions_Rpe` 和 `Chart_Objects_Rpe` 中`Note`的`width`属性为`JSON`数据中的`size`
 

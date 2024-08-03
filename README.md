@@ -31,7 +31,6 @@
 - `--ease-event-interpolation` 在事件插值时使用缓动 tip: 适用于几乎不存在缓动的谱面 否则可能会出现在细小的线性事件中进行缓动插值 从而导致判定线出现移动或旋转卡顿 // 注定仅对Phi谱面生效
 - `--frameless` 窗口无边框
 - `--window-host <integer-hwnd-value>` 将窗口设置为指定窗口的子窗口
-- `--extend <python_file>` 使用扩展 详见`docs/docs.md`
 - `--no-mixer-reset-chart-time` 在 `mixer` 的时间与谱面播放时间存在较大误差时 不进行纠正
 - `--noautoplay` 禁用`Autoplay`, 进行游玩谱面(目前仅支持键盘操作(a ~ z 26个字母才判定点击, 忽略大小写), 不支持鼠标) 不支持rpe
 - `--rtacc` 实时`Acc`显示

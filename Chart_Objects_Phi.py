@@ -169,6 +169,8 @@ class judgeLine:
     RefID: str
     EnableMasterLine: bool
     MasterLine: str | judgeLine # string: ref id, set to judgeLine object at loaded.
+    
+    rotateValue: float = 0.0
 
     def __post_init__(self):
         self.T = 1.875 / self.bpm

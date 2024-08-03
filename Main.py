@@ -1,17 +1,15 @@
 from threading import Thread
 from ctypes import windll
-from os import chdir, environ, listdir, popen, system, mkdir ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
+from os import chdir, environ, listdir, popen; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
 from os.path import exists, abspath, dirname, isfile
 from sys import argv
 from time import time, sleep
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
-from random import randint, seed
 import typing
 import json
 import base64
-import importlib.util
 
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 from pygame import mixer
@@ -30,7 +28,6 @@ import ConsoleWindow
 import Tool_Functions
 import dialog
 import Phigros_Tips
-import default_extend
 import info_loader
 import version
 import ppr_help
@@ -80,7 +77,6 @@ lfdoat_file = "--lfdaot-file" in argv
 render_range_more = "--render-range-more" in argv
 render_range_more_scale = 2.0 if "--render-range-more-scale" not in argv else eval(argv[argv.index("--render-range-more-scale")+1])
 lfdaot_render_video = "--lfdaot-render-video" in argv
-extend_file = argv[argv.index("--extend") + 1] if "--extend" in argv else "./default_extend.py"
 no_mixer_reset_chart_time = "--no-mixer-reset-chart-time" in argv
 noautoplay = "--noautoplay" in argv
 rtacc = "--rtacc" in argv
@@ -88,13 +84,6 @@ rtacc = "--rtacc" in argv
 if lfdaot and noautoplay:
     noautoplay = False
     print("Warning: if use --lfdaot, you cannot use --noautoplay.")
-
-extend_file_spec = importlib.util.spec_from_file_location("extend", extend_file)
-extend = importlib.util.module_from_spec(extend_file_spec)
-extend_file_spec.loader.exec_module(extend)
-extend_object:default_extend.PhigrosPlayer_Extend = extend.PhigrosPlayer_Extend(
-    lambda *args, **kwargs: globals(*args, **kwargs)
-)
 
 print("Init Pygame Mixer...")
 mixer.init()
@@ -168,7 +157,6 @@ def LoadChartObject():
     elif CHART_TYPE == Const.CHART_TYPE.RPE:
         chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
 LoadChartObject()
-extend_object.chart_loaded(chart_obj)
 
 if len(chart_files_dict["images"]) > 1:
     if CHART_TYPE == Const.CHART_TYPE.RPE and chart_obj.META.background in [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]]:
@@ -691,8 +679,8 @@ def PlayChart_ThreadFunction():
                 abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= 0.16
             )]
             
-            can_judge_notes.sort(key = lambda x: abs(x[1]))
-            can_use_safedrag.sort(key = lambda x: abs(x[1]))
+            can_judge_notes.sort(key = lambda x: x[1])
+            can_use_safedrag.sort(key = lambda x: x[1])
             
             if can_judge_notes:
                 n, offset = can_judge_notes[0]
@@ -727,14 +715,6 @@ def PlayChart_ThreadFunction():
                 if n.state != Const.NOTE_STATE.MISS:
                     n.player_click_offset = offset
                     n.player_clicked = True
-        
-        def _KeyUp(key:str):
-            nonlocal KeyDownCount
-            key = key.lower()
-            if len(key) != 1: return
-            if not (97 <= ord(key) <= 122): return
-            if KeyDownCount > 0: KeyDownCount -= 1
-            keymap[key] = False
     elif CHART_TYPE == Const.CHART_TYPE.RPE:
         def _KeyDown(key:str):
             nonlocal KeyDownCount
@@ -756,8 +736,8 @@ def PlayChart_ThreadFunction():
                 abs((offset := (i.secst - PlayChart_NowTime))) <= 0.16
             )]
             
-            can_judge_notes.sort(key = lambda x: abs(x[1]))
-            can_use_safedrag.sort(key = lambda x: abs(x[1]))
+            can_judge_notes.sort(key = lambda x: x[1])
+            can_use_safedrag.sort(key = lambda x: x[1])
             
             if can_judge_notes:
                 n, offset = can_judge_notes[0]
@@ -794,15 +774,15 @@ def PlayChart_ThreadFunction():
                 if n.state != Const.NOTE_STATE.MISS:
                     n.player_click_offset = offset
                     n.player_clicked = True
-        
-        def _KeyUp(key:str):
-            nonlocal KeyDownCount
-            key = key.lower()
-            if len(key) != 1: return
-            if not (97 <= ord(key) <= 122): return
-            if KeyDownCount > 0: KeyDownCount -= 1
-            keymap[key] = False
-        
+    
+    def _KeyUp(key:str):
+        nonlocal KeyDownCount
+        key = key.lower()
+        if len(key) != 1: return
+        if not (97 <= ord(key) <= 122): return
+        if KeyDownCount > 0: KeyDownCount -= 1
+        keymap[key] = False
+    
     root.jsapi.set_attr("PhigrosPlay_KeyDown", _KeyDown)
     root.jsapi.set_attr("PhigrosPlay_KeyUp", _KeyUp)
     root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', e.key);});")
@@ -944,9 +924,6 @@ def PlayChart_ThreadFunction():
         if Kill_PlayThread_Flag:
             root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
             root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
-            root.run_js_code("delete _PhigrosPlay_KeyDown; delete _PhigrosPlay_KeyUp;")
-            delattr(root.jsapi, "PhigrosPlay_KeyDown")
-            delattr(root.jsapi, "PhigrosPlay_KeyUp")
             Kill_PlayThread_Flag = False
             return
         sleep(1 / 480)
@@ -991,11 +968,6 @@ def GetFrameRenderTask_Phi(
     # Important!!! note 和 note_item 不是同一个东西!!!!!
     
     global PlayChart_NowTime; PlayChart_NowTime = now_t
-    
-    GetFrameRenderTask_Phi_CallTime = time() # use in some extend
-    Render_JudgeLine_Count = 0
-    Render_Note_Count = 0
-    Render_ClickEffect_Count = 0
     
     Task = Chart_Objects_Phi.FrameRenderTask([], [])
     Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs, now_t)
@@ -1096,7 +1068,6 @@ def GetFrameRenderTask_Phi(
                         wait_execute = True
                     )
                     
-                Render_JudgeLine_Count += 1
                 if render_range_more:
                     Task(
                         root.run_js_code,
@@ -1105,7 +1076,6 @@ def GetFrameRenderTask_Phi(
                     )
         
         def process(notes_list:typing.List[Chart_Objects_Phi.note], t:typing.Literal[1, -1]): # above => t = 1, below => t = -1
-            nonlocal Render_Note_Count
             for note_item in notes_list:
                 this_note_sectime = note_item.time * this_judgeLine_T
                 this_noteitem_clicked = this_note_sectime < now_t
@@ -1276,8 +1246,6 @@ def GetFrameRenderTask_Phi(
                             );",
                             add_code_array = True #eq wait_exec true
                         )
-                    
-                    Render_Note_Count += 1
         process(judgeLine.notesAbove,1)
         process(judgeLine.notesBelow,-1)
 
@@ -1564,11 +1532,9 @@ def GetFrameRenderTask_Phi(
     for extra_item in extra_render_task:
         if extra_item["global"]:
             do_extra(extra_item)
-    
         
     CheckMusicOffsetAndEnd(now_t, Task)
     Task(root.run_js_wait_code)
-    extend_object.update(locals())
     return Task
 
 def GetFrameRenderTask_Rpe(
@@ -2945,7 +2911,6 @@ Chart_Functions_Phi.Init(
     PHIGROS_X_ = PHIGROS_X, PHIGROS_Y_ = PHIGROS_Y,
     w_ = w, h_ = h
 )
-extend_object.loaded()
 Thread(target=Show_Start,daemon=True).start()
 root.loop_to_close()
 
