@@ -410,7 +410,43 @@ def draw_ui(
     clear:bool = True,
     background:bool = True,
     animationing:bool = False,
-    dy:float = 0.0
+    dy:float = 0.0,
+    
+    combonumberUI_dx: float = 0.0,
+    combonumberUI_dy: float = 0.0,
+    combonumberUI_scaleX: float = 1.0,
+    combonumberUI_scaleY: float = 1.0,
+    combonumberUI_color: str = "rgb(255, 255, 255)",
+    
+    comboUI_dx: float = 0.0,
+    comboUI_dy: float = 0.0,
+    comboUI_scaleX: float = 1.0,
+    comboUI_scaleY: float = 1.0,
+    comboUI_color: str = "rgb(255, 255, 255)",
+    
+    scoreUI_dx: float = 0.0,
+    scoreUI_dy: float = 0.0,
+    scoreUI_scaleX: float = 1.0,
+    scoreUI_scaleY: float = 1.0,
+    scoreUI_color: str = "rgb(255, 255, 255)",
+    
+    nameUI_dx: float = 0.0,
+    nameUI_dy: float = 0.0,
+    nameUI_scaleX: float = 1.0,
+    nameUI_scaleY: float = 1.0,
+    nameUI_color: str = "rgb(255, 255, 255)",
+    
+    levelUI_dx: float = 0.0,
+    levelUI_dy: float = 0.0,
+    levelUI_scaleX: float = 1.0,
+    levelUI_scaleY: float = 1.0,
+    levelUI_color: str = "rgb(255, 255, 255)",
+    
+    pauseUI_dx: float = 0.0, # in fact, timeUI...
+    pauseUI_dy: float = 0.0,
+    pauseUI_scaleX: float = 1.0,
+    pauseUI_scaleY: float = 1.0,
+    pauseUI_color: str = "rgb(255, 255, 255)",
 ):
     if clear:
         root.clear_canvas(wait_execute = True)
@@ -434,93 +470,107 @@ def draw_ui(
         wait_execute = True
     )
     
-    root.create_text(
-        text = score,
-        x = w * 0.988,
-        y = h * 0.045,
-        textAlign = "right",
-        textBaseline = "middle",
-        strokeStyle = "white",
-        fillStyle = "white",
-        font = f"{((w + h) / 75 / 0.75)}px PhigrosFont",
-        wait_execute = True
+    root.run_js_code(
+        f"ctx.drawUIText(\
+            '{root.process_code_string_syntax_tostring(score)}',\
+            {w * 0.988 + scoreUI_dx},\
+            {h * 0.045 + scoreUI_dy},\
+            {scoreUI_scaleX},\
+            {scoreUI_scaleY},\
+            '{scoreUI_color}',\
+            {(w + h) / 75 / 0.75},\
+            'right',\
+        );",
+        add_code_array = True
     )
     
     if rtacc:
-        root.create_text(
-            text = acc,
-            x = w * 0.988,
-            y = h * 0.08,
-            textAlign = "right",
-            textBaseline = "middle",
-            strokeStyle = "white",
-            fillStyle = "white",
-            font = f"{((w + h) / 145 / 0.75)}px PhigrosFont",
-            wait_execute = True
+        root.run_js_code(
+            f"ctx.drawUIText(\
+                '{root.process_code_string_syntax_tostring(acc)}',\
+                {w * 0.988 + scoreUI_dx},\
+                {h * 0.0875 + scoreUI_dy},\
+                {scoreUI_scaleX},\
+                {scoreUI_scaleY},\
+                '{scoreUI_color}',\
+                {(w + h) / 145 / 0.75},\
+                'right',\
+            );",
+            add_code_array = True
         )
     
     if combo_state:
-        root.create_text(
-            text = f"{combo}",
-            x = w / 2,
-            y = h * 0.05,
-            textAlign = "center",
-            textBaseline = "middle",
-            strokeStyle = "white",
-            fillStyle = "white",
-            font = f"{((w + h) / 75 / 0.75)}px PhigrosFont",
-            wait_execute = True
+        root.run_js_code(
+            f"ctx.drawUIText(\
+                '{root.process_code_string_syntax_tostring(f"{combo}")}',\
+                {w / 2 + combonumberUI_dx},\
+                {h * 0.05 + combonumberUI_dy},\
+                {combonumberUI_scaleX},\
+                {combonumberUI_scaleY},\
+                '{combonumberUI_color}',\
+                {(w + h) / 75 / 0.75},\
+                'center',\
+            );",
+            add_code_array = True
         )
         
-        root.create_text(
-            text=("Autoplay" if not noautoplay else "Combo") if "--combotips" not in argv else argv[argv.index("--combotips") + 1],
-            x = w / 2,
-            y = h * 0.095,
-            textAlign = "center",
-            textBaseline = "middle",
-            strokeStyle = "white",
-            fillStyle = "white",
-            font = f"{((w + h) / 100 / 0.75)}px PhigrosFont",
-            wait_execute = True
+        root.run_js_code(
+            f"ctx.drawUIText(\
+                '{root.process_code_string_syntax_tostring(("Autoplay" if not noautoplay else "Combo") if "--combotips" not in argv else argv[argv.index("--combotips") + 1])}',\
+                {w / 2 + comboUI_dx},\
+                {h * 0.095 + comboUI_dy},\
+                {comboUI_scaleX},\
+                {comboUI_scaleY},\
+                '{comboUI_color}',\
+                {(w + h) / 100 / 0.75},\
+                'center',\
+            );",
+            add_code_array = True
         )
         
-    root.create_text(
-        text = now_time,
-        x = 0,
-        y = h * 0.01,
-        textAlign = "left",
-        textBaseline = "top",
-        strokeStyle = "white",
-        fillStyle = "white",
-        font = f"{((w + h) / 175 / 0.75)}px PhigrosFont",
-        wait_execute = True
+    root.run_js_code(
+        f"ctx.drawUIText(\
+            '{root.process_code_string_syntax_tostring(now_time)}',\
+            {pauseUI_dx},\
+            {h * 0.01 + (w + h) / 175 / 0.75 / 2 + pauseUI_dy},\
+            {pauseUI_scaleX},\
+            {pauseUI_scaleY},\
+            '{pauseUI_color}',\
+            {(w + h) / 175 / 0.75},\
+            'left',\
+        );",
+        add_code_array = True
     )
     
     if animationing:
         root.run_js_code(f"ctx.translate(0,-2 * {- h / 7 + dy});",add_code_array=True)
-    
-    root.create_text(
-        text = chart_information["Name"],
-        x = w * 0.0125,
-        y = h * 0.976,
-        textAlign = "left",
-        textBaseline = "bottom",
-        strokeStyle = "white",
-        fillStyle = "white",
-        font = f"{((w + h) / 125 / 0.75)}px PhigrosFont",
-        wait_execute = True
+        
+    root.run_js_code(
+        f"ctx.drawUIText(\
+            '{root.process_code_string_syntax_tostring(chart_information["Name"])}',\
+            {w * 0.0125 + nameUI_dx},\
+            {h * 0.976 - (w + h) / 125 / 0.75 / 2 + nameUI_dy},\
+            {nameUI_scaleX},\
+            {nameUI_scaleY},\
+            '{nameUI_color}',\
+            {(w + h) / 125 / 0.75},\
+            'left',\
+        );",
+        add_code_array = True
     )
-    
-    root.create_text(
-        text = chart_information["Level"],
-        x = w * 0.9875,
-        y = h * 0.976,
-        textAlign = "right",
-        textBaseline = "bottom",
-        strokeStyle = "white",
-        fillStyle = "white",
-        font = f"{((w + h) / 125 / 0.75)}px PhigrosFont",
-        wait_execute = True
+        
+    root.run_js_code(
+        f"ctx.drawUIText(\
+            '{root.process_code_string_syntax_tostring(chart_information["Level"])}',\
+            {w * 0.9875 + levelUI_dx},\
+            {h * 0.976 - (w + h) / 125 / 0.75 / 2 + levelUI_dy},\
+            {levelUI_scaleX},\
+            {levelUI_scaleY},\
+            '{levelUI_color}',\
+            {(w + h) / 125 / 0.75},\
+            'right',\
+        );",
+        add_code_array = True
     )
     
     root.create_text(
@@ -1040,7 +1090,7 @@ def GetFrameRenderTask_Phi(
                 Task(
                     root.create_line,
                     *judgeLine_DrawPos,
-                    lineWidth = JUDGELINE_WIDTH, # * yscale,
+                    lineWidth = JUDGELINE_WIDTH * yscale,
                     strokeStyle = judgeLine_webCanvas_color,
                     wait_execute = True
                 )
@@ -1548,6 +1598,7 @@ def GetFrameRenderTask_Rpe(
     
     now_t -= chart_obj.META.offset / 1000
     beatTime = chart_obj.sec2beat(now_t)
+    attachUIData = {}
     
     for line_index, line in enumerate(chart_obj.JudgeLineList):
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t), (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
@@ -1591,12 +1642,19 @@ def GetFrameRenderTask_Rpe(
                     add_code_array = True
                 )
             elif line.attachUI is not None:
-                pass # TODO
+                if line.attachUI in ("combonumber", "combo", "score", "name", "level", "pause"):
+                    attachUIData.update({
+                        f"{line.attachUI}UI_dx": linePos[0] - w / 2,
+                        f"{line.attachUI}UI_dy": linePos[1] - h / 2,
+                        f"{line.attachUI}UI_scaleX": lineScaleX,
+                        f"{line.attachUI}UI_scaleY": lineScaleY,
+                        f"{line.attachUI}UI_color": judgeLine_webCanvas_color
+                    })
             else:
                 Task(
                     root.create_line,
                     *judgeLine_DrawPos,
-                    lineWidth = JUDGELINE_WIDTH,
+                    lineWidth = JUDGELINE_WIDTH * lineScaleY,
                     strokeStyle = judgeLine_webCanvas_color,
                     wait_execute = True
                 )
@@ -1925,6 +1983,7 @@ def GetFrameRenderTask_Rpe(
         acc = "100.00%" if not noautoplay else f"{(PhigrosPlayManagerObject.getAcc() * 100):.2f}%",
         clear = False,
         background = False,
+        **attachUIData
     )
     now_t += chart_obj.META.offset / 1000
     CheckMusicOffsetAndEnd(now_t, Task)
