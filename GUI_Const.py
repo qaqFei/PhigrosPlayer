@@ -41,7 +41,6 @@ class CHINESE:
         SIZE = "窗口尺寸: "
         LFDAOT_FRAME_SPEED = "在创建提前加载帧数据基础上的谱面渲染数据文件的帧速度: "
         RENDER_RANGE_MORE_SCALE = "扩展渲染范围的缩放: "
-        EXTEND = "PhigrosPlayer 扩展文件: "
 
 class ENGLISH:
     FILE_INPUT_LABEL_TEXT = "Phigros Chart File Path: "
@@ -86,4 +85,3 @@ class ENGLISH:
         SIZE = "Window Size: "
         LFDAOT_FRAME_SPEED = "Create Frame Data Ahead of Time File Frame Speed: "
         RENDER_RANGE_MORE_SCALE = "Extend Render Range Scale: "
-        EXTEND = "PhigrosPlayer Extension File: "
