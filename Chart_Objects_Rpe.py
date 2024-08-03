@@ -177,6 +177,7 @@ class JudgeLine:
     extended: Extended|None
     notes: list[Note]
     father: int
+    zOrder: int
     
     playingFloorPosition: float = 0.0
     

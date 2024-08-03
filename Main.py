@@ -90,7 +90,7 @@ mixer.init()
 mixer.music.set_volume(0.85)
 
 print("Unpack Chart...")
-popen(f".\\7z.exe e \"{argv[1]}\" -o\"{temp_dir}\" >> nul").read()
+popen(f".\\7z.exe x \"{argv[1]}\" -o\"{temp_dir}\" >> nul").read()
 
 print("Loading All Files of Chart...")
 chart_files = Find_Files.Get_All_Files(temp_dir)
@@ -327,14 +327,14 @@ def Load_Resource():
                 for p in paths:
                     if exists(p) and isfile(p):
                         try:
-                            chart_res[line.Texture] = Image.open(p)
+                            chart_res[line.Texture] = Image.open(p).convert("RGBA")
                         except Exception as e:
                             print(f"Can't open texture {p} : {e}")
                             continue
                         break
                 else:
                     print(f"Can't find texture {line.Texture}")
-                    chart_res[line.Texture] = Image.new("RGBA", (1, 1), (0, 0, 0, 0))
+                    chart_res[line.Texture] = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
                 root.reg_img(chart_res[line.Texture], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
     
     with open("./Resources/font.ttf","rb") as f:
@@ -417,36 +417,42 @@ def draw_ui(
     combonumberUI_scaleX: float = 1.0,
     combonumberUI_scaleY: float = 1.0,
     combonumberUI_color: str = "rgb(255, 255, 255)",
+    combonumberUI_rotate: float = 0.0,
     
     comboUI_dx: float = 0.0,
     comboUI_dy: float = 0.0,
     comboUI_scaleX: float = 1.0,
     comboUI_scaleY: float = 1.0,
     comboUI_color: str = "rgb(255, 255, 255)",
+    comboUI_rotate: float = 0.0,
     
     scoreUI_dx: float = 0.0,
     scoreUI_dy: float = 0.0,
     scoreUI_scaleX: float = 1.0,
     scoreUI_scaleY: float = 1.0,
     scoreUI_color: str = "rgb(255, 255, 255)",
+    scoreUI_rotate: float = 0.0,
     
     nameUI_dx: float = 0.0,
     nameUI_dy: float = 0.0,
     nameUI_scaleX: float = 1.0,
     nameUI_scaleY: float = 1.0,
     nameUI_color: str = "rgb(255, 255, 255)",
+    nameUI_rotate: float = 0.0,
     
     levelUI_dx: float = 0.0,
     levelUI_dy: float = 0.0,
     levelUI_scaleX: float = 1.0,
     levelUI_scaleY: float = 1.0,
     levelUI_color: str = "rgb(255, 255, 255)",
+    levelUI_rotate: float = 0.0,
     
     pauseUI_dx: float = 0.0, # in fact, timeUI...
     pauseUI_dy: float = 0.0,
     pauseUI_scaleX: float = 1.0,
     pauseUI_scaleY: float = 1.0,
     pauseUI_color: str = "rgb(255, 255, 255)",
+    pauseUI_rotate: float = 0.0
 ):
     if clear:
         root.clear_canvas(wait_execute = True)
@@ -475,6 +481,7 @@ def draw_ui(
             '{root.process_code_string_syntax_tostring(score)}',\
             {w * 0.988 + scoreUI_dx},\
             {h * 0.045 + scoreUI_dy},\
+            {scoreUI_rotate},\
             {scoreUI_scaleX},\
             {scoreUI_scaleY},\
             '{scoreUI_color}',\
@@ -490,6 +497,7 @@ def draw_ui(
                 '{root.process_code_string_syntax_tostring(acc)}',\
                 {w * 0.988 + scoreUI_dx},\
                 {h * 0.0875 + scoreUI_dy},\
+                {scoreUI_rotate},\
                 {scoreUI_scaleX},\
                 {scoreUI_scaleY},\
                 '{scoreUI_color}',\
@@ -505,6 +513,7 @@ def draw_ui(
                 '{root.process_code_string_syntax_tostring(f"{combo}")}',\
                 {w / 2 + combonumberUI_dx},\
                 {h * 0.05 + combonumberUI_dy},\
+                {combonumberUI_rotate},\
                 {combonumberUI_scaleX},\
                 {combonumberUI_scaleY},\
                 '{combonumberUI_color}',\
@@ -519,6 +528,7 @@ def draw_ui(
                 '{root.process_code_string_syntax_tostring(("Autoplay" if not noautoplay else "Combo") if "--combotips" not in argv else argv[argv.index("--combotips") + 1])}',\
                 {w / 2 + comboUI_dx},\
                 {h * 0.095 + comboUI_dy},\
+                {comboUI_rotate},\
                 {comboUI_scaleX},\
                 {comboUI_scaleY},\
                 '{comboUI_color}',\
@@ -533,6 +543,7 @@ def draw_ui(
             '{root.process_code_string_syntax_tostring(now_time)}',\
             {pauseUI_dx},\
             {h * 0.01 + (w + h) / 175 / 0.75 / 2 + pauseUI_dy},\
+            {pauseUI_rotate},\
             {pauseUI_scaleX},\
             {pauseUI_scaleY},\
             '{pauseUI_color}',\
@@ -550,6 +561,7 @@ def draw_ui(
             '{root.process_code_string_syntax_tostring(chart_information["Name"])}',\
             {w * 0.0125 + nameUI_dx},\
             {h * 0.976 - (w + h) / 125 / 0.75 / 2 + nameUI_dy},\
+            {nameUI_rotate},\
             {nameUI_scaleX},\
             {nameUI_scaleY},\
             '{nameUI_color}',\
@@ -564,6 +576,7 @@ def draw_ui(
             '{root.process_code_string_syntax_tostring(chart_information["Level"])}',\
             {w * 0.9875 + levelUI_dx},\
             {h * 0.976 - (w + h) / 125 / 0.75 / 2 + levelUI_dy},\
+            {levelUI_rotate},\
             {levelUI_scaleX},\
             {levelUI_scaleY},\
             '{levelUI_color}',\
@@ -1600,7 +1613,7 @@ def GetFrameRenderTask_Rpe(
     beatTime = chart_obj.sec2beat(now_t)
     attachUIData = {}
     
-    for line_index, line in enumerate(chart_obj.JudgeLineList):
+    for line_index, line in sorted(enumerate(chart_obj.JudgeLineList), key = lambda x: x[1].zOrder):
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t), (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
         if judgeline_notransparent: lineAlpha = 1.0
         linePos = (linePos[0] * w, linePos[1] * h)
@@ -1615,7 +1628,7 @@ def GetFrameRenderTask_Rpe(
                 texture: Image.Image = chart_res[line.Texture]
                 Task(
                     root.run_js_code,
-                    f"ctx.drawRotateImage(\
+                    f"setTextureLineColorFilterColorMatrixValueByRgbValue{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; ctx.drawRotateImage(\
                         {root.get_img_jsvarname(f"lineTexture_{line_index}")},\
                         {linePos[0]},\
                         {linePos[1]},\
@@ -1623,7 +1636,7 @@ def GetFrameRenderTask_Rpe(
                         {texture.height * 0.75 * lineScaleY},\
                         {lineRotate},\
                         {lineAlpha}\
-                    );",
+                    ); ctx.filter = 'none';",
                     add_code_array = True
                 )
             elif lineText is not None:
@@ -1648,7 +1661,8 @@ def GetFrameRenderTask_Rpe(
                         f"{line.attachUI}UI_dy": linePos[1] - h / 2,
                         f"{line.attachUI}UI_scaleX": lineScaleX,
                         f"{line.attachUI}UI_scaleY": lineScaleY,
-                        f"{line.attachUI}UI_color": judgeLine_webCanvas_color
+                        f"{line.attachUI}UI_color": judgeLine_webCanvas_color,
+                        f"{line.attachUI}UI_rotate": lineRotate
                     })
             else:
                 Task(

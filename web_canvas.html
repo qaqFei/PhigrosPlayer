@@ -1,6 +1,17 @@
 <html>
     <head></head>
-    <body></body>
+    <body>
+        <svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+            <filter id="textureLineColorFilter">
+                <feColorMatrix type="matrix" values="
+                    1 0 0 0 0
+                    0 1 0 0 0
+                    0 0 1 0 0
+                    0 0 0 1 0
+                " id="textureLineColorFilterColorMatrix"></feColorMatrix>
+            </filter>
+          </svg>
+    </body>
 </html>
 
 <style type="text/css">
@@ -43,6 +54,7 @@
     font_loaded = false;
     uploadFrame_addQueue = false;
     uploadFrame_finish = false;
+    const textureLineColorFilterColorMatrix = document.getElementById("textureLineColorFilterColorMatrix");
 
     /*
     (if enable render_range_more)
@@ -52,6 +64,10 @@
     - if most call ctx.???Image and most call translate and scale in python, python can set this value to false, and at called function, set this value to true;
     */
     crc2d_enable_rrm = true;
+
+    function setTextureLineColorFilterColorMatrixValueByRgbValue(r, g, b) {
+        textureLineColorFilterColorMatrix.setAttribute("values", `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`);
+    }
 
     class RpeChartEffects {
         constructor(ctx) {
@@ -319,10 +335,11 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.drawUIText = function(text, x, y, xscale, yscale, color, fontsize, align) {
+    CanvasRenderingContext2D.prototype.drawUIText = function(text, x, y, deg, xscale, yscale, color, fontsize, align) {
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; fontsize /= render_range_more_scale;}
         this.save();
         this.translate(x, y);
+        this.rotate(deg * Math.PI / 180);
         this.scale(xscale, yscale);
         this.fillStyle = color;
         this.textAlign = align;

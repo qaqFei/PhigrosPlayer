@@ -30,6 +30,7 @@ def Load_Chart_Object(chart:dict):
                 Texture = judgeLine_item.get("Texture", "line.png"),
                 attachUI = judgeLine_item.get("attachUI", None),
                 father = judgeLine_item.get("father", -1),
+                zOrder = judgeLine_item.get("zOrder", 0),
                 eventLayers = [
                     Chart_Objects_Rpe.EventLayer(
                         speedEvents = [
