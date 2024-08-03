@@ -188,6 +188,7 @@ interpolation_phi(0.5,0.1,0.8,-114.514,314.159)
 begin_animation_eases = begin_animation_eases_class()
 finish_animation_eases = finish_animation_eases_class()
 
+@numba.jit
 def is_intersect(
     line_1: typing.Tuple[
         typing.Tuple[float, float],
@@ -232,8 +233,8 @@ def Note_CanRender(
         typing.Tuple[float, float],
         typing.Tuple[float, float]
     ], None] = None
-) -> bool:
-    if hold_points is None: # type != HOLD
+) -> bool: # note 宽度不会比窗口大的... 一定不会的... 相信我...!!                                                    好吧, 其实我就是想~~偷懒和~~节约性能...  note当线看能简单一些
+    if hold_points is None: # type != HOLD                                                                                         ↑↑↑↑↑↑↑↑↑ (划掉...)
         return (
             (0 < x < w and 0 < y < h) or
             (0 < x - note_max_size_half < w and 0 < y - note_max_size_half < h) or 
@@ -262,13 +263,25 @@ def TextureLine_CanRender(
     texture_max_size_half: float,
     x: float, y: float
 ) -> bool:
-    return (
-        (0 < x < w and 0 < y < h) or
-        (0 < x - texture_max_size_half < w and 0 < y - texture_max_size_half < h) or 
-        (0 < x - texture_max_size_half < w and 0 < y + texture_max_size_half < h) or
-        (0 < x + texture_max_size_half < w and 0 < y - texture_max_size_half < h) or
-        (0 < x + texture_max_size_half < w and 0 < y + texture_max_size_half < h)
-    )
+    p1 = (x - texture_max_size_half, y - texture_max_size_half)
+    p2 = (x + texture_max_size_half, y - texture_max_size_half)
+    p3 = (x + texture_max_size_half, y + texture_max_size_half)
+    p4 = (x - texture_max_size_half, y + texture_max_size_half)
+    return any(batch_is_intersect(
+        [
+            (p1, p2),
+            (p2, p3),
+            (p3, p4),
+            (p4, p1),
+            (p1, p3),
+            (p2, p4)
+        ],
+        [
+            ((0, 0), (w, 0)), ((0, 0), (0, h)),
+            ((w, 0), (w, h)), ((0, h), (w, h)),
+            ((0, 0), (w, h)), ((w, 0), (0, h))
+        ]
+    ))
 
 def judgeLine_can_render(
     judgeLine_DrawPos: typing.Tuple[
@@ -296,3 +309,5 @@ def NoJoinThreadFunc(f):
 
 def conrpepos(x: float, y: float):
     return (x + 675) / 1350, 1.0 - (y + 450) / 900
+
+is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))

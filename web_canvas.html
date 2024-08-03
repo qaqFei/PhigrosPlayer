@@ -36,6 +36,8 @@
 
     canvas{
         z-index: 1;
+        width: 100%;
+        height: 100%;
     }
 </style>
 
@@ -54,6 +56,7 @@
     font_loaded = false;
     uploadFrame_addQueue = false;
     uploadFrame_finish = false;
+    lowquality_scale = 1.0;
     const textureLineColorFilterColorMatrix = document.getElementById("textureLineColorFilterColorMatrix");
 
     /*
@@ -188,8 +191,10 @@
     }
     
     function resizeCanvas() {
-        canvas_ele.width = window.innerWidth;
-        canvas_ele.height = window.innerHeight;
+        canvas_ele.width = window.innerWidth / lowquality_scale;
+        canvas_ele.height = window.innerHeight / lowquality_scale;
+        ctx.reset();
+        ctx.scale(1 / lowquality_scale, 1 / lowquality_scale);
         /*
         in python, width and height is the real size of canvas, so we donot need to scale the canvas.
         */

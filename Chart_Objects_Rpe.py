@@ -290,7 +290,7 @@ class Rpe_Chart:
                 note._init(self, avgBpm)
                 note.masterLine = line
         
-        self.note_num = len([i for line in self.JudgeLineList for i in line.notes])
+        self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
     
     @cache
     def sec2beat(self, t: float):

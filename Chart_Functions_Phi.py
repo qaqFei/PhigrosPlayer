@@ -21,9 +21,6 @@ def Cal_Combo(now_time:float) -> int:
     combo = 0
     for judgeLine in phigros_chart_obj.judgeLineList:
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
-            if note.fake:
-                continue
-            
             if note.time * judgeLine.T <= now_time and note.type != Const.Note.HOLD:
                 combo += 1
             elif note.type == Const.Note.HOLD:
@@ -78,10 +75,6 @@ def Load_Chart_Object(
                         holdTime = notesAbove_item.get("holdTime", 0.0),
                         speed = notesAbove_item.get("speed", -1.0),
                         floorPosition = notesAbove_item.get("floorPosition", -1.0),
-                        width = notesAbove_item.get("--QFPPR-Note-Width", 1.0),
-                        alpha = notesAbove_item.get("--QFPPR-Note-Alpha", 1.0),
-                        fake = notesAbove_item.get("--QFPPR-Note-Fake", False),
-                        VisibleTime = notesAbove_item.get("--QFPPR-Note-VisibleTime", float("inf")),
                         id = Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         effect_random_blocks = Tool_Functions.get_effect_random_blocks(),
@@ -97,10 +90,6 @@ def Load_Chart_Object(
                         holdTime = notesBelow_item.get("holdTime", 0.0),
                         speed = notesBelow_item.get("speed", -1.0),
                         floorPosition = notesBelow_item.get("floorPosition", -1.0),
-                        width = notesBelow_item.get("--QFPPR-Note-Width", 1.0),
-                        alpha = notesBelow_item.get("--QFPPR-Note-Alpha", 1.0),
-                        fake = notesBelow_item.get("--QFPPR-Note-Fake", False),
-                        VisibleTime = notesBelow_item.get("--QFPPR-Note-VisibleTime", float("inf")),
                         id = Tool_Functions.Get_A_New_NoteId(),
                         by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
                         effect_random_blocks = Tool_Functions.get_effect_random_blocks(),
@@ -154,72 +143,23 @@ def Load_Chart_Object(
                         end = judgeLineDisappearEvent_item.get("end", 0.0)
                     )
                     for judgeLineDisappearEvent_item in judgeLine_item.get("judgeLineDisappearEvents", [])
-                ],
-                TextJudgeLine = judgeLine_item.get("--QFPPR-JudgeLine-TextJudgeLine", False),
-                TextEvents = [
-                    Chart_Objects_Phi.TextEvent(
-                        startTime = TextEvent_item.get("startTime", -1.0),
-                        value = TextEvent_item.get("value", ""),
-                    )
-                    for TextEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-TextEvents", [])
-                ],
-                EnableTexture = judgeLine_item.get("--QFPPR-JudgeLine-EnableTexture", False),
-                Texture = judgeLine_item.get("--QFPPR-JudgeLine-Texture", None),
-                ScaleXEvents = [
-                    Chart_Objects_Phi.ScaleEvent(
-                        startTime = scaleXEvent_item.get("startTime", -1.0),
-                        endTime = scaleXEvent_item.get("endTime", -1.0),
-                        start = scaleXEvent_item.get("start", 0.0),
-                        end = scaleXEvent_item.get("end", 0.0),
-                        easingType = scaleXEvent_item.get("easingType", 1)
-                    )
-                    for scaleXEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-ScaleXEvents", [])
-                ],
-                ScaleYEvents = [
-                    Chart_Objects_Phi.ScaleEvent(
-                        startTime = scaleYEvent_item.get("startTime", -1.0),
-                        endTime = scaleYEvent_item.get("endTime", -1.0),
-                        start = scaleYEvent_item.get("start", 0.0),
-                        end = scaleYEvent_item.get("end", 0.0),
-                        easingType = scaleYEvent_item.get("easingType", 1)
-                    )
-                    for scaleYEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-ScaleYEvents", [])
-                ],
-                ColorEvents = [
-                    Chart_Objects_Phi.ColorEvent(
-                        startTime = colorEvent_item.get("startTime", -1.0),
-                        value = colorEvent_item.get("value", [254, 255, 169])
-                    )
-                    for colorEvent_item in judgeLine_item.get("--QFPPR-JudgeLine-ColorEvents", [])
-                ],
-                RefID = judgeLine_item.get("--QFPPR-JudgeLine-RefID", "null-refid"),
-                EnableMasterLine = judgeLine_item.get("--QFPPR-JudgeLine-Enable-MasterLine", False),
-                MasterLine = judgeLine_item.get("--QFPPR-JudgeLine-MasterLine", None),
+                ]
             )
             for index,judgeLine_item in enumerate(phigros_chart.get("judgeLineList", []))
         ]
     )
     
     print("Finding Chart More Bets...")
-    def prcmorebets(notes):
-        note_times = {}
-        for note, judgeLine in notes:
-            t = note.time * (1.875 / judgeLine.bpm)
-            if t not in note_times:
-                note_times[t] = (False, note)
-            else:
-                if not note_times[t][0]:
-                    note_times[t][-1].morebets = True
-                    note_times[t] = (True, note)
-                note.morebets = True
-    prcmorebets(list(filter(lambda x: x[0].fake, [(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
-    prcmorebets(list(filter(lambda x: not x[0].fake,[(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow])))
+    note_times = {}
+    for note, judgeLine in [(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow]:
+        t = note.time * (1.875 / judgeLine.bpm)
+        if t not in note_times:
+            note_times[t] = (False, note)
+        else:
+            if not note_times[t][0]:
+                note_times[t][-1].morebets = True
+                note_times[t] = (True, note)
+            note.morebets = True
     
-    lines = {line.RefID: line for line in phigros_chart_obj.judgeLineList}
-    
-    for line in phigros_chart_obj.judgeLineList:
-        if line.EnableMasterLine and line.MasterLine is not None:
-            line.MasterLine = lines[line.MasterLine] # set to judgeLine object, no string.
-
     print("Load Chart Object Successfully.")
     return phigros_chart_obj

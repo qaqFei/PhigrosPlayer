@@ -1,7 +1,5 @@
 from __future__ import annotations
-from base64 import b64decode
 from dataclasses import dataclass
-import io
 import typing
 
 from PIL import Image
@@ -28,10 +26,6 @@ class note:
     holdTime: float
     speed: float
     floorPosition: float
-    width: float
-    alpha: float
-    fake: bool
-    VisibleTime: float
     effect_random_blocks: tuple[int]
     above: bool
     id: int|None = None
@@ -159,26 +153,9 @@ class judgeLine:
     judgeLineMoveEvents: list[judgeLineMoveEvent]
     judgeLineRotateEvents: list[judgeLineRotateEvent]
     judgeLineDisappearEvents: list[judgeLineDisappearEvent]
-    TextJudgeLine: bool
-    TextEvents: list[TextEvent]
-    EnableTexture: bool
-    Texture: str|None
-    ScaleXEvents: list[ScaleEvent]
-    ScaleYEvents: list[ScaleEvent]
-    ColorEvents: list[ColorEvent]
-    RefID: str
-    EnableMasterLine: bool
-    MasterLine: str | judgeLine # string: ref id, set to judgeLine object at loaded.
     
-    rotateValue: float = 0.0
-
     def __post_init__(self):
         self.T = 1.875 / self.bpm
-        if self.EnableTexture:
-            try:
-                self.TexturePillowObject = Image.open(io.BytesIO(bytes(b64decode(self.Texture))))
-            except Exception:
-                self.EnableTexture = False
         
         spes = []
         self.speedEvents.sort(key = lambda x: x.startTime)
@@ -200,10 +177,6 @@ class judgeLine:
         self.judgeLineMoveEvents.sort(key = lambda x: x.startTime)
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
         self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)
-        self.TextEvents.sort(key = lambda x: x.startTime, reverse = True)
-        self.ScaleXEvents.sort(key = lambda x: x.startTime)
-        self.ScaleYEvents.sort(key = lambda x: x.startTime)
-        self.ColorEvents.sort(key = lambda x: x.startTime, reverse = True)
 
     def __hash__(self):
         return self.id
@@ -250,53 +223,12 @@ class judgeLine:
                     Tool_Functions.interpolation_phi(now_time, e.startTime, e.endTime, e.start2, e.end2)
                 )
                 break
-            
-        if self.EnableMasterLine and self.MasterLine is not None:
-            v1 = v
-            v2 = self.MasterLine._get_datavar_move_rawphi(now_time)
-            v1_rpe = ((v1[0] - 0.5) * 1350, (v1[1] - 0.5) * 900)
-            v2_rpe = ((v2[0] - 0.5) * 1350, (v2[1] - 0.5) * 900)
-            v = (v1_rpe[0] + v2_rpe[0], v1_rpe[1] + v2_rpe[1])
-            v = ((v[0] + 675) / 1350, (v[1] + 450) / 900)
-        
         return v
     
     def get_datavar_move(self, now_time, w, h):
         raw = self._get_datavar_move_rawphi(now_time)
-        
         return (raw[0] * w, (1.0 - raw[1]) * h)
 
-    def get_datavar_text(self, now_time):
-        for e in self.TextEvents: # sort by startTime and reverse
-            if e.startTime <= now_time:
-                return e.value
-        return ""
-
-    def get_datavar_scale(self,now_time):
-        xs, ys = 1.0, 1.0
-        
-        for ce_x in self.ScaleXEvents:
-            if ce_x.startTime <= now_time <= ce_x.endTime:
-                xs = Tool_Functions.easing_interpolation(now_time, ce_x.startTime, ce_x.endTime, ce_x.start, ce_x.end, ce_x.easingFunc)
-                break
-        
-        for ce_y in self.ScaleYEvents:
-            if ce_y.startTime <= now_time <= ce_y.endTime:
-                ys = Tool_Functions.easing_interpolation(now_time, ce_y.startTime, ce_y.endTime, ce_y.start, ce_y.end, ce_x.easingFunc)
-                break
-        
-        return xs, ys
-    
-    def get_datavar_color(self, now_time, default:tuple[int]) -> tuple[int]:
-        if not self.ColorEvents:
-            return default
-        
-        for e in self.ColorEvents: # sort by startTime and reverse
-            if e.startTime <= now_time:
-                return tuple(e.value)
-        
-        return default
-    
 @dataclass
 class Phigros_Chart:
     formatVersion: int
@@ -349,8 +281,7 @@ class Phigros_Chart:
 
             #count
             for note in judgeLine.notesAbove + judgeLine.notesBelow:
-                if not note.fake:
-                    self.note_num += 1
+                self.note_num += 1
     
     def init_notes(self, PHIGROS_Y:float):
         for judgeLine in self.judgeLineList:

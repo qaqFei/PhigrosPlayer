@@ -79,6 +79,8 @@ lfdaot_render_video = "--lfdaot-render-video" in argv
 no_mixer_reset_chart_time = "--no-mixer-reset-chart-time" in argv
 noautoplay = "--noautoplay" in argv
 rtacc = "--rtacc" in argv
+lowquality = "--lowquality" in argv
+lowquality_scale = float(argv[argv.index("--lowquality-scale") + 1]) ** 0.5 if "--lowquality-scale" in argv else 2.0 ** 0.5
 
 if lfdaot and noautoplay:
     noautoplay = False
@@ -251,7 +253,7 @@ for item in chart_files:
                                         "endTime": [float(tokens[2]), 0, 1] if tokens[0] != "n2" else et,
                                         "positionX": float(tokens[3]) / 2048 * 1350,
                                         "above": int(float(tokens[4])),
-                                        "fake": not bool(int(float(tokens[5]))),
+                                        "isFake": not bool(int(float(tokens[5]))),
                                         "speed": float(ntl1.replace(" ", "").replace("#", "")),
                                         "size": float(ntl2.replace(" ", "").replace("&", ""))
                                     })
@@ -869,7 +871,7 @@ def PlayChart_ThreadFunction():
     KeyDownCount = 0
     keymap = {chr(i): False for i in range(97, 123)}
     
-    notes = [i for line in chart_obj.judgeLineList for i in line.notesAbove + line.notesBelow if not i.fake] if CHART_TYPE == Const.CHART_TYPE.PHI else [i for line in chart_obj.JudgeLineList for i in line.notes if not i.isFake]
+    notes = [i for line in chart_obj.judgeLineList for i in line.notesAbove + line.notesBelow] if CHART_TYPE == Const.CHART_TYPE.PHI else [i for line in chart_obj.JudgeLineList for i in line.notes if not i.isFake]
     
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         def _KeyDown(key:str):
@@ -1202,13 +1204,11 @@ def GetFrameRenderTask_Phi(
         judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
         this_judgeLine_T = judgeLine.T
         judgeLine_note_dy = Chart_Objects_Phi.getFloorPosition(judgeLine, judgeLine_cfg.time) * PHIGROS_Y
-        xscale, yscale = judgeLine.get_datavar_scale(judgeLine_cfg.time)
         judgeLine_DrawPos = (
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h * xscale),
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h * xscale)
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h),
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h)
         )
-        negative_alpha = judgeLine_cfg.disappear < 0.0
-        judgeLine_color = (*judgeLine.get_datavar_color(judgeLine_cfg.time, (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
+        judgeLine_color = (*((254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
         if judgeLine_color[-1] > 0.0:
             if render_range_more:
@@ -1218,73 +1218,43 @@ def GetFrameRenderTask_Phi(
                     add_code_array = True
                 )
             
-            if judgeLine.TextJudgeLine:
+            Task(
+                root.create_line,
+                *judgeLine_DrawPos,
+                lineWidth = JUDGELINE_WIDTH,
+                strokeStyle = judgeLine_webCanvas_color,
+                wait_execute = True
+            )
+            
+            if debug:
                 Task(
-                    root.run_js_code,
-                    f"ctx.drawRotateText(\
-                        '{root.process_code_string_syntax_tostring(judgeLine.get_datavar_text(judgeLine_cfg.time))}',\
-                        {judgeLine_cfg.pos[0]},\
-                        {judgeLine_cfg.pos[1]},\
-                        {- judgeLine_cfg.rotate},\
-                        {(w + h) / 75 * 1.35},\
-                        '{judgeLine_webCanvas_color}',\
-                        {xscale},\
-                        {yscale}\
-                    );",
-                    add_code_array = True
-                )
-            elif judgeLine.EnableTexture:
-                Task(
-                    root.run_js_code,
-                    f"ctx.drawRotateImage(\
-                        {root.get_img_jsvarname(f"JudgeLine_Texture_{judgeLine.id}")},\
-                        {judgeLine_cfg.pos[0]},\
-                        {judgeLine_cfg.pos[1]},\
-                        {judgeLine.TexturePillowObject.width * 0.75 * xscale},\
-                        {judgeLine.TexturePillowObject.height * 0.75 * yscale},\
-                        {- judgeLine_cfg.rotate},\
-                        {judgeLine_cfg.disappear}\
-                    );",
-                    add_code_array = True
-                )
-            else:
-                Task(
-                    root.create_line,
-                    *judgeLine_DrawPos,
-                    lineWidth = JUDGELINE_WIDTH * yscale,
-                    strokeStyle = judgeLine_webCanvas_color,
+                    root.create_text,
+                    *Tool_Functions.rotate_point(*judgeLine_cfg.pos, 90 - judgeLine_cfg.rotate - 180, (w + h) / 75),
+                    text = f"{judgeLine.id}",
+                    font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
+                    textAlign = "center",
+                    textBaseline = "middle",
+                    strokeStyle = "rgba(254, 255, 169, 0.5)",
+                    fillStyle = "rgba(254, 255, 169, 0.5)",
                     wait_execute = True
                 )
                 
-                if debug:
-                    Task(
-                        root.create_text,
-                        *Tool_Functions.rotate_point(*judgeLine_cfg.pos, 90 - judgeLine_cfg.rotate - 180, (w + h) / 75),
-                        text = f"{judgeLine.id}",
-                        font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
-                        textAlign = "center",
-                        textBaseline = "middle",
-                        strokeStyle = "rgba(254, 255, 169, 0.5)",
-                        fillStyle = "rgba(254, 255, 169, 0.5)",
-                        wait_execute = True
-                    )
+                Task(
+                    root.create_rectangle,
+                    judgeLine_cfg.pos[0] - (w + h) / 250,
+                    judgeLine_cfg.pos[1] - (w + h) / 250,
+                    judgeLine_cfg.pos[0] + (w + h) / 250,
+                    judgeLine_cfg.pos[1] + (w + h) / 250,
+                    fillStyle = "rgb(238, 130, 238)",
+                    wait_execute = True
+                )
                     
-                    Task(
-                        root.create_rectangle,
-                        judgeLine_cfg.pos[0] - (w + h) / 250,
-                        judgeLine_cfg.pos[1] - (w + h) / 250,
-                        judgeLine_cfg.pos[0] + (w + h) / 250,
-                        judgeLine_cfg.pos[1] + (w + h) / 250,
-                        fillStyle = "rgb(238, 130, 238)",
-                        wait_execute = True
-                    )
-                    
-                if render_range_more:
-                    Task(
-                        root.run_js_code,
-                        f"ctx.scale({render_range_more_scale},{render_range_more_scale});",
-                        add_code_array = True
-                    )
+            if render_range_more:
+                Task(
+                    root.run_js_code,
+                    f"ctx.scale({render_range_more_scale},{render_range_more_scale});",
+                    add_code_array = True
+                )
         
         def process(notes_list:typing.List[Chart_Objects_Phi.note], t:typing.Literal[1, -1]): # above => t = 1, below => t = -1
             for note_item in notes_list:
@@ -1294,7 +1264,7 @@ def GetFrameRenderTask_Phi(
                 
                 if this_noteitem_clicked and not note_item.clicked:
                     note_item.clicked = True
-                    if enable_clicksound and not note_item.fake and not noautoplay:
+                    if enable_clicksound and not noautoplay:
                         Task.ExTask.append((
                             "thread-call",
                             "PlaySound.Play",
@@ -1373,11 +1343,7 @@ def GetFrameRenderTask_Phi(
                         ])
                     )
                 
-                if (
-                    note_iscan_render and 
-                    not negative_alpha and
-                    abs(now_t - this_note_sectime) < note_item.VisibleTime
-                ): # if judgeline`s alpha value < 0.0, we will not render the notes of judgeline.
+                if note_iscan_render:
                     judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
                     dub_text = "_dub" if note_item.morebets else ""
                     if not this_note_ishold:
@@ -1420,10 +1386,10 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname_end)},\
                                 {holdend_x},\
                                 {holdend_y},\
-                                {this_note_width * note_item.width},\
+                                {this_note_width},\
                                 {this_noteend_height},\
                                 {judgeLine_rotate},\
-                                {note_item.alpha * miss_alpha_change}\
+                                {miss_alpha_change}\
                             );",
                             add_code_array = True
                         )
@@ -1435,10 +1401,10 @@ def GetFrameRenderTask_Phi(
                                     {root.get_img_jsvarname(this_note_imgname_body)},\
                                     {holdbody_x},\
                                     {holdbody_y},\
-                                    {this_note_width * note_item.width},\
+                                    {this_note_width},\
                                     {holdbody_length},\
                                     {judgeLine_rotate},\
-                                    {note_item.alpha * miss_alpha_change}\
+                                    {miss_alpha_change}\
                                 );",
                                 add_code_array = True
                             )
@@ -1450,10 +1416,10 @@ def GetFrameRenderTask_Phi(
                                 {root.get_img_jsvarname(this_note_imgname)},\
                                 {x},\
                                 {y},\
-                                {this_note_width * note_item.width},\
+                                {this_note_width},\
                                 {this_note_height},\
                                 {judgeLine_rotate},\
-                                {note_item.alpha}\
+                                1.0\
                             );",
                             add_code_array = True #eq wait_exec true
                         )
@@ -1509,10 +1475,10 @@ def GetFrameRenderTask_Phi(
                 {root.get_img_jsvarname(this_note_imgname)},\
                 {x},\
                 {y},\
-                {Note_width * note.width},\
+                {Note_width},\
                 {Note_width / this_note_img.width * this_note_img.height},\
                 {- will_show_effect_rotate},\
-                {note.alpha * (1 - p ** 0.5)}\
+                {1 - p ** 0.5}\
             ); crc2d_enable_rrm = true;",
             add_code_array = True
         )
@@ -1542,10 +1508,10 @@ def GetFrameRenderTask_Phi(
                 {root.get_img_jsvarname("Note_Tap_Bad")},\
                 {x},\
                 {y},\
-                {Note_width * note.width * (Const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
+                {Note_width * (Const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
                 {Note_width / this_note_img.width * this_note_img.height},\
                 {- will_show_effect_rotate},\
-                {note.alpha * (1 - p ** 3)}\
+                {1 - p ** 3}\
             ); crc2d_enable_rrm = true;",
             add_code_array = True
         )
@@ -1562,8 +1528,6 @@ def GetFrameRenderTask_Phi(
             note_time = note.time * judgeLine.T
             note_ishold = note.type == Const.Note.HOLD
             if not note_ishold and note.show_effected:
-                continue
-            elif note.fake:
                 continue
             
             if not noautoplay:
@@ -1705,17 +1669,17 @@ def GetFrameRenderTask_Rpe(
         judgeLine_webCanvas_color = f"rgba{lineColor + (lineAlpha, )}"
         if line.Texture != "line.png" and lineAlpha > 0.0:
             texture: Image.Image = chart_res[line.Texture]
-            texture_width = texture.width / 960 * w * 0.75 * lineScaleX
-            texture_height = texture.height / 540 * h * 0.75 * lineScaleY
-            if Tool_Functions.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5, *linePos):
+            texture_width = texture.width / 1104 * w * 0.75 * lineScaleX
+            texture_height = texture.height / 621 * h * 0.75 * lineScaleY
+            if Tool_Functions.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
                 Task(
                     root.run_js_code,
                     f"{f"setTextureLineColorFilterColorMatrixValueByRgbValue{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}ctx.drawRotateImage(\
                         {root.get_img_jsvarname(f"lineTexture_{line_index}")},\
                         {linePos[0]},\
                         {linePos[1]},\
-                        {texture.width / 960 * w * 0.75 * lineScaleX},\
-                        {texture.height / 540 * h * 0.75 * lineScaleY},\
+                        {texture_width},\
+                        {texture_height},\
                         {lineRotate},\
                         {lineAlpha}\
                     ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",
@@ -2067,7 +2031,7 @@ def GetFrameRenderTask_Rpe(
                                             note.player_holdclickstate == Const.NOTE_STATE.PERFECT
                                         )
     
-    combo = len([i for line in chart_obj.JudgeLineList for i in line.notes if (not i.ishold and i.clicked) or (i.ishold and i.secet - 0.2 < now_t)]) if not noautoplay else PhigrosPlayManagerObject.getCombo()
+    combo = len([i for line in chart_obj.JudgeLineList for i in line.notes if not i.isFake and ((not i.ishold and i.clicked) or (i.ishold and i.secet - 0.2 < now_t))]) if not noautoplay else PhigrosPlayManagerObject.getCombo()
     time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
     Task(
         draw_ui,
@@ -3023,6 +2987,10 @@ root = webcvapis.WebCanvas(
     resizable = False,
     frameless = "-frameless" in argv
 )
+
+if lowquality:
+    root.run_js_code(f"lowquality_scale = {lowquality_scale};")
+    
 webdpr = root.run_js_code("window.devicePixelRatio;")
 if "--window-host" in argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(argv[argv.index("--window-host") + 1]))
@@ -3048,11 +3016,6 @@ else:
 if render_range_more:
     root.run_js_code("render_range_more = true;")
     root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
-
-if CHART_TYPE == Const.CHART_TYPE.PHI:
-    for line in chart_obj.judgeLineList:
-        if line.EnableTexture:
-            root.reg_img(line.TexturePillowObject, f"JudgeLine_Texture_{line.id}")
 
 background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
 background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
