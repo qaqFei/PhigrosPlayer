@@ -25,7 +25,6 @@ def Load_Chart_Object(chart:dict):
         ],
         JudgeLineList = [
             Chart_Objects_Rpe.JudgeLine(
-                numOfNotes = judgeLine_item.get("numOfNotes", 0),
                 isCover = judgeLine_item.get("isCover", 1),
                 Texture = judgeLine_item.get("Texture", "line.png"),
                 attachUI = judgeLine_item.get("attachUI", None),

@@ -6,7 +6,7 @@
 - 第三方库: [requirements.txt](./requirements.txt)
 
 ## 兼容性
-- 目前支持`phi`和`rpe`  暂不支持旧`pec`
+- ~~目前支持`phi`和`rpe`  暂不支持旧`pec`~~   好了, 全支持了(`phi`&`rpe`&`pec`) --- 2024.8.3 😉
 
 ## 命令行参数
 - `--hideconsole` 隐藏控制台

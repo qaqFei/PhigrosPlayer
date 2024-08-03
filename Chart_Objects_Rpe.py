@@ -169,7 +169,6 @@ class BPMEvent:
 
 @dataclass
 class JudgeLine:
-    numOfNotes: int
     isCover: int
     Texture: str
     attachUI: str|None

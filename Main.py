@@ -110,12 +110,164 @@ for item in chart_files:
         except Exception:
             try:
                 with open(item, "r", encoding="utf-8") as f:
-                    chart_files_dict["charts"].append([item, json.load(f)])
+                    chart_text = f.read()
+                    chart_files_dict["charts"].append([item, json.loads(chart_text)])
                     print(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
-            except Exception:
-                name = item.replace(f"{temp_dir}\\", "")
-                if name not in ["info.csv", "info.txt", "info.yml"]:
-                    print(f"Warning: Unknown Resource Type. Path = {name}")
+            except Exception as e:
+                if isinstance(e, json.decoder.JSONDecodeError) and chart_text.startswith("175"): # pec chart
+                    rpeJson = { # if some key and value is not exists, in loading rpe chart, it will be set to default value.
+                        "META": {},
+                        "BPMList": [],
+                        "judgeLineList": []
+                    }
+                    judgeLines = {}
+                    checkLineExists = lambda k: [judgeLines.update({k: {
+                        "eventLayers": [{
+                            "speedEvents": [],
+                            "moveXEvents": [],
+                            "moveYEvents": [],
+                            "rotateEvents": [],
+                            "alphaEvents": []
+                        }],
+                        "notes": []
+                    }}), rpeJson["judgeLineList"].append(judgeLines[k]),
+                        waitAddEventMove.update({k: {}}),
+                        waitAddEventRotate.update({k: {}}),
+                        waitAddEventAlpha.update({k: {}})
+                    ] if k not in judgeLines else None
+                    waitAddEventMove = {}
+                    waitAddEventRotate = {}
+                    waitAddEventAlpha = {}
+                    textlines = list(filter(lambda x: x, chart_text.split("\n")))
+                    eventLevelDict = {
+                        "bp": 0,
+                        "cp": 1, "cd": 1, "ca": 1,
+                        "cm": 2, "cr": 2, "cf": 2, "cv": 3,
+                        "n1": 4, "n2": 4, "n3": 4, "n4": 4, "&": 4, "#": 4
+                    }
+                    textlines.sort(key = lambda x: (eventLevelDict[x.split(" ")[0]] if x.split(" ")[0] in eventLevelDict else -1))
+                    for i, textline in enumerate(textlines):
+                        tokens = textline.split(" ")
+                        try:
+                            match tokens[0]:
+                                case "bp":
+                                    rpeJson["BPMList"].append({
+                                        "startTime": [float(tokens[1]), 0, 1],
+                                        "bpm": float(tokens[2])
+                                    })
+                                case "cp":
+                                    checkLineExists(tokens[1])
+                                    waitAddEventMove[tokens[1]][float(tokens[2])] = {
+                                        "startTime": [float(tokens[2]), 0, 1],
+                                        "startX": (float(tokens[3]) / 2048 - 0.5) * 1350,
+                                        "startY": (float(tokens[4]) / 1400 - 0.5) * 900
+                                    }
+                                case "cm":
+                                    checkLineExists(tokens[1])
+                                    line = judgeLines[tokens[1]]
+                                    try: startEvent = waitAddEventMove[tokens[1]][float(tokens[2])]
+                                    except KeyError: startEvent = {
+                                        "startTime": [float(tokens[2]), 0, 1],
+                                        "startX": (float(tokens[4]) / 2048 - 0.5) * 1350,
+                                        "startY": (float(tokens[5]) / 1400 - 0.5) * 900
+                                    }
+                                    line["eventLayers"][0]["moveXEvents"].append({
+                                        "startTime": startEvent["startTime"],
+                                        "endTime": [float(tokens[3]), 0, 1],
+                                        "start": startEvent["startX"],
+                                        "end": (float(tokens[4]) / 2048 - 0.5) * 1350,
+                                        "easingType": int(float(tokens[6]))
+                                    })
+                                    line["eventLayers"][0]["moveYEvents"].append({
+                                        "startTime": startEvent["startTime"],
+                                        "endTime": [float(tokens[3]), 0, 1],
+                                        "start": startEvent["startY"],
+                                        "end": (float(tokens[5]) / 1400 - 0.5) * 900,
+                                        "easingType": int(float(tokens[6]))
+                                    })
+                                case "cd":
+                                    checkLineExists(tokens[1])
+                                    waitAddEventRotate[tokens[1]][float(tokens[2])] = {
+                                        "startTime": [float(tokens[2]), 0, 1],
+                                        "start": float(tokens[3]),
+                                    }
+                                case "cr":
+                                    checkLineExists(tokens[1])
+                                    line = judgeLines[tokens[1]]
+                                    try: startEvent = waitAddEventRotate[tokens[1]][float(tokens[2])]
+                                    except KeyError: startEvent = {
+                                        "startTime": [float(tokens[2]), 0, 1],
+                                        "start": float(tokens[4])
+                                    }
+                                    line["eventLayers"][0]["rotateEvents"].append({
+                                        "startTime": startEvent["startTime"],
+                                        "endTime": [float(tokens[3]), 0, 1],
+                                        "start": startEvent["start"],
+                                        "end": float(tokens[4]),
+                                        "easingType": int(float(tokens[5]))
+                                    })
+                                case "ca":
+                                    checkLineExists(tokens[1])
+                                    waitAddEventAlpha[tokens[1]][float(tokens[2])] = {
+                                        "startTime": [float(tokens[2]), 0, 1],
+                                        "start": float(tokens[3]),
+                                    }
+                                case "cf":
+                                    checkLineExists(tokens[1])
+                                    line = judgeLines[tokens[1]]
+                                    try: startEvent = waitAddEventAlpha[tokens[1]][float(tokens[2])]
+                                    except KeyError: startEvent = {
+                                        "startTime": [float(tokens[2]), 0, 1],
+                                        "start": float(tokens[4])
+                                    }
+                                    line["eventLayers"][0]["alphaEvents"].append({
+                                        "startTime": startEvent["startTime"],
+                                        "endTime": [float(tokens[3]), 0, 1],
+                                        "start": startEvent["start"],
+                                        "end": float(tokens[4]),
+                                        "easingType": 1
+                                    })
+                                case "cv":
+                                    checkLineExists(tokens[1])
+                                    line = judgeLines[tokens[1]]
+                                    line["eventLayers"][0]["speedEvents"].append({
+                                        "startTime": [float(tokens[2]), 0, 1],
+                                        "start": float(tokens[3]) * 0.5844193793466191, # 1 / 1.7111
+                                        "end": float(tokens[3]) * 0.5844193793466191,
+                                        "easingType": 1
+                                    })
+                                case "n1" | "n2" | "n3" | "n4":
+                                    checkLineExists(tokens[1])
+                                    line = judgeLines[tokens[1]]
+                                    ntls = [textlines[i + 1], textlines[i + 2]]
+                                    ntl1 = ntls[0] if "#" in ntls[0] else ntls[1]
+                                    ntl2 = ntls[1] if "&" in ntls[1] else ntls[0]
+                                    if tokens[0] == "n2":
+                                        et = [float(tokens[3]), 0, 1]
+                                        del tokens[3]
+                                    line["notes"].append({
+                                        "type": {"n1": 1, "n2": 2, "n3": 3, "n4": 4}[tokens[0]],
+                                        "startTime": [float(tokens[2]), 0, 1],
+                                        "endTime": [float(tokens[2]), 0, 1] if tokens[0] != "n2" else et,
+                                        "positionX": float(tokens[3]) / 2048 * 1350,
+                                        "above": int(float(tokens[4])),
+                                        "fake": not bool(int(float(tokens[5]))),
+                                        "speed": float(ntl1.replace(" ", "").replace("#", "")),
+                                        "size": float(ntl2.replace(" ", "").replace("&", ""))
+                                    })
+                        except Exception as e:
+                            print(f"Warning in pec2rpe: {repr(e)}")
+                    for line in rpeJson["judgeLineList"]:
+                        for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):
+                            if i != len(line["eventLayers"][0]["speedEvents"]) - 1:
+                                e["endTime"] = line["eventLayers"][0]["speedEvents"][i + 1]["startTime"]
+                            else:
+                                e["endTime"] = [e["startTime"][0] + 31250000, 0, 1]
+                    chart_files_dict["charts"].append([item, rpeJson])
+                else:
+                    name = item.replace(f"{temp_dir}\\", "")
+                    if name not in ["info.csv", "info.txt", "info.yml"]:
+                        print(f"Warning: Unknown Resource Type. Path = {name}")
                     
 if len(chart_files_dict["charts"]) == 0:
     print("No Chart File Found.")
