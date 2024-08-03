@@ -1622,7 +1622,7 @@ def GetFrameRenderTask_Rpe(
             *Tool_Functions.rotate_point(*linePos, lineRotate + 180, 5.76 * h * lineScaleX)
         )
         negative_alpha = lineAlpha < 0.0
-        judgeLine_webCanvas_color = f"rgba{tuple(lineColor) + (lineAlpha, )}"
+        judgeLine_webCanvas_color = f"rgba{lineColor + (lineAlpha, )}"
         if lineAlpha > 0.0 and show_judgeline:
             if line.Texture != "line.png":
                 texture: Image.Image = chart_res[line.Texture]
@@ -1632,8 +1632,8 @@ def GetFrameRenderTask_Rpe(
                         {root.get_img_jsvarname(f"lineTexture_{line_index}")},\
                         {linePos[0]},\
                         {linePos[1]},\
-                        {texture.width * 0.75 * lineScaleX},\
-                        {texture.height * 0.75 * lineScaleY},\
+                        {texture.width / 960 * w * 0.75 * lineScaleX},\
+                        {texture.height / 540 * h * 0.75 * lineScaleY},\
                         {lineRotate},\
                         {lineAlpha}\
                     ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",

@@ -192,7 +192,7 @@ class JudgeLine:
                     r = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], rpe_easing.ease_funcs[e.easingType - 1])
                     g = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], rpe_easing.ease_funcs[e.easingType - 1])
                     b = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], rpe_easing.ease_funcs[e.easingType - 1])
-                    return [r, g, b]
+                    return (r, g, b)
         return default
     
     @lru_cache
