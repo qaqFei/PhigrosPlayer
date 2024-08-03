@@ -8,7 +8,7 @@ from tempfile import gettempdir
 from time import time
 from random import randint
 
-if len(argv) < 4:
+if len(argv) < 3:
     print("Usage: OutputVideo <chart> <video-file-path> [--fps <fps>]")
     windll.kernel32.ExitProcess(1)
 
