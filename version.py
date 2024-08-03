@@ -1,6 +1,6 @@
 import urllib.request
 
-PPR_VERSION = "1.4.0"
+PPR_VERSION = "1.5.0"
 BETA = False
 
 def check_new_version():

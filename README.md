@@ -32,7 +32,7 @@
 - `--frameless` 窗口无边框
 - `--window-host <integer-hwnd-value>` 将窗口设置为指定窗口的子窗口
 - `--no-mixer-reset-chart-time` 在 `mixer` 的时间与谱面播放时间存在较大误差时 不进行纠正
-- `--noautoplay` 禁用`Autoplay`, 进行游玩谱面(目前仅支持键盘操作(a ~ z 26个字母才判定点击, 忽略大小写), 不支持鼠标) 不支持rpe
+- `--noautoplay` 禁用`Autoplay`, 进行游玩谱面(目前仅支持键盘操作(a ~ z 26个字母才判定点击, 忽略大小写), 不支持鼠标)
 - `--rtacc` 实时`Acc`显示
 - `--lfdaot-file-savefp <filepath-string-value>` 在使用`--lfdaot`时`lfdaot`文件的保存路径
 - `--lfdaot-render-video-savefp <filepath-string-value>` 在使用`--lfdaot-render-video`的视频保存路径
@@ -41,6 +41,6 @@
 # 快捷键
 - 播放中使用长按`Ctrl + Alt + R`可重新开始 (使用`--lfdaot`时失效)
 
-## 声明
+### 声明
 - 此项目仅用于学习交流，请勿用于商业用途
 - 如有侵权 请联系删除: qaq_fei@163.com 或直接提issue
