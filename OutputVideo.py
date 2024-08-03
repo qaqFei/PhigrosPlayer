@@ -9,7 +9,7 @@ from time import time
 from random import randint
 
 if len(argv) < 4:
-    print("Usage: OutputVideo <chart> <video-file-path> <lfdaot-temp-path> [--fps <fps>]")
+    print("Usage: OutputVideo <chart> <video-file-path> [--fps <fps>]")
     windll.kernel32.ExitProcess(1)
 
 chart = argv[1]
