@@ -1628,7 +1628,7 @@ def GetFrameRenderTask_Rpe(
                 texture: Image.Image = chart_res[line.Texture]
                 Task(
                     root.run_js_code,
-                    f"setTextureLineColorFilterColorMatrixValueByRgbValue{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; ctx.drawRotateImage(\
+                    f"{f"setTextureLineColorFilterColorMatrixValueByRgbValue{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}ctx.drawRotateImage(\
                         {root.get_img_jsvarname(f"lineTexture_{line_index}")},\
                         {linePos[0]},\
                         {linePos[1]},\
@@ -1636,7 +1636,7 @@ def GetFrameRenderTask_Rpe(
                         {texture.height * 0.75 * lineScaleY},\
                         {lineRotate},\
                         {lineAlpha}\
-                    ); ctx.filter = 'none';",
+                    ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",
                     add_code_array = True
                 )
             elif lineText is not None:
