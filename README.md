@@ -14,7 +14,6 @@
 - `--combotips <string-value>` 设置连击下的提示 默认为`Autoplay`
 - `--fullscreen` 全屏
 - `--hidemouse` 隐藏鼠标
-- `--nojudgeline` 不显示判定线
 - `--judgeline-notransparent` 让判定线的`Disappear`始终为`1.0` 也就是说不存在透明度
 - `--noclickeffect-randomblock` 禁用打击效果的随机扩散方块
 - `--loop` 循环播放

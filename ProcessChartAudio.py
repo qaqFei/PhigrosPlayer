@@ -1,9 +1,10 @@
 from sys import argv
 from json import load
 
-import Const
-
 from pydub import AudioSegment
+
+import Const
+import Chart_Functions_Rpe
 
 NoteClickAudios = {
     Const.Note.TAP: AudioSegment.from_file("./Resources/Note_Click_Audio/Tap.wav"),
@@ -14,6 +15,28 @@ NoteClickAudios = {
 
 with open(argv[1], "r", encoding="utf-8") as f:
     Chart = load(f)
+
+if "META" in Chart and "formatVersion" not in Chart:
+    rpeobj = Chart_Functions_Rpe.Load_Chart_Object(Chart)
+    Chart = {
+        "formatVersion": 3,
+        "offset": rpeobj.META.offset / 1000,
+        "judgeLineList": [
+            {
+                "bpm": 1.875,
+                "notesAbove": [
+                    {
+                        "time": rpeobj.beat2sec(note.startTime.value),
+                        "type": note.phitype
+                    }
+                    for note in line.notes
+                ],
+                "notesBelow": []
+            }
+            for line in rpeobj.JudgeLineList
+        ]
+    }
+
 ChartAudio:AudioSegment = AudioSegment.from_file(argv[2])
 ChartAudio_Length = ChartAudio.duration_seconds
 ChartAudio_Split_Audio_Block_Length = 3500 #ms

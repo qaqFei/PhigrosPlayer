@@ -44,9 +44,6 @@ def ease_out(x:float) -> float:
 def get_effect_random_blocks() -> tuple[int, ...]:
     return tuple((randint(1, 90) for _ in range(random_block_num)))
 
-def extra_power(power:float) -> float:
-    return (2 ** power - 1) / 4
-
 @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
 def linear_interpolation(
     t:float,
@@ -227,7 +224,7 @@ def batch_is_intersect(
 
 def Note_CanRender(
     w: int, h: int,
-    note_max_width_half: float, note_max_height_half: float,
+    note_max_size_half: float,
     x: float, y: float,
     hold_points: typing.Union[typing.Tuple[
         typing.Tuple[float, float],
@@ -237,15 +234,13 @@ def Note_CanRender(
     ], None] = None
 ) -> bool:
     if hold_points is None: # type != HOLD
-        if (
+        return (
             (0 < x < w and 0 < y < h) or
-            (0 < x - note_max_width_half < w and 0 < y - note_max_height_half < h) or 
-            (0 < x - note_max_width_half < w and 0 < y + note_max_height_half < h) or
-            (0 < x + note_max_width_half < w and 0 < y - note_max_height_half < h) or
-            (0 < x + note_max_width_half < w and 0 < y + note_max_height_half < h)
-        ):
-            return True
-        return False
+            (0 < x - note_max_size_half < w and 0 < y - note_max_size_half < h) or 
+            (0 < x - note_max_size_half < w and 0 < y + note_max_size_half < h) or
+            (0 < x + note_max_size_half < w and 0 < y - note_max_size_half < h) or
+            (0 < x + note_max_size_half < w and 0 < y + note_max_size_half < h)
+        )
     else:
         if any((point_in_screen(point, w, h) for point in hold_points)):
             return True
@@ -261,6 +256,19 @@ def Note_CanRender(
                 ((w, 0), (w, h)), ((0, h), (w, h))
             ]
         ))
+
+def TextureLine_CanRender(
+    w: int, h: int,
+    texture_max_size_half: float,
+    x: float, y: float
+) -> bool:
+    return (
+        (0 < x < w and 0 < y < h) or
+        (0 < x - texture_max_size_half < w and 0 < y - texture_max_size_half < h) or 
+        (0 < x - texture_max_size_half < w and 0 < y + texture_max_size_half < h) or
+        (0 < x + texture_max_size_half < w and 0 < y - texture_max_size_half < h) or
+        (0 < x + texture_max_size_half < w and 0 < y + texture_max_size_half < h)
+    )
 
 def judgeLine_can_render(
     judgeLine_DrawPos: typing.Tuple[

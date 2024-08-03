@@ -136,6 +136,7 @@ def Load_Resource():
     global ClickEffect_Size, Note_width
     global note_max_width, note_max_height
     global note_max_width_half, note_max_height_half
+    global note_max_size_half
     global IconSize
     
     print("Loading Resource...")
@@ -232,6 +233,7 @@ def Load_Resource():
     )
     note_max_width_half = note_max_width / 2
     note_max_height_half = note_max_height / 2
+    note_max_size_half = (note_max_width ** 2 + note_max_height ** 2) ** 0.5
     return Resource
 
 def updateMorebets():
@@ -344,9 +346,9 @@ def renderChartView(nt: float): # sec
                 )
         
             noteCanRender = (
-                Tool_Functions.Note_CanRender(w / 2, h / 2, note_max_width_half, note_max_height_half, x, y)
+                Tool_Functions.Note_CanRender(w / 2, h / 2, note_max_size_half, x, y)
                 if note.type != Const.Note.HOLD
-                else Tool_Functions.Note_CanRender(w / 2, h / 2, note_max_width_half, note_max_height_half, x, y, holdbody_range)
+                else Tool_Functions.Note_CanRender(w / 2, h / 2, note_max_size_half, x, y, holdbody_range)
             )
             
             if noteCanRender:
