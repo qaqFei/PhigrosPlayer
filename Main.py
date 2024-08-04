@@ -339,7 +339,8 @@ else:
     audio_file = chart_files_dict["audio"][audio_file_index]
     
 mixer.music.load(audio_file)
-audio_length = mixer.Sound(audio_file).get_length()
+raw_audio_length = mixer.Sound(audio_file).get_length()
+audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == Const.CHART_TYPE.RPE else 0.0)
 all_inforamtion = {}
 print("Loading Chart Information...")
 
@@ -481,13 +482,13 @@ def Load_Resource():
                     if exists(p) and isfile(p):
                         try:
                             chart_res[line.Texture] = Image.open(p).convert("RGBA")
+                            line.textureLineRawTextureSize = chart_res[line.Texture].size
                             if lowquality and lowquality_scale > 1.0:
                                 textureWidth, textureHeight = chart_res[line.Texture].size
                                 textureWidth /= lowquality_scale; textureHeight /= lowquality_scale
                                 textureWidth, textureHeight = int(textureWidth), int(textureHeight)
                                 if textureWidth > 32 and textureHeight > 32:
                                     chart_res[line.Texture] = chart_res[line.Texture].resize((textureWidth, textureHeight))
-                                    line.textureLineDrawScale = lowquality_scale
                         except Exception as e:
                             print(f"Can't open texture {p} : {e}")
                             continue
@@ -1679,9 +1680,8 @@ def GetFrameRenderTask_Rpe(
         negative_alpha = lineAlpha < 0.0
         judgeLine_webCanvas_color = f"rgba{lineColor + (lineAlpha, )}"
         if line.Texture != "line.png" and lineAlpha > 0.0:
-            texture: Image.Image = chart_res[line.Texture]
-            texture_width = texture.width / 1104 * w * 0.75 * lineScaleX * line.textureLineDrawScale
-            texture_height = texture.height / 621 * h * 0.75 * lineScaleY * line.textureLineDrawScale
+            texture_width = line.textureLineRawTextureSize[0] / 1104 * w * 0.75 * lineScaleX
+            texture_height = line.textureLineRawTextureSize[1] / 621 * h * 0.75 * lineScaleY
             if Tool_Functions.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
                 Task(
                     root.run_js_code,
@@ -2065,14 +2065,12 @@ def CheckMusicOffsetAndEnd(now_t: float, Task: Chart_Objects_Phi.FrameRenderTask
     if now_t >= audio_length:
         Task.ExTask.append(("break",))
     
-    if not lfdaot: # 2 "if" layer is more readable
-        if not no_mixer_reset_chart_time:
-            this_music_pos = mixer.music.get_pos() % (audio_length * 1000)
-            offset_judge_range = (1000 / 60) * 4
-            if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
-                if abs(music_offset) <= audio_length * 1000 * 0.75:
-                    Task.ExTask.append(("set","show_start_time",show_start_time - music_offset / 1000))
-                    print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
+    if not lfdaot and not no_mixer_reset_chart_time and mixer.music.get_busy():
+        this_music_pos = mixer.music.get_pos() % (raw_audio_length * 1000)
+        offset_judge_range = (1000 / 60) * 4
+        if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
+            Task.ExTask.append(("set", "show_start_time", show_start_time - music_offset / 1000))
+            print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
 
 def Get_LevelNumber() -> str:
     lv = chart_information["Level"].lower()

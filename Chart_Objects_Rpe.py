@@ -1,12 +1,11 @@
 from __future__ import annotations
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from functools import lru_cache, cache
 import typing
 
 import Tool_Functions
 import rpe_easing
 import Const
-
         
 def _init_events(es: list[LineEvent]):
     aes = []
@@ -185,7 +184,7 @@ class JudgeLine:
     zOrder: int
     
     playingFloorPosition: float = 0.0
-    textureLineDrawScale: float = 1.0 # when using lowquality, texture size will be small, but we still draw texture to raw size, so, it has this attr.
+    textureLineRawTextureSize: tuple[int, int]|None = None # when has value at loaded res.
     
     def GetEventValue(self, t:float, es: list[LineEvent], default):
         for e in es:
