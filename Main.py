@@ -498,7 +498,7 @@ def Load_Resource():
                     print(f"Can't find texture {line.Texture}")
                     texture = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
                     chart_res[line.Texture] = (texture, texture.size)
-                root.reg_img(chart_res[line.Texture], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
+                root.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
     
     with open("./Resources/font.ttf","rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
