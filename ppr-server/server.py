@@ -4,6 +4,7 @@ class PPRServerHandler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             datas = self.rfile.read(int(self.headers["Content-Length"])).decode("utf-8")
+            print(datas)
             userUsingUploadInfoFileStream.write("\n")
             userUsingUploadInfoFileStream.write(datas)
             userUsingUploadInfoFileStream.write("\n")

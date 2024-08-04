@@ -53,8 +53,8 @@ Current version: {PPR_VERSION}\nThe latest version: {".".join(new_ver)}\
             "os": sys.platform
         }
         urllib.request.urlopen(urllib.request.Request(server, data=json.dumps(infos, ensure_ascii=False, indent=4).encode("utf-8")))
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
 
 def print_hello():
     print(f"PhigrosPlayer - Version {PPR_VERSION}{" Beta" if BETA else " Release"}")
