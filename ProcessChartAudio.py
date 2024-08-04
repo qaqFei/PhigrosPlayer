@@ -29,7 +29,7 @@ if "META" in Chart and "formatVersion" not in Chart:
                         "time": rpeobj.beat2sec(note.startTime.value),
                         "type": note.phitype
                     }
-                    for note in line.notes if not note.get("isFake", 0)
+                    for note in line.notes if not note.isFake
                 ],
                 "notesBelow": []
             }
