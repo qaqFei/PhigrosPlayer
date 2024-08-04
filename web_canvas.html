@@ -195,6 +195,9 @@
         canvas_ele.height = window.innerHeight / lowquality_scale;
         ctx.reset();
         ctx.scale(1 / lowquality_scale, 1 / lowquality_scale);
+        if (lowquality_scale > 1.0) {
+            ctx.imageSmoothingEnabled = false;
+        }
         /*
         in python, width and height is the real size of canvas, so we donot need to scale the canvas.
         */

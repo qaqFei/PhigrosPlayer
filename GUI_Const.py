@@ -19,7 +19,7 @@ class CHINESE:
     class ARGS:
         DEBUG = "调试"
         FULLSCREEN = "全屏"
-        NOJUDGELINE = "无判定线"
+        LOWQUALITY = "低画质模式"
         JUDGELINE_NOTRANSPARENT = "判定线不透明"
         NOCLICKEFFECT_RANDOMBLOCK = "无打击效果的随机方块"
         LOOP = "循环"
@@ -63,7 +63,7 @@ class ENGLISH:
     class ARGS:
         DEBUG = "Debug"
         FULLSCREEN = "Fullscreen"
-        NOJUDGELINE = "No Judgement Line"
+        LOWQUALITY = "Low Quality Mode"
         JUDGELINE_NOTRANSPARENT = "Judgement Line Not Transparent"
         NOCLICKEFFECT_RANDOMBLOCK = "No Click Effect Random Block"
         LOOP = "Loop"

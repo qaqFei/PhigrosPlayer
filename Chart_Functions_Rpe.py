@@ -42,7 +42,7 @@ def Load_Chart_Object(chart:dict):
                                 ),
                                 start = LineEvent_item.get("start", 0.0),
                                 end = LineEvent_item.get("end", 0.0),
-                                easingType = None
+                                easingType = 1
                             )
                             for LineEvent_item in EventLayer_item.get("speedEvents", [])
                         ] if EventLayer_item.get("speedEvents", []) is not None else [],

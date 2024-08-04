@@ -118,8 +118,8 @@ def Launch():
     if fullscreen_checkbutton_var.get():
         launch_args.append("--fullscreen")
     
-    if nojudgeline_checkbutton_var.get():
-        launch_args.append("--nojudgeline")
+    if lowquality_checkbutton_var.get():
+        launch_args.append("--lowquality")
     
     if judgeline_notransparent_checkbutton_var.get():
         launch_args.append("--judgeline-notransparent")
@@ -129,9 +129,6 @@ def Launch():
     
     if loop_checkbutton_var.get():
         launch_args.append("--loop")
-    
-    if ease_event_interpolation_checkbutton_var.get():
-        launch_args.append("--ease-event-interpolation")
     
     if frameless_checkbutton_var.get():
         launch_args.append("--frameless")
@@ -203,9 +200,9 @@ fullscreen_checkbutton_var = BooleanVar(value=False) # --fullscreen
 fullscreen_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.FULLSCREEN, variable=fullscreen_checkbutton_var)
 fullscreen_checkbutton.grid(sticky="w", row=0, column=1)
 
-nojudgeline_checkbutton_var = BooleanVar(value=False) # --nojudgeline
-nojudgeline_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOJUDGELINE, variable=nojudgeline_checkbutton_var)
-nojudgeline_checkbutton.grid(sticky="w", row=0, column=2)
+lowquality_checkbutton_var = BooleanVar(value=False) # --lowquality
+lowquality_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LOWQUALITY, variable=lowquality_checkbutton_var)
+lowquality_checkbutton.grid(sticky="w", row=0, column=2)
 
 judgeline_notransparent_checkbutton_var = BooleanVar(value=False) # --judgeline-notransparent
 judgeline_notransparent_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.JUDGELINE_NOTRANSPARENT, variable=judgeline_notransparent_checkbutton_var)
@@ -240,21 +237,17 @@ lfdaot_render_video_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LF
 lfdaot_render_video_checkbutton.grid(sticky="w", row=4, column=0, columnspan=500)
 lfdaot_render_video_checkbutton.configure(state = "disabled")
 
-ease_event_interpolation_checkbutton_var = BooleanVar(value=False) # --ease-event-interpolation
-ease_event_interpolation_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.EASE_EVENT_INTERPOLATION, variable=ease_event_interpolation_checkbutton_var)
-ease_event_interpolation_checkbutton.grid(sticky="w", row=5, column=0)
-
 frameless_checkbutton_var = BooleanVar(value=False) # --frameless
 frameless_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.FRAMELESS, variable=frameless_checkbutton_var)
-frameless_checkbutton.grid(sticky="w", row=5, column=1)
+frameless_checkbutton.grid(sticky="w", row=5, column=0)
 
 noautoplay_checkbutton_var = BooleanVar(value=False) # --noautoplay
 noautoplay_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOAUTOPLAY, variable=noautoplay_checkbutton_var)
-noautoplay_checkbutton.grid(sticky="w", row=6, column=0)
+noautoplay_checkbutton.grid(sticky="w", row=5, column=1)
 
 rtacc_checkbutton_var = BooleanVar(value=False) # --rtacc
 rtacc_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.RTACC, variable=rtacc_checkbutton_var)
-rtacc_checkbutton.grid(sticky="w", row=6, column=1)
+rtacc_checkbutton.grid(sticky="w", row=5, column=2)
 
 
 kwarg_combotips_var = StringVar(value="Autoplay") # --combotips
@@ -285,7 +278,7 @@ kwarg_lfdaot_file_choose_button.grid(row=3, column=2, columnspan=100, sticky="w"
 kwarg_lfdaot_file_entry.configure(state = "disabled")
 kwarg_lfdaot_file_choose_button.configure(state = "disabled")
 
-kwarg_size_x_var = StringVar(value="NULL") # --size-file
+kwarg_size_x_var = StringVar(value="NULL") # --size
 kwarg_size_y_var = StringVar(value="NULL")
 kwarg_size_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.SIZE)
 kwarg_size_x_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_size_x_var)

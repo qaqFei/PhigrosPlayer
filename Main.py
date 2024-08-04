@@ -2987,11 +2987,15 @@ root = webcvapis.WebCanvas(
     resizable = False,
     frameless = "-frameless" in argv
 )
+    
+webdpr = root.run_js_code("window.devicePixelRatio;")
+if webdpr != 1.0:
+    lowquality = True
+    lowquality_scale = 1.0 / webdpr # ...?
 
 if lowquality:
     root.run_js_code(f"lowquality_scale = {lowquality_scale};")
-    
-webdpr = root.run_js_code("window.devicePixelRatio;")
+
 if "--window-host" in argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(argv[argv.index("--window-host") + 1]))
 if hidemouse:

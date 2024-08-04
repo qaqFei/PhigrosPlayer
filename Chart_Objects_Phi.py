@@ -193,7 +193,7 @@ class judgeLine:
     def get_datavar_rotate(self, now_time):
         for e in self.judgeLineRotateEvents:
             if e.startTime <= now_time <= e.endTime:
-                return Tool_Functions.interpolation_phi(
+                return Tool_Functions.linear_interpolation(
                     now_time,
                     e.startTime,
                     e.endTime,
@@ -219,8 +219,8 @@ class judgeLine:
         for e in self.judgeLineMoveEvents:
             if e.startTime <= now_time <= e.endTime:
                 v = (
-                    Tool_Functions.interpolation_phi(now_time, e.startTime, e.endTime, e.start, e.end),
-                    Tool_Functions.interpolation_phi(now_time, e.startTime, e.endTime, e.start2, e.end2)
+                    Tool_Functions.linear_interpolation(now_time, e.startTime, e.endTime, e.start, e.end),
+                    Tool_Functions.linear_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2)
                 )
                 break
         return v

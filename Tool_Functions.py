@@ -66,41 +66,6 @@ def easing_interpolation(
     if t == st: return sv
     return f((t - st) / (et - st)) * (ev - sv) + sv
 
-@numba.jit
-def cosint(p, dx = 1 / 5e2): # f\left(m\right)=\int_{0}^{m}\left(\cos\left(\pi x\right)+1\right)dx
-    if p >= 1.0: return 1.0
-    if p <= 0.0: return 0.0
-    ep, intp = 0.0, 0.0
-    while intp <= p:
-        ep += dx * (math.cos(intp * math.pi) + 1)
-        intp += dx
-    return ep if 0.0 <= ep <= 1.0 else (0.0 if ep <= 0.0 else 1.0)
-
-if "--ease-event-interpolation" in argv:
-    @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
-    def interpolation_phi(
-        t:float,
-        st:float,
-        et:float,
-        sv:float,
-        ev:float
-    ) -> float:
-        if t == st: return sv
-        p = (t - st) / (et - st)
-        ep = cosint(p)
-        return ep * (ev - sv) + sv
-else:
-    @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
-    def interpolation_phi(
-        t:float,
-        st:float,
-        et:float,
-        sv:float,
-        ev:float
-    ) -> float:
-        if t == st: return sv
-        return (t - st) / (et - st) * (ev - sv) + sv
-
 bae_bs = 2.15
 class begin_animation_eases_class:
     @staticmethod
@@ -183,8 +148,6 @@ class finish_animation_eases_class:
         if x >= 1.0: return 1.0
         return 1 - (1 - x) ** 3
 
-linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
-interpolation_phi(0.5,0.1,0.8,-114.514,314.159)
 begin_animation_eases = begin_animation_eases_class()
 finish_animation_eases = finish_animation_eases_class()
 
@@ -258,31 +221,28 @@ def Note_CanRender(
             ]
         ))
 
+@numba.jit
 def TextureLine_CanRender(
     w: int, h: int,
     texture_max_size_half: float,
     x: float, y: float
 ) -> bool:
-    p1 = (x - texture_max_size_half, y - texture_max_size_half)
-    p2 = (x + texture_max_size_half, y - texture_max_size_half)
-    p3 = (x + texture_max_size_half, y + texture_max_size_half)
-    p4 = (x - texture_max_size_half, y + texture_max_size_half)
-    return any(batch_is_intersect(
-        [
-            (p1, p2),
-            (p2, p3),
-            (p3, p4),
-            (p4, p1),
-            (p1, p3),
-            (p2, p4)
-        ],
-        [
-            ((0, 0), (w, 0)), ((0, 0), (0, h)),
-            ((w, 0), (w, h)), ((0, h), (w, h)),
-            ((0, 0), (w, h)), ((w, 0), (0, h))
-        ]
-    ))
-
+    tl = x - texture_max_size_half
+    tr = x + texture_max_size_half
+    tt = y - texture_max_size_half
+    tb = y + texture_max_size_half
+    sl, sr, st, sb = 0, w, 0, h
+    return (
+        (sl <= tl <= sr and st <= tt <= sb) or
+        (sl <= tl <= sr and st <= tb <= sb) or
+        (sl <= tr <= sr and st <= tt <= sb) or
+        (sl <= tr <= sr and st <= tb <= sb) or
+        (tl <= sl <= tr and tt <= st <= tb) or
+        (tl <= sl <= tr and tt <= sb <= tb) or
+        (tl <= sr <= tr and tt <= st <= tb) or
+        (tl <= sr <= tr and tt <= sb <= tb)
+    )
+    
 def judgeLine_can_render(
     judgeLine_DrawPos: typing.Tuple[
         typing.Tuple[float, float],
@@ -291,6 +251,7 @@ def judgeLine_can_render(
 ) -> bool:
     return any(batch_is_intersect([[[judgeLine_DrawPos[0],judgeLine_DrawPos[1]],[judgeLine_DrawPos[2],judgeLine_DrawPos[3]]]],[[(0,0),(w,0)],[(0,0),(0,h)],[(w,0),(w,h)],[(0,h),(w,h)]]))
 
+@numba.jit
 def point_in_screen(point:typing.Tuple[float,float], w: int, h: int) -> bool:
     return 0 < point[0] < w and 0 < point[1] < h
 
@@ -310,4 +271,7 @@ def NoJoinThreadFunc(f):
 def conrpepos(x: float, y: float):
     return (x + 675) / 1350, 1.0 - (y + 450) / 900
 
+linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
+TextureLine_CanRender(1920, 1080, 50, 0, 0)
+point_in_screen((0, 0), 1920, 1080)

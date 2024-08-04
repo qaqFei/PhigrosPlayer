@@ -8,19 +8,19 @@ import rpe_easing
 import Const
 
         
-def _init_events(es: list[LineEvent], et: int|None):
+def _init_events(es: list[LineEvent]):
     aes = []
     for i, e in enumerate(es):
         if i != len(es) - 1:
             ne = es[i + 1]
             if e.endTime.value < ne.startTime.value:
                 aes.append(LineEvent(
-                    e.endTime, ne.startTime, e.end, e.end, et
+                    e.endTime, ne.startTime, e.end, e.end, 1
                 ))
     es.extend(aes)
     es.sort(key = lambda x: x.startTime.value)
     if es: es.append(LineEvent(
-        es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, et
+        es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, 1
     ))
         
 @dataclass
@@ -109,7 +109,13 @@ class LineEvent:
     endTime: Beat
     start: float|str|list[int]
     end: float|str|list[int]
-    easingType: int|None
+    easingType: int
+    easingFunc: typing.Callable[[float], float] = rpe_easing.ease_funcs[0]
+    
+    def __post_init__(self):
+        if not isinstance(self.easingType, int): self.easingType = 1
+        self.easingType = 1 if self.easingType < 1 else (len(rpe_easing.ease_funcs) if self.easingType > len(rpe_easing.ease_funcs) else self.easingType)
+        self.easingFunc = rpe_easing.ease_funcs[self.easingType - 1]
     
 @dataclass
 class EventLayer:
@@ -126,11 +132,11 @@ class EventLayer:
         self.rotateEvents.sort(key = lambda x: x.startTime.value)
         self.alphaEvents.sort(key = lambda x: x.startTime.value)
         
-        _init_events(self.speedEvents, None)
-        _init_events(self.moveXEvents, 1)
-        _init_events(self.moveYEvents, 1)
-        _init_events(self.rotateEvents, 1)
-        _init_events(self.alphaEvents, 1)
+        _init_events(self.speedEvents)
+        _init_events(self.moveXEvents)
+        _init_events(self.moveYEvents)
+        _init_events(self.rotateEvents)
+        _init_events(self.alphaEvents)
         
 @dataclass
 class Extended:
@@ -145,10 +151,10 @@ class Extended:
         self.colorEvents.sort(key = lambda x: x.startTime.value)
         self.textEvents.sort(key = lambda x: x.startTime.value)
 
-        _init_events(self.scaleXEvents, 1)
-        _init_events(self.scaleYEvents, 1)
-        _init_events(self.colorEvents, 1)
-        _init_events(self.textEvents, 1)
+        _init_events(self.scaleXEvents)
+        _init_events(self.scaleYEvents)
+        _init_events(self.colorEvents)
+        _init_events(self.textEvents)
 
 @dataclass
 class MetaData:
@@ -184,13 +190,13 @@ class JudgeLine:
         for e in es:
             if e.startTime.value <= t <= e.endTime.value:
                 if isinstance(e.start, float|int):
-                    return Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, rpe_easing.ease_funcs[e.easingType - 1])
+                    return Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, e.easingFunc)
                 elif isinstance(e.start, str):
                     return e.start
                 elif isinstance(e.start, list):
-                    r = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], rpe_easing.ease_funcs[e.easingType - 1])
-                    g = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], rpe_easing.ease_funcs[e.easingType - 1])
-                    b = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], rpe_easing.ease_funcs[e.easingType - 1])
+                    r = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], e.easingFunc)
+                    g = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], e.easingFunc)
+                    b = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], e.easingFunc)
                     return (r, g, b)
         return default
     
