@@ -3,8 +3,6 @@ import urllib.request
 import sys
 import json
 
-import requests
-
 PPR_VERSION = "1.5.0"
 BETA = True
 
@@ -54,8 +52,8 @@ Current version: {PPR_VERSION}\nThe latest version: {".".join(new_ver)}\
             "beta": BETA,
             "os": sys.platform
         }
-        requests.get(server, data=json.dumps(infos, ensure_ascii=False, indent=4).encode("utf-8"))
-    except StopAsyncIteration as e:
+        urllib.request.urlopen(urllib.request.Request(server, data=json.dumps(infos, ensure_ascii=False, indent=4).encode("utf-8")))
+    except Exception as e:
         print(e)
 
 def print_hello():

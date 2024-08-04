@@ -6,4 +6,3 @@ numba
 opencv-python
 numpy
 webcvapis==0.0.6
-requests
