@@ -1,7 +1,7 @@
 import http.server
 
 class PPRServerHandler(http.server.BaseHTTPRequestHandler):
-    def do_POST(self):
+    def do_GET(self):
         try:
             datas = self.rfile.read(int(self.headers["Content-Length"])).decode("utf-8")
             print(datas)

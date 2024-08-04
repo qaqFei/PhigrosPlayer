@@ -54,7 +54,7 @@ Current version: {PPR_VERSION}\nThe latest version: {".".join(new_ver)}\
             "beta": BETA,
             "os": sys.platform
         }
-        requests.post(server, data=json.dumps(infos, ensure_ascii=False, indent=4).encode("utf-8"))
+        requests.get(server, data=json.dumps(infos, ensure_ascii=False, indent=4).encode("utf-8"))
     except StopAsyncIteration as e:
         print(e)
 
