@@ -482,13 +482,14 @@ def Load_Resource():
                     if exists(p) and isfile(p):
                         try:
                             texture = Image.open(p).convert("RGBA")
-                            chart_res[line.Texture] = (texture, texture.size)
+                            size = texture.size
                             if lowquality and lowquality_scale > 1.0:
-                                textureWidth, textureHeight = chart_res[line.Texture].size
+                                textureWidth, textureHeight = texture.size
                                 textureWidth /= lowquality_scale; textureHeight /= lowquality_scale
                                 textureWidth, textureHeight = int(textureWidth), int(textureHeight)
                                 if textureWidth > 32 and textureHeight > 32:
-                                    chart_res[line.Texture] = chart_res[line.Texture].resize((textureWidth, textureHeight))
+                                    texture = texture.resize((textureWidth, textureHeight))
+                            chart_res[line.Texture] = (texture, size)
                         except Exception as e:
                             print(f"Can't open texture {p} : {e}")
                             continue
