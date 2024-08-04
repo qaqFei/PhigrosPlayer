@@ -253,7 +253,7 @@ for item in chart_files:
                                         "endTime": [float(tokens[2]), 0, 1] if tokens[0] != "n2" else et,
                                         "positionX": float(tokens[3]) / 2048 * 1350,
                                         "above": int(float(tokens[4])),
-                                        "isFake": not bool(int(float(tokens[5]))),
+                                        "isFake": bool(int(float(tokens[5]))),
                                         "speed": float(ntl1.replace(" ", "").replace("#", "")),
                                         "size": float(ntl2.replace(" ", "").replace("&", ""))
                                     })
