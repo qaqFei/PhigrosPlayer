@@ -481,6 +481,13 @@ def Load_Resource():
                     if exists(p) and isfile(p):
                         try:
                             chart_res[line.Texture] = Image.open(p).convert("RGBA")
+                            if lowquality and lowquality_scale > 1.0:
+                                textureWidth, textureHeight = chart_res[line.Texture].size
+                                textureWidth /= lowquality_scale; textureHeight /= lowquality_scale
+                                textureWidth, textureHeight = int(textureWidth), int(textureHeight)
+                                if textureWidth > 32 and textureHeight > 32:
+                                    chart_res[line.Texture] = chart_res[line.Texture].resize((textureWidth, textureHeight))
+                                    line.textureLineDrawScale = lowquality_scale
                         except Exception as e:
                             print(f"Can't open texture {p} : {e}")
                             continue
@@ -493,6 +500,10 @@ def Load_Resource():
     with open("./Resources/font.ttf","rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
     root.load_allimg()
+    for im in root._is_loadimg.keys(): # ...  create image draw cache
+        root.create_image(im, 0, 0, 50, 50, wait_execute=True)
+    root.clear_canvas(wait_execute = True)
+    root.run_js_wait_code()
     root.run_js_code("color_block_img_ele = Start_img; body_ele.appendChild(color_block_img_ele);")
     root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
     while not root.run_js_code("font_loaded;"):
@@ -1205,8 +1216,8 @@ def GetFrameRenderTask_Phi(
         this_judgeLine_T = judgeLine.T
         judgeLine_note_dy = Chart_Objects_Phi.getFloorPosition(judgeLine, judgeLine_cfg.time) * PHIGROS_Y
         judgeLine_DrawPos = (
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h),
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h)
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h / 2),
+            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h / 2)
         )
         judgeLine_color = (*((254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
@@ -1662,15 +1673,15 @@ def GetFrameRenderTask_Rpe(
         if judgeline_notransparent: lineAlpha = 1.0
         linePos = (linePos[0] * w, linePos[1] * h)
         judgeLine_DrawPos = (
-            *Tool_Functions.rotate_point(*linePos, lineRotate, 5.76 * h * lineScaleX),
-            *Tool_Functions.rotate_point(*linePos, lineRotate + 180, 5.76 * h * lineScaleX)
+            *Tool_Functions.rotate_point(*linePos, lineRotate, w * 4000 / 1350 * lineScaleX / 2),
+            *Tool_Functions.rotate_point(*linePos, lineRotate + 180, w * 4000 / 1350 * lineScaleX / 2)
         )
         negative_alpha = lineAlpha < 0.0
         judgeLine_webCanvas_color = f"rgba{lineColor + (lineAlpha, )}"
         if line.Texture != "line.png" and lineAlpha > 0.0:
             texture: Image.Image = chart_res[line.Texture]
-            texture_width = texture.width / 1104 * w * 0.75 * lineScaleX
-            texture_height = texture.height / 621 * h * 0.75 * lineScaleY
+            texture_width = texture.width / 1104 * w * 0.75 * lineScaleX * line.textureLineDrawScale
+            texture_height = texture.height / 621 * h * 0.75 * lineScaleY * line.textureLineDrawScale
             if Tool_Functions.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
                 Task(
                     root.run_js_code,
@@ -1719,7 +1730,7 @@ def GetFrameRenderTask_Rpe(
                 wait_execute = True
             )
             
-        if debug:
+        if debug and line.attachUI is None and Tool_Functions.point_in_screen(linePos, w, h):
             Task(
                 root.create_text,
                 *Tool_Functions.rotate_point(*linePos, 90 + lineRotate - 180, (w + h) / 75),
@@ -2991,7 +3002,7 @@ root = webcvapis.WebCanvas(
 webdpr = root.run_js_code("window.devicePixelRatio;")
 if webdpr != 1.0:
     lowquality = True
-    lowquality_scale = 1.0 / webdpr # ...?
+    lowquality_scale *= 1.0 / webdpr # ...?
 
 if lowquality:
     root.run_js_code(f"lowquality_scale = {lowquality_scale};")

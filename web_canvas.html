@@ -47,7 +47,7 @@
     body_ele = html_ele.children[1];
     canvas_ele = document.createElement("canvas");
     body_ele.appendChild(canvas_ele);
-    ctx = canvas_ele.getContext("2d", {willReadFrequently: true});
+    ctx = canvas_ele.getContext("2d", {willReadFrequently: true, alpha: false});
     JavaScript_WaitToExecute_CodeArray = new Array();
     resize_task = false;
     lfdaot_render_fcount = 0;
@@ -195,9 +195,6 @@
         canvas_ele.height = window.innerHeight / lowquality_scale;
         ctx.reset();
         ctx.scale(1 / lowquality_scale, 1 / lowquality_scale);
-        if (lowquality_scale > 1.0) {
-            ctx.imageSmoothingEnabled = false;
-        }
         /*
         in python, width and height is the real size of canvas, so we donot need to scale the canvas.
         */

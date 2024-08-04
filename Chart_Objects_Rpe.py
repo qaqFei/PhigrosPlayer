@@ -185,6 +185,7 @@ class JudgeLine:
     zOrder: int
     
     playingFloorPosition: float = 0.0
+    textureLineDrawScale: float = 1.0 # when using lowquality, texture size will be small, but we still draw texture to raw size, so, it has this attr.
     
     def GetEventValue(self, t:float, es: list[LineEvent], default):
         for e in es:
