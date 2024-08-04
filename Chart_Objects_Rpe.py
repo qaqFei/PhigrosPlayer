@@ -184,7 +184,6 @@ class JudgeLine:
     zOrder: int
     
     playingFloorPosition: float = 0.0
-    textureLineRawTextureSize: tuple[int, int]|None = None # when has value at loaded res.
     
     def GetEventValue(self, t:float, es: list[LineEvent], default):
         for e in es:

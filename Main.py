@@ -481,8 +481,8 @@ def Load_Resource():
                 for p in paths:
                     if exists(p) and isfile(p):
                         try:
-                            chart_res[line.Texture] = Image.open(p).convert("RGBA")
-                            line.textureLineRawTextureSize = chart_res[line.Texture].size
+                            texture = Image.open(p).convert("RGBA")
+                            chart_res[line.Texture] = (texture, texture.size)
                             if lowquality and lowquality_scale > 1.0:
                                 textureWidth, textureHeight = chart_res[line.Texture].size
                                 textureWidth /= lowquality_scale; textureHeight /= lowquality_scale
@@ -495,7 +495,8 @@ def Load_Resource():
                         break
                 else:
                     print(f"Can't find texture {line.Texture}")
-                    chart_res[line.Texture] = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
+                    texture = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
+                    chart_res[line.Texture] = (texture, texture.size)
                 root.reg_img(chart_res[line.Texture], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
     
     with open("./Resources/font.ttf","rb") as f:
@@ -1680,8 +1681,9 @@ def GetFrameRenderTask_Rpe(
         negative_alpha = lineAlpha < 0.0
         judgeLine_webCanvas_color = f"rgba{lineColor + (lineAlpha, )}"
         if line.Texture != "line.png" and lineAlpha > 0.0:
-            texture_width = line.textureLineRawTextureSize[0] / 1104 * w * 0.75 * lineScaleX
-            texture_height = line.textureLineRawTextureSize[1] / 621 * h * 0.75 * lineScaleY
+            _, texture_size = chart_res[line.Texture]
+            texture_width = texture_size[0] / 1104 * w * 0.75 * lineScaleX
+            texture_height = texture_size[1] / 621 * h * 0.75 * lineScaleY
             if Tool_Functions.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
                 Task(
                     root.run_js_code,
