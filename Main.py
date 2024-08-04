@@ -2062,15 +2062,16 @@ def GetFrameRenderTask_Rpe(
     return Task
 
 def CheckMusicOffsetAndEnd(now_t: float, Task: Chart_Objects_Phi.FrameRenderTask):
-    if now_t >= audio_length:
+    if now_t >= raw_audio_length:
         Task.ExTask.append(("break",))
     
     if not lfdaot and not no_mixer_reset_chart_time and mixer.music.get_busy():
         this_music_pos = mixer.music.get_pos() % (raw_audio_length * 1000)
         offset_judge_range = (1000 / 60) * 4
         if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
-            Task.ExTask.append(("set", "show_start_time", show_start_time - music_offset / 1000))
-            print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
+            if abs(music_offset) < raw_audio_length * 1000 * 0.75:
+                Task.ExTask.append(("set", "show_start_time", show_start_time - music_offset / 1000))
+                print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
 
 def Get_LevelNumber() -> str:
     lv = chart_information["Level"].lower()
