@@ -13,7 +13,6 @@
 - `--debug` 显示WebView调试工具, 并显示判定线定位点
 - `--combotips <string-value>` 设置连击下的提示 默认为`Autoplay`
 - `--fullscreen` 全屏
-- `--hidemouse` 隐藏鼠标
 - `--judgeline-notransparent` 让判定线的`Disappear`始终为`1.0` 也就是说不存在透明度
 - `--noclickeffect-randomblock` 禁用打击效果的随机扩散方块
 - `--loop` 循环播放
@@ -37,6 +36,7 @@
 - `--lfdaot-file-output-autoexit` 在使用`--lfdaot`时 生成`lfdaot`文件后不播放 自动退出
 - `--lowquality` 开启低画质模式
 - `--lowquality-scale <float-value>` 设置低画质模式的画质降低程度 为n时, 即为正常1/n倍的渲染量 默认为2.0
+- `--res <res-path>` 优先从资源路径加载资源
 
 # 快捷键
 - 播放中使用长按`Ctrl + Alt + R`可重新开始 (使用`--lfdaot`时失效)

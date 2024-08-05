@@ -5,7 +5,6 @@ Usage: Main <chart_file> [<args>...] [<kwargs>...]
   --hideconsole: Hide the console window.
   --debug: Display webview debug window, and show judgeLine position points.
   --fullscreen: Make the window fullscreen.
-  --hidemouse: Hide the mouse cursor.
   --judgeline-notransparent: Make the judgeLine not transparent. (Disappear value forever is 1.0.)
   --noclickeffect-randomblock: Disable random block of click effect.
   --loop: Auto loop the chart.

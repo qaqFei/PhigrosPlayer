@@ -1,7 +1,7 @@
 from threading import Thread
 from ctypes import windll
 from os import chdir, environ, listdir, popen; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
-from os.path import exists, abspath, dirname, isfile
+from os.path import exists, abspath, dirname, isfile, isdir
 from time import time, sleep
 from shutil import rmtree
 from tempfile import gettempdir
@@ -9,7 +9,10 @@ from ntpath import basename
 import typing
 import json
 import base64
-import sys; sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else None
+import sys
+
+_excepthook = sys.excepthook
+sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else _excepthook(*args)
 
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 from pygame import mixer
@@ -42,13 +45,11 @@ Thread(target=version.check_new_version, daemon=True).start()
 if "--hideconsole" in sys.argv:
     ConsoleWindow.Hide()
 
-hidemouse = "--hidemouse" in sys.argv
+Kill_PlayThread_Flag = False
 
 selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
-
-Kill_PlayThread_Flag = False
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
     print("7z.exe or 7z.dll Not Found.")
@@ -81,6 +82,10 @@ noautoplay = "--noautoplay" in sys.argv
 rtacc = "--rtacc" in sys.argv
 lowquality = "--lowquality" in sys.argv
 lowquality_scale = float(sys.argv[sys.argv.index("--lowquality-scale") + 1]) ** 0.5 if "--lowquality-scale" in sys.argv else 2.0 ** 0.5
+respaths = ["./Resources"]
+
+if "--res" in sys.argv:
+    respaths.append(sys.argv[sys.argv.index("--res") + 1])
 
 if lfdaot and noautoplay:
     noautoplay = False
@@ -354,6 +359,19 @@ for k,v in chart_information.items():
 
 del chart_files,chart_files_dict
 
+def getResPath(path:str, file: bool = True):
+    for rp in reversed(respaths):
+        fp = f"{rp}\\{path}"
+        if exists(fp) and (isfile(fp) if file else isdir(fp)):
+            return fp
+    return f"{respaths[0]}\\{path}"
+
+def putColor(color: tuple|str, im: Image.Image):
+    return Image.merge("RGBA", (
+        *Image.new("RGB", im.size, color).split(),
+        im.split()[-1]
+    ))
+
 def Load_Resource():
     global ClickEffect_Size, Note_width
     global note_max_width, note_max_height
@@ -361,64 +379,61 @@ def Load_Resource():
     global animation_image
     global WaitLoading, LoadSuccess
     global chart_res
+    global ClickEffectFrameCount
     
     print("Loading Resource...")
-    WaitLoading = mixer.Sound("./Resources/WaitLoading.mp3")
-    LoadSuccess = mixer.Sound("./Resources/LoadSuccess.wav")
+    WaitLoading = mixer.Sound(getResPath("/WaitLoading.mp3"))
+    LoadSuccess = mixer.Sound(getResPath("/LoadSuccess.wav"))
     Thread(target=WaitLoading_FadeIn, daemon = True).start()
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
     Note_width_raw = (0.125 * w + 0.2 * h) / 2
     Note_width = (Note_width_raw) * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
     ClickEffect_Size = Note_width * 1.375
+    ClickEffectFrameCount = len(listdir(getResPath("/Note_Click_Effect/Frames", False)))
+    ClickEffectImages = [Image.open(getResPath(f"/Note_Click_Effect/Frames/{i + 1}.png")) for i in range(ClickEffectFrameCount)]
     Resource = {
         "Notes":{
-            "Tap": Image.open("./Resources/Notes/Tap.png"),
-            "Tap_dub": Image.open("./Resources/Notes/Tap_dub.png"),
-            "Drag": Image.open("./Resources/Notes/Drag.png"),
-            "Drag_dub": Image.open("./Resources/Notes/Drag_dub.png"),
-            "Flick": Image.open("./Resources/Notes/Flick.png"),
-            "Flick_dub": Image.open("./Resources/Notes/Flick_dub.png"),
-            "Hold_Head": Image.open("./Resources/Notes/Hold_Head.png"),
-            "Hold_Head_dub": Image.open("./Resources/Notes/Hold_Head_dub.png"),
-            "Hold_End": Image.open("./Resources/Notes/Hold_End.png"),
-            "Hold_End_dub": Image.open("./Resources/Notes/Hold_End_dub.png"),
-            "Hold_Body": Image.open("./Resources/Notes/Hold_Body.png"),
-            "Hold_Body_dub": Image.open("./Resources/Notes/Hold_Body_dub.png"),
-            "Tap_Bad": Image.open("./Resources/Notes/Tap_Bad.png")
+            "Tap": Image.open(getResPath("/Notes/Tap.png")),
+            "Tap_dub": Image.open(getResPath("/Notes/Tap_dub.png")),
+            "Drag": Image.open(getResPath("/Notes/Drag.png")),
+            "Drag_dub": Image.open(getResPath("/Notes/Drag_dub.png")),
+            "Flick": Image.open(getResPath("/Notes/Flick.png")),
+            "Flick_dub": Image.open(getResPath("/Notes/Flick_dub.png")),
+            "Hold_Head": Image.open(getResPath("/Notes/Hold_Head.png")),
+            "Hold_Head_dub": Image.open(getResPath("/Notes/Hold_Head_dub.png")),
+            "Hold_End": Image.open(getResPath("/Notes/Hold_End.png")),
+            "Hold_End_dub": Image.open(getResPath("/Notes/Hold_End_dub.png")),
+            "Hold_Body": Image.open(getResPath("/Notes/Hold_Body.png")),
+            "Hold_Body_dub": Image.open(getResPath("/Notes/Hold_Body_dub.png")),
+            "Tap_Bad": Image.open(getResPath("/Notes/Tap_Bad.png"))
         },
         "Note_Click_Effect":{
-            "Perfect":[
-                Image.open(f"./Resources/Note_Click_Effect/Perfect/{i + 1}.png")
-                for i in range(30)
-            ],
-            "Good":[
-                Image.open(f"./Resources/Note_Click_Effect/Good/{i + 1}.png")
-                for i in range(30)
-            ]
+            "Perfect": list(map(lambda im: putColor((204, 196, 138), im), ClickEffectImages)),
+            "Good": list(map(lambda im: putColor((180, 225, 255), im), ClickEffectImages)),
         },
         "Levels":{
-            "AP": Image.open("./Resources/Levels/AP.png"),
-            "FC": Image.open("./Resources/Levels/FC.png"),
-            "V": Image.open("./Resources/Levels/V.png"),
-            "S": Image.open("./Resources/Levels/S.png"),
-            "A": Image.open("./Resources/Levels/A.png"),
-            "B": Image.open("./Resources/Levels/B.png"),
-            "C": Image.open("./Resources/Levels/C.png"),
-            "F": Image.open("./Resources/Levels/F.png")
+            "AP": Image.open(getResPath("/Levels/AP.png")),
+            "FC": Image.open(getResPath("/Levels/FC.png")),
+            "V": Image.open(getResPath("/Levels/V.png")),
+            "S": Image.open(getResPath("/Levels/S.png")),
+            "A": Image.open(getResPath("/Levels/A.png")),
+            "B": Image.open(getResPath("/Levels/B.png")),
+            "C": Image.open(getResPath("/Levels/C.png")),
+            "F": Image.open(getResPath("/Levels/F.png"))
         },
         "Note_Click_Audio":{
-            "Tap": open("./Resources/Note_Click_Audio/Tap.wav", "rb").read(),
-            "Drag": open("./Resources/Note_Click_Audio/Drag.wav", "rb").read(),
-            "Hold": open("./Resources/Note_Click_Audio/Hold.wav", "rb").read(),
-            "Flick": open("./Resources/Note_Click_Audio/Flick.wav", "rb").read()
+            "Tap": open(getResPath("/Note_Click_Audio/Tap.wav"), "rb").read(),
+            "Drag": open(getResPath("/Note_Click_Audio/Drag.wav"), "rb").read(),
+            "Hold": open(getResPath("/Note_Click_Audio/Hold.wav"), "rb").read(),
+            "Flick": open(getResPath("/Note_Click_Audio/Flick.wav"), "rb").read()
         },
-        "Start": Image.open("./Resources/Start.png"),
-        "Button_Left": Image.open("./Resources/Button_Left.png"),
+        "Start": Image.open(getResPath("/Start.png")),
+        "Button_Left": Image.open(getResPath("/Button_Left.png")),
         "Button_Right": None,
-        "Retry": Image.open("./Resources/Retry.png"),
-        "Arrow_Right": Image.open("./Resources/Arrow_Right.png"),
-        "Over": mixer.Sound("./Resources/Over.wav")
+        "Retry": Image.open(getResPath("/Retry.png")),
+        "Arrow_Right": Image.open(getResPath("/Arrow_Right.png")),
+        "Over": mixer.Sound(getResPath("/Over.wav"))
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -450,7 +465,7 @@ def Load_Resource():
             Resource["Notes"][k] = v.resize((int(Note_width),int(Note_width / v.width * v.height)))
         root.reg_img(Resource["Notes"][k], f"Note_{k}")
     
-    for i in range(30): # reg click effect
+    for i in range(ClickEffectFrameCount): # reg click effect
         root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
         root.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
         
@@ -500,7 +515,7 @@ def Load_Resource():
                     chart_res[line.Texture] = (texture, texture.size)
                 root.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
     
-    with open("./Resources/font.ttf","rb") as f:
+    with open(getResPath("/font.ttf"), "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
     root.load_allimg()
     for im in root._is_loadimg.keys(): # ...  create image draw cache
@@ -1182,7 +1197,7 @@ def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perf
             beforedeg += 90
     Task(
         root.create_image,
-        f"{imn}_{int(p * (30 - 1)) + 1}",
+        f"{imn}_{int(p * (ClickEffectFrameCount - 1)) + 1}",
         x - ClickEffect_Size / 2,
         y - ClickEffect_Size / 2,
         ClickEffect_Size, ClickEffect_Size,
@@ -3011,8 +3026,6 @@ if lowquality:
 
 if "--window-host" in sys.argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
-if hidemouse:
-    root.run_js_code("hide_mouse();")
 if "--fullscreen" in sys.argv:
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
     root._web.toggle_fullscreen()
