@@ -1803,7 +1803,9 @@ def GetFrameRenderTask_Rpe(
                 continue
             
             noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h
-            if noteFloorPosition < 0 and not note.ishold: continue
+            if noteFloorPosition < 0 and not note.clicked:
+                continue
+            
             noteAtJudgeLinePos = Tool_Functions.rotate_point(
                 *linePos, lineRotate, note.positionX2 * w
             )
@@ -1835,7 +1837,7 @@ def GetFrameRenderTask_Rpe(
                 else Tool_Functions.Note_CanRender(w, h, note_max_size_half, x, y, holdbody_range)
             )
             
-            if canRender and abs(now_t - chart_obj.beat2sec(note.startTime.value)) <= note.visibleTime:
+            if canRender and abs(now_t - note.secst) <= note.visibleTime:
                 dub_text = "_dub" if note.morebets else ""
                 if not note.ishold:
                     this_note_img_keyname = f"{note.type_string}{dub_text}"
