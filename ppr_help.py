@@ -31,4 +31,5 @@ Usage: Main <chart_file> [<args>...] [<kwargs>...]
   --lfdaot-file-savefp <filepath-string-value>: when using --lfdaot, set the lfdaot file save path. (Front-loaded arg: --lfdaot)
   --lfdaot-render-video-savefp <filepath-string-value>: when using --lfdaot and --lfdaot-render-video, set the video file save path. (Front-loaded arg: --lfdaot and --lfdaot-render-video)
   --lowquality-scale <float-value>: Set the low quality render scale. default: 2.0
+  --res <res-path>: Set the resource path.
 '''
