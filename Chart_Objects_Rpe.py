@@ -200,16 +200,15 @@ class JudgeLine:
         return default
     
     @lru_cache
-    def GetPos(self, t: float, master: Rpe_Chart):
+    def GetPos(self, t: float, master: Rpe_Chart) -> list[float, float]:
         linePos = [0.0, 0.0]
         for layer in self.eventLayers:
             linePos[0] += self.GetEventValue(t, layer.moveXEvents, 0.0)
             linePos[1] += self.GetEventValue(t, layer.moveYEvents, 0.0)
         if self.father != -1:
             try:
-                father = master.JudgeLineList[self.father]
-                fatherPos = father.GetPos(t, master)
-                linePos = [linePos[0] + fatherPos[0], linePos[1] + fatherPos[1]]
+                fatherPos = master.JudgeLineList[self.father].GetPos(t, master)
+                linePos = list(map(lambda x, y: x + y, linePos, fatherPos))
             except IndexError:
                 pass
         return linePos
@@ -223,9 +222,15 @@ class JudgeLine:
                     break # loop for other layers
         return v
     
-    def GetState(self, t: float, defaultColor: list[int, int, int], master: Rpe_Chart) -> dict:
+    def GetState(self, t: float, defaultColor: list[int, int, int], master: Rpe_Chart) -> tuple[tuple[float, float], float, float, tuple[int, int, int], float, float, str|None]:
         "linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText"
-        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = self.GetPos(t, master), 0.0, 0.0, defaultColor, 1.0, 1.0, None
+        linePos = self.GetPos(t, master)
+        lineAlpha = 0.0
+        lineRotate = 0.0
+        lineColor = defaultColor
+        lineScaleX = 1.0
+        lineScaleY = 1.0
+        lineText = None
         
         for layer in self.eventLayers:
             lineAlpha += self.GetEventValue(t, layer.alphaEvents, 0.0)

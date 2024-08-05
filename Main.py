@@ -2,7 +2,6 @@ from threading import Thread
 from ctypes import windll
 from os import chdir, environ, listdir, popen; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
 from os.path import exists, abspath, dirname, isfile
-from sys import argv
 from time import time, sleep
 from shutil import rmtree
 from tempfile import gettempdir
@@ -10,6 +9,7 @@ from ntpath import basename
 import typing
 import json
 import base64
+import sys; sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else None
 
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 from pygame import mixer
@@ -32,19 +32,19 @@ import info_loader
 import version
 import ppr_help
 
-if len(argv) == 1:
+if len(sys.argv) == 1:
     print(ppr_help.HELP_EN)
     windll.kernel32.ExitProcess(0)
     
 version.print_hello()
 Thread(target=version.check_new_version, daemon=True).start()
 
-if "--hideconsole" in argv:
+if "--hideconsole" in sys.argv:
     ConsoleWindow.Hide()
 
-hidemouse = "--hidemouse" in argv
+hidemouse = "--hidemouse" in sys.argv
 
-selfdir = dirname(argv[0])
+selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
@@ -64,23 +64,23 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_
         print(f"Warning: {e}")
 print(f"Temp Dir: {temp_dir}")
 
-enable_clicksound = "--noclicksound" not in argv
-debug = "--debug" in argv
-show_holdbody = "--holdbody" in argv
-debug_noshow_transparent_judgeline = "--debug-noshow-transparent-judgeline" in argv
-judgeline_notransparent = "--judgeline-notransparent" in argv
-clickeffect_randomblock = "--noclickeffect-randomblock" not in argv
-loop = "--loop" in argv
-lfdaot = "--lfdaot" in argv
-lfdoat_file = "--lfdaot-file" in argv
-render_range_more = "--render-range-more" in argv
-render_range_more_scale = 2.0 if "--render-range-more-scale" not in argv else eval(argv[argv.index("--render-range-more-scale")+1])
-lfdaot_render_video = "--lfdaot-render-video" in argv
-no_mixer_reset_chart_time = "--no-mixer-reset-chart-time" in argv
-noautoplay = "--noautoplay" in argv
-rtacc = "--rtacc" in argv
-lowquality = "--lowquality" in argv
-lowquality_scale = float(argv[argv.index("--lowquality-scale") + 1]) ** 0.5 if "--lowquality-scale" in argv else 2.0 ** 0.5
+enable_clicksound = "--noclicksound" not in sys.argv
+debug = "--debug" in sys.argv
+show_holdbody = "--holdbody" in sys.argv
+debug_noshow_transparent_judgeline = "--debug-noshow-transparent-judgeline" in sys.argv
+judgeline_notransparent = "--judgeline-notransparent" in sys.argv
+clickeffect_randomblock = "--noclickeffect-randomblock" not in sys.argv
+loop = "--loop" in sys.argv
+lfdaot = "--lfdaot" in sys.argv
+lfdoat_file = "--lfdaot-file" in sys.argv
+render_range_more = "--render-range-more" in sys.argv
+render_range_more_scale = 2.0 if "--render-range-more-scale" not in sys.argv else eval(sys.argv[sys.argv.index("--render-range-more-scale")+1])
+lfdaot_render_video = "--lfdaot-render-video" in sys.argv
+no_mixer_reset_chart_time = "--no-mixer-reset-chart-time" in sys.argv
+noautoplay = "--noautoplay" in sys.argv
+rtacc = "--rtacc" in sys.argv
+lowquality = "--lowquality" in sys.argv
+lowquality_scale = float(sys.argv[sys.argv.index("--lowquality-scale") + 1]) ** 0.5 if "--lowquality-scale" in sys.argv else 2.0 ** 0.5
 
 if lfdaot and noautoplay:
     noautoplay = False
@@ -91,7 +91,7 @@ mixer.init()
 mixer.music.set_volume(0.85)
 
 print("Unpack Chart...")
-popen(f".\\7z.exe x \"{argv[1]}\" -o\"{temp_dir}\" >> nul").read()
+popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" >> nul").read()
 
 print("Loading All Files of Chart...")
 chart_files = Find_Files.Get_All_Files(temp_dir)
@@ -369,7 +369,7 @@ def Load_Resource():
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
     Note_width_raw = (0.125 * w + 0.2 * h) / 2
-    Note_width = (Note_width_raw) * (eval(argv[argv.index("--scale-note") + 1]) if "--scale-note" in argv else 1.0)
+    Note_width = (Note_width_raw) * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
     ClickEffect_Size = Note_width * 1.375
     Resource = {
         "Notes":{
@@ -691,7 +691,7 @@ def draw_ui(
         
         root.run_js_code(
             f"ctx.drawUIText(\
-                '{root.process_code_string_syntax_tostring(("Autoplay" if not noautoplay else "Combo") if "--combotips" not in argv else argv[argv.index("--combotips") + 1])}',\
+                '{root.process_code_string_syntax_tostring(("Autoplay" if not noautoplay else "Combo") if "--combotips" not in sys.argv else sys.argv[sys.argv.index("--combotips") + 1])}',\
                 {w / 2 + comboUI_dx},\
                 {h * 0.095 + comboUI_dy},\
                 {comboUI_rotate},\
@@ -2390,8 +2390,8 @@ def PlayerStart():
     else:
         lfdaot_tasks = {}
         frame_speed = 60
-        if "--lfdaot-frame-speed" in argv:
-            frame_speed = eval(argv[argv.index("--lfdaot-frame-speed") + 1])
+        if "--lfdaot-frame-speed" in sys.argv:
+            frame_speed = eval(sys.argv[sys.argv.index("--lfdaot-frame-speed") + 1])
         frame_count = 0
         frame_time = 1 / frame_speed
         allframe_num = int(audio_length / frame_time) + 1
@@ -2415,8 +2415,8 @@ def PlayerStart():
                 
                 print(f"\rLoadFrameData: {frame_count} / {allframe_num}",end="")
             
-            if "--lfdaot-file-savefp" in argv:
-                lfdaot_fp = argv[argv.index("--lfdaot-file-savefp") + 1]
+            if "--lfdaot-file-savefp" in sys.argv:
+                lfdaot_fp = sys.argv[sys.argv.index("--lfdaot-file-savefp") + 1]
             else:
                 lfdaot_fp = dialog.savefile(
                     fn = "Chart.lfdaot"
@@ -2450,11 +2450,11 @@ def PlayerStart():
                 with open(lfdaot_fp,"w") as f:
                     f.write(json.dumps(data).replace(" ",""))
                     
-            if "--lfdaot-file-output-autoexit" in argv:
+            if "--lfdaot-file-output-autoexit" in sys.argv:
                 root.destroy()
                 return None
         else: #--lfdaot-file
-            fp = argv[argv.index("--lfdaot-file") + 1]
+            fp = sys.argv[sys.argv.index("--lfdaot-file") + 1]
             with open(fp,"r",encoding="utf-8") as f:
                 data = json.load(f)
             if data["meta"]["render_range_more"]:
@@ -2538,8 +2538,8 @@ def PlayerStart():
                 
                 sleep(max(0,frame_time - (time() - render_st)))
         else: # --lfdaot-render-video
-            if "--lfdaot-render-video-savefp" in argv:
-                video_fp = argv[argv.index("--lfdaot-render-video-savefp") + 1]
+            if "--lfdaot-render-video-savefp" in sys.argv:
+                video_fp = sys.argv[sys.argv.index("--lfdaot-render-video-savefp") + 1]
             else:
                 video_fp = dialog.savefile(
                     fn = "lfdaot_render_video.mp4"
@@ -2996,9 +2996,9 @@ root = webcvapis.WebCanvas(
     width = 1, height = 1,
     x = 0, y = 0,
     title = "Phigros Chart Player",
-    debug = "--debug" in argv,
+    debug = "--debug" in sys.argv,
     resizable = False,
-    frameless = "-frameless" in argv
+    frameless = "-frameless" in sys.argv
 )
     
 webdpr = root.run_js_code("window.devicePixelRatio;")
@@ -3009,18 +3009,18 @@ if webdpr != 1.0:
 if lowquality:
     root.run_js_code(f"lowquality_scale = {lowquality_scale};")
 
-if "--window-host" in argv:
-    windll.user32.SetParent(root.winfo_hwnd(), eval(argv[argv.index("--window-host") + 1]))
+if "--window-host" in sys.argv:
+    windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
 if hidemouse:
     root.run_js_code("hide_mouse();")
-if "--fullscreen" in argv:
+if "--fullscreen" in sys.argv:
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
     root._web.toggle_fullscreen()
 else:
-    if "--size" not in argv:
+    if "--size" not in sys.argv:
         w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
     else:
-        w, h = int(eval(argv[argv.index("--size") + 1])), int(eval(argv[argv.index("--size") + 2]))
+        w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
     root.resize(w, h)
     w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
     dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
