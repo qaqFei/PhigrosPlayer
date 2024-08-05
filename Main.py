@@ -11,11 +11,11 @@ import json
 import base64
 import sys
 
-_excepthook = sys.excepthook
-sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else _excepthook(*args)
+sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else sys.__excepthook__(*args)
 
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 from pygame import mixer
+from pydub import AudioSegment
 import cv2
 import numpy
 import webcvapis
@@ -361,7 +361,7 @@ del chart_files,chart_files_dict
 
 def getResPath(path:str, file: bool = True):
     for rp in reversed(respaths):
-        fp = f"{rp}\\{path}"
+        fp = f"{rp}{path}"
         if exists(fp) and (isfile(fp) if file else isdir(fp)):
             return fp
     return f"{respaths[0]}\\{path}"
@@ -371,6 +371,12 @@ def putColor(color: tuple|str, im: Image.Image):
         *Image.new("RGB", im.size, color).split(),
         im.split()[-1]
     ))
+
+def loadAudio(path: str):
+    seg = AudioSegment.from_file(path)
+    fp = f"{temp_dir}/{hash(path)}.wav"
+    seg.export(fp, format="wav")
+    return open(fp, "rb").read()
 
 def Load_Resource():
     global ClickEffect_Size, Note_width
@@ -423,10 +429,10 @@ def Load_Resource():
             "F": Image.open(getResPath("/Levels/F.png"))
         },
         "Note_Click_Audio":{
-            "Tap": open(getResPath("/Note_Click_Audio/Tap.wav"), "rb").read(),
-            "Drag": open(getResPath("/Note_Click_Audio/Drag.wav"), "rb").read(),
-            "Hold": open(getResPath("/Note_Click_Audio/Hold.wav"), "rb").read(),
-            "Flick": open(getResPath("/Note_Click_Audio/Flick.wav"), "rb").read()
+            "Tap": loadAudio(getResPath("/Note_Click_Audio/Tap.wav")),
+            "Drag": loadAudio(getResPath("/Note_Click_Audio/Drag.wav")),
+            "Hold": loadAudio(getResPath("/Note_Click_Audio/Hold.wav")),
+            "Flick": loadAudio(getResPath("/Note_Click_Audio/Flick.wav"))
         },
         "Start": Image.open(getResPath("/Start.png")),
         "Button_Left": Image.open(getResPath("/Button_Left.png")),
@@ -460,6 +466,7 @@ def Load_Resource():
         fill = "#00000000"
     )
     
+    Const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     for k,v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
         if v.width > Note_width:
             Resource["Notes"][k] = v.resize((int(Note_width),int(Note_width / v.width * v.height)))
