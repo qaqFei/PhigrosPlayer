@@ -18,6 +18,7 @@ Usage: Main <chart_file> [<args>...] [<kwargs>...]
   --rtacc: Enable real-time accuracy.
   --lfdaot-file-output-autoexit: when using --lfdaot and saved lfdaot file, noplay, and auto exit. (Front-loaded arg: --lfdaot)
   --lowquality: Use low quality render.
+  --showfps: Show fps. when using --lfdaot-render-video, it will not be displayed.
 
 <Kwargs>
   --combotips <string-value>: Set the combo tips text.

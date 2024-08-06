@@ -82,6 +82,7 @@ noautoplay = "--noautoplay" in sys.argv
 rtacc = "--rtacc" in sys.argv
 lowquality = "--lowquality" in sys.argv
 lowquality_scale = float(sys.argv[sys.argv.index("--lowquality-scale") + 1]) ** 0.5 if "--lowquality-scale" in sys.argv else 2.0 ** 0.5
+showfps = "--showfps" in sys.argv
 respaths = ["./Resources"]
 
 if "--res" in sys.argv:
@@ -90,6 +91,10 @@ if "--res" in sys.argv:
 if lfdaot and noautoplay:
     noautoplay = False
     print("Warning: if use --lfdaot, you cannot use --noautoplay.")
+
+if showfps and lfdaot and lfdaot_render_video:
+    showfps = False
+    print("Warning: if use --lfdaot-render-video, you cannot use --showfps.")
 
 print("Init Pygame Mixer...")
 mixer.init()
@@ -642,6 +647,14 @@ def Show_Start():
     sleep(1.25)
     Thread(target = PlayerStart,daemon = True).start()
 
+def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
+    return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}
+
+drawUI_Default_Kwargs = {
+    f"{k}_{k2}": v
+    for k in ("combonumber", "combo", "score", "name", "level", "pause") for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
+}
+lastCallDrawUI = - float("inf")
 def draw_ui(
     process:float = 0.0,
     score:str = "0000000",
@@ -696,6 +709,8 @@ def draw_ui(
     pauseUI_color: str = "rgb(255, 255, 255)",
     pauseUI_rotate: float = 0.0
 ):
+    global lastCallDrawUI
+    
     if clear:
         root.clear_canvas(wait_execute = True)
     if background:
@@ -828,8 +843,11 @@ def draw_ui(
         add_code_array = True
     )
     
+    try: fps = (1.0 / (time() - lastCallDrawUI))
+    except ZeroDivisionError: fps = float("inf")
+    
     root.create_text(
-        text = "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License",
+        text = (f"fps {fps:.0f} - " if showfps else "") + "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License",
         x = w * 0.9875,
         y = h * 0.995,
         textAlign = "right",
@@ -842,6 +860,8 @@ def draw_ui(
     
     if animationing:
         root.run_js_code(f"ctx.translate(0,{- h / 7 + dy});",add_code_array=True)
+    
+    lastCallDrawUI = time()
 
 def draw_background():
     root.create_image(
@@ -2135,7 +2155,7 @@ def GetFrameRenderTask_Rpe(
         acc = "100.00%" if not noautoplay else f"{(PhigrosPlayManagerObject.getAcc() * 100):.2f}%",
         clear = False,
         background = False,
-        **attachUIData
+        **deleteDrwaUIKwargsDefaultValues(attachUIData)
     )
     now_t += chart_obj.META.offset / 1000
     CheckMusicOffsetAndEnd(now_t, Task)

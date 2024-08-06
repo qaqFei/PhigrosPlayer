@@ -37,6 +37,7 @@
 - `--lowquality` 开启低画质模式
 - `--lowquality-scale <float-value>` 设置低画质模式的画质降低程度 为n时, 即为正常1/n倍的渲染量 默认为2.0
 - `--res <res-path>` 优先从资源路径加载资源
+- `--showfps` 显示`fps`, 在使用`--lfdaot-render-video`时无效
 
 # 快捷键
 - 播放中使用长按`Ctrl + Alt + R`可重新开始 (使用`--lfdaot`时失效)
