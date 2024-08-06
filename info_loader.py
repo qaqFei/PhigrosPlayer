@@ -24,7 +24,7 @@ class InfoLoader:
         
         with open(filename, "r", encoding=encoding) as f:
             try:
-                raw_data = f.read()
+                raw_data = f.read().replace("\ufeff", "")
             except Exception:
                 if not _failed:
                     try:
@@ -34,56 +34,59 @@ class InfoLoader:
                 return None
             file_type = filename.split(".")[-1]
             
-            match file_type:
-                case "csv":
-                    csv_reader = csv.reader(raw_data.splitlines())
-                    lines = list(filter(lambda x: x != "", csv_reader))
-                    
-                    meta_line = lines[0]
-                    info_lines = lines[1:]
-                    
-                    for line in info_lines:
+            try:
+                match file_type:
+                    case "csv":
+                        csv_reader = csv.reader(raw_data.splitlines())
+                        lines = list(filter(lambda x: x != "", csv_reader))
+                        
+                        meta_line = lines[0]
+                        info_lines = lines[1:]
+                        
+                        for line in info_lines:
+                            key = (
+                                line[meta_line.index("Chart")],
+                                line[meta_line.index("Music")],
+                                line[meta_line.index("Image")]
+                            )
+                            value = {}
+                            for i in self.default_info.keys():
+                                try:
+                                    value[i] = line[meta_line.index(i)]
+                                except Exception:
+                                    pass
+                                
+                            self.infomap[key] = value
+                    case "txt":
+                        lines = [i for i in raw_data.splitlines() if ":" in i]
+                        info = {i.split(":")[0]: i[i.index(":") + 1:] for i in lines}
+                        info = {k: v if v[0] != " " else v[1:] for k, v in info.items()}
+                        keymap = {
+                            "Song": "Music",
+                            "Picture": "Image",
+                            "Composer": "Artist"
+                        }
+                        info = {keymap.get(k, k): v for k, v in info.items()}
+                        
                         key = (
-                            line[meta_line.index("Chart")],
-                            line[meta_line.index("Music")],
-                            line[meta_line.index("Image")]
+                            info["Chart"],
+                            info["Music"],
+                            info["Image"]
                         )
                         value = {}
                         for i in self.default_info.keys():
                             try:
-                                value[i] = line[meta_line.index(i)]
+                                value[i] = info[i]
                             except Exception:
                                 pass
-                            
+                        
                         self.infomap[key] = value
-                case "txt":
-                    lines = [i for i in raw_data.splitlines() if ":" in i]
-                    info = {i.split(":")[0]: i[i.index(":") + 1:] for i in lines}
-                    info = {k: v if v[0] != " " else v[1:] for k, v in info.items()}
-                    keymap = {
-                        "Song": "Music",
-                        "Picture": "Image",
-                        "Composer": "Artist"
-                    }
-                    info = {keymap.get(k, k): v for k, v in info.items()}
-                    
-                    key = (
-                        info["Chart"],
-                        info["Music"],
-                        info["Image"]
-                    )
-                    value = {}
-                    for i in self.default_info.keys():
-                        try:
-                            value[i] = info[i]
-                        except Exception:
-                            pass
-                    
-                    self.infomap[key] = value
-                case "yml":
-                    return None #  i think ... we don't need process yml, becasuse: normal, if yml file is exists, it can process info.txt!
-                case _:
-                    return None
+                    case "yml":
+                        return None #  i think ... we don't need process yml, becasuse: normal, if yml file is exists, it can process info.txt!
+                    case _:
+                        return None
+            except Exception:
+                return None
             
             return True
     
