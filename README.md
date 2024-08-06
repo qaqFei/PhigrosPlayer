@@ -44,3 +44,4 @@
 ### 声明
 - 此项目仅用于学习交流，请勿用于商业用途
 - 如有侵权 请联系删除: qaq_fei@163.com 或提issue
+- 项目中的`/shaders/*.glsl`文件都是直接取自`prpr`, 源文件`https://github.com/Mivik/prpr/tree/main/prpr/src/core/shaders`

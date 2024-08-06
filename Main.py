@@ -106,6 +106,9 @@ chart_files_dict = {
     "audio": [],
 }
 for item in chart_files:
+    if item.endswith("info.txt") or item.endswith("info.csv") or item.endswith("info.yml") or item.endswith("extra.json"):
+        continue
+    
     try:
         chart_files_dict["images"].append([item,Image.open(item).convert("RGB")])
         print(f"Add Resource (image): {item.replace(f"{temp_dir}\\", "")}")
@@ -273,8 +276,7 @@ for item in chart_files:
                     chart_files_dict["charts"].append([item, rpeJson])
                 else:
                     name = item.replace(f"{temp_dir}\\", "")
-                    if name not in ["info.csv", "info.txt", "info.yml"]:
-                        print(f"Warning: Unknown Resource Type. Path = {name}")
+                    print(f"Warning: Unknown Resource Type. Path = {name}")
                     
 if len(chart_files_dict["charts"]) == 0:
     print("No Chart File Found.")
@@ -359,6 +361,18 @@ for k,v in chart_information.items():
 
 del chart_files,chart_files_dict
 
+extraPath = f"{temp_dir}/extra.json"
+extra = {
+    "bpm": [ { "time": [ 0, 0, 1 ], "bpm": 1.0 } ],
+    "effects": []
+}
+if exists(extraPath) and isfile(extraPath):
+    try:
+        with open(extraPath, "r", encoding="utf-8") as f:
+            extra.update(json.load(f))
+    except Exception as e:
+        print("Warning: extra.json is not valid.", repr(e))
+
 def getResPath(path:str, file: bool = True):
     for rp in reversed(respaths):
         fp = f"{rp}{path}"
@@ -386,6 +400,7 @@ def Load_Resource():
     global WaitLoading, LoadSuccess
     global chart_res
     global ClickEffectFrameCount
+    global shaders
     
     print("Loading Resource...")
     WaitLoading = mixer.Sound(getResPath("/WaitLoading.mp3"))
@@ -412,7 +427,7 @@ def Load_Resource():
             "Hold_End_dub": Image.open(getResPath("/Notes/Hold_End_dub.png")),
             "Hold_Body": Image.open(getResPath("/Notes/Hold_Body.png")),
             "Hold_Body_dub": Image.open(getResPath("/Notes/Hold_Body_dub.png")),
-            "Tap_Bad": Image.open(getResPath("/Notes/Tap_Bad.png"))
+            "Bad": None
         },
         "Note_Click_Effect":{
             "Perfect": list(map(lambda im: putColor((204, 196, 138), im), ClickEffectImages)),
@@ -443,6 +458,7 @@ def Load_Resource():
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
+    Resource["Notes"]["Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
     
     animation_image = chart_image.copy()
     animation_image = animation_image.convert("RGBA")
@@ -535,7 +551,7 @@ def Load_Resource():
         sleep(0.1)
     
     root.shutdown_fileserver()
-    print("Loading Resource Successfully.")
+    print("Load Resource Successfully.")
     note_max_width = max(
         [
             Resource["Notes"]["Tap"].width,
@@ -563,6 +579,44 @@ def Load_Resource():
         ]
     )
     note_max_size_half = (note_max_width ** 2 + note_max_height ** 2) ** 0.5
+    
+    print("Loading Shaders...")
+    
+    shaders = {
+        "chromatic": open("./shaders/chromatic.glsl", "r", encoding="utf-8").read(),
+        "circleBlur": open("./shaders/circle_blur.glsl", "r", encoding="utf-8").read(),
+        "fisheye": open("./shaders/fisheye.glsl", "r", encoding="utf-8").read(),
+        "glitch": open("./shaders/glitch.glsl", "r", encoding="utf-8").read(),
+        "grayscale": open("./shaders/grayscale.glsl", "r", encoding="utf-8").read(),
+        "noise": open("./shaders/noise.glsl", "r", encoding="utf-8").read(),
+        "pixel": open("./shaders/pixel.glsl", "r", encoding="utf-8").read(),
+        "radialBlur": open("./shaders/radial_blur.glsl", "r", encoding="utf-8").read(),
+        "shockwave": open("./shaders/shockwave.glsl", "r", encoding="utf-8").read(),
+        "vignette": open("./shaders/vignette.glsl", "r", encoding="utf-8").read()
+    }
+    
+    try:
+        for effect in extra["effects"]:
+            try:
+                shaderName = effect["shader"]
+                if shaderName in shaders: continue
+                shaderPath = f"{temp_dir}/{shaderName}"
+                if exists(shaderPath) and isfile(shaderPath):
+                    shaders[shaderName] = open(shaderPath, "r", encoding="utf-8").read()
+                else:
+                    raise Exception(f"Shader {shaderName} not found.")
+            except Exception as e:
+                print(f"Load Shader {shaderName} Failed.")
+    except Exception as e:
+        print("Load Other Shaders Failed.")
+    
+    extra["effects"] = list(filter(lambda x: x.get("shader", "") in shaders, extra["effects"]))
+    
+    # how to load shaders to webgl and use them???
+    ... # TODO
+    
+    print("Load Shaders Successfully.")
+    
     return Resource
 
 def Format_Time(t:typing.Union[int,float]) -> str:
@@ -1537,11 +1591,11 @@ def GetFrameRenderTask_Phi(
             (-90 if note.above else 90) - will_show_effect_rotate,
             floorp * PHIGROS_Y
         )
-        this_note_img = Resource["Notes"]["Tap_Bad"]
+        this_note_img = Resource["Notes"]["Bad"]
         Task(
             root.run_js_code,
             f"crc2d_enable_rrm = false; ctx.drawRotateImage(\
-                {root.get_img_jsvarname("Note_Tap_Bad")},\
+                {root.get_img_jsvarname("Note_Bad")},\
                 {x},\
                 {y},\
                 {Note_width * (Const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
@@ -1990,11 +2044,11 @@ def GetFrameRenderTask_Rpe(
             (-90 if note.above == 1 else 90) + lineRotate,
             note.player_badjudge_floorp * h
         )
-        this_note_img = Resource["Notes"]["Tap_Bad"]
+        this_note_img = Resource["Notes"]["Bad"]
         Task(
             root.run_js_code,
             f"ctx.drawRotateImage(\
-                {root.get_img_jsvarname("Note_Tap_Bad")},\
+                {root.get_img_jsvarname("Note_Bad")},\
                 {x},\
                 {y},\
                 {Note_width * note.width * (Const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
