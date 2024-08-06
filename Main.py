@@ -83,6 +83,8 @@ rtacc = "--rtacc" in sys.argv
 lowquality = "--lowquality" in sys.argv
 lowquality_scale = float(sys.argv[sys.argv.index("--lowquality-scale") + 1]) ** 0.5 if "--lowquality-scale" in sys.argv else 2.0 ** 0.5
 showfps = "--showfps" in sys.argv
+lfdaot_start_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-start-frame-num") + 1])) if "--lfdaot-start-frame-num" in sys.argv else 0
+lfdaot_run_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-run-frame-num") + 1])) if "--lfdaot-run-frame-num" in sys.argv else float("inf")
 respaths = ["./Resources"]
 
 if "--res" in sys.argv:
@@ -2490,13 +2492,13 @@ def PlayerStart():
         frame_speed = 60
         if "--lfdaot-frame-speed" in sys.argv:
             frame_speed = eval(sys.argv[sys.argv.index("--lfdaot-frame-speed") + 1])
-        frame_count = 0
+        frame_count = lfdaot_start_frame_num
         frame_time = 1 / frame_speed
         allframe_num = int(audio_length / frame_time) + 1
         
         if lfdaot and not lfdoat_file: #eq if not lfdoat_file
             while True:
-                if frame_count * frame_time > audio_length:
+                if frame_count * frame_time > audio_length or frame_count - lfdaot_start_frame_num >= lfdaot_run_frame_num:
                     break
                 
                 if CHART_TYPE == Const.CHART_TYPE.PHI:

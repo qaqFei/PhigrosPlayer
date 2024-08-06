@@ -38,6 +38,8 @@
 - `--lowquality-scale <float-value>` 设置低画质模式的画质降低程度 为n时, 即为正常1/n倍的渲染量 默认为2.0
 - `--res <res-path>` 优先从资源路径加载资源
 - `--showfps` 显示`fps`, 在使用`--lfdaot-render-video`时无效
+- `--lfdaot-start-frame-num <number-value>` 使用`--lfdaot`时, 生成开始时的帧数, 默认为`0` // 仅适用于生成视频
+- `--lfdaot-run-frame-num <number-value>` 使用`--lfdaot`时, 要生成的帧数, 默认为`float("inf")`, 即生成到结束
 
 # 快捷键
 - 播放中使用长按`Ctrl + Alt + R`可重新开始 (使用`--lfdaot`时失效)

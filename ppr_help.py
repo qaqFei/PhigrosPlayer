@@ -33,4 +33,6 @@ Usage: Main <chart_file> [<args>...] [<kwargs>...]
   --lfdaot-render-video-savefp <filepath-string-value>: when using --lfdaot and --lfdaot-render-video, set the video file save path. (Front-loaded arg: --lfdaot and --lfdaot-render-video)
   --lowquality-scale <float-value>: Set the low quality render scale. default: 2.0
   --res <res-path>: Set the resource path.
+  --lfdaot-start-frame-num <number-value>: Set the start frame number of *.lfdaot file. (Front-loaded arg: --lfdaot, Invalid when using --lfdaot-file) // only use at very big chart file video render.
+  --lfdaot-run-frame-num <number-value>: Set the frame number count of *.lfdaot file. (Front-loaded arg: --lfdaot, Invalid when using --lfdaot-file) // only use at very big chart file video render.
 '''
