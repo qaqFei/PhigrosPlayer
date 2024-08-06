@@ -46,8 +46,10 @@
     html_ele = root_ele.children[0];
     body_ele = html_ele.children[1];
     canvas_ele = document.createElement("canvas");
+    glcanvas = document.createElement("canvas");
     body_ele.appendChild(canvas_ele);
     ctx = canvas_ele.getContext("2d", {willReadFrequently: true, alpha: false});
+    gl = glcanvas.getContext("webgl");
     JavaScript_WaitToExecute_CodeArray = new Array();
     resize_task = false;
     lfdaot_render_fcount = 0;
