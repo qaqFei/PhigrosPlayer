@@ -7,6 +7,7 @@
 
 ## 兼容性
 - 好了, 全支持了(`phi`&`rpe`&`pec`) --- 2024.8.3 😉
+- 尚未支持`extra.json` (shader)
 
 ## 命令行参数
 - `--hideconsole` 隐藏控制台
