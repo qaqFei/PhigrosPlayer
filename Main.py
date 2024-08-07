@@ -34,6 +34,7 @@ import Phigros_Tips
 import info_loader
 import version
 import ppr_help
+import rpe_easing
 
 if len(sys.argv) == 1:
     print(ppr_help.HELP_EN)
@@ -2403,20 +2404,23 @@ def PlayerStart():
             root.run_js_wait_code()
     
     def ChartStart_Animation():
+        csat = 1.25
         st = time()
-        while time() - st < 0.65:
-            p = (time() - st) / 0.65
-            val = 1 - (1 - p) ** 2
+        while time() - st < csat:
+            p = (time() - st) / csat
+            val = rpe_easing.ease_funcs[12](p)
             draw_ui(animationing = True,dy = h / 7 * val)
             root.create_line(
-                w / 2 - (val * w / 2),h / 2,
-                w / 2 + (val * w / 2),h / 2,
+                w / 2 - (val * w / 2), h / 2,
+                w / 2 + (val * w / 2), h / 2,
                 strokeStyle = Const.JUDGELINE_PERFECT_COLOR,
                 lineWidth = JUDGELINE_WIDTH / render_range_more_scale if render_range_more else JUDGELINE_WIDTH,
                 wait_execute = True
             )
             root.run_js_wait_code()
             sleep(1 / 240)
+        
+        sleep(0.35)
     
     Begin_Animation()
     ChartStart_Animation()
