@@ -15,7 +15,7 @@
     - 不支持贝塞尔曲线事件
     - 不支持判定线中的`bpmfactor`
     - 不支持判定线中的`isCover`
-    - 不支持判定线中的`yOffset`
+    - 不支持`yOffset`
 
 ## 命令行参数
 - `--hideconsole` 隐藏控制台
