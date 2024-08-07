@@ -8,6 +8,13 @@
 ## 兼容性
 - 好了, 全支持了(`phi`&`rpe`&`pec`) --- 2024.8.3 😉
 - 尚未支持`extra.json` (shader)
+- 关于`rpe`谱面
+    - 不支持判定线中的`*Control`字段
+    - 不支持事件层中的`inclineEvents`
+    - 不支持特殊事件中的`paintEvents`
+    - 不支持贝塞尔曲线事件
+    - 不支持判定线中的`bpmfactor`
+    - 不支持判定线中的`isCover`
 
 ## 命令行参数
 - `--hideconsole` 隐藏控制台
