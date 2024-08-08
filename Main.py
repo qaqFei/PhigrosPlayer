@@ -400,6 +400,27 @@ def loadAudio(path: str):
     seg.export(fp, format="wav")
     return open(fp, "rb").read()
 
+def cutAnimationIllImage(im: Image.Image):
+    imdraw = ImageDraw.Draw(im)
+    imdraw.polygon(
+        [
+            (0, 0),
+            (0, im.height),
+            (im.width * 0.1, 0),
+            (0, 0)
+        ],
+        fill = "#00000000"
+    )
+    imdraw.polygon(
+        [
+            (im.width, 0),
+            (im.width, im.height),
+            (im.width * (1 - 0.1), im.height),
+            (im.width, 0)
+        ],
+        fill = "#00000000"
+    )
+
 def Load_Resource():
     global ClickEffect_Size, Note_width
     global note_max_width, note_max_height
@@ -468,27 +489,18 @@ def Load_Resource():
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["Notes"]["Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
     
-    animation_image = chart_image.copy()
-    animation_image = animation_image.convert("RGBA")
-    animation_image_imdraw = ImageDraw.Draw(animation_image)
-    animation_image_imdraw.polygon(
-        [
-            (0,0),
-            (0,animation_image.height),
-            (animation_image.width * 0.1,0),
-            (0,0)
-        ],
-        fill = "#00000000"
-    )
-    animation_image_imdraw.polygon(
-        [
-            (animation_image.width,0),
-            (animation_image.width,animation_image.height),
-            (animation_image.width * (1 - 0.1),animation_image.height),
-            (animation_image.width,0)
-        ],
-        fill = "#00000000"
-    )
+    finish_animation_image_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
+    finish_animation_image_mask.putpixel((0, 4), (0, 0, 0, 204))
+    finish_animation_image_mask.putpixel((0, 3), (0, 0, 0, 128))
+    finish_animation_image_mask.putpixel((0, 2), (0, 0, 0, 64))
+    
+    animation_image = chart_image.copy().convert("RGBA")
+    cutAnimationIllImage(animation_image)
+    
+    finish_animation_image = chart_image.copy().convert("RGBA")
+    finish_animation_image_mask = finish_animation_image_mask.resize(finish_animation_image.size)
+    finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
+    cutAnimationIllImage(finish_animation_image)
     
     Const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     for k,v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
@@ -505,6 +517,7 @@ def Load_Resource():
         
     root.reg_img(Resource["Start"],"Start")
     root.reg_img(animation_image,"begin_animation_image")
+    root.reg_img(finish_animation_image,"finish_animation_image")
     root.reg_img(Resource["Button_Left"],"Button_Left")
     root.reg_img(Resource["Button_Right"],"Button_Right")
     root.reg_img(Resource["Retry"],"Retry")
@@ -2676,6 +2689,7 @@ def PlayerStart():
                 
                 Lfdaot_VideoWriter.release()
     
+    im_size = 0.475
     LevelName = "AP" if not noautoplay else PhigrosPlayManagerObject.getLevelString()
     EarlyCount = 0 if not noautoplay else PhigrosPlayManagerObject.getEarlyCount()
     LateCount = 0 if not noautoplay else PhigrosPlayManagerObject.getLateCount()
@@ -2687,6 +2701,14 @@ def PlayerStart():
     ScoreString = "1000000" if not noautoplay else get_stringscore(PhigrosPlayManagerObject.getScore())
     MaxCombo = chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getMaxCombo()
     AccString = f"{(Acc * 100):.2f}%"
+    ChartNameString = chart_information["Name"]
+    ChartNameStringFontSize = w * im_size * 0.65 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(ChartNameString)}).width;") / 50)
+    ChartLevelString = chart_information["Level"]
+    ChartLevelStringFontSize = w * im_size * 0.25 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(ChartLevelString)}).width;") / 50)
+    if ChartNameStringFontSize > w * 0.0275:
+        ChartNameStringFontSize = w * 0.0275
+    if ChartLevelStringFontSize > w * 0.0275 * 0.5:
+        ChartLevelStringFontSize = w * 0.0275 * 0.5
     
     def Chart_Finish_Animation_Frame(p:float):
         root.clear_canvas(wait_execute = True)
@@ -2699,7 +2721,6 @@ def PlayerStart():
         data_block_3_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.055)
         data_block_3_ease_pos = w * 1.25 * (1 - data_block_3_ease_value)
         button_ease_value = Tool_Functions.finish_animation_eases.button_ease(p * 4.5 - 0.95)
-        im_size = 0.475
         level_size = 0.125
         level_size *= Tool_Functions.finish_animation_eases.level_size_ease(p)
         button_ease_pos = - w * Const.FINISH_UI_BUTTON_SIZE * (1 - button_ease_value)
@@ -2707,13 +2728,36 @@ def PlayerStart():
         draw_background()
         
         root.create_image(
-            "begin_animation_image", #emm...
+            "finish_animation_image",
             w * 0.3 - w * im_size * 0.5 + im_ease_pos,
             h * 0.5 - h * im_size * 0.5,
             width = w * im_size,
             height = h * im_size,
             wait_execute = True
         )
+        
+        root.create_text(
+            w * 0.3 - w * im_size * 0.5 + w * im_size * 0.05 + im_ease_pos,
+            h * 0.5 + h * im_size * 0.5 - h * im_size * 0.04,
+            text = ChartNameString,
+            font = f"{ChartNameStringFontSize}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "bottom",
+            fillStyle = "#FFFFFF", 
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * 0.3 + w * im_size * 0.5 - w * im_size * 0.125 + im_ease_pos,
+            h * 0.5 + h * im_size * 0.5 - h * im_size * 0.04,
+            text = ChartLevelString,
+            font = f"{ChartLevelStringFontSize}px PhigrosFont",
+            textAlign = "right",
+            textBaseline = "bottom",
+            fillStyle = "#FFFFFF", 
+            wait_execute = True
+        )
+            
         
         root.create_polygon(
             [
