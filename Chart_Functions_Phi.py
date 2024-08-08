@@ -4,22 +4,9 @@ import Chart_Objects_Phi
 import Const
 import Tool_Functions
 
-def Init(
-    phigros_chart_obj_:Chart_Objects_Phi.Phigros_Chart,
-    PHIGROS_X_:float, PHIGROS_Y_:float,
-    w_:int, h_:int
-):
-    global phigros_chart_obj
-    global PHIGROS_X, PHIGROS_Y
-    global w, h
-    
-    phigros_chart_obj = phigros_chart_obj_
-    PHIGROS_X, PHIGROS_Y = PHIGROS_X_, PHIGROS_Y_
-    w, h = w_, h_
-
-def Cal_Combo(now_time:float) -> int:
+def Cal_Combo(now_time:float, chart_obj: Chart_Objects_Phi.Phigros_Chart) -> int:
     combo = 0
-    for judgeLine in phigros_chart_obj.judgeLineList:
+    for judgeLine in chart_obj.judgeLineList:
         for note in judgeLine.notesAbove + judgeLine.notesBelow:
             if note.time * judgeLine.T <= now_time and note.type != Const.Note.HOLD:
                 combo += 1
@@ -31,13 +18,13 @@ def Cal_Combo(now_time:float) -> int:
                     combo += 1
     return combo
 
-def Update_JudgeLine_Configs(judgeLine_Configs: Chart_Objects_Phi.judgeLine_Configs, now_t:float):
+def Update_JudgeLine_Configs(judgeLine_Configs: Chart_Objects_Phi.judgeLine_Configs, now_t: float, w: int, h: int):
     for judgeLine_cfg in judgeLine_Configs.Configs:
         judgeLine = judgeLine_cfg.line
         judgeLine_cfg.time = now_t / judgeLine.T
         judgeLine_cfg.rotate = judgeLine.get_datavar_rotate(judgeLine_cfg.time)
         judgeLine_cfg.disappear = judgeLine.get_datavar_disappear(judgeLine_cfg.time)
-        judgeLine_cfg.pos = judgeLine.get_datavar_move(judgeLine_cfg.time, w,h)
+        judgeLine_cfg.pos = judgeLine.get_datavar_move(judgeLine_cfg.time, w, h)
 
 def FrameData_ProcessExTask(ExTask,eval_func):
     break_flag = False

@@ -1311,7 +1311,7 @@ def GetFrameRenderTask_Phi(
     global PlayChart_NowTime; PlayChart_NowTime = now_t
     
     Task = Chart_Objects_Phi.FrameRenderTask([], [])
-    Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs, now_t)
+    Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs, now_t, w, h)
     Task(root.clear_canvas, wait_execute = True)
     Task(draw_background)
     
@@ -1752,7 +1752,7 @@ def GetFrameRenderTask_Phi(
             add_code_array = True
         )
     
-    combo = Chart_Functions_Phi.Cal_Combo(now_t) if not noautoplay else PhigrosPlayManagerObject.getCombo()
+    combo = Chart_Functions_Phi.Cal_Combo(now_t, chart_obj) if not noautoplay else PhigrosPlayManagerObject.getCombo()
     time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
     Task(
         draw_ui,
@@ -3146,7 +3146,7 @@ root = webcvapis.WebCanvas(
     title = "Phigros Chart Player",
     debug = "--debug" in sys.argv,
     resizable = False,
-    frameless = "-frameless" in sys.argv
+    frameless = "--frameless" in sys.argv
 )
     
 webdpr = root.run_js_code("window.devicePixelRatio;")
@@ -3187,11 +3187,6 @@ PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
-Chart_Functions_Phi.Init(
-    phigros_chart_obj_ = chart_obj,
-    PHIGROS_X_ = PHIGROS_X, PHIGROS_Y_ = PHIGROS_Y,
-    w_ = w, h_ = h
-)
 Thread(target=Show_Start,daemon=True).start()
 root.loop_to_close()
 
