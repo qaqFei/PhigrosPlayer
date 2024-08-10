@@ -4,7 +4,7 @@ import sys
 import json
 
 PPR_VERSION = "1.7.0"
-BETA = True
+BETA = False
 
 def check_new_version():
     print("Checking new version...")
