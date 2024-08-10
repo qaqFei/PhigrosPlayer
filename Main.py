@@ -2502,7 +2502,6 @@ def PlayerStart():
             else:
                 mixer.music.unpause()
                 show_start_time += time.time() - pause_st
-                root.run_js_code("canvas_ele.style.filter = '';")
                 pause_flag = False
                 
         root.jsapi.set_attr("Noautoplay_Restart", _f)
