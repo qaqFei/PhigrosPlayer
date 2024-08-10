@@ -49,6 +49,7 @@
 - `--showfps` 显示`fps`, 在使用`--lfdaot-render-video`时无效
 - `--lfdaot-start-frame-num <number-value>` 使用`--lfdaot`时, 生成开始时的帧数, 默认为`0` // 仅适用于生成视频
 - `--lfdaot-run-frame-num <number-value>` 使用`--lfdaot`时, 要生成的帧数, 默认为`float("inf")`, 即生成到结束
+- `--speed <number-value>` 倍速
 
 # 快捷键
 - 播放中使用长按`Ctrl + Alt + R`可重新开始 (使用`--lfdaot`时失效)

@@ -2,7 +2,6 @@ from threading import Thread
 from ctypes import windll
 from os import chdir, environ, listdir, popen; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
 from os.path import exists, abspath, dirname, isfile, isdir
-from time import time, sleep
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
@@ -10,6 +9,7 @@ import typing
 import json
 import base64
 import sys
+import time
 
 sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else sys.__excepthook__(*args)
 
@@ -56,7 +56,7 @@ if not exists("./7z.exe") or not exists("./7z.dll"):
     print("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
 
-temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time()}"
+temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time.time()}"
 for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_chart_temp_")]:
     item = f"{gettempdir()}\\{item}"
     try:
@@ -86,6 +86,7 @@ lowquality_scale = float(sys.argv[sys.argv.index("--lowquality-scale") + 1]) ** 
 showfps = "--showfps" in sys.argv
 lfdaot_start_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-start-frame-num") + 1])) if "--lfdaot-start-frame-num" in sys.argv else 0
 lfdaot_run_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-run-frame-num") + 1])) if "--lfdaot-run-frame-num" in sys.argv else float("inf")
+speed = float(sys.argv[sys.argv.index("--speed") + 1]) if "--speed" in sys.argv else 1.0
 respaths = ["./Resources"]
 
 if "--res" in sys.argv:
@@ -98,6 +99,10 @@ if lfdaot and noautoplay:
 if showfps and lfdaot and lfdaot_render_video:
     showfps = False
     print("Warning: if use --lfdaot-render-video, you cannot use --showfps.")
+
+if lfdaot and speed != 1.0:
+    speed = 1.0
+    print("Warning: if use --lfdaot, you cannot use --speed.")
 
 print("Init Pygame Mixer...")
 mixer.init()
@@ -352,7 +357,17 @@ if len(chart_files_dict["audio"]) > 1:
         audio_file = chart_files_dict["audio"][audio_file_index]
 else:
     audio_file = chart_files_dict["audio"][audio_file_index]
-    
+
+raw_audio_file = audio_file
+if speed != 1.0:
+    print("Processing audio...")
+    seg: AudioSegment = AudioSegment.from_file(audio_file)
+    seg = seg._spawn(seg.raw_data, overrides = {
+        "frame_rate": int(seg.frame_rate * speed)
+    }).set_frame_rate(seg.frame_rate)
+    audio_file = f"{temp_dir}/ppr_temp_audio_{time.time()}.mp3"
+    seg.export(audio_file, format="mp3")
+
 mixer.music.load(audio_file)
 raw_audio_length = mixer.Sound(audio_file).get_length()
 audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == Const.CHART_TYPE.RPE else 0.0)
@@ -360,7 +375,7 @@ all_inforamtion = {}
 print("Loading Chart Information...")
 
 ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
-chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(audio_file), basename(chart_image_filepath))
+chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(raw_audio_file), basename(chart_image_filepath))
     
 print("Loading Chart Information Successfully.")
 print("Inforamtions: ")
@@ -483,7 +498,8 @@ def Load_Resource():
         "Button_Right": None,
         "Retry": Image.open(getResPath("/Retry.png")),
         "Arrow_Right": Image.open(getResPath("/Arrow_Right.png")),
-        "Over": mixer.Sound(getResPath("/Over.wav"))
+        "Over": mixer.Sound(getResPath("/Over.wav")),
+        "Pause": loadAudio(getResPath("/Pause.wav"))
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -569,7 +585,7 @@ def Load_Resource():
     root.run_js_code("color_block_img_ele = Start_img; body_ele.appendChild(color_block_img_ele);")
     root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
     while not root.run_js_code("font_loaded;"):
-        sleep(0.1)
+        time.sleep(0.1)
     
     root.shutdown_fileserver()
     print("Load Resource Successfully.")
@@ -649,18 +665,18 @@ def Format_Time(t:typing.Union[int,float]) -> str:
 def WaitLoading_FadeIn():
     for i in range(50):
         WaitLoading.set_volume((i + 1) / 100)
-        sleep(2 / 50)
+        time.sleep(2 / 50)
 
 def Show_Start():
     WaitLoading.fadeout(450)
     root.run_js_code("show_in_animation();")
-    sleep(1.25)
+    time.sleep(1.25)
     draw_background()
     draw_ui(animationing = True)
     root.run_js_wait_code()
-    sleep(0.5)
+    time.sleep(0.5)
     root.run_js_code("show_out_animation();")
-    sleep(1.25)
+    time.sleep(1.25)
     Thread(target = PlayerStart,daemon = True).start()
 
 def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
@@ -859,7 +875,7 @@ def draw_ui(
         add_code_array = True
     )
     
-    try: fps = (1.0 / (time() - lastCallDrawUI))
+    try: fps = (1.0 / (time.time() - lastCallDrawUI))
     except ZeroDivisionError: fps = float("inf")
     
     root.create_text(
@@ -877,7 +893,7 @@ def draw_ui(
     if animationing:
         root.run_js_code(f"ctx.translate(0,{- h / 7 + dy});",add_code_array=True)
     
-    lastCallDrawUI = time()
+    lastCallDrawUI = time.time()
 
 def draw_background():
     root.create_image(
@@ -1180,9 +1196,9 @@ def PlayChart_ThreadFunction():
                     note.state != Const.NOTE_STATE.MISS and
                     note.hold_endtime - 0.2 >= PlayChart_NowTime
                 ):
-                    if note.player_last_testholdismiss_time + 0.16 <= time():
+                    if note.player_last_testholdismiss_time + 0.16 <= time.time():
                         if keydown:
-                            note.player_last_testholdismiss_time = time()
+                            note.player_last_testholdismiss_time = time.time()
                         else:
                             note.player_holdmiss_time = PlayChart_NowTime
                             note.state = Const.NOTE_STATE.MISS
@@ -1242,9 +1258,9 @@ def PlayChart_ThreadFunction():
                     note.state != Const.NOTE_STATE.MISS and
                     note.secet - 0.2 >= PlayChart_NowTime
                 ):
-                    if note.player_last_testholdismiss_time + 0.16 <= time():
+                    if note.player_last_testholdismiss_time + 0.16 <= time.time():
                         if keydown:
-                            note.player_last_testholdismiss_time = time()
+                            note.player_last_testholdismiss_time = time.time()
                         else:
                             note.player_holdmiss_time = PlayChart_NowTime
                             note.state = Const.NOTE_STATE.MISS
@@ -1267,7 +1283,7 @@ def PlayChart_ThreadFunction():
             root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
             Kill_PlayThread_Flag = False
             return
-        sleep(1 / 480)
+        time.sleep(1 / 480)
     
 def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perfect: bool, Task: Chart_Objects_Phi.FrameRenderTask):
     color = (254, 255, 169) if perfect else (162, 238, 255)
@@ -1310,6 +1326,7 @@ def GetFrameRenderTask_Phi(
     
     global PlayChart_NowTime; PlayChart_NowTime = now_t
     
+    now_t *= speed
     Task = Chart_Objects_Phi.FrameRenderTask([], [])
     Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs, now_t, w, h)
     Task(root.clear_canvas, wait_execute = True)
@@ -1753,6 +1770,7 @@ def GetFrameRenderTask_Phi(
         )
     
     combo = Chart_Functions_Phi.Cal_Combo(now_t, chart_obj) if not noautoplay else PhigrosPlayManagerObject.getCombo()
+    now_t /= speed
     time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
     Task(
         draw_ui,
@@ -1773,11 +1791,13 @@ def GetFrameRenderTask_Phi(
 def GetFrameRenderTask_Rpe(
     now_t:float
 ):
-    global PlayChart_NowTime; PlayChart_NowTime = now_t
+    global PlayChart_NowTime
     
+    now_t *= speed
     Task = Chart_Objects_Phi.FrameRenderTask([], [])
     Task(root.clear_canvas, wait_execute = True)
     Task(draw_background)
+    PlayChart_NowTime = now_t
     
     now_t -= chart_obj.META.offset / 1000
     beatTime = chart_obj.sec2beat(now_t)
@@ -2160,6 +2180,7 @@ def GetFrameRenderTask_Rpe(
                                         )
     
     combo = len([i for line in chart_obj.JudgeLineList for i in line.notes if not i.isFake and ((not i.ishold and i.clicked) or (i.ishold and i.secet - 0.2 < now_t))]) if not noautoplay else PhigrosPlayManagerObject.getCombo()
+    now_t /= speed
     time_text = f"{Format_Time(now_t)}/{Format_Time(audio_length)}"
     Task(
         draw_ui,
@@ -2185,7 +2206,7 @@ def CheckMusicOffsetAndEnd(now_t: float, Task: Chart_Objects_Phi.FrameRenderTask
     if not lfdaot and not no_mixer_reset_chart_time and mixer.music.get_busy():
         this_music_pos = mixer.music.get_pos() % (raw_audio_length * 1000)
         offset_judge_range = (1000 / 60) * 4
-        if abs(music_offset := this_music_pos - (time() - show_start_time) * 1000) >= offset_judge_range:
+        if abs(music_offset := this_music_pos - (time.time() - show_start_time) * 1000) >= offset_judge_range:
             if abs(music_offset) < raw_audio_length * 1000 * 0.75:
                 Task.ExTask.append(("set", "show_start_time", show_start_time - music_offset / 1000))
                 print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
@@ -2250,9 +2271,9 @@ def PlayerStart():
             chart_illustrator_text_font_size = w * 0.020833 * 0.65
         
         LoadSuccess.play()
-        animation_st = time()
+        animation_st = time.time()
         while True:
-            now_process = (time() - animation_st) / animation_time
+            now_process = (time.time() - animation_st) / animation_time
             if now_process >= 1.0:
                 break
             
@@ -2418,9 +2439,9 @@ def PlayerStart():
     
     def ChartStart_Animation():
         csat = 1.25
-        st = time()
-        while time() - st < csat:
-            p = (time() - st) / csat
+        st = time.time()
+        while time.time() - st < csat:
+            p = (time.time() - st) / csat
             val = rpe_easing.ease_funcs[12](p)
             draw_ui(animationing = True,dy = h / 7 * val)
             root.create_line(
@@ -2431,9 +2452,9 @@ def PlayerStart():
                 wait_execute = True
             )
             root.run_js_wait_code()
-            sleep(1 / 240)
+            time.sleep(1 / 240)
         
-        sleep(0.35)
+        time.sleep(0.35)
     
     Begin_Animation()
     ChartStart_Animation()
@@ -2441,7 +2462,7 @@ def PlayerStart():
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         chart_obj.init_notes(PHIGROS_Y)
 
-    show_start_time = time()
+    show_start_time = time.time()
     now_t = 0
     if CHART_TYPE == Const.CHART_TYPE.PHI:
         judgeLine_Configs = Chart_Objects_Phi.judgeLine_Configs(
@@ -2461,13 +2482,40 @@ def PlayerStart():
         if noautoplay:
             Thread(target=PlayChart_ThreadFunction, daemon=True).start()
             while "PhigrosPlayManagerObject" not in globals(): pass # Waiting to load PhigrosPlayManagerObject.
+            
         play_restart_flag = False
+        pause_flag = False
+        pause_st = float("nan")
+        
         def _f(): nonlocal play_restart_flag; play_restart_flag = True
+        
+        @Tool_Functions.NoJoinThreadFunc
+        def space():
+            global show_start_time
+            nonlocal pause_flag, pause_st
+            
+            if not pause_flag:
+                pause_flag = True
+                mixer.music.pause()
+                Thread(target=PlaySound.Play, args=(Resource["Pause"],), daemon=True).start()
+                pause_st = time.time()
+            else:
+                mixer.music.unpause()
+                show_start_time += time.time() - pause_st
+                root.run_js_code("canvas_ele.style.filter = '';")
+                pause_flag = False
+                
         root.jsapi.set_attr("Noautoplay_Restart", _f)
+        root.jsapi.set_attr("SpaceClicked", space)
         root.run_js_code("_Noautoplay_Restart = (e) => {if (e.altKey && e.ctrlKey && e.repeat && e.key.toLowerCase() == 'r') pywebview.api.call_attr('Noautoplay_Restart');};") # && e.repeat 为了判定长按
+        root.run_js_code("_SpaceClicked = (e) => {if (e.key == ' ' && !e.repeat) pywebview.api.call_attr('SpaceClicked');};")
         root.run_js_code("window.addEventListener('keydown', _Noautoplay_Restart);")
+        root.run_js_code("window.addEventListener('keydown', _SpaceClicked);")
+        
         while True:
-            now_t = time() - show_start_time
+            while pause_flag: time.sleep(1 / 30)
+            
+            now_t = time.time() - show_start_time
             if CHART_TYPE == Const.CHART_TYPE.PHI:
                 Task = GetFrameRenderTask_Phi(
                     now_t,
@@ -2477,6 +2525,7 @@ def PlayerStart():
                 Task = GetFrameRenderTask_Rpe(
                     now_t
                 )
+                
             Task.ExecTask()
             
             break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
@@ -2495,8 +2544,7 @@ def PlayerStart():
             while Kill_PlayThread_Flag: pass
             
         root.run_js_code("window.removeEventListener('keydown', _Noautoplay_Restart);")
-        root.run_js_code("delete _Noautoplay_Restart;")
-        delattr(root.jsapi, "Noautoplay_Restart")
+        root.run_js_code("window.removeEventListener('keydown', _SpaceClicked);")
             
         if play_restart_flag:
             mixer.music.fadeout(250)
@@ -2610,7 +2658,7 @@ def PlayerStart():
         
             last_music_play_fcount = None
             while True:
-                render_st = time()
+                render_st = time.time()
                 now_t = mixer.music.get_pos() / 1000
                 music_play_fcount = int(now_t / frame_time)
                 will_process_extask = []
@@ -2653,7 +2701,7 @@ def PlayerStart():
                 if break_flag_top:
                     break
                 
-                sleep(max(0,frame_time - (time() - render_st)))
+                time.sleep(max(0,frame_time - (time.time() - render_st)))
         else: # --lfdaot-render-video
             if "--lfdaot-render-video-savefp" in sys.argv:
                 video_fp = sys.argv[sys.argv.index("--lfdaot-render-video-savefp") + 1]
@@ -2685,7 +2733,7 @@ def PlayerStart():
                 root.run_js_code("uploadFrame_addQueue = true;")
                 
                 while not root.run_js_code("uploadFrame_finish"):
-                    sleep(0.1)
+                    time.sleep(0.1)
                 
                 Lfdaot_VideoWriter.release()
     
@@ -3047,11 +3095,11 @@ def PlayerStart():
     
     def Chart_Finish_Animation():
         animation_1_time = 0.75
-        animation_1_start_time = time()
+        animation_1_start_time = time.time()
         if noautoplay: a1_combo = PhigrosPlayManagerObject.getCombo()
         
-        while time() - animation_1_start_time < animation_1_time:
-            p = (time() - animation_1_start_time) / animation_1_time
+        while time.time() - animation_1_start_time < animation_1_time:
+            p = (time.time() - animation_1_start_time) / animation_1_time
             v = p ** 2
             if not noautoplay:
                 draw_ui(
@@ -3078,11 +3126,11 @@ def PlayerStart():
             root.run_js_wait_code()
         
         mixer.music.fadeout(250)
-        sleep(0.25)
+        time.sleep(0.25)
         Resource["Over"].play(-1)
     
         animation_2_time = 3.5
-        animation_2_start_time = time()
+        animation_2_start_time = time.time()
         a2_loop_clicked = False
         a2_continue_clicked = False
         a2_break = False
@@ -3090,7 +3138,7 @@ def PlayerStart():
         def whileCheck():
             nonlocal a2_break
             while True:
-                if a2_loop_clicked or (loop and (time() - animation_2_start_time) > 2.75):
+                if a2_loop_clicked or (loop and (time.time() - animation_2_start_time) > 2.75):
                     def _f():
                         LoadChartObject()
                         PlayerStart()
@@ -3101,13 +3149,10 @@ def PlayerStart():
                     root.destroy()
                     break
                     
-                sleep(1 / 240)
+                time.sleep(1 / 240)
             
             root.run_js_code("window.removeEventListener('click', _loopClick);")
             root.run_js_code("window.removeEventListener('click', _continueClick);")
-            root.run_js_code("delete _loopClick; delete _continueClick;")
-            delattr(root.jsapi, "loopClick")
-            delattr(root.jsapi, "continueClick")
             a2_break = True
         
         Thread(target=whileCheck, daemon=True).start()
@@ -3129,8 +3174,8 @@ def PlayerStart():
         root.run_js_code("window.addEventListener('click', _loopClick);")
         root.run_js_code("window.addEventListener('click', _continueClick);")
         
-        while time() - animation_2_start_time < animation_2_time and not a2_break:
-            p = (time() - animation_2_start_time) / animation_2_time
+        while time.time() - animation_2_start_time < animation_2_time and not a2_break:
+            p = (time.time() - animation_2_start_time) / animation_2_time
             Chart_Finish_Animation_Frame(p)
         
         while not a2_break:

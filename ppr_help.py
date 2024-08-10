@@ -35,4 +35,5 @@ Usage: Main <chart_file> [<args>...] [<kwargs>...]
   --res <res-path>: Set the resource path.
   --lfdaot-start-frame-num <number-value>: Set the start frame number of *.lfdaot file. (Front-loaded arg: --lfdaot, Invalid when using --lfdaot-file) // only use at very big chart file video render.
   --lfdaot-run-frame-num <number-value>: Set the frame number count of *.lfdaot file. (Front-loaded arg: --lfdaot, Invalid when using --lfdaot-file) // only use at very big chart file video render.
+  --speed <number-value>: Set the speed.
 '''
