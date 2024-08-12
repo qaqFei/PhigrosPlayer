@@ -37,7 +37,8 @@ import ppr_help
 import rpe_easing
 
 if len(sys.argv) == 1:
-    print(ppr_help.HELP_EN)
+    HELP = ppr_help.HELP_EN if windll.kernel32.GetSystemDefaultUILanguage() != 0x804 else ppr_help.HELP_ZH
+    print(HELP)
     windll.kernel32.ExitProcess(0)
     
 version.print_hello()
@@ -1324,9 +1325,10 @@ def GetFrameRenderTask_Phi(
     
     # Important!!! note 和 note_item 不是同一个东西!!!!!
     
-    global PlayChart_NowTime; PlayChart_NowTime = now_t
+    global PlayChart_NowTime
     
     now_t *= speed
+    PlayChart_NowTime = now_t
     Task = Chart_Objects_Phi.FrameRenderTask([], [])
     Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs, now_t, w, h)
     Task(root.clear_canvas, wait_execute = True)
@@ -3104,7 +3106,7 @@ def PlayerStart():
                 draw_ui(
                     process = 1.0,
                     score = ScoreString,
-                    combo_state = True,
+                    combo_state = chart_obj.note_num >= 3,
                     combo = chart_obj.note_num,
                     now_time = f"{Format_Time(audio_length)}/{Format_Time(audio_length)}",
                     acc = AccString,
