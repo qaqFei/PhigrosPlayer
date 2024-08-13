@@ -40,7 +40,7 @@ if isinstance(chartObj, Chart_Objects_Phi.Phigros_Chart):
             })
             
             if note.type == Const.Note.HOLD:
-                dw = 1 / 16 / (1.875 / line.bpm)
+                dw = 1 / 12.5 / (1.875 / line.bpm)
                 ht = note.time
                 while ht < note.time + note.holdTime:
                     ht += dw
@@ -64,7 +64,7 @@ elif isinstance(chartObj, Chart_Objects_Rpe.Rpe_Chart): # eq else
             })
             
             if note.phitype == Const.Note.HOLD:
-                dw = chartObj.sec2beat(1 / 16)
+                dw = chartObj.sec2beat(1 / 12.5)
                 ht = note.startTime.value
                 while ht < note.endTime.value:
                     ht += dw
