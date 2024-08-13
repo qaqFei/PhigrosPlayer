@@ -91,6 +91,13 @@ class note:
         
         self.floorPosition = getFloorPosition(self.master, self.time)
     
+    def getNoteClickPos(self, time: float) -> tuple[float, float]:
+        linePos = self.master.get_datavar_move(time, 1.0, 1.0)
+        lineRotate = self.master.get_datavar_rotate(time)
+        return Tool_Functions.rotate_point(
+            *linePos, - lineRotate, self.positionX * 0.05625
+        )
+    
 @dataclass
 class speedEvent:
     startTime: float

@@ -101,6 +101,13 @@ class Note:
         
         self.secst = master.beat2sec(self.startTime.value)
         self.secet = master.beat2sec(self.endTime.value)
+        
+    def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> tuple[float, float]:
+        linePos = line.GetPos(time, master)
+        lineRotate = sum([line.GetEventValue(time, layer.rotateEvents, 0.0) for layer in line.eventLayers])
+        return Tool_Functions.rotate_point(
+            *linePos, lineRotate, self.positionX2
+        )
 
 @dataclass
 class LineEvent:
