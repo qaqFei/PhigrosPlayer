@@ -19,6 +19,7 @@ Usage: Main <chart_file> [<args>...] [<kwargs>...]
   --lfdaot-file-output-autoexit: when using --lfdaot and saved lfdaot file, noplay, and auto exit. (Front-loaded arg: --lfdaot)
   --lowquality: Use low quality render.
   --showfps: Show fps. when using --lfdaot-render-video, it will not be displayed.
+  --noplaychart: Do not play the chart, immediately settle.
 
 <Kwargs>
   --combotips <string-value>: Set the combo tips text.
@@ -36,6 +37,10 @@ Usage: Main <chart_file> [<args>...] [<kwargs>...]
   --lfdaot-start-frame-num <number-value>: Set the start frame number of *.lfdaot file. (Front-loaded arg: --lfdaot, Invalid when using --lfdaot-file) // only use at very big chart file video render.
   --lfdaot-run-frame-num <number-value>: Set the frame number count of *.lfdaot file. (Front-loaded arg: --lfdaot, Invalid when using --lfdaot-file) // only use at very big chart file video render.
   --speed <number-value>: Set the speed.
+  --render-begin-loading-animation-video <filepath-string-value>: output a chart start animation video to the path. (fps: 120, noaudio)
+  --render-begin-judge-line-animation-video <filepath-string-value>: output a chart start judge line animation video to the path. (fps: 120, noaudio)
+  --render-before-finish-animation-video <filepath-string-value>: output a chart UI animation video to the path. (fps: 120, noaudio)
+  --render-finish-animation-video <filepath-string-value>: output a chart finish animation video to the path. (fps: 120, noaudio) tip: when video is rendering, buttons will be blocked.
 '''
 
 HELP_ZH = '''\
@@ -58,6 +63,7 @@ HELP_ZH = '''\
   --lfdaot-file-output-autoexit: 使用 --lfdaot 和保存的 lfdaot 文件, 自动退出. (前置参数: --lfdaot)
   --lowquality: 低画质模式
   --showfps: 显示帧率
+  --noplaychart: 不播放谱面, 立即结算
 
 <关键字参数>
   --combotips <字符串>: 设置连击提示文本
@@ -74,4 +80,7 @@ HELP_ZH = '''\
   --lfdaot-start-frame-num <数字>: 设置 *.lfdaot 文件的开始帧数 (前置参数: --lfdaot, 使用 --lfdaot-file 时无效) // 仅在非常大的谱面文件视频渲染时使用
   --lfdaot-run-frame-num <数字>: 设置生成 *.lfdaot 文件的目标帧数 (前置参数: --lfdaot, 使用 --lfdaot-file 时无效) // 仅在非常大的谱面文件视频渲染时使用
   --speed <数字>: 设置谱面速度
+  --render-begin-loading-animation-video <filepath-string-value>: 导出一个谱面开始的加载动画到指定路径 (帧率恒定120, 无声音)
+  --render-begin-judge-line-animation-video <filepath-string-value>: 导出一个谱面开始的判定线展开动画到指定路径 (帧率恒定120, 无声音)
+  --render-before-finish-animation-video <filepath-string-value>: 导出一个谱面结束UI过渡动画到指定路径 (帧率恒定120, 无声音)
 '''
