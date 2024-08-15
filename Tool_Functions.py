@@ -271,6 +271,12 @@ def NoJoinThreadFunc(f):
 def conrpepos(x: float, y: float):
     return (x + 675) / 1350, 1.0 - (y + 450) / 900
 
+def Format_Time(t:typing.Union[int,float]) -> str:
+    if t < 0.0: t = 0.0
+    m,s = t // 60,t % 60
+    m,s = int(m), int(s)
+    return f"{m}:{s:>2}".replace(" ", "0")
+
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
 TextureLine_CanRender(1920, 1080, 50, 0, 0)
