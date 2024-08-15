@@ -2944,7 +2944,7 @@ def PlayerStart():
         )
         root.run_js_wait_code()
     
-    def Chart_BeforeFinish_Animation_Frame(p: float, a1_combo):
+    def Chart_BeforeFinish_Animation_Frame(p: float, a1_combo: int|None):
         v = p ** 2
         if not noautoplay:
             draw_ui(
@@ -2973,11 +2973,10 @@ def PlayerStart():
     def Chart_Finish_Animation():
         animation_1_time = 0.75
         animation_1_start_time = time.time()
-        if noautoplay: a1_combo = PhigrosPlayManagerObject.getCombo()
         
         while time.time() - animation_1_start_time < animation_1_time:
             p = (time.time() - animation_1_start_time) / animation_1_time
-            Chart_BeforeFinish_Animation_Frame(p, a1_combo)
+            Chart_BeforeFinish_Animation_Frame(p, PhigrosPlayManagerObject.getCombo() if noautoplay else None)
         
         mixer.music.fadeout(250)
         time.sleep(0.25)
