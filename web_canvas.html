@@ -188,7 +188,7 @@
         uploadFrame_finish = false;
     }
 
-    CanvasRenderingContext2D.prototype.drawRotateImage = function(im,x,y,width,height,deg,alpha) { // draw at the position center
+    CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();
         this.globalAlpha = alpha;
@@ -203,7 +203,7 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.drawAnchorESRotateImage = function(im,x,y,width,height,deg,alpha) {
+    CanvasRenderingContext2D.prototype.drawAnchorESRotateImage = function(im, x, y, width, height, deg, alpha) {
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();
         this.globalAlpha = alpha;
@@ -243,6 +243,15 @@
         this.font = `${fontsize}px PhigrosFont`;
         this.fillText(text, 0, 0);
         this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.roundRectEx = function (x, y, w, h, r, color) {
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+        ctx.fill();
+        ctx.restore();
     }
 
     resizeCanvas();

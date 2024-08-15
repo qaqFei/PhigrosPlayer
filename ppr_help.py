@@ -41,6 +41,7 @@ Usage: Main <chart_file> [<args>...] [<kwargs>...]
   --render-begin-judge-line-animation-video <filepath-string-value>: output a chart start judge line animation video to the path. (fps: 120, noaudio)
   --render-before-finish-animation-video <filepath-string-value>: output a chart UI animation video to the path. (fps: 120, noaudio)
   --render-finish-animation-video <filepath-string-value>: output a chart finish animation video to the path. (fps: 120, noaudio) tip: when video is rendering, buttons will be blocked.
+  --clickeffect-randomblock-roundn <number-value>: Set the round number of random block click effect. (0.0 ~ 0.5) (default: 0)
 '''
 
 HELP_ZH = '''\
@@ -83,4 +84,5 @@ HELP_ZH = '''\
   --render-begin-loading-animation-video <filepath-string-value>: 导出一个谱面开始的加载动画到指定路径 (帧率恒定120, 无声音)
   --render-begin-judge-line-animation-video <filepath-string-value>: 导出一个谱面开始的判定线展开动画到指定路径 (帧率恒定120, 无声音)
   --render-before-finish-animation-video <filepath-string-value>: 导出一个谱面结束UI过渡动画到指定路径 (帧率恒定120, 无声音)
+ --clickeffect-randomblock-roundn <number-value>: 设置打击效果方块的圆角系数 (0.0 = 方, 0.5 = 圆), 默认 = 0.0
 '''

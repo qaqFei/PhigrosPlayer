@@ -7,9 +7,9 @@ from tempfile import gettempdir
 from ntpath import basename
 import typing
 import json
-import base64
 import sys
 import time
+import math
 
 sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else sys.__excepthook__(*args)
 
@@ -17,7 +17,6 @@ from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 from pygame import mixer
 from pydub import AudioSegment
 import cv2
-import numpy
 import webcvapis
 
 import PlaySound # using at eval.
@@ -89,6 +88,7 @@ showfps = "--showfps" in sys.argv
 lfdaot_start_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-start-frame-num") + 1])) if "--lfdaot-start-frame-num" in sys.argv else 0
 lfdaot_run_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-run-frame-num") + 1])) if "--lfdaot-run-frame-num" in sys.argv else float("inf")
 speed = float(sys.argv[sys.argv.index("--speed") + 1]) if "--speed" in sys.argv else 1.0
+clickeffect_randomblock_roundn = float(eval(sys.argv[sys.argv.index("--clickeffect-randomblock-roundn") + 1])) if "--clickeffect-randomblock-roundn" in sys.argv else 0.0
 respaths = ["./Resources"]
 
 if "--res" in sys.argv:
@@ -1290,18 +1290,21 @@ def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perf
             block_alpha = (1.0 - p) * 0.85
             effect_random_point = Tool_Functions.rotate_point(
                 x, y, beforedeg + deg,
-                ClickEffect_Size * Tool_Functions.ease_out(p) / 1.25
+                ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.35
             )
-            block_size = EFFECT_RANDOM_BLOCK_SIZE
-            if p > 0.65: block_size -= (p - 0.65) * EFFECT_RANDOM_BLOCK_SIZE
+            block_size = EFFECT_RANDOM_BLOCK_SIZE * (0.4 * math.sin(p * math.pi) + 0.6)
             Task(
-                root.create_rectangle,
-                effect_random_point[0] - block_size,
-                effect_random_point[1] - block_size,
-                effect_random_point[0] + block_size,
-                effect_random_point[1] + block_size,
-                fillStyle = f"rgba{color + (block_alpha, )}",
-                wait_execute = True
+                root.run_js_code,
+                f"\
+                ctx.roundRectEx(\
+                    {effect_random_point[0] - block_size / 2},\
+                    {effect_random_point[1] - block_size / 2},\
+                    {block_size},\
+                    {block_size},\
+                    {block_size * clickeffect_randomblock_roundn},\
+                    'rgba{color + (block_alpha, )}'\
+                );",
+                add_code_array = True
             )
             beforedeg += 90
     Task(
@@ -3182,7 +3185,7 @@ root.reg_img(background_image,"background")
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
 Resource = Load_Resource()
-EFFECT_RANDOM_BLOCK_SIZE = Note_width / 12.5
+EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
 Thread(target=Show_Start,daemon=True).start()
 root.loop_to_close()
 

@@ -55,6 +55,7 @@
 - `--render-before-finish-animation-video <filepath-string-value>` 导出一个谱面结束UI过渡动画到指定路径 (帧率恒定120, 无声音)
 - `--render-finish-animation-video <filepath-string-value>` 导出一个谱面结束动画到指定路径 (帧率恒定120, 无声音) tip: 在视频导出过程中重开和继续按键无法使用
 - `--noplaychart` 不播放谱面, 立即结算
+- `--clickeffect-randomblock-roundn <number-value>` 设置打击效果方块的圆角系数 (0.0 = 方, 0.5 = 圆), 默认 = 0.0
 
 # 快捷键
 - 播放中使用长按`Ctrl + Alt + R`可重新开始 (使用`--lfdaot`时失效)
