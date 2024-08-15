@@ -3,8 +3,11 @@ from sys import argv
 from threading import Thread
 import typing
 import math
+import base64
 
 import numba
+import numpy
+import cv2
 
 note_id = -1
 random_block_num = 4
@@ -276,6 +279,17 @@ def Format_Time(t:typing.Union[int,float]) -> str:
     m,s = t // 60,t % 60
     m,s = int(m), int(s)
     return f"{m}:{s:>2}".replace(" ", "0")
+
+def DataUrl2MatLike(dataurl: str) -> cv2.typing.MatLike:
+    return cv2.imdecode(
+        numpy.frombuffer(
+            base64.b64decode(
+                dataurl[dataurl.find(",") + 1:]
+            ),
+            dtype=numpy.uint8
+        ),
+        cv2.IMREAD_COLOR
+    )
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))

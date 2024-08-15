@@ -183,6 +183,11 @@
         }
     }
 
+    function resetUploadFrameFlags() {
+        uploadFrame_addQueue = false;
+        uploadFrame_finish = false;
+    }
+
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im,x,y,width,height,deg,alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();

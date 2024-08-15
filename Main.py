@@ -1328,6 +1328,7 @@ def GetFrameRenderTask_Phi(
     Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs, now_t, w, h)
     Task(root.clear_canvas, wait_execute = True)
     Task(draw_background)
+    if "--noplaychart" in sys.argv: Task.ExTask.append(("break", ))
     
     if render_range_more:
         fr_x = w / 2 - w / render_range_more_scale / 2
@@ -1795,6 +1796,7 @@ def GetFrameRenderTask_Rpe(
     Task(root.clear_canvas, wait_execute = True)
     Task(draw_background)
     PlayChart_NowTime = now_t
+    if "--noplaychart" in sys.argv: Task.ExTask.append(("break", ))
     
     now_t -= chart_obj.META.offset / 1000
     beatTime = chart_obj.sec2beat(now_t)
@@ -2268,7 +2270,6 @@ def PlayerStart():
             chart_illustrator_text_font_size = w * 0.020833 * 0.65
         
         LoadSuccess.play()
-        animation_st = time.time()
         BeginLoadingAnimationVals = {
             "root": root, "draw_background": draw_background,
             "w": w, "h": h, "infoframe_x": infoframe_x, "infoframe_y": infoframe_y,
@@ -2282,13 +2283,39 @@ def PlayerStart():
             "chart_charter_text": chart_charter_text, "chart_charter_text_font_size": chart_charter_text_font_size,
             "chart_illustrator_text": chart_illustrator_text, "chart_illustrator_text_font_size": chart_illustrator_text_font_size
         }
-        while True:
-            p = (time.time() - animation_st) / animation_time
-            if p >= 1.0:
-                break
-            
-            Task = ChartAnimation.BeginLoadingAnimation(p, BeginLoadingAnimationVals)
-            Task.ExecTask()
+        
+        if "--render-begin-loading-animation-video" not in sys.argv:
+            animation_st = time.time()
+            while True:
+                p = (time.time() - animation_st) / animation_time
+                if p > 1.0:
+                    break
+                
+                Task = ChartAnimation.BeginLoadingAnimation(p, BeginLoadingAnimationVals)
+                Task.ExecTask()
+        else:
+            writer = cv2.VideoWriter(
+                sys.argv[sys.argv.index("--render-begin-loading-animation-video") + 1],
+                cv2.VideoWriter.fourcc(*"mp4v"),
+                120, (w, h), True
+            )
+            root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
+            fcut = 0
+            while True:
+                p = fcut / 120 / animation_time
+                if p > 1.0:
+                    break
+                
+                Task = ChartAnimation.BeginLoadingAnimation(p, BeginLoadingAnimationVals)
+                Task.ExecTask()
+                root.run_js_code("uploadFrame();")
+                fcut += 1
+                
+            root.run_js_code("uploadFrame_addQueue = true;")
+            while not root.run_js_code("uploadFrame_finish;"):
+                time.sleep(0.1)
+            root.run_js_code("resetUploadFrameFlags();")
+            writer.release()
             
     def ChartStart_Animation():
         csat = 1.25
@@ -2300,11 +2327,38 @@ def PlayerStart():
             "render_range_more_scale": render_range_more_scale,
             "render_range_more": render_range_more
         }
-        st = time.time()
-        while time.time() - st < csat:
-            p = (time.time() - st) / csat
-            Task = ChartAnimation.BeginJudgeLineAnimation(p, BeginJudgeLineAnimationVals)
-            Task.ExecTask()
+        if "--render-begin-judge-line-animation-video" not in sys.argv:
+            st = time.time()
+            while True:
+                p = (time.time() - st) / csat
+                if p > 1.0:
+                    break
+                
+                Task = ChartAnimation.BeginJudgeLineAnimation(p, BeginJudgeLineAnimationVals)
+                Task.ExecTask()
+        else:
+            writer = cv2.VideoWriter(
+                sys.argv[sys.argv.index("--render-begin-judge-line-animation-video") + 1],
+                cv2.VideoWriter.fourcc(*"mp4v"),
+                120, (w, h), True
+            )
+            root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
+            fcut = 0
+            while True:
+                p = fcut / 120 / csat
+                if p > 1.0:
+                    break
+                
+                Task = ChartAnimation.BeginJudgeLineAnimation(p, BeginJudgeLineAnimationVals)
+                Task.ExecTask()
+                root.run_js_code("uploadFrame();")
+                fcut += 1
+                
+            root.run_js_code("uploadFrame_addQueue = true;")
+            while not root.run_js_code("uploadFrame_finish;"):
+                time.sleep(0.1)
+            root.run_js_code("resetUploadFrameFlags();")
+            writer.release()
         
         time.sleep(0.35)
     
@@ -2560,22 +2614,15 @@ def PlayerStart():
                 video_fp = dialog.savefile(
                     fn = "lfdaot_render_video.mp4"
                 )
-            Lfdaot_VideoWriter = cv2.VideoWriter(
+            writer = cv2.VideoWriter(
                 video_fp,
                 cv2.VideoWriter.fourcc(*"mp4v"),
-                frame_speed,(w,h),
+                frame_speed, (w, h),
                 True
             )
             
             if video_fp != "":
-                def uploadFrame(dataUrl):
-                    base64_data = dataUrl[dataUrl.find(",") + 1:]
-                    img_data = base64.b64decode(base64_data)
-                    img_array = numpy.frombuffer(img_data,dtype=numpy.uint8)
-                    img = cv2.imdecode(img_array,cv2.IMREAD_COLOR)
-                    Lfdaot_VideoWriter.write(img)
-                
-                root.jsapi.uploadFrame = uploadFrame
+                root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
                 
                 for Task in lfdaot_tasks.values():
                     Task.ExecTask()
@@ -2583,10 +2630,11 @@ def PlayerStart():
                 
                 root.run_js_code("uploadFrame_addQueue = true;")
                 
-                while not root.run_js_code("uploadFrame_finish"):
+                while not root.run_js_code("uploadFrame_finish;"):
                     time.sleep(0.1)
+                root.run_js_code("resetUploadFrameFlags();")
                 
-                Lfdaot_VideoWriter.release()
+                writer.release()
     
     im_size = 0.475
     LevelName = "AP" if not noautoplay else PhigrosPlayManagerObject.getLevelString()
@@ -2972,13 +3020,35 @@ def PlayerStart():
     
     def Chart_Finish_Animation():
         animation_1_time = 0.75
-        animation_1_start_time = time.time()
+        a1_combo = PhigrosPlayManagerObject.getCombo() if noautoplay else None
         
-        while time.time() - animation_1_start_time < animation_1_time:
-            p = (time.time() - animation_1_start_time) / animation_1_time
-            Chart_BeforeFinish_Animation_Frame(p, PhigrosPlayManagerObject.getCombo() if noautoplay else None)
+        if "--render-before-finish-animation-video" not in sys.argv:
+            animation_1_start_time = time.time()
+            while True:
+                p = (time.time() - animation_1_start_time) / animation_1_time
+                if p > 1.0: break
+                Chart_BeforeFinish_Animation_Frame(p, a1_combo)
+        else:
+            writer = cv2.VideoWriter(
+                sys.argv[sys.argv.index("--render-before-finish-animation-video") + 1],
+                cv2.VideoWriter.fourcc(*"mp4v"),
+                120, (w, h), True
+            )
+            root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
+            fcut = 0
+            while True:
+                p = fcut / 120 / animation_1_time
+                if p > 1.0: break
+                Chart_BeforeFinish_Animation_Frame(p, a1_combo)
+                root.run_js_code("uploadFrame();")
+                fcut += 1
+                
+            root.run_js_code("uploadFrame_addQueue = true;")
+            while not root.run_js_code("uploadFrame_finish;"):
+                time.sleep(0.1)
+            root.run_js_code("resetUploadFrameFlags();")
+            writer.release()
         
-        mixer.music.fadeout(250)
         time.sleep(0.25)
         Resource["Over"].play(-1)
     
@@ -2987,6 +3057,7 @@ def PlayerStart():
         a2_loop_clicked = False
         a2_continue_clicked = False
         a2_break = False
+        video_writing = False
         
         def whileCheck():
             nonlocal a2_break
@@ -3012,11 +3083,13 @@ def PlayerStart():
         
         def loopClick(clientX, clientY):
             nonlocal a2_loop_clicked
+            if video_writing: return None
             if clientX <= w * Const.FINISH_UI_BUTTON_SIZE and clientY <= w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145:
                 a2_loop_clicked = True
         
         def continueClick(clientX, clientY):
             nonlocal a2_continue_clicked
+            if video_writing: return None
             if clientX >= w - w * Const.FINISH_UI_BUTTON_SIZE and clientY >= h - w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145:
                 a2_continue_clicked = True
         
@@ -3027,13 +3100,38 @@ def PlayerStart():
         root.run_js_code("window.addEventListener('click', _loopClick);")
         root.run_js_code("window.addEventListener('click', _continueClick);")
         
-        while time.time() - animation_2_start_time < animation_2_time and not a2_break:
-            p = (time.time() - animation_2_start_time) / animation_2_time
-            Chart_Finish_Animation_Frame(p)
+        if "--render-finish-animation-video" not in sys.argv:
+            while not a2_break:
+                p = (time.time() - animation_2_start_time) / animation_2_time
+                if p > 1.0: break
+                Chart_Finish_Animation_Frame(p)
+        else:
+            video_writing = True
+            writer = cv2.VideoWriter(
+                sys.argv[sys.argv.index("--render-finish-animation-video") + 1],
+                cv2.VideoWriter_fourcc(*"mp4v"),
+                120, (w, h), True
+            )
+            root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
+            fcut = 0
+            while True:
+                p = fcut / 120 / animation_2_time
+                if p > 1.0: break
+                Chart_Finish_Animation_Frame(p)
+                root.run_js_code("uploadFrame();")
+                fcut += 1
+            
+            root.run_js_code("uploadFrame_addQueue = true;")
+            while not root.run_js_code("uploadFrame_finish;"):
+                time.sleep(0.1)
+            root.run_js_code("resetUploadFrameFlags();")
+            writer.release()
+            video_writing = False
         
         while not a2_break:
             Chart_Finish_Animation_Frame(1.0)
             
+    mixer.music.fadeout(250)
     Chart_Finish_Animation()
 
 print("Loading Window...")
