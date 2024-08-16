@@ -35,6 +35,7 @@ import version
 import ppr_help
 import rpe_easing
 import ChartAnimation
+import control_server
 
 if len(sys.argv) == 1:
     HELP = ppr_help.HELP_EN if windll.kernel32.GetSystemDefaultUILanguage() != 0x804 else ppr_help.HELP_ZH
@@ -93,6 +94,39 @@ respaths = ["./Resources"]
 
 if "--res" in sys.argv:
     respaths.append(sys.argv[sys.argv.index("--res") + 1])
+
+if "--control-mode" in sys.argv:
+    control_server.run()
+    class _WebCanvas(webcvapis.WebCanvas):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            if "--control-mode-noboot" not in sys.argv: self._web.evaluate_js("bootControl();")
+            def _f(code, getResult: bool = True):
+                if getResult: return control_server.runJsCode(code)
+                else: control_server.addJsCode(code)
+            self._web.evaluate_js = _f
+    
+        def run_js_code(
+            self,
+            code:str,
+            threading_:bool = False,
+            add_code_array:bool = False
+        ):
+            if add_code_array:
+                self.Add_Code_To_JavaScript_WaitToExecute_CodeArray(code)
+            else:
+                if threading_:
+                    Thread(target=self._web.evaluate_js,args=(code, False),daemon=True).start()
+                else:
+                    return self._web.evaluate_js(code)
+        
+        def run_js_wait_code(
+            self
+        ):
+            self._web.evaluate_js(f"JavaScript_WaitToExecute_CodeArray = {self._JavaScript_WaitToExecute_CodeArray};", False)
+            self._web.evaluate_js("process_jswteca();")
+            self._JavaScript_WaitToExecute_CodeArray.clear()
+    webcvapis.WebCanvas = _WebCanvas
 
 if lfdaot and noautoplay:
     noautoplay = False

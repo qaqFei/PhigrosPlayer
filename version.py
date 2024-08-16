@@ -3,7 +3,7 @@ import urllib.request
 import sys
 import json
 
-PPR_VERSION = "1.8.0"
+PPR_VERSION = "1.9.0"
 BETA = True
 
 def check_new_version():
