@@ -19,7 +19,7 @@ from pydub import AudioSegment
 import cv2
 import webcvapis
 
-import PlaySound # using at eval.
+import PlaySound
 import Chart_Objects_Phi
 import Chart_Functions_Phi
 import Chart_Objects_Rpe
@@ -1195,7 +1195,8 @@ def PlayChart_ThreadFunction():
                     not note.player_click_sound_played and
                     note.state in (Const.NOTE_STATE.PERFECT, Const.NOTE_STATE.GOOD)
                 ):
-                    Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
+                    if enable_clicksound:
+                        Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
                     note.player_click_sound_played = True
                 
                 if ( # miss judge
@@ -1257,7 +1258,8 @@ def PlayChart_ThreadFunction():
                     not note.player_click_sound_played and
                     note.state in (Const.NOTE_STATE.PERFECT, Const.NOTE_STATE.GOOD)
                 ):
-                    Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
+                    if enable_clicksound:
+                        Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
                     note.player_click_sound_played = True
                 
                 if ( # miss judge
