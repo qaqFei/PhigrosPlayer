@@ -1306,13 +1306,14 @@ def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perf
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
     if clickeffect_randomblock:
         beforedeg = 0
+        block_alpha = (1.0 - p) * 0.85
+        randomblock_r = ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.35
+        block_size = EFFECT_RANDOM_BLOCK_SIZE * (0.4 * math.sin(p * math.pi) + 0.6)
         for deg in effect_random_blocks:
-            block_alpha = (1.0 - p) * 0.85
             effect_random_point = Tool_Functions.rotate_point(
                 x, y, beforedeg + deg,
-                ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.35
+                randomblock_r
             )
-            block_size = EFFECT_RANDOM_BLOCK_SIZE * (0.4 * math.sin(p * math.pi) + 0.6)
             Task(
                 root.run_js_code,
                 f"\
