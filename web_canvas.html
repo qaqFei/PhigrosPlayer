@@ -188,34 +188,6 @@
         uploadFrame_finish = false;
     }
 
-    function bootControl() {
-        // const control = prompt("Please input control IP address: ");
-        const control = "127.0.0.1:21632";
-        function _getJS() {
-            try {
-                fetch(`http://${control}/getJs`).then((response) => response.json(), () => setTimeout(_getJS, 0)).then(data => {
-                    if (data.code == 0) {
-                        let result = eval(data.data);
-                        if (data.getresult) {
-                            fetch(`http://${control}/putResult`, {
-                                method: "POST",
-                                body: JSON.stringify({
-                                    data: result,
-                                    rid: data.rid
-                                })
-                            })
-                        }
-                    }
-                    setTimeout(_getJS, 0);
-                });
-            } catch (e) {
-                console.log(e);
-                setTimeout(_getJS, 0);
-            }
-        }
-        _getJS();
-    }
-
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();
