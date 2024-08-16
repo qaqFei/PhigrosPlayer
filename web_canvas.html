@@ -188,6 +188,12 @@
         uploadFrame_finish = false;
     }
 
+    CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
+
+    CanvasRenderingContext2D.prototype.drawImage = function(im, x, y, width, height) {
+        return this._drawImage(im, Math.floor(x), Math.floor(y), Math.floor(width), Math.floor(height));
+    }
+
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();
@@ -195,10 +201,10 @@
         if (!!deg){
             this.translate(x,y);
             this.rotate(deg * Math.PI / 180);
-            this.drawImage(im,-width / 2,-height / 2,width,height);
+            this.drawImage(im, -width / 2, -height / 2, width, height);
         }
         else {
-            this.drawImage(im,x - width / 2,y - height / 2,width,height);
+            this.drawImage(im, x - width / 2, y - height / 2, width, height);
         }
         this.restore();
     }
@@ -210,10 +216,10 @@
         if (!!deg){
             this.translate(x,y);
             this.rotate(deg * Math.PI / 180);
-            this.drawImage(im,-width / 2,-height,width,height);
+            this.drawImage(im, -width / 2, -height, width, height);
         }
         else {
-            this.drawImage(im,x - width / 2,y - height,width,height);
+            this.drawImage(im, x - width / 2, y - height, width, height);
         }
         this.restore();
     }
@@ -251,6 +257,17 @@
         ctx.beginPath();
         ctx.roundRect(x, y, w, h, r);
         ctx.fill();
+        ctx.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawLineEx = function (x1, y1, x2, y2, width, color) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
         ctx.restore();
     }
 

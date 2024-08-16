@@ -83,6 +83,7 @@ no_mixer_reset_chart_time = "--no-mixer-reset-chart-time" in sys.argv
 noautoplay = "--noautoplay" in sys.argv
 rtacc = "--rtacc" in sys.argv
 lowquality = "--lowquality" in sys.argv
+user_lowquality = lowquality
 lowquality_scale = float(sys.argv[sys.argv.index("--lowquality-scale") + 1]) ** 0.5 if "--lowquality-scale" in sys.argv else 2.0 ** 0.5
 showfps = "--showfps" in sys.argv
 lfdaot_start_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-start-frame-num") + 1])) if "--lfdaot-start-frame-num" in sys.argv else 0
@@ -438,6 +439,13 @@ def cutAnimationIllImage(im: Image.Image):
         fill = "#00000000"
     )
 
+def getLowqualityImage(im: Image.Image):
+    if user_lowquality and lowquality_scale >= 1.0:
+        uw, uh = int(im.width / lowquality_scale / 2), int(im.height / lowquality_scale / 2)
+        if uw > 8 and uh > 8:
+            return im.resize((uw, uh))
+    return im
+
 def Load_Resource():
     global ClickEffect_Size, Note_width
     global note_max_width, note_max_height
@@ -521,9 +529,20 @@ def Load_Resource():
     cutAnimationIllImage(finish_animation_image)
     
     Const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
-    for k,v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
+    for k, v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
         if v.width > Note_width:
             Resource["Notes"][k] = v.resize((int(Note_width),int(Note_width / v.width * v.height)))
+    
+    #process lowquality images
+    for k,v in Resource["Notes"].items():
+        Resource["Notes"][k] = getLowqualityImage(v)
+    for k, v in Resource["Note_Click_Effect"].items():
+        for i, im in enumerate(v):
+            Resource["Note_Click_Effect"][k][i] = getLowqualityImage(im)
+    for k, v in Resource["Levels"].items():
+        Resource["Levels"][k] = getLowqualityImage(v)
+            
+    for k, v in Resource["Notes"].items():
         root.reg_img(Resource["Notes"][k], f"Note_{k}")
     
     for i in range(ClickEffectFrameCount): # reg click effect
@@ -560,9 +579,9 @@ def Load_Resource():
                         try:
                             texture = Image.open(p).convert("RGBA")
                             size = texture.size
-                            if lowquality and lowquality_scale > 1.0:
+                            if user_lowquality and lowquality_scale >= 1.0:
                                 textureWidth, textureHeight = texture.size
-                                textureWidth /= lowquality_scale; textureHeight /= lowquality_scale
+                                textureWidth /= lowquality_scale * 2; textureHeight /= lowquality_scale * 2
                                 textureWidth, textureHeight = int(textureWidth), int(textureHeight)
                                 if textureWidth > 32 and textureHeight > 32:
                                     texture = texture.resize((textureWidth, textureHeight))
@@ -892,11 +911,12 @@ def draw_ui(
     lastCallDrawUI = time.time()
 
 def draw_background():
-    root.create_image(
-        "background",
-        0, 0,
-        w, h, 
-        wait_execute = True
+    root.run_js_code(
+        f"ctx.drawImage(\
+           {root.get_img_jsvarname("background")},\
+            0, 0, {w}, {h},\
+        );",
+        add_code_array = True
     )
 
 def get_stringscore(score:float) -> str:
@@ -1308,12 +1328,13 @@ def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perf
             )
             beforedeg += 90
     Task(
-        root.create_image,
-        f"{imn}_{int(p * (ClickEffectFrameCount - 1)) + 1}",
-        x - ClickEffect_Size / 2,
-        y - ClickEffect_Size / 2,
-        ClickEffect_Size, ClickEffect_Size,
-        wait_execute = True
+        root.run_js_code,
+        f"ctx.drawImage(\
+            {root.get_img_jsvarname(f"{imn}_{int(p * (ClickEffectFrameCount - 1)) + 1}")},\
+            {x - ClickEffect_Size / 2}, {y - ClickEffect_Size / 2},\
+            {ClickEffect_Size}, {ClickEffect_Size}\
+        );",
+        add_code_array = True
     )
         
 def GetFrameRenderTask_Phi(
@@ -1363,11 +1384,13 @@ def GetFrameRenderTask_Phi(
                 )
             
             Task(
-                root.create_line,
-                *judgeLine_DrawPos,
-                lineWidth = JUDGELINE_WIDTH,
-                strokeStyle = judgeLine_webCanvas_color,
-                wait_execute = True
+                root.run_js_code,
+                f"ctx.drawLineEx(\
+                    {", ".join(map(str, judgeLine_DrawPos))},\
+                    {JUDGELINE_WIDTH},\
+                    '{judgeLine_webCanvas_color}'\
+                );",
+                add_code_array = True
             )
             
             if debug:
@@ -1860,11 +1883,13 @@ def GetFrameRenderTask_Rpe(
                 })
         elif lineAlpha > 0.0:
             Task(
-                root.create_line,
-                *judgeLine_DrawPos,
-                lineWidth = JUDGELINE_WIDTH * lineScaleY,
-                strokeStyle = judgeLine_webCanvas_color,
-                wait_execute = True
+                root.run_js_code,
+                f"ctx.drawLineEx(\
+                    {", ".join(map(str, judgeLine_DrawPos))},\
+                    {JUDGELINE_WIDTH},\
+                    '{judgeLine_webCanvas_color}'\
+                );",
+                add_code_array = True
             )
             
         if debug and line.attachUI is None and Tool_Functions.point_in_screen(linePos, w, h):
