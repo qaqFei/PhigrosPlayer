@@ -113,8 +113,12 @@
     function resizeCanvas() {
         canvas_ele.width = window.innerWidth / lowquality_scale;
         canvas_ele.height = window.innerHeight / lowquality_scale;
+        dialog_canvas_ele.width = canvas_ele.width;
+        dialog_canvas_ele.height = canvas_ele.height;
         ctx.reset();
+        dialog_canvas_ctx.reset();
         ctx.scale(1 / lowquality_scale, 1 / lowquality_scale);
+        dialog_canvas_ctx.scale(1 / lowquality_scale, 1 / lowquality_scale);
         /*
         in python, width and height is the real size of canvas, so we donot need to scale the canvas.
         */
@@ -305,6 +309,23 @@
         ctx.lineTo(x2, y2);
         ctx.stroke();
         ctx.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawDiagonalRectangle = function(x0, y0, x1, y1, power, color) {
+        this.save();
+        this.fillStyle = color;
+        this.beginPath();
+        this.moveTo(x0 + (x1 - x0) * power, y0);
+        this.lineTo(x1, y0);
+        this.lineTo(x1 - (x1 - x0) * power, y1);
+        this.lineTo(x0, y1);
+        this.lineTo(x0 + (x1 - x0) * power, y0);
+        this.fill();
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.clear = function() {
+        this.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
     resizeCanvas();

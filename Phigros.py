@@ -48,6 +48,7 @@ def Load_Resource():
     global CollectiblesIconWidth, CollectiblesIconHeight
     global MessageButtonSize
     global JoinQQGuildBannerWidth, JoinQQGuildBannerHeight
+    global JoinQQGuildPromoWidth, JoinQQGuildPromoHeight
     
     Resource = {
         "logoipt": Image.open("./Resources/logoipt.png"),
@@ -63,6 +64,7 @@ def Load_Resource():
         "JoinQQGuildBanner": Image.open("./Resources/JoinQQGuildBanner.png"),
         "UISound_1": mixer.Sound("./Resources/UISound_1.wav"),
         "UISound_2": mixer.Sound("./Resources/UISound_2.wav"),
+        "JoinQQGuildPromo": Image.open("./Resources/JoinQQGuildPromo.png"),
     }
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -78,6 +80,7 @@ def Load_Resource():
     root.reg_img(Resource["ButtonRightBlack"], "ButtonRightBlack")
     root.reg_img(Resource["message"], "message")
     root.reg_img(Resource["JoinQQGuildBanner"], "JoinQQGuildBanner")
+    root.reg_img(Resource["JoinQQGuildPromo"], "JoinQQGuildPromo")
         
     ButtonWidth = w * 0.1
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -86,6 +89,8 @@ def Load_Resource():
     MessageButtonSize = w * 0.025
     JoinQQGuildBannerWidth = w * 0.2
     JoinQQGuildBannerHeight = JoinQQGuildBannerWidth / Resource["JoinQQGuildBanner"].width * Resource["JoinQQGuildBanner"].height
+    JoinQQGuildPromoWidth = w * 0.61
+    JoinQQGuildPromoHeight = JoinQQGuildPromoWidth / Resource["JoinQQGuildPromo"].width * Resource["JoinQQGuildPromo"].height
     
     with open("./Resources/font.ttf", "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
@@ -454,9 +459,42 @@ def mainRender():
             canClickJoinQQGuildBanner = False
             p = (time.time() - clickedJoinQQGuildBannerTime) / 0.35
             p = p if p <= 1.0 else 1.0
-            p = 1.0 - (1.0 - p) ** 2
+            ep = 1.0 - (1.0 - p) ** 2
+            
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {ep * 0.5})",
+                wait_execute = True                
+            )
+            
             root.run_js_code(
-                f"mask.style.backdropFilter = 'blur({(w + h) / 60 * p}px)';",
+                f"mask.style.backdropFilter = 'blur({(w + h) / 60 * ep}px)';",
+                add_code_array = True
+            )
+            
+            root.run_js_code(
+                f"dialog_canvas_ctx.clear();",
+                add_code_array = True
+            )
+
+            p = 1.0 - (1.0 - p) ** 3
+            JoinQQGuildPromoTempWidth = JoinQQGuildPromoWidth * (0.65 + p * 0.35)
+            JoinQQGuildPromoTempHeight = JoinQQGuildPromoHeight * (0.65 + p * 0.35)
+            root.run_js_code(
+                f"dialog_canvas_ctx.drawAlphaImage(\
+                    {root.get_img_jsvarname("JoinQQGuildPromo")},\
+                    {w / 2 - JoinQQGuildPromoTempWidth / 2}, {h * 0.39 - JoinQQGuildPromoTempHeight / 2},\
+                    {JoinQQGuildPromoTempWidth}, {JoinQQGuildPromoTempHeight}, {p}\
+                );",
+                add_code_array = True
+            )
+            diagonalRectanglePowerPx = Const.JOINQQGUILDPROMODIAGONALRECTANGLEPOWER * JoinQQGuildPromoTempWidth
+            root.run_js_code(
+                f"dialog_canvas_ctx.drawDiagonalRectangle(\
+                    {w / 2 - JoinQQGuildPromoTempWidth / 2 - diagonalRectanglePowerPx * 0.2}, {h * 0.39 + JoinQQGuildPromoTempHeight / 2},\
+                    {w / 2 + JoinQQGuildPromoTempWidth / 2 - diagonalRectanglePowerPx}, {h * 0.39 + JoinQQGuildPromoTempHeight / 2 + JoinQQGuildPromoTempHeight * 0.2},\
+                    {Const.JOINQQGUILDPROMODIAGONALRECTANGLEPOWER * 0.2}, 'rgba(0, 0, 0, 0.5)'\
+                );",
                 add_code_array = True
             )
         
