@@ -47,13 +47,12 @@ class EventManager:
 class FaculaAnimationManager:
     def __init__(self) -> None:
         self.faculas = []
-        self.stop = False
     
     def main(self):
         self._createFacula()
         self._createFacula()
-        while not self.stop:
-            time.sleep(uniform(0.05, 1.5))
+        while True:
+            time.sleep(uniform(0.35, 1.25))
             self._createFacula()
             for facula in self.faculas:
                 if facula["endTime"] < time.time():
@@ -75,7 +74,7 @@ class FaculaAnimationManager:
         }
             
     def _createFacula(self):
-        sy = uniform(0.0, 0.8)
+        sy = uniform(0.0, 1.0)
         self.faculas.append({
             "startTime": time.time(),
             "endTime": time.time() + uniform(5.0, 7.0),

@@ -24,7 +24,7 @@
         margin: 0;
     }
 
-    img{
+    .ppr-start {
         position: absolute;
         left: 0;
         top: 0;
@@ -35,8 +35,20 @@
         -webkit-user-drag: none;
     }
 
-    canvas{
+    .main-canvas {
         z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+    }
+
+    .dialog-canvas {
+        z-index: 114515;
+        position: absolute;
+        left: 0;
+        top: 0;
         width: 100%;
         height: 100%;
     }
@@ -48,7 +60,7 @@
         top: 0;
         width: 100%;
         height: 100%;
-        z-index: 99999;
+        z-index: 114514;
     }
 </style>
 
@@ -57,10 +69,15 @@
     html_ele = root_ele.children[0];
     body_ele = html_ele.children[1];
     canvas_ele = document.createElement("canvas");
+    canvas_ele.className = "main-canvas";
+    dialog_canvas_ele = document.createElement("canvas");
+    dialog_canvas_ele.className = "dialog-canvas";
     glcanvas = document.createElement("canvas");
     body_ele.appendChild(canvas_ele);
+    body_ele.appendChild(dialog_canvas_ele);
     mask = document.querySelector(".mask");
     ctx = canvas_ele.getContext("2d", {willReadFrequently: true, alpha: false});
+    dialog_canvas_ctx = dialog_canvas_ele.getContext("2d");
     gl = glcanvas.getContext("webgl");
     JavaScript_WaitToExecute_CodeArray = new Array();
     resize_task = false;
@@ -200,11 +217,11 @@
         uploadFrame_finish = false;
     }
 
-    CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
+    // CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
-    CanvasRenderingContext2D.prototype.drawImage = function(im, x, y, width, height) {
-        return this._drawImage(im, Math.floor(x), Math.floor(y), Math.floor(width), Math.floor(height));
-    }
+    // CanvasRenderingContext2D.prototype.drawImage = function(im, x, y, width, height) {
+    //     return this._drawImage(im, Math.floor(x), Math.floor(y), Math.floor(width), Math.floor(height));
+    // }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}

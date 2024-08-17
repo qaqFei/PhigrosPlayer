@@ -44,19 +44,48 @@ chdir(selfdir)
 mixer.init()
 
 def Load_Resource():
+    global ButtonWidth, ButtonHeight
+    global CollectiblesIconWidth, CollectiblesIconHeight
+    global MessageButtonSize
+    global JoinQQGuildBannerWidth, JoinQQGuildBannerHeight
+    
     Resource = {
         "logoipt": Image.open("./Resources/logoipt.png"),
         "warning": Image.open("./Resources/Start.png"),
         "phigros": Image.open("./Resources/phigros.png"),
         "AllSongBlur": Image.open("./Resources/AllSongBlur.png"),
         "facula": Image.open("./Resources/facula.png"),
+        "collectibles": Image.open("./Resources/collectibles.png"),
+        "setting": Image.open("./Resources/setting.png"),
+        "ButtonLeftBlack": Image.open("./Resources/Button_Left_Black.png"),
+        "ButtonRightBlack": None,
+        "message": Image.open("./Resources/message.png"),
+        "JoinQQGuildBanner": Image.open("./Resources/JoinQQGuildBanner.png"),
+        "UISound_1": mixer.Sound("./Resources/UISound_1.wav"),
+        "UISound_2": mixer.Sound("./Resources/UISound_2.wav"),
     }
+    
+    Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     
     root.reg_img(Resource["logoipt"], "logoipt")
     root.reg_img(Resource["warning"], "warning")
     root.reg_img(Resource["phigros"], "phigros")
     root.reg_img(Resource["AllSongBlur"], "AllSongBlur")
     root.reg_img(Resource["facula"], "facula")
+    root.reg_img(Resource["collectibles"], "collectibles")
+    root.reg_img(Resource["setting"], "setting")
+    root.reg_img(Resource["ButtonLeftBlack"], "ButtonLeftBlack")
+    root.reg_img(Resource["ButtonRightBlack"], "ButtonRightBlack")
+    root.reg_img(Resource["message"], "message")
+    root.reg_img(Resource["JoinQQGuildBanner"], "JoinQQGuildBanner")
+        
+    ButtonWidth = w * 0.1
+    ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
+    CollectiblesIconWidth = w * 0.0265
+    CollectiblesIconHeight = CollectiblesIconWidth / Resource["collectibles"].width * Resource["collectibles"].height
+    MessageButtonSize = w * 0.025
+    JoinQQGuildBannerWidth = w * 0.2
+    JoinQQGuildBannerHeight = JoinQQGuildBannerWidth / Resource["JoinQQGuildBanner"].width * Resource["JoinQQGuildBanner"].height
     
     with open("./Resources/font.ttf", "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
@@ -75,9 +104,35 @@ def Load_Resource():
 def bindEvents():
     root.jsapi.set_attr("click", eventManager.click)
     root.run_js_code("_click = (e) => pywebview.api.call_attr('click', e.x, e.y, e.button);")
-    root.run_js_code("document.addEventListener('click', _click);")
+    root.run_js_code("document.addEventListener('mousedown', _click);")
+
+def drawBackground():
+    root.run_js_code(
+        f"ctx.drawImage(\
+            {root.get_img_jsvarname("AllSongBlur")},\
+            0, 0, {w}, {h}\
+        );",
+        add_code_array = True
+    )
+
+def drawFaculas():
+    for facula in faManager.faculas:
+        if facula["startTime"] <= time.time() <= facula["endTime"]:
+            state = faManager.getFaculaState(facula)
+            sizePx = facula["size"] * (w + h) / 40
+            root.run_js_code(
+                f"ctx.drawAlphaImage(\
+                    {root.get_img_jsvarname("facula")},\
+                    {facula["x"] * w - sizePx / 2}, {state["y"] * h - sizePx / 2},\
+                    {sizePx}, {sizePx},\
+                    {state["alpha"] * 0.4}\
+                );",
+                add_code_array = True
+            )
 
 def showStartAnimation():
+    global faManager
+    
     start_animation_clicked = False
     def start_animation_click_cb(*args): nonlocal start_animation_clicked; start_animation_clicked = True
     
@@ -140,6 +195,7 @@ def showStartAnimation():
     a3_st = time.time()
     a3_clicked = False
     a3_clicked_time = float("nan")
+    a3_sound_fadeout = False
     def a3_click_cb(*args):
         nonlocal a3_clicked_time, a3_clicked
         a3_clicked_time = time.time()
@@ -157,7 +213,6 @@ def showStartAnimation():
         atime = time.time() - a3_st
         
         if a3_clicked and time.time() - a3_clicked_time > 1.0:
-            mixer.music.fadeout(500)
             root.create_rectangle( # no wait
                 0, 0, w, h, fillStyle = "#000000"
             )
@@ -165,13 +220,7 @@ def showStartAnimation():
         
         root.clear_canvas(wait_execute = True)
         
-        root.run_js_code(
-            f"ctx.drawImage(\
-                {root.get_img_jsvarname("AllSongBlur")},\
-                0, 0, {w}, {h}\
-            );",
-            add_code_array = True
-        )
+        drawBackground()
         
         root.create_rectangle(
             0, 0, w, h,
@@ -183,22 +232,10 @@ def showStartAnimation():
             root.create_line(
                 0, h * (i / 50), w, h * (i / 50),
                 strokeStyle = "rgba(162, 206, 223, 0.03)",
-                lineWidth = 0.5, wait_execute = True
+                lineWidth = 0.25, wait_execute = True
             )
-        
-        for facula in faManager.faculas:
-            if facula["startTime"] <= time.time() <= facula["endTime"]:
-                state = faManager.getFaculaState(facula)
-                sizePx = facula["size"] * (w + h) / 40
-                root.run_js_code(
-                    f"ctx.drawAlphaImage(\
-                        {root.get_img_jsvarname("facula")},\
-                        {facula["x"] * w - sizePx / 2}, {state["y"] * h - sizePx / 2},\
-                        {sizePx}, {sizePx},\
-                        {state["alpha"] * 0.4}\
-                    );",
-                    add_code_array = True
-                )
+    
+        drawFaculas()
         
         root.run_js_code(
             f"ctx.drawImage(\
@@ -253,6 +290,9 @@ def showStartAnimation():
             root.run_js_code(f"mask.style.backdropFilter = '';", add_code_array = True)
         
         if a3_clicked and time.time() - a3_clicked_time <= 1.0:
+            if not a3_sound_fadeout:
+                a3_sound_fadeout = True
+                mixer.music.fadeout(500)
             root.create_rectangle(
                 0, 0, w, h,
                 fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - (time.time() - a3_clicked_time)) ** 2})",
@@ -262,14 +302,13 @@ def showStartAnimation():
         root.run_js_wait_code()
     
     root.run_js_code(f"mask.style.backdropFilter = '';", add_code_array = True)
-    faManager.stop = True
     mixer.music.load("./Resources/ChapterSelect.mp3")
     mixer.music.play(-1)
     mainRender()
 
 def soundEffect_From0To1():
     v = 0.0
-    for i in range(100):
+    for _ in range(100):
         v += 0.01
         if mixer.music.get_pos() / 1000 <= 3.0:
             mixer.music.set_volume(v)
@@ -278,21 +317,178 @@ def soundEffect_From0To1():
             mixer.music.set_volume(1.0)
             return None
 
+def drawButton(buttonName: typing.Literal["ButtonLeftBlack", "ButtonRightBlack"], iconName: str, buttonPos: tuple[float, float]):
+    root.run_js_code(
+        f"ctx.drawImage(\
+           {root.get_img_jsvarname(buttonName)},\
+           {buttonPos[0]}, {buttonPos[1]}, {ButtonWidth}, {ButtonHeight}\
+        );",
+        add_code_array = True
+    )
+    
+    centerPoint = (0.35, 0.395) if buttonName == "ButtonLeftBlack" else (0.65, 0.605)
+    
+    root.run_js_code(
+        f"ctx.drawImage(\
+           {root.get_img_jsvarname(iconName)},\
+           {buttonPos[0] + ButtonWidth * centerPoint[0] - CollectiblesIconWidth / 2},\
+           {buttonPos[1] + ButtonHeight * centerPoint[1] - CollectiblesIconHeight / 2},\
+           {CollectiblesIconWidth}, {CollectiblesIconHeight}\
+        );",
+        add_code_array = True
+    )
+
 def mainRender():
+    faManager.faculas.clear()
+    mainRenderSt = time.time()
+    
+    messageRect = (w * 0.015, h * 0.985 - MessageButtonSize, MessageButtonSize, MessageButtonSize)
+    JoinQQGuildBannerRect = (0.0, h - JoinQQGuildBannerHeight, JoinQQGuildBannerWidth, JoinQQGuildBannerHeight)
+    events = []
+    
+    clickedMessage = False
+    clickMessageTime = float("nan")
+    canClickMessage = True
+    messageBackTime = 7.0
+    messageBacking = False
+    messageBackSt = float("nan")
+    def clickMessage(*args):
+        nonlocal clickedMessage, clickMessageTime, canClickJoinQQGuildBanner
+        if canClickMessage:
+            clickMessageTime = time.time()
+            clickedMessage = True
+            canClickJoinQQGuildBanner = True
+            Resource["UISound_1"].play()
+    events.append(PhigrosGameObject.ClickEvent(
+        button = None,
+        rect = (messageRect[0], messageRect[1], messageRect[0] + messageRect[2], messageRect[1] + messageRect[3]),
+        callback = clickMessage,
+        once = False
+    ))
+    eventManager.regClickEvent(events[-1])
+    
+    clickedJoinQQGuildBanner = False
+    clickedJoinQQGuildBannerTime = float("nan")
+    canClickJoinQQGuildBanner = False
+    def clickJoinQQGuildBanner(*args):
+        nonlocal clickedJoinQQGuildBanner, clickedJoinQQGuildBannerTime, messageBackTime
+        if canClickJoinQQGuildBanner and (time.time() - clickMessageTime) > 0.1:
+            clickedJoinQQGuildBannerTime = time.time()
+            clickedJoinQQGuildBanner = True
+            messageBackTime = float("inf")
+            Resource["UISound_2"].play()
+    events.append(PhigrosGameObject.ClickEvent(
+        button = None,
+        rect = (JoinQQGuildBannerRect[0], JoinQQGuildBannerRect[1], JoinQQGuildBannerRect[0] + JoinQQGuildBannerRect[2], JoinQQGuildBannerRect[1] + JoinQQGuildBannerRect[3]),
+        callback = clickJoinQQGuildBanner,
+        once = False
+    ))
+    eventManager.regClickEvent(events[-1])
+    
     while True:
         root.clear_canvas(wait_execute = True)
+        
+        drawBackground()
+        
+        root.create_rectangle(
+            0, 0, w, h,
+            fillStyle = "rgba(0, 0, 0, 0.7)",
+            wait_execute = True
+        )
+        
+        drawFaculas()
+        
+        drawButton("ButtonLeftBlack", "collectibles", (0, 0))
+        drawButton("ButtonRightBlack", "setting", (w - ButtonWidth, h - ButtonHeight))
+        
+        root.run_js_code(
+            f"ctx.drawAlphaImage(\
+                {root.get_img_jsvarname("message")},\
+                {", ".join(map(str, messageRect))}, 0.7\
+            );",
+            add_code_array = True
+        )
+        
+        if clickedMessage and time.time() - clickMessageTime >= messageBackTime:
+            clickedMessage = False
+            messageBacking = True
+            messageBackSt = time.time()
+            canClickJoinQQGuildBanner = False
+        
+        if clickedMessage and time.time() - clickMessageTime <= 1.5:
+            root.run_js_code(
+                f"ctx.drawImage(\
+                    {root.get_img_jsvarname("JoinQQGuildBanner")},\
+                    {JoinQQGuildBannerRect[0] - JoinQQGuildBannerWidth + (1.0 - (1.0 - ((time.time() - clickMessageTime) / 1.5)) ** 6) * JoinQQGuildBannerWidth}, {JoinQQGuildBannerRect[1]},\
+                    {JoinQQGuildBannerRect[2]}, {JoinQQGuildBannerRect[3]}\
+                );",
+                add_code_array = True
+            )
+        elif not clickedMessage and messageBacking:
+            if time.time() - messageBackSt > 1.5:
+                messageBacking = False
+                messageBackSt = time.time() - 1.5 # 防止回弹
+                canClickMessage = True
+            root.run_js_code(
+                f"ctx.drawImage(\
+                    {root.get_img_jsvarname("JoinQQGuildBanner")},\
+                    {JoinQQGuildBannerRect[0] - (1.0 - (1.0 - ((time.time() - messageBackSt) / 1.5)) ** 6) * JoinQQGuildBannerWidth}, {JoinQQGuildBannerRect[1]},\
+                    {JoinQQGuildBannerRect[2]}, {JoinQQGuildBannerRect[3]}\
+                );",
+                add_code_array = True
+            )
+        elif clickedMessage:
+            root.run_js_code(
+                f"ctx.drawImage(\
+                    {root.get_img_jsvarname("JoinQQGuildBanner")},\
+                    {JoinQQGuildBannerRect[0]}, {JoinQQGuildBannerRect[1]},\
+                    {JoinQQGuildBannerRect[2]}, {JoinQQGuildBannerRect[3]}\
+                );",
+                add_code_array = True
+            )
+        
+        if clickedMessage and canClickMessage:
+            canClickMessage = False
+        
+        if clickedJoinQQGuildBanner:
+            canClickJoinQQGuildBanner = False
+            p = (time.time() - clickedJoinQQGuildBannerTime) / 0.35
+            p = p if p <= 1.0 else 1.0
+            p = 1.0 - (1.0 - p) ** 2
+            root.run_js_code(
+                f"mask.style.backdropFilter = 'blur({(w + h) / 60 * p}px)';",
+                add_code_array = True
+            )
+        
+        if time.time() - mainRenderSt < 2.0:
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {(1.0 - (time.time() - mainRenderSt) / 2.0) ** 2})",
+                wait_execute = True
+            )
+        
         root.run_js_wait_code()
 
 root = webcvapis.WebCanvas(
     width = 1, height = 1,
     x = 0, y = 0,
     title = "Phigros",
-    debug = "--debug" in sys.argv
+    debug = "--debug" in sys.argv,
+    resizable = False
 )
-w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-root._web.toggle_fullscreen()
+
 webdpr = root.run_js_code("window.devicePixelRatio;")
 root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
+w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+root.resize(w, h)
+w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
+dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
+dw_legacy *= webdpr; dh_legacy *= webdpr
+dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
+del w_legacy, h_legacy
+root.resize(w + dw_legacy, h + dh_legacy)
+root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
+
 if "--window-host" in sys.argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
 

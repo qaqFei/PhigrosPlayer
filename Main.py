@@ -603,7 +603,7 @@ def Load_Resource():
         root.create_image(im, 0, 0, 50, 50, wait_execute=True)
     root.clear_canvas(wait_execute = True)
     root.run_js_wait_code()
-    root.run_js_code("color_block_img_ele = Start_img; body_ele.appendChild(color_block_img_ele);")
+    root.run_js_code("color_block_img_ele = Start_img; color_block_img_ele.className = 'ppr-start'; body_ele.appendChild(color_block_img_ele);")
     root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
     while not root.run_js_code("font_loaded;"):
         time.sleep(0.1)
