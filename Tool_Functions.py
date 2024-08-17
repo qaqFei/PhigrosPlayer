@@ -291,6 +291,17 @@ def DataUrl2MatLike(dataurl: str) -> cv2.typing.MatLike:
         cv2.IMREAD_COLOR
     )
 
+def InRect(x: float, y: float, rect: tuple[float, float, float, float]) -> bool:
+    return rect[0] <= x <= rect[2] and rect[1] <= y <= rect[3]
+
+def easeAlpha(p: float):
+    if 0.0 <= p <= 0.4: 
+        return 1.0 - (1.0 - 2 * p * (0.5 / 0.4)) ** 2
+    elif 0.4 <= p <= 0.8:
+        return 1.0
+    else:
+        return (2.0 - 2.0 * ((p - 0.8) * (0.5 / 0.2) + 0.5)) ** 2
+
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
 TextureLine_CanRender(1920, 1080, 50, 0, 0)

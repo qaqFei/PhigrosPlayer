@@ -1889,7 +1889,7 @@ def GetFrameRenderTask_Rpe(
                 root.run_js_code,
                 f"ctx.drawLineEx(\
                     {", ".join(map(str, judgeLine_DrawPos))},\
-                    {JUDGELINE_WIDTH},\
+                    {JUDGELINE_WIDTH * lineScaleY},\
                     '{judgeLine_webCanvas_color}'\
                 );",
                 add_code_array = True

@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.lfdaot": "json",
+        "ostream": "cpp"
+    }
+}

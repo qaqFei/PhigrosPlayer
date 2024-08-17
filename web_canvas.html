@@ -11,6 +11,7 @@
                 " id="textureLineColorFilterColorMatrix"></feColorMatrix>
             </filter>
           </svg>
+          <div class="mask"></div>
     </body>
 </html>
 
@@ -39,6 +40,16 @@
         width: 100%;
         height: 100%;
     }
+
+    .mask {
+        background-color: transparent;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 99999;
+    }
 </style>
 
 <script type="text/javascript">
@@ -48,6 +59,7 @@
     canvas_ele = document.createElement("canvas");
     glcanvas = document.createElement("canvas");
     body_ele.appendChild(canvas_ele);
+    mask = document.querySelector(".mask");
     ctx = canvas_ele.getContext("2d", {willReadFrequently: true, alpha: false});
     gl = glcanvas.getContext("webgl");
     JavaScript_WaitToExecute_CodeArray = new Array();
@@ -235,6 +247,13 @@
         this.textBaseline = "middle";
         this.font = `${fontsize}px PhigrosFont`;
         this.fillText(text, 0, 0);
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawAlphaImage = function(im, x, y, width, height, alpha) {
+        this.save()
+        this.globalAlpha = alpha;
+        this.drawImage(im, x, y, width, height);
         this.restore();
     }
 
