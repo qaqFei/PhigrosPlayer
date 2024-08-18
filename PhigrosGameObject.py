@@ -7,15 +7,29 @@ from PIL import Image
 
 import Tool_Functions
 
-buttonType = typing.Literal[0, 1, 2] | None
-
 @dataclass
 class ClickEvent:
-    button: buttonType
     rect: tuple[float, float, float, float]
-    callback: typing.Callable[[int, int, buttonType], typing.Any]
+    callback: typing.Callable[[int, int], typing.Any]
     once: bool
+    tag: str|None = None
     
+    def __hash__(self) -> int:
+        return id(self)
+
+@dataclass
+class MoveEvent:
+    callback: typing.Callable[[int, int], typing.Any]
+    tag: str|None = None
+    
+    def __hash__(self) -> int:
+        return id(self)
+    
+@dataclass
+class ReleaseEvent:
+    callback: typing.Callable[[int, int], typing.Any]
+    tag: str|None = None
+
     def __hash__(self) -> int:
         return id(self)
 
@@ -23,22 +37,38 @@ class ClickEvent:
 class EventManager:
     def __init__(self) -> None:
         self.clickEvents: list[ClickEvent] = []
+        self.moveEvents: list[MoveEvent] = []
+        self.releaseEvents: list[ReleaseEvent] = []
     
-    def _callClickCallback(self, e: ClickEvent, x: int, y: int, button: buttonType) -> None:
-        if Tool_Functions.InRect(x, y, e.rect) and (e.button is None or e.button == button):
-            e.callback(x, y, button)
+    def _callClickCallback(self, e: ClickEvent, x: int, y: int) -> None:
+        if Tool_Functions.InRect(x, y, e.rect):
+            e.callback(x, y)
             if e.once:
                 self.unregClickEvent(e)
     
-    def click(self, x: int, y: int, button: buttonType) -> None:
+    def click(self, x: int, y: int) -> None:
         for e in self.clickEvents:
-            self._callClickCallback(e, x, y, button)
+            self._callClickCallback(e, x, y)
+    
+    def move(self, x: int, y: int) -> None:
+        for e in self.moveEvents:
+            e.callback(x, y)
+    
+    def release(self, x: int, y: int) -> None:
+        for e in self.releaseEvents:
+            e.callback(x, y)
     
     def regClickEvent(self, e: ClickEvent):
         self.clickEvents.append(e)
     
-    def regClickEventFs(self, callback: typing.Callable[[int, int, buttonType], typing.Any], button: buttonType, once: bool):
-        e = ClickEvent(button, (0, 0, float("inf"), float("inf")), callback, once)
+    def regMoveEvent(self, e: MoveEvent):
+        self.moveEvents.append(e)
+
+    def regReleaseEvent(self, e: ReleaseEvent):
+        self.releaseEvents.append(e)
+    
+    def regClickEventFs(self, callback: typing.Callable[[int, int], typing.Any], once: bool):
+        e = ClickEvent((0, 0, float("inf"), float("inf")), callback, once)
         self.regClickEvent(e)
         return e
     

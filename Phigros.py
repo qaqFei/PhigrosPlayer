@@ -48,9 +48,14 @@ if not exists("./PhigrosAssets"):
         time.sleep(0.1)
 
 mixer.init()
+chaptersDx = 0.0
+inMainUI = False
+lastMainUI_ChaptersClickX = 0.0
+lastLastMainUI_ChaptersClickX = 0.0
+mainUI_ChaptersMouseDown = False
 
 def Load_Chapters():
-    global Chapters
+    global Chapters, ChaptersMaxDx
     jsonData = json.loads(open("./PhigrosAssets/chapters.json", "r", encoding="utf-8").read())
     Chapters = PhigrosGameObject.Chapters(
         [
@@ -80,6 +85,8 @@ def Load_Chapters():
             for chapter in jsonData["chapters"]
         ]
     )
+    
+    ChaptersMaxDx = w * (len(Chapters.items) - 1) * (295 / 1920) + w * 0.5 - w * 0.875
 
 def Load_Resource():
     global ButtonWidth, ButtonHeight
@@ -156,8 +163,20 @@ def Load_Resource():
 
 def bindEvents():
     root.jsapi.set_attr("click", eventManager.click)
-    root.run_js_code("_click = (e) => pywebview.api.call_attr('click', e.x, e.y, e.button);")
+    root.run_js_code("_click = (e) => pywebview.api.call_attr('click', e.x, e.y);")
     root.run_js_code("document.addEventListener('mousedown', _click);")
+    
+    root.jsapi.set_attr("mousemove", eventManager.move)
+    root.run_js_code("_mousemove = (e) => pywebview.api.call_attr('mousemove', e.x, e.y);")
+    root.run_js_code("document.addEventListener('mousemove', _mousemove);")
+    
+    root.jsapi.set_attr("mouseup", eventManager.release)
+    root.run_js_code("_mouseup = (e) => pywebview.api.call_attr('mouseup', e.x, e.y);")
+    root.run_js_code("document.addEventListener('mouseup', _mouseup);")
+    
+    eventManager.regClickEventFs(mainUI_mouseClick, False)
+    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(mainUI_mouseRelease))
+    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(mainUI_mouseMove))
 
 def drawBackground():
     root.run_js_code(
@@ -184,7 +203,7 @@ def drawFaculas():
             )
 
 def drawChapters():
-    chapterX = w * 0.034375
+    chapterX = w * 0.034375 + chaptersDx
     for i, chapter in enumerate(Chapters.items):
         openChapter = i == Chapters.now
         
@@ -315,7 +334,7 @@ def showStartAnimation():
             Thread(target=soundEffect_From0To1, daemon=True).start()
         
         if p > 0.4:
-            eventManager.regClickEventFs(start_animation_click_cb, None, True)
+            eventManager.regClickEventFs(start_animation_click_cb, True)
             if start_animation_clicked:
                 break
             
@@ -365,7 +384,7 @@ def showStartAnimation():
         nonlocal a3_clicked_time, a3_clicked
         a3_clicked_time = time.time()
         a3_clicked = True
-    eventManager.regClickEventFs(a3_click_cb, None, True)
+    eventManager.regClickEventFs(a3_click_cb, True)
     phigros_logo_width = 0.25
     phigros_logo_rect = (
         w / 2 - w * phigros_logo_width / 2,
@@ -485,7 +504,82 @@ def soundEffect_From0To1():
 def processStringToLiteral(string: str):
     return string.replace("\\","\\\\").replace("'","\\'").replace("\"","\\\"").replace("`","\\`").replace("\n", "\\n")
 
+def mainUI_mouseMove(x, y):
+    global lastMainUI_ChaptersClickX, lastLastMainUI_ChaptersClickX, chaptersDx
+    if inMainUI and mainUI_ChaptersMouseDown:
+        chaptersDx += x - lastMainUI_ChaptersClickX
+        lastLastMainUI_ChaptersClickX = lastMainUI_ChaptersClickX
+        lastMainUI_ChaptersClickX = x
+
+def mainUI_mouseClick(x, y):
+    global lastMainUI_ChaptersClickX, lastLastMainUI_ChaptersClickX, mainUI_ChaptersMouseDown
+    
+    if not inMainUI:
+        return None
+    
+    for e in eventManager.clickEvents:
+        if e.tag == "mainUI" and Tool_Functions.InRect(x, y, e.rect):
+            return None
+    
+    lastMainUI_ChaptersClickX = x
+    lastLastMainUI_ChaptersClickX = x
+    mainUI_ChaptersMouseDown = True
+
+def mainUI_mouseRelease(x, y):
+    global mainUI_ChaptersMouseDown
+    downed = mainUI_ChaptersMouseDown # 按下过
+    mainUI_ChaptersMouseDown = False
+    
+    if downed and inMainUI:
+        Thread(target=chapterUI_easeSroll, daemon=True).start()    
+
+def chapterUI_easeSroll():
+    global chaptersDx
+    dx = (lastMainUI_ChaptersClickX - lastLastMainUI_ChaptersClickX)
+    while abs(dx) > w * 0.001:
+        dx *= 0.9
+        chaptersDx += dx
+        if - chaptersDx <= - w / 10 or - chaptersDx >= ChaptersMaxDx - w / 10: # 往右 = 负, 左 = 正, 反的, 所以`-cheaptersDx`
+            Thread(target=cheapterUI_easeBack, daemon=True).start()
+            return None
+        time.sleep(1 / 85)
+    Thread(target=cheapterUI_easeBack, daemon=True).start()
+
+def cheapterUI_easeBack():
+    global chaptersDx
+    
+    cdx = - chaptersDx
+    
+    if 0 <= cdx <= ChaptersMaxDx:
+        return None
+
+    if cdx < 0:
+        dx = -cdx
+    else:
+        dx = ChaptersMaxDx - cdx
+    dx *= -1 # 前面cdx = 负的, 所以变回来
+    
+    lastv = 0.0
+    av = 0.0
+    ast = time.time()
+    while True:
+        p = (time.time() - ast) / 0.75
+        if p > 1.0:
+            chaptersDx += dx - av
+            break
+        
+        v = 1.0 - (1.0 - p) ** 4
+        dxv = (v - lastv) * dx
+        av += dxv
+        chaptersDx += dxv
+        lastv = v
+        
+        time.sleep(1 / 120)
+
 def mainRender():
+    global inMainUI
+    inMainUI = True
+    
     faManager.faculas.clear()
     mainRenderSt = time.time()
     
@@ -507,10 +601,10 @@ def mainRender():
             canClickJoinQQGuildBanner = True
             Resource["UISound_1"].play()
     events.append(PhigrosGameObject.ClickEvent(
-        button = None,
         rect = (messageRect[0], messageRect[1], messageRect[0] + messageRect[2], messageRect[1] + messageRect[3]),
         callback = clickMessage,
-        once = False
+        once = False,
+        tag = "mainUI"
     ))
     eventManager.regClickEvent(events[-1])
     
@@ -518,14 +612,16 @@ def mainRender():
     clickedJoinQQGuildBannerTime = float("nan")
     canClickJoinQQGuildBanner = False
     def clickJoinQQGuildBanner(*args):
+        global inMainUI
         nonlocal clickedJoinQQGuildBanner, clickedJoinQQGuildBannerTime, messageBackTime
+        
         if canClickJoinQQGuildBanner and (time.time() - clickMessageTime) > 0.1:
             clickedJoinQQGuildBannerTime = time.time()
             clickedJoinQQGuildBanner = True
             messageBackTime = float("inf")
+            inMainUI = False
             Resource["UISound_2"].play()
     events.append(PhigrosGameObject.ClickEvent(
-        button = None,
         rect = (JoinQQGuildBannerRect[0], JoinQQGuildBannerRect[1], JoinQQGuildBannerRect[0] + JoinQQGuildBannerRect[2], JoinQQGuildBannerRect[1] + JoinQQGuildBannerRect[3]),
         callback = clickJoinQQGuildBanner,
         once = False
@@ -538,18 +634,20 @@ def mainRender():
     JoinQQGuildBackingSt = float("nan")
     
     def JoinQQGuildPromoNoCallback(*args):
+        global inMainUI
         nonlocal JoinQQGuildBacking, JoinQQGuildBackingSt, clickedJoinQQGuildBanner
         nonlocal JoinQQGuildPromoNoEvent, JoinQQGuildPromoYesEvent
+        
         JoinQQGuildBacking = True
         JoinQQGuildBackingSt = time.time()
         clickedJoinQQGuildBanner = False
         
-        for e in eventManager.clickEvents:
-            if e is JoinQQGuildPromoNoEvent or e is JoinQQGuildPromoYesEvent:
-                eventManager.clickEvents.remove(e)
+        eventManager.unregClickEvent(JoinQQGuildPromoNoEvent)
+        eventManager.unregClickEvent(JoinQQGuildPromoYesEvent)
         
         JoinQQGuildPromoNoEvent = None
         JoinQQGuildPromoYesEvent = None
+        inMainUI = True
     
     def JoinQQGuildPromoYesCallback(*args):
         webbrowser.open_new("https://qun.qq.com/qqweb/qunpro/share?inviteCode=21JzOLUd6J0")
@@ -651,11 +749,11 @@ def mainRender():
             )
             
             if JoinQQGuildPromoNoEvent is None and JoinQQGuildPromoYesEvent is None:
-                JoinQQGuildPromoNoEvent = PhigrosGameObject.ClickEvent(
-                    None, noRect, JoinQQGuildPromoNoCallback, True
+                JoinQQGuildPromoNoEvent = PhigrosGameObject.ClickEvent( # once is false, remove event in callback
+                    noRect, JoinQQGuildPromoNoCallback, False
                 )
                 JoinQQGuildPromoYesEvent = PhigrosGameObject.ClickEvent(
-                    None, yesRect, JoinQQGuildPromoYesCallback, True
+                    yesRect, JoinQQGuildPromoYesCallback, False
                 )
                 eventManager.regClickEvent(JoinQQGuildPromoNoEvent)
                 eventManager.regClickEvent(JoinQQGuildPromoYesEvent)
@@ -706,6 +804,9 @@ def mainRender():
             )
         
         root.run_js_wait_code()
+    
+    eventManager.clickEvents.clear()
+    inMainUI = False
 
 root = webcvapis.WebCanvas(
     width = 1, height = 1,
