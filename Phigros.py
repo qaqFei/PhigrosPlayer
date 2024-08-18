@@ -1,10 +1,7 @@
 from threading import Thread
 from ctypes import windll
-from os import chdir, environ, listdir, popen; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
-from os.path import exists, abspath, dirname, isfile, isdir
-from shutil import rmtree
-from tempfile import gettempdir
-from ntpath import basename
+from os import chdir, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
+from os.path import exists, abspath, dirname
 import webbrowser
 import typing
 import json
@@ -14,28 +11,12 @@ import math
 
 sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else sys.__excepthook__(*args)
 
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+from PIL import Image, ImageFilter
 from pygame import mixer
-from pydub import AudioSegment
-import cv2
 import webcvapis
 
-import PlaySound
-import Chart_Objects_Phi
-import Chart_Functions_Phi
-import Chart_Objects_Rpe
-import Chart_Functions_Rpe
 import Const
-import Find_Files
-import ConsoleWindow
 import Tool_Functions
-import dialog
-import Phigros_Tips
-import info_loader
-import version
-import ppr_help
-import rpe_easing
-import ChartAnimation
 import PhigrosGameObject
 
 selfdir = dirname(sys.argv[0])
@@ -202,35 +183,64 @@ def drawFaculas():
                 add_code_array = True
             )
 
+def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
+    chapterIndex = Chapters.items.index(item)
+    
+    if chapterIndex == Chapters.aFrom:
+        p = 1.0 - (time.time() - Chapters.aSTime) / 1.5
+    elif chapterIndex == Chapters.aTo:
+        p = (time.time() - Chapters.aSTime) / 1.5
+    else:
+        p = 0.0
+    
+    p = p if 0.0 <= p <= 1.0 else (0.0 if p < 0.0 else 1.0)
+    p = 1.0 - (1.0 - p) ** 2
+    
+    chapterWidth = w * (0.221875 + (0.5640625 - 0.221875) * p)
+    chapterImWidth = h * (1.0 - 140 / 1080 * 2) / item.im.height * item.im.width
+    dPower = 215 / 425 + (215 / 1085 - 215 / 425) * p
+    
+    chapterRect = (
+        dx, h * (140 / 1080),
+        dx + chapterWidth, h * (1.0 - 140 / 1080)
+    )
+    
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangleClipImage(\
+            {", ".join(map(str, chapterRect))},\
+            {root.get_img_jsvarname(f"chapter_{item.chapterId}_raw")},\
+            {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
+            {dPower}, {p}\
+        );",
+        add_code_array = True
+    )
+    
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangleClipImage(\
+            {", ".join(map(str, chapterRect))},\
+            {root.get_img_jsvarname(f"chapter_{item.chapterId}_blur")},\
+            {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
+            {dPower}, {1.0 - p}\
+        );",
+        add_code_array = True
+    )
+    
+    root.run_js_code(
+        f"ctx.drawRotateText2(\
+            '{processStringToLiteral(item.name)}',\
+            {chapterRect[2] - dPower * chapterWidth - (w + h) / 150}, {chapterRect[3] - (w + h) / 150},\
+            -75, 'rgba(255, 255, 255, {0.95 * (1.0 - p)})', '{(w + h) / 50}px PhigrosFont',\
+            'left', 'bottom'\
+        );",
+        add_code_array = True
+    )
+    
+    return w * (295 / 1920) + (w * 0.5 - w * (295 / 1920)) * p
+
 def drawChapters():
     chapterX = w * 0.034375 + chaptersDx
-    for i, chapter in enumerate(Chapters.items):
-        openChapter = i == Chapters.now
-        
-        chapterWidth = w * 0.5640625 if openChapter else w * 0.221875
-        chapterImWidth = h * (1.0 - 140 / 1080 * 2) / chapter.im.height * chapter.im.width
-        dPower = 215 / 1085 if openChapter else 215 / 425
-        
-        chapterRect = (
-            chapterX, h * (140 / 1080),
-            chapterX + chapterWidth, h * (1.0 - 140 / 1080)
-        )
-        
-        chapterIm = f"chapter_{chapter.chapterId}_raw" if openChapter else f"chapter_{chapter.chapterId}_blur"
-        
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangleClipImage(\
-                {", ".join(map(str, chapterRect))},\
-                {root.get_img_jsvarname(chapterIm)},\
-                {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)}, {dPower}\
-            );",
-            add_code_array = True
-        )
-        
-        if openChapter:
-            chapterX += w * 0.5
-        else:
-            chapterX += w * (295 / 1920)
+    for chapter in Chapters.items:
+        chapterX += drawChapterItem(chapter, chapterX)
 
 def drawButton(buttonName: typing.Literal["ButtonLeftBlack", "ButtonRightBlack"], iconName: str, buttonPos: tuple[float, float]):
     root.run_js_code(
@@ -536,13 +546,14 @@ def mainUI_mouseRelease(x, y):
 def chapterUI_easeSroll():
     global chaptersDx
     dx = (lastMainUI_ChaptersClickX - lastLastMainUI_ChaptersClickX)
+    
     while abs(dx) > w * 0.001:
         dx *= 0.9
         chaptersDx += dx
         if - chaptersDx <= - w / 10 or - chaptersDx >= ChaptersMaxDx - w / 10: # 往右 = 负, 左 = 正, 反的, 所以`-cheaptersDx`
             Thread(target=cheapterUI_easeBack, daemon=True).start()
             return None
-        time.sleep(1 / 85)
+        time.sleep(1 / 120)
     Thread(target=cheapterUI_easeBack, daemon=True).start()
 
 def cheapterUI_easeBack():
@@ -815,7 +826,6 @@ root = webcvapis.WebCanvas(
     debug = "--debug" in sys.argv,
     resizable = False
 )
-
 webdpr = root.run_js_code("window.devicePixelRatio;")
 root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
 w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)

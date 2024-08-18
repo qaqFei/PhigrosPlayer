@@ -22,6 +22,7 @@
         padding: 0;
         border: 0;
         margin: 0;
+        background-color: black;
     }
 
     .ppr-start {
@@ -113,8 +114,8 @@
     function resizeCanvas() {
         canvas_ele.width = window.innerWidth / lowquality_scale;
         canvas_ele.height = window.innerHeight / lowquality_scale;
-        dialog_canvas_ele.width = canvas_ele.width;
-        dialog_canvas_ele.height = canvas_ele.height;
+        dialog_canvas_ele.width = window.innerWidth / lowquality_scale;
+        dialog_canvas_ele.height = window.innerHeight / lowquality_scale;
         ctx.reset();
         dialog_canvas_ctx.reset();
         ctx.scale(1 / lowquality_scale, 1 / lowquality_scale);
@@ -221,12 +222,6 @@
         uploadFrame_finish = false;
     }
 
-    // CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
-
-    // CanvasRenderingContext2D.prototype.drawImage = function(im, x, y, width, height) {
-    //     return this._drawImage(im, Math.floor(x), Math.floor(y), Math.floor(width), Math.floor(height));
-    // }
-
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();
@@ -320,11 +315,11 @@
     }
 
     CanvasRenderingContext2D.prototype.drawDiagonalRectangle = function(x0, y0, x1, y1, power, color) {
-        x0 += 2; // ??
+        x0 += canvas_ele.width / lowquality_scale * (1.35 / 1920); // ??, 写到这里, 再不开学就要精神异常了...
         this.save();
         this.fillStyle = color;
         this.beginPath();
-        this._diagonalRectangle(x0, y0 - 0.2, x1, y1 - 0.2, power);
+        this._diagonalRectangle(x0, y0 - 0.25, x1, y1 - 0.25, power);
         this.fill();
         this.restore();
     }
@@ -341,8 +336,9 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.drawDiagonalRectangleClipImage = function(x0, y0, x1, y1, im, imx, imy, imw, imh, power) {
+    CanvasRenderingContext2D.prototype.drawDiagonalRectangleClipImage = function(x0, y0, x1, y1, im, imx, imy, imw, imh, power, alpha) {
         this.save();
+        this.globalAlpha = alpha;
         this.beginPath();
         this._diagonalRectangle(x0, y0, x1, y1, power);
         this.clip();
@@ -350,8 +346,20 @@
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawRotateText2 = function(text, x, y, deg, color, font, align, baseline) {
+        this.save();
+        this.translate(x, y);
+        this.rotate(deg * Math.PI / 180);
+        this.fillStyle = color;
+        this.textAlign = align;
+        this.textBaseline = baseline;
+        this.font = font;
+        this.fillText(text, 0, 0);
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.clear = function() {
-        this.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.clearRect(0, 0, this.canvas.width * lowquality_scale, this.canvas.height * lowquality_scale);
     }
 
     resizeCanvas();

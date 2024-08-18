@@ -144,8 +144,14 @@ class Chapter:
     
     def __post_init__(self):
         self.chapterId = int(uniform(0.0, 1.0) * (2 << 31))
+    
+    def __hash__(self):
+        return id(self)
 
 @dataclass
 class Chapters:
     items: list[Chapter]
     now: int = 0
+    aFrom: int = -1
+    aTo: int = 0
+    aSTime: float = float("-inf")
