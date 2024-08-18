@@ -311,15 +311,20 @@
         ctx.restore();
     }
 
-    CanvasRenderingContext2D.prototype.drawDiagonalRectangle = function(x0, y0, x1, y1, power, color) {
-        this.save();
-        this.fillStyle = color;
-        this.beginPath();
+    CanvasRenderingContext2D.prototype._diagonalRectangle = function(x0, y0, x1, y1, power) {
         this.moveTo(x0 + (x1 - x0) * power, y0);
         this.lineTo(x1, y0);
         this.lineTo(x1 - (x1 - x0) * power, y1);
         this.lineTo(x0, y1);
         this.lineTo(x0 + (x1 - x0) * power, y0);
+    }
+
+    CanvasRenderingContext2D.prototype.drawDiagonalRectangle = function(x0, y0, x1, y1, power, color) {
+        x0 += 2; // ??
+        this.save();
+        this.fillStyle = color;
+        this.beginPath();
+        this._diagonalRectangle(x0, y0 - 0.2, x1, y1 - 0.2, power);
         this.fill();
         this.restore();
     }
@@ -333,6 +338,15 @@
         this.fillText(text1, x0 + (x1 - x0) * power * 2.0, y0 + (y1 - y0) * 0.5);
         this.textAlign = "right";
         this.fillText(text2, x1 - (x1 - x0) * power * 2.0, y0 + (y1 - y0) * 0.5);
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawDiagonalRectangleClipImage = function(x0, y0, x1, y1, im, imx, imy, imw, imh, power) {
+        this.save();
+        this.beginPath();
+        this._diagonalRectangle(x0, y0, x1, y1, power);
+        this.clip();
+        this.drawImage(im, x0 + imx, y0 + imy, imw, imh);
         this.restore();
     }
 

@@ -3,6 +3,8 @@ from random import uniform
 import typing
 import time
 
+from PIL import Image
+
 import Tool_Functions
 
 buttonType = typing.Literal[0, 1, 2] | None
@@ -86,3 +88,34 @@ class FaculaAnimationManager:
             "ey": sy - uniform(0.5, 0.7),
             "size": uniform(0.7, 1.3)
         })
+
+@dataclass
+class SongDifficlty:
+    name: str
+    level: str
+    chart: str
+
+@dataclass
+class Song:
+    name: str
+    composer: str
+    image: str
+    preview: str
+    difficlty: list[SongDifficlty]
+
+@dataclass
+class Chapter:
+    name: str
+    cn_name: str
+    o_name: str
+    image: str
+    songs: list[Song]
+    im: None|Image.Image = None
+    
+    def __post_init__(self):
+        self.chapterId = int(uniform(0.0, 1.0) * (2 << 31))
+
+@dataclass
+class Chapters:
+    items: list[Chapter]
+    now: int = 0

@@ -42,7 +42,44 @@ selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
+if not exists("./PhigrosAssets"):
+    while True:
+        print("PhigrosAssets not found, please download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
+        time.sleep(0.1)
+
 mixer.init()
+
+def Load_Chapters():
+    global Chapters
+    jsonData = json.loads(open("./PhigrosAssets/chapters.json", "r", encoding="utf-8").read())
+    Chapters = PhigrosGameObject.Chapters(
+        [
+            PhigrosGameObject.Chapter(
+                name = chapter["name"],
+                cn_name = chapter["cn-name"],
+                o_name = chapter["o-name"],
+                image = chapter["image"],
+                songs = [
+                    PhigrosGameObject.Song(
+                        name = song["name"],
+                        composer = song["composer"],
+                        image = song["image"],
+                        preview = song["preview"],
+                        difficlty = [
+                            PhigrosGameObject.SongDifficlty(
+                                name = diff["name"],
+                                level = diff["level"],
+                                chart = diff["chart"]
+                            )
+                            for diff in song["difficlty"]
+                        ]
+                    )
+                    for song in chapter["songs"]
+                ]
+            )
+            for chapter in jsonData["chapters"]
+        ]
+    )
 
 def Load_Resource():
     global ButtonWidth, ButtonHeight
@@ -83,7 +120,7 @@ def Load_Resource():
     root.reg_img(Resource["JoinQQGuildBanner"], "JoinQQGuildBanner")
     root.reg_img(Resource["JoinQQGuildPromo"], "JoinQQGuildPromo")
         
-    ButtonWidth = w * 0.1
+    ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
     CollectiblesIconWidth = w * 0.0265
     CollectiblesIconHeight = CollectiblesIconWidth / Resource["collectibles"].width * Resource["collectibles"].height
@@ -92,6 +129,12 @@ def Load_Resource():
     JoinQQGuildBannerHeight = JoinQQGuildBannerWidth / Resource["JoinQQGuildBanner"].width * Resource["JoinQQGuildBanner"].height
     JoinQQGuildPromoWidth = w * 0.61
     JoinQQGuildPromoHeight = JoinQQGuildPromoWidth / Resource["JoinQQGuildPromo"].width * Resource["JoinQQGuildPromo"].height
+    
+    for chapter in Chapters.items:
+        im = Image.open(f"./PhigrosAssets/{chapter.image}")
+        chapter.im = im
+        root.reg_img(im, f"chapter_{chapter.chapterId}_raw")
+        root.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
     
     with open("./Resources/font.ttf", "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
@@ -104,7 +147,11 @@ def Load_Resource():
     while not root.run_js_code("font_loaded;"):
         time.sleep(0.1)
     
+    # i donot want to update webcvapis module ...
+    root._regims.clear()
     root.shutdown_fileserver()
+    Thread(target=root._file_server.serve_forever, args=(0.1, ), daemon=True).start()
+    
     return Resource
 
 def bindEvents():
@@ -135,6 +182,118 @@ def drawFaculas():
                 );",
                 add_code_array = True
             )
+
+def drawChapters():
+    chapterX = w * 0.034375
+    for i, chapter in enumerate(Chapters.items):
+        openChapter = i == Chapters.now
+        
+        chapterWidth = w * 0.5640625 if openChapter else w * 0.221875
+        chapterImWidth = h * (1.0 - 140 / 1080 * 2) / chapter.im.height * chapter.im.width
+        dPower = 215 / 1085 if openChapter else 215 / 425
+        
+        chapterRect = (
+            chapterX, h * (140 / 1080),
+            chapterX + chapterWidth, h * (1.0 - 140 / 1080)
+        )
+        
+        chapterIm = f"chapter_{chapter.chapterId}_raw" if openChapter else f"chapter_{chapter.chapterId}_blur"
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleClipImage(\
+                {", ".join(map(str, chapterRect))},\
+                {root.get_img_jsvarname(chapterIm)},\
+                {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)}, {dPower}\
+            );",
+            add_code_array = True
+        )
+        
+        if openChapter:
+            chapterX += w * 0.5
+        else:
+            chapterX += w * (295 / 1920)
+
+def drawButton(buttonName: typing.Literal["ButtonLeftBlack", "ButtonRightBlack"], iconName: str, buttonPos: tuple[float, float]):
+    root.run_js_code(
+        f"ctx.drawImage(\
+           {root.get_img_jsvarname(buttonName)},\
+           {buttonPos[0]}, {buttonPos[1]}, {ButtonWidth}, {ButtonHeight}\
+        );",
+        add_code_array = True
+    )
+    
+    centerPoint = (0.35, 0.395) if buttonName == "ButtonLeftBlack" else (0.65, 0.605)
+    
+    root.run_js_code(
+        f"ctx.drawImage(\
+           {root.get_img_jsvarname(iconName)},\
+           {buttonPos[0] + ButtonWidth * centerPoint[0] - CollectiblesIconWidth / 2},\
+           {buttonPos[1] + ButtonHeight * centerPoint[1] - CollectiblesIconHeight / 2},\
+           {CollectiblesIconWidth}, {CollectiblesIconHeight}\
+        );",
+        add_code_array = True
+    )
+
+def drawDialog(
+    p: float,
+    dialogImageName: str, diagonalPower: float,
+    dialogImageSize: tuple[float, float],
+    noText: str, yesText: str
+):
+            
+    root.run_js_code(
+        f"dialog_canvas_ctx.clear();",
+        add_code_array = True
+    )
+            
+    p = 1.0 - (1.0 - p) ** 3
+    tempWidth = dialogImageSize[0] * (0.65 + p * 0.35)
+    tempHeight = dialogImageSize[1] * (0.65 + p * 0.35)
+    diagonalRectanglePowerPx = diagonalPower * tempWidth
+    
+    root.run_js_code(
+        f"dialog_canvas_ctx.drawAlphaImage(\
+            {root.get_img_jsvarname(dialogImageName)},\
+            {w / 2 - tempWidth / 2}, {h * 0.39 - tempHeight / 2},\
+            {tempWidth}, {tempHeight}, {p}\
+        );",
+        add_code_array = True
+    )
+    
+    diagonalRectangle = (
+        w / 2 - tempWidth / 2 - diagonalRectanglePowerPx * 0.2,
+        h * 0.39 + tempHeight / 2,
+        w / 2 + tempWidth / 2 - diagonalRectanglePowerPx,
+        h * 0.39 + tempHeight / 2 + tempHeight * 0.2
+    )
+    
+    root.run_js_code(
+        f"dialog_canvas_ctx.drawDiagonalRectangle(\
+            {", ".join(map(str, diagonalRectangle))},\
+            {diagonalPower * 0.2}, 'rgba(0, 0, 0, {0.85 * p})'\
+        );",
+        add_code_array = True
+    )
+    
+    root.run_js_code(
+        f"dialog_canvas_ctx.drawDiagonalRectangleText(\
+            {", ".join(map(str, diagonalRectangle))},\
+            {diagonalPower * 0.2},\
+            '{processStringToLiteral(noText)}',\
+            '{processStringToLiteral(yesText)}',\
+            'rgba(255, 255, 255, {p})',\
+            '{(w + h) / 100 * (0.65 + p * 0.35)}px PhigrosFont'\
+        );",
+        add_code_array = True
+    )
+    
+    return (
+        diagonalRectangle[0] + diagonalRectanglePowerPx * 0.2, diagonalRectangle[1],
+        diagonalRectangle[0] + (diagonalRectangle[2] - diagonalRectangle[0]) / 2, diagonalRectangle[3]
+    ), (
+        diagonalRectangle[0] + (diagonalRectangle[2] - diagonalRectangle[0]) / 2, diagonalRectangle[1],
+        diagonalRectangle[2] - diagonalRectanglePowerPx * 0.2, diagonalRectangle[3]
+    )
 
 def showStartAnimation():
     global faManager
@@ -326,88 +485,6 @@ def soundEffect_From0To1():
 def processStringToLiteral(string: str):
     return string.replace("\\","\\\\").replace("'","\\'").replace("\"","\\\"").replace("`","\\`").replace("\n", "\\n")
 
-def drawButton(buttonName: typing.Literal["ButtonLeftBlack", "ButtonRightBlack"], iconName: str, buttonPos: tuple[float, float]):
-    root.run_js_code(
-        f"ctx.drawImage(\
-           {root.get_img_jsvarname(buttonName)},\
-           {buttonPos[0]}, {buttonPos[1]}, {ButtonWidth}, {ButtonHeight}\
-        );",
-        add_code_array = True
-    )
-    
-    centerPoint = (0.35, 0.395) if buttonName == "ButtonLeftBlack" else (0.65, 0.605)
-    
-    root.run_js_code(
-        f"ctx.drawImage(\
-           {root.get_img_jsvarname(iconName)},\
-           {buttonPos[0] + ButtonWidth * centerPoint[0] - CollectiblesIconWidth / 2},\
-           {buttonPos[1] + ButtonHeight * centerPoint[1] - CollectiblesIconHeight / 2},\
-           {CollectiblesIconWidth}, {CollectiblesIconHeight}\
-        );",
-        add_code_array = True
-    )
-
-def drawDialog(
-    p: float,
-    dialogImageName: str, diagonalPower: float,
-    dialogImageSize: tuple[float, float],
-    noText: str, yesText: str
-):
-            
-    root.run_js_code(
-        f"dialog_canvas_ctx.clear();",
-        add_code_array = True
-    )
-            
-    p = 1.0 - (1.0 - p) ** 3
-    tempWidth = dialogImageSize[0] * (0.65 + p * 0.35)
-    tempHeight = dialogImageSize[1] * (0.65 + p * 0.35)
-    diagonalRectanglePowerPx = diagonalPower * tempWidth
-    
-    root.run_js_code(
-        f"dialog_canvas_ctx.drawAlphaImage(\
-            {root.get_img_jsvarname(dialogImageName)},\
-            {w / 2 - tempWidth / 2}, {h * 0.39 - tempHeight / 2},\
-            {tempWidth}, {tempHeight}, {p}\
-        );",
-        add_code_array = True
-    )
-    
-    diagonalRectangle = (
-        w / 2 - tempWidth / 2 - diagonalRectanglePowerPx * 0.2,
-        h * 0.39 + tempHeight / 2,
-        w / 2 + tempWidth / 2 - diagonalRectanglePowerPx,
-        h * 0.39 + tempHeight / 2 + tempHeight * 0.2
-    )
-    
-    root.run_js_code(
-        f"dialog_canvas_ctx.drawDiagonalRectangle(\
-            {", ".join(map(str, diagonalRectangle))},\
-            {diagonalPower * 0.2}, 'rgba(0, 0, 0, 0.85)'\
-        );",
-        add_code_array = True
-    )
-    
-    root.run_js_code(
-        f"dialog_canvas_ctx.drawDiagonalRectangleText(\
-            {", ".join(map(str, diagonalRectangle))},\
-            {diagonalPower * 0.2},\
-            '{processStringToLiteral(noText)}',\
-            '{processStringToLiteral(yesText)}',\
-            'rgba(255, 255, 255, {p})',\
-            '{(w + h) / 100 * (0.65 + p * 0.35)}px PhigrosFont'\
-        );",
-        add_code_array = True
-    )
-    
-    return (
-        diagonalRectangle[0] + diagonalRectanglePowerPx * 0.2, diagonalRectangle[1],
-        diagonalRectangle[0] + (diagonalRectangle[2] - diagonalRectangle[0]) / 2, diagonalRectangle[3]
-    ), (
-        diagonalRectangle[0] + (diagonalRectangle[2] - diagonalRectangle[0]) / 2, diagonalRectangle[1],
-        diagonalRectangle[2] - diagonalRectanglePowerPx * 0.2, diagonalRectangle[3]
-    )
-
 def mainRender():
     faManager.faculas.clear()
     mainRenderSt = time.time()
@@ -493,6 +570,7 @@ def mainRender():
         
         drawButton("ButtonLeftBlack", "collectibles", (0, 0))
         drawButton("ButtonRightBlack", "setting", (w - ButtonWidth, h - ButtonHeight))
+        drawChapters()
         
         root.run_js_code(
             f"ctx.drawAlphaImage(\
@@ -567,7 +645,7 @@ def mainRender():
             
             noRect, yesRect = drawDialog(
                 p, "JoinQQGuildPromo",
-                Const.JOINQQGUILDPROMODIAGONALRECTANGLEPOWER,
+                Const.JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER,
                 (JoinQQGuildPromoWidth, JoinQQGuildPromoHeight),
                 "关闭", "跳转到外部应用"
             )
@@ -601,7 +679,7 @@ def mainRender():
             
             drawDialog(
                 p, "JoinQQGuildPromo",
-                Const.JOINQQGUILDPROMODIAGONALRECTANGLEPOWER,
+                Const.JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER,
                 (JoinQQGuildPromoWidth, JoinQQGuildPromoHeight),
                 "关闭", "跳转到外部应用"
             )
@@ -652,6 +730,7 @@ root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(
 if "--window-host" in sys.argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
 
+Load_Chapters()
 Resource = Load_Resource()
 eventManager = PhigrosGameObject.EventManager()
 bindEvents()
