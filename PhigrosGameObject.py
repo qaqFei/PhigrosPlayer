@@ -41,7 +41,10 @@ class EventManager:
         return e
     
     def unregClickEvent(self, e: ClickEvent):
-        self.clickEvents.remove(e)
+        try:
+            self.clickEvents.remove(e)
+        except ValueError:
+            pass
 
 @dataclass
 class FaculaAnimationManager:

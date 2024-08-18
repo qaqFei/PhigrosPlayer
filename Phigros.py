@@ -5,6 +5,7 @@ from os.path import exists, abspath, dirname, isfile, isdir
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
+import webbrowser
 import typing
 import json
 import sys
@@ -322,6 +323,9 @@ def soundEffect_From0To1():
             mixer.music.set_volume(1.0)
             return None
 
+def processStringToLiteral(string: str):
+    return string.replace("\\","\\\\").replace("'","\\'").replace("\"","\\\"").replace("`","\\`").replace("\n", "\\n")
+
 def drawButton(buttonName: typing.Literal["ButtonLeftBlack", "ButtonRightBlack"], iconName: str, buttonPos: tuple[float, float]):
     root.run_js_code(
         f"ctx.drawImage(\
@@ -341,6 +345,67 @@ def drawButton(buttonName: typing.Literal["ButtonLeftBlack", "ButtonRightBlack"]
            {CollectiblesIconWidth}, {CollectiblesIconHeight}\
         );",
         add_code_array = True
+    )
+
+def drawDialog(
+    p: float,
+    dialogImageName: str, diagonalPower: float,
+    dialogImageSize: tuple[float, float],
+    noText: str, yesText: str
+):
+            
+    root.run_js_code(
+        f"dialog_canvas_ctx.clear();",
+        add_code_array = True
+    )
+            
+    p = 1.0 - (1.0 - p) ** 3
+    tempWidth = dialogImageSize[0] * (0.65 + p * 0.35)
+    tempHeight = dialogImageSize[1] * (0.65 + p * 0.35)
+    diagonalRectanglePowerPx = diagonalPower * tempWidth
+    
+    root.run_js_code(
+        f"dialog_canvas_ctx.drawAlphaImage(\
+            {root.get_img_jsvarname(dialogImageName)},\
+            {w / 2 - tempWidth / 2}, {h * 0.39 - tempHeight / 2},\
+            {tempWidth}, {tempHeight}, {p}\
+        );",
+        add_code_array = True
+    )
+    
+    diagonalRectangle = (
+        w / 2 - tempWidth / 2 - diagonalRectanglePowerPx * 0.2,
+        h * 0.39 + tempHeight / 2,
+        w / 2 + tempWidth / 2 - diagonalRectanglePowerPx,
+        h * 0.39 + tempHeight / 2 + tempHeight * 0.2
+    )
+    
+    root.run_js_code(
+        f"dialog_canvas_ctx.drawDiagonalRectangle(\
+            {", ".join(map(str, diagonalRectangle))},\
+            {diagonalPower * 0.2}, 'rgba(0, 0, 0, 0.85)'\
+        );",
+        add_code_array = True
+    )
+    
+    root.run_js_code(
+        f"dialog_canvas_ctx.drawDiagonalRectangleText(\
+            {", ".join(map(str, diagonalRectangle))},\
+            {diagonalPower * 0.2},\
+            '{processStringToLiteral(noText)}',\
+            '{processStringToLiteral(yesText)}',\
+            'rgba(255, 255, 255, {p})',\
+            '{(w + h) / 100 * (0.65 + p * 0.35)}px PhigrosFont'\
+        );",
+        add_code_array = True
+    )
+    
+    return (
+        diagonalRectangle[0] + diagonalRectanglePowerPx * 0.2, diagonalRectangle[1],
+        diagonalRectangle[0] + (diagonalRectangle[2] - diagonalRectangle[0]) / 2, diagonalRectangle[3]
+    ), (
+        diagonalRectangle[0] + (diagonalRectangle[2] - diagonalRectangle[0]) / 2, diagonalRectangle[1],
+        diagonalRectangle[2] - diagonalRectanglePowerPx * 0.2, diagonalRectangle[3]
     )
 
 def mainRender():
@@ -390,6 +455,29 @@ def mainRender():
     ))
     eventManager.regClickEvent(events[-1])
     
+    JoinQQGuildPromoNoEvent = None
+    JoinQQGuildPromoYesEvent = None
+    JoinQQGuildBacking = False
+    JoinQQGuildBackingSt = float("nan")
+    
+    def JoinQQGuildPromoNoCallback(*args):
+        nonlocal JoinQQGuildBacking, JoinQQGuildBackingSt, clickedJoinQQGuildBanner
+        nonlocal JoinQQGuildPromoNoEvent, JoinQQGuildPromoYesEvent
+        JoinQQGuildBacking = True
+        JoinQQGuildBackingSt = time.time()
+        clickedJoinQQGuildBanner = False
+        
+        for e in eventManager.clickEvents:
+            if e is JoinQQGuildPromoNoEvent or e is JoinQQGuildPromoYesEvent:
+                eventManager.clickEvents.remove(e)
+        
+        JoinQQGuildPromoNoEvent = None
+        JoinQQGuildPromoYesEvent = None
+    
+    def JoinQQGuildPromoYesCallback(*args):
+        webbrowser.open_new("https://qun.qq.com/qqweb/qunpro/share?inviteCode=21JzOLUd6J0")
+        JoinQQGuildPromoNoCallback(*args)
+    
     while True:
         root.clear_canvas(wait_execute = True)
         
@@ -419,6 +507,11 @@ def mainRender():
             messageBacking = True
             messageBackSt = time.time()
             canClickJoinQQGuildBanner = False
+            
+            if messageBackTime == 0.0:
+                messageBackTime = 2.0 # back JoinQQGuild
+            elif messageBackTime == 2.0:
+                messageBackTime = 7.0
         
         if clickedMessage and time.time() - clickMessageTime <= 1.5:
             root.run_js_code(
@@ -468,35 +561,64 @@ def mainRender():
             )
             
             root.run_js_code(
-                f"mask.style.backdropFilter = 'blur({(w + h) / 60 * ep}px)';",
+                f"mask.style.backdropFilter = 'blur({(w + h) / 120 * ep}px)';",
+                add_code_array = True
+            )
+            
+            noRect, yesRect = drawDialog(
+                p, "JoinQQGuildPromo",
+                Const.JOINQQGUILDPROMODIAGONALRECTANGLEPOWER,
+                (JoinQQGuildPromoWidth, JoinQQGuildPromoHeight),
+                "关闭", "跳转到外部应用"
+            )
+            
+            if JoinQQGuildPromoNoEvent is None and JoinQQGuildPromoYesEvent is None:
+                JoinQQGuildPromoNoEvent = PhigrosGameObject.ClickEvent(
+                    None, noRect, JoinQQGuildPromoNoCallback, True
+                )
+                JoinQQGuildPromoYesEvent = PhigrosGameObject.ClickEvent(
+                    None, yesRect, JoinQQGuildPromoYesCallback, True
+                )
+                eventManager.regClickEvent(JoinQQGuildPromoNoEvent)
+                eventManager.regClickEvent(JoinQQGuildPromoYesEvent)
+            else:
+                JoinQQGuildPromoNoEvent.rect = noRect
+                JoinQQGuildPromoYesEvent.rect = yesRect
+        elif JoinQQGuildBacking and time.time() - JoinQQGuildBackingSt < 0.35:
+            p = 1.0 - (time.time() - JoinQQGuildBackingSt) / 0.35
+            ep = 1.0 - (1.0 - p) ** 2
+            
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {ep * 0.5})",
+                wait_execute = True                
+            )
+            
+            root.run_js_code(
+                f"mask.style.backdropFilter = 'blur({(w + h) / 120 * ep}px)';",
+                add_code_array = True
+            )
+            
+            drawDialog(
+                p, "JoinQQGuildPromo",
+                Const.JOINQQGUILDPROMODIAGONALRECTANGLEPOWER,
+                (JoinQQGuildPromoWidth, JoinQQGuildPromoHeight),
+                "关闭", "跳转到外部应用"
+            )
+        elif JoinQQGuildBacking:
+            root.run_js_code(
+                "mask.style.backdropFilter = 'blur(0px)';",
                 add_code_array = True
             )
             
             root.run_js_code(
-                f"dialog_canvas_ctx.clear();",
+                "dialog_canvas_ctx.clear();",
                 add_code_array = True
             )
-
-            p = 1.0 - (1.0 - p) ** 3
-            JoinQQGuildPromoTempWidth = JoinQQGuildPromoWidth * (0.65 + p * 0.35)
-            JoinQQGuildPromoTempHeight = JoinQQGuildPromoHeight * (0.65 + p * 0.35)
-            root.run_js_code(
-                f"dialog_canvas_ctx.drawAlphaImage(\
-                    {root.get_img_jsvarname("JoinQQGuildPromo")},\
-                    {w / 2 - JoinQQGuildPromoTempWidth / 2}, {h * 0.39 - JoinQQGuildPromoTempHeight / 2},\
-                    {JoinQQGuildPromoTempWidth}, {JoinQQGuildPromoTempHeight}, {p}\
-                );",
-                add_code_array = True
-            )
-            diagonalRectanglePowerPx = Const.JOINQQGUILDPROMODIAGONALRECTANGLEPOWER * JoinQQGuildPromoTempWidth
-            root.run_js_code(
-                f"dialog_canvas_ctx.drawDiagonalRectangle(\
-                    {w / 2 - JoinQQGuildPromoTempWidth / 2 - diagonalRectanglePowerPx * 0.2}, {h * 0.39 + JoinQQGuildPromoTempHeight / 2},\
-                    {w / 2 + JoinQQGuildPromoTempWidth / 2 - diagonalRectanglePowerPx}, {h * 0.39 + JoinQQGuildPromoTempHeight / 2 + JoinQQGuildPromoTempHeight * 0.2},\
-                    {Const.JOINQQGUILDPROMODIAGONALRECTANGLEPOWER * 0.2}, 'rgba(0, 0, 0, 0.5)'\
-                );",
-                add_code_array = True
-            )
+            
+            JoinQQGuildBacking = False
+            JoinQQGuildBackingSt = float("nan")
+            messageBackTime = 0.0
         
         if time.time() - mainRenderSt < 2.0:
             root.create_rectangle(

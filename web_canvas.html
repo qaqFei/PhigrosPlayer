@@ -324,6 +324,18 @@
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawDiagonalRectangleText = function(x0, y0, x1, y1, power, text1, text2, color, font) {
+        this.save();
+        this.fillStyle = color;
+        this.font = font;
+        this.textBaseline = "middle";
+        this.textAlign = "left";
+        this.fillText(text1, x0 + (x1 - x0) * power * 2.0, y0 + (y1 - y0) * 0.5);
+        this.textAlign = "right";
+        this.fillText(text2, x1 - (x1 - x0) * power * 2.0, y0 + (y1 - y0) * 0.5);
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.clear = function() {
         this.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
