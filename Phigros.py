@@ -166,10 +166,22 @@ def bindEvents():
     eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(changeChapterMouseUp))
 
 def drawBackground():
+    f, t = Chapters.aFrom, Chapters.aTo
+    if f == -1: f = t # 最开始的, 没有之前的选择
+    imfc, imtc = Chapters.items[f], Chapters.items[t]
+    p = getChapterP(imtc)
+    
     root.run_js_code(
-        f"ctx.drawImage(\
-            {root.get_img_jsvarname("AllSongBlur")},\
-            0, 0, {w}, {h}\
+        f"ctx.drawAlphaImage(\
+            {root.get_img_jsvarname(f"chapter_{imfc.chapterId}_blur")},\
+            0, 0, {w}, {h}, {1.0 - p}\
+        );",
+        add_code_array = True
+    )   
+    root.run_js_code(
+        f"ctx.drawAlphaImage(\
+            {root.get_img_jsvarname(f"chapter_{imtc.chapterId}_blur")},\
+            0, 0, {w}, {h}, {p}\
         );",
         add_code_array = True
     )
@@ -203,8 +215,7 @@ def getChapterP(chapter: PhigrosGameObject.Chapter):
     else:
         p = 0.0
     
-    p = p if 0.0 <= p <= 1.0 else (0.0 if p < 0.0 else 1.0)
-    return ef(p)
+    return ef(Tool_Functions.fixOutofRangeP(p))
 
 def getChapterWidth(p: float):
     return w * (0.221875 + (0.5640625 - 0.221875) * p)
@@ -225,7 +236,9 @@ def getChapterRect(dx: float, chapterWidth: float):
 
 def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
     p = getChapterP(item)
+    if dx > w: return getChapterToNextWidth(p)
     chapterWidth = getChapterWidth(p)
+    if dx + chapterWidth < 0: return getChapterToNextWidth(p)
     chapterImWidth = h * (1.0 - 140 / 1080 * 2) / item.im.height * item.im.width
     dPower = getChapterdPower(chapterWidth, h * (1.0 - 140 / 1080 * 2))
     
@@ -255,10 +268,32 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
         f"ctx.drawRotateText2(\
             '{processStringToLiteral(item.name)}',\
             {chapterRect[2] - dPower * chapterWidth - (w + h) / 150}, {chapterRect[3] - (w + h) / 150},\
-            -75, 'rgba(255, 255, 255, {0.95 * (1.0 - p)})', '{(w + h) / 50}px PhigrosFont',\
+            -75, 'rgba(255, 255, 255, {0.95 * (1.0 - Tool_Functions.PhigrosChapterNameAlphaValueTransfrom(p))})', '{(w + h) / 50}px PhigrosFont',\
             'left', 'bottom'\
         );",
         add_code_array = True
+    )
+    
+    root.create_text(
+        chapterRect[2] - (w + h) / 50,
+        chapterRect[1] + (w + h) / 90,
+        item.cn_name,
+        font = f"{(w + h) / 75}px PhigrosFont",
+        textAlign = "right",
+        textBaseline = "top",
+        fillStyle = f"rgba(255, 255, 255, {p ** 2})", # ease again
+        wait_execute = True
+    )
+    
+    root.create_text(
+        chapterRect[0] + dPower * chapterWidth + (w + h) / 125,
+        chapterRect[1] + (w + h) / 90,
+        item.o_name,
+        font = f"{(w + h) / 115}px PhigrosFont",
+        textAlign = "left",
+        textBaseline = "top",
+        fillStyle = f"rgba(255, 255, 255, {p ** 2})", # ease again
+        wait_execute = True
     )
     
     return getChapterToNextWidth(p)
@@ -632,7 +667,7 @@ def changeChapterMouseUp(x, y):
         return None
     elif not inMainUI:
         return None
-    elif time.time() - lastChangeChapterTime < 1.0: # 1s 间隔限制
+    elif time.time() - lastChangeChapterTime < 0.85: # 1.0s 动画时间, 由于是ease out, 所以可以提前一点
         return None
     
     lastChangeChapterTime = time.time()

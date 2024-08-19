@@ -200,7 +200,7 @@ def Note_CanRender(
         typing.Tuple[float, float]
     ], None] = None
 ) -> bool: # note 宽度不会比窗口大的... 一定不会的... 相信我...!!                                                    好吧, 其实我就是想~~偷懒和~~节约性能...  note当线看能简单一些
-    if hold_points is None: # type != HOLD                                                                                         ↑↑↑↑↑↑↑↑↑ (划掉...)
+    if hold_points is None: # type != HOLD                                                                                         ↑↑↑↑↑↑↑↑↑ (划掉... (markdown))
         return (
             (0 < x < w and 0 < y < h) or
             (0 < x - note_max_size_half < w and 0 < y - note_max_size_half < h) or 
@@ -325,6 +325,14 @@ def compute_intersection(x0, y0, x1, y1, x2, y2, x3, y3):
     b2 = x2 - x3
     c2 = x3 * y2 - x2 * y3
     return (b2 * c1 - b1 * c2) / (a1 * b2 - a2 * b1), (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1)
+
+def fixOutofRangeP(p: float):
+    return max(0.0, min(1.0, p))
+
+def PhigrosChapterNameAlphaValueTransfrom(p: float):
+    if p >= 0.4:
+        return 1.0
+    return p / 0.4
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))

@@ -324,6 +324,15 @@
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawDiagonalRectangleNoFix = function(x0, y0, x1, y1, power, color) {
+        this.save();
+        this.fillStyle = color;
+        this.beginPath();
+        this._diagonalRectangle(x0, y0, x1, y1, power);
+        this.fill();
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.drawDiagonalRectangleText = function(x0, y0, x1, y1, power, text1, text2, color, font) {
         this.save();
         this.fillStyle = color;
