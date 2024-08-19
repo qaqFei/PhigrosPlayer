@@ -222,6 +222,19 @@
         uploadFrame_finish = false;
     }
 
+    function createChapterBlackGrd(y0, y1) {
+        blackgrd = ctx.createLinearGradient(
+            0,
+            y0,
+            window.innerWidth / lowquality_scale,
+            y1
+        );
+        blackgrd.addColorStop(0.0, "rgba(0, 0, 0, 0.5)");
+        blackgrd.addColorStop(0.15, "rgba(0, 0, 0, 0.0)");
+        blackgrd.addColorStop(0.85, "rgba(0, 0, 0, 0.0)");
+        blackgrd.addColorStop(1.0, "rgba(0, 0, 0, 0.5)");
+    }
+
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();
@@ -346,6 +359,7 @@
     }
 
     CanvasRenderingContext2D.prototype.drawDiagonalRectangleClipImage = function(x0, y0, x1, y1, im, imx, imy, imw, imh, power, alpha) {
+        if (this.globalAlpha == 0.0) return;
         this.save();
         this.globalAlpha = alpha;
         this.beginPath();
@@ -364,6 +378,19 @@
         this.textBaseline = baseline;
         this.font = font;
         this.fillText(text, 0, 0);
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawTriangleFrame = function(x0, y0, x1, y1, x2, y2, color, width) {
+        this.save();
+        this.strokeStyle = color;
+        this.lineWidth = width;
+        this.beginPath();
+        this.moveTo(x0, y0);
+        this.lineTo(x1, y1);
+        this.lineTo(x2, y2);
+        this.closePath();
+        this.stroke();
         this.restore();
     }
 

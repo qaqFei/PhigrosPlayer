@@ -99,6 +99,16 @@ def Load_Resource():
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     
+    imageBlackMaskHeight = 12
+    imageBlackMask = Image.new("RGBA", (1, imageBlackMaskHeight), (0, 0, 0, 0))
+    imageBlackMask.putpixel((0, 0), (0, 0, 0, 64))
+    imageBlackMask.putpixel((0, 1), (0, 0, 0, 32))
+    imageBlackMask.putpixel((0, 2), (0, 0, 0, 16))
+    imageBlackMask.putpixel((0, imageBlackMaskHeight - 3), (0, 0, 0, 16))
+    imageBlackMask.putpixel((0, imageBlackMaskHeight - 2), (0, 0, 0, 32))
+    imageBlackMask.putpixel((0, imageBlackMaskHeight - 1), (0, 0, 0, 64))
+    
+    root.reg_img(imageBlackMask.resize((1, 500)), "imageBlackMask")
     root.reg_img(Resource["logoipt"], "logoipt")
     root.reg_img(Resource["warning"], "warning")
     root.reg_img(Resource["phigros"], "phigros")
@@ -143,6 +153,8 @@ def Load_Resource():
     root._regims.clear()
     root.shutdown_fileserver()
     Thread(target=root._file_server.serve_forever, args=(0.1, ), daemon=True).start()
+    
+    root.run_js_code(f"createChapterBlackGrd({h * (140 / 1080)}, {h * (1.0 - 140 / 1080)});")
     
     return Resource
 
@@ -265,6 +277,16 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
     )
     
     root.run_js_code(
+        f"ctx.drawDiagonalRectangleClipImage(\
+            {", ".join(map(str, chapterRect))},\
+            {root.get_img_jsvarname("imageBlackMask")},\
+            {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
+            {dPower}, 1.0\
+        );",
+        add_code_array = True
+    )
+    
+    root.run_js_code(
         f"ctx.drawRotateText2(\
             '{processStringToLiteral(item.name)}',\
             {chapterRect[2] - dPower * chapterWidth - (w + h) / 150}, {chapterRect[3] - (w + h) / 150},\
@@ -295,6 +317,139 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
         fillStyle = f"rgba(255, 255, 255, {p ** 2})", # ease again
         wait_execute = True
     )
+    
+    playButtonRect = (
+        chapterRect[2] - dPower * chapterWidth + PlayButtonDPower * PlayButtonWidth - PlayButtonWidth, chapterRect[3] - PlayButtonHeight,
+        chapterRect[2] - dPower * chapterWidth + PlayButtonDPower * PlayButtonWidth, chapterRect[3]
+    )
+    
+    playButtonTriangle = (
+        playButtonRect[0] + (playButtonRect[2] - playButtonRect[0]) * 0.17, playButtonRect[1] + (playButtonRect[3] - playButtonRect[1]) * (4 / 11),
+        playButtonRect[0] + (playButtonRect[2] - playButtonRect[0]) * 0.17, playButtonRect[3] - (playButtonRect[3] - playButtonRect[1]) * (4 / 11),
+        playButtonRect[0] + (playButtonRect[2] - playButtonRect[0]) * 0.25, playButtonRect[1] + (playButtonRect[3] - playButtonRect[1]) * 0.5
+    )
+    
+    playButtonAlpha = Tool_Functions.PhigrosChapterPlayButtonAlphaValueTransfrom(p)
+    
+    if playButtonAlpha != 0.0:
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {", ".join(map(str, playButtonRect))},\
+                {PlayButtonDPower}, 'rgba(255, 255, 255, {playButtonAlpha})'\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawTriangleFrame(\
+                {", ".join(map(str, playButtonTriangle))},\
+                'rgba(0, 0, 0, {playButtonAlpha})',\
+                {(w + h) / 800}\
+            );",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            playButtonRect[0] + (playButtonRect[2] - playButtonRect[0]) * 0.35,
+            playButtonRect[1] + (playButtonRect[3] - playButtonRect[1]) * 0.5,
+            "P L A Y",
+            font = f"{(w + h) / 65}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = f"rgba(49, 49, 49, {playButtonAlpha})",
+            wait_execute = True
+        )
+    
+    dataAlpha = Tool_Functions.PhigrosChapterDataAlphaValueTransfrom(p)
+    
+    if dataAlpha != 0.0:
+        root.create_text(
+            chapterRect[0] + chapterWidth * 0.075,
+            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
+            "All",
+            font = f"{(w + h) / 175}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            chapterRect[0] + chapterWidth * 0.075,
+            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
+            f"{len(item.songs)}",
+            font = f"{(w + h) / 95}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            chapterRect[0] + chapterWidth * (0.075 + 0.095),
+            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
+            "Clear",
+            font = f"{(w + h) / 175}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            chapterRect[0] + chapterWidth * (0.075 + 0.095),
+            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
+            "-",
+            font = f"{(w + h) / 95}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            chapterRect[0] + chapterWidth * (0.075 + 0.095 * 2),
+            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
+            "Full Combo",
+            font = f"{(w + h) / 175}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            chapterRect[0] + chapterWidth * (0.075 + 0.095 * 2),
+            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
+            "-",
+            font = f"{(w + h) / 95}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            chapterRect[0] + chapterWidth * (0.075 + 0.095 * 3),
+            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
+            "Phi",
+            font = f"{(w + h) / 175}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            chapterRect[0] + chapterWidth * (0.075 + 0.095 * 3),
+            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
+            "-",
+            font = f"{(w + h) / 95}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+            wait_execute = True
+        )
     
     return getChapterToNextWidth(p)
 
@@ -670,8 +825,6 @@ def changeChapterMouseUp(x, y):
     elif time.time() - lastChangeChapterTime < 0.85: # 1.0s 动画时间, 由于是ease out, 所以可以提前一点
         return None
     
-    lastChangeChapterTime = time.time()
-    
     chapterX = w * 0.034375 + chaptersDx
     for index, i in enumerate(Chapters.items):
         p = getChapterP(i)
@@ -680,6 +833,7 @@ def changeChapterMouseUp(x, y):
         if Tool_Functions.inDiagonalRectangle(*getChapterRect(chapterX, width), dPower, x, y):
             if Chapters.aTo != index:
                 Chapters.aFrom, Chapters.aTo, Chapters.aSTime = Chapters.aTo, index, time.time()
+                lastChangeChapterTime = time.time()
                 Resource["UISound_3"].play()
             break
         chapterX += getChapterToNextWidth(p)
@@ -934,6 +1088,11 @@ dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
 del w_legacy, h_legacy
 root.resize(w + dw_legacy, h + dh_legacy)
 root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
+
+# Constant
+PlayButtonWidth = w * 0.1453125
+PlayButtonHeight = h * (5 / 54)
+PlayButtonDPower = getChapterdPower(PlayButtonWidth, PlayButtonHeight)
 
 if "--window-host" in sys.argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))

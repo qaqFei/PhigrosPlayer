@@ -302,20 +302,9 @@ def easeAlpha(p: float):
     else:
         return (2.0 - 2.0 * ((p - 0.8) * (0.5 / 0.2) + 0.5)) ** 2
 
-def inDiagonalRectangle(x0: float, y0: float, x1: float, y1: float, power: float, x: float, y:float): # ??, ?
-    tp1 = (x0, y0, x0 + (x1 - x0) * power, y0, x0, y1)
-    tp2 = (x1, y0, x1, y1, x1 - (x1 - x0) * power, y1)
- 
-    def _itoa(x1, y1, x2, y2, x3, y3):
-        return abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0)
-    def _iis(x1, y1, x2, y2, x3, y3, x, y):
-        s1 = _itoa(x1, y1, x2, y2, x3, y3)
-        s2 = _itoa(x, y, x2, y2, x3, y3)
-        s3 = _itoa(x1, y1, x, y, x3, y3)
-        s4 = _itoa(x1, y1, x2, y2, x, y)
-        return (s1 == s2 + s3 + s4)
-
-    return InRect(x, y, (x0, y0, x1, y1)) and not _iis(*tp1, x, y) and not _iis(*tp2, x, y)
+def inDiagonalRectangle(x0: float, y0: float, x1: float, y1: float, power: float, x: float, y:float):
+    x += (y - y0) / (y1 - y0) * (x1 - x0) * power
+    return x0 + (x1 - x0) * power <= x <= x1 and y0 <= y <= y1
 
 def compute_intersection(x0, y0, x1, y1, x2, y2, x3, y3):
     a1 = y1 - y0
@@ -333,6 +322,16 @@ def PhigrosChapterNameAlphaValueTransfrom(p: float):
     if p >= 0.4:
         return 1.0
     return p / 0.4
+
+def PhigrosChapterPlayButtonAlphaValueTransfrom(p: float):
+    if p <= 0.6:
+        return 0.0
+    return (p - 0.6) / 0.4
+
+def PhigrosChapterDataAlphaValueTransfrom(p: float):
+    if p <= 0.6:
+        return 0.0
+    return (p - 0.6) / 0.4
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
