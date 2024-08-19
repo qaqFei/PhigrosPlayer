@@ -151,7 +151,6 @@ class Chapter:
 @dataclass
 class Chapters:
     items: list[Chapter]
-    now: int = 0
     aFrom: int = -1
     aTo: int = 0
     aSTime: float = float("-inf")

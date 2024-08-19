@@ -302,6 +302,30 @@ def easeAlpha(p: float):
     else:
         return (2.0 - 2.0 * ((p - 0.8) * (0.5 / 0.2) + 0.5)) ** 2
 
+def inDiagonalRectangle(x0: float, y0: float, x1: float, y1: float, power: float, x: float, y:float): # ??, ?
+    tp1 = (x0, y0, x0 + (x1 - x0) * power, y0, x0, y1)
+    tp2 = (x1, y0, x1, y1, x1 - (x1 - x0) * power, y1)
+ 
+    def _itoa(x1, y1, x2, y2, x3, y3):
+        return abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0)
+    def _iis(x1, y1, x2, y2, x3, y3, x, y):
+        s1 = _itoa(x1, y1, x2, y2, x3, y3)
+        s2 = _itoa(x, y, x2, y2, x3, y3)
+        s3 = _itoa(x1, y1, x, y, x3, y3)
+        s4 = _itoa(x1, y1, x2, y2, x, y)
+        return (s1 == s2 + s3 + s4)
+
+    return InRect(x, y, (x0, y0, x1, y1)) and not _iis(*tp1, x, y) and not _iis(*tp2, x, y)
+
+def compute_intersection(x0, y0, x1, y1, x2, y2, x3, y3):
+    a1 = y1 - y0
+    b1 = x0 - x1
+    c1 = x1 * y0 - x0 * y1
+    a2 = y3 - y2
+    b2 = x2 - x3
+    c2 = x3 * y2 - x2 * y3
+    return (b2 * c1 - b1 * c2) / (a1 * b2 - a2 * b1), (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1)
+
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
 TextureLine_CanRender(1920, 1080, 50, 0, 0)

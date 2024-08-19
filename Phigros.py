@@ -18,6 +18,7 @@ import webcvapis
 import Const
 import Tool_Functions
 import PhigrosGameObject
+import rpe_easing
 
 selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
@@ -34,6 +35,8 @@ inMainUI = False
 lastMainUI_ChaptersClickX = 0.0
 lastLastMainUI_ChaptersClickX = 0.0
 mainUI_ChaptersMouseDown = False
+changeChapterMouseDownX = float("nan")
+lastChangeChapterTime = float("-inf")
 
 def Load_Chapters():
     global Chapters, ChaptersMaxDx
@@ -90,6 +93,7 @@ def Load_Resource():
         "JoinQQGuildBanner": Image.open("./Resources/JoinQQGuildBanner.png"),
         "UISound_1": mixer.Sound("./Resources/UISound_1.wav"),
         "UISound_2": mixer.Sound("./Resources/UISound_2.wav"),
+        "UISound_3": mixer.Sound("./Resources/UISound_3.wav"),
         "JoinQQGuildPromo": Image.open("./Resources/JoinQQGuildPromo.png"),
     }
     
@@ -158,6 +162,8 @@ def bindEvents():
     eventManager.regClickEventFs(mainUI_mouseClick, False)
     eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(mainUI_mouseRelease))
     eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(mainUI_mouseMove))
+    eventManager.regClickEventFs(changeChapterMouseDown, False)
+    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(changeChapterMouseUp))
 
 def drawBackground():
     root.run_js_code(
@@ -183,27 +189,47 @@ def drawFaculas():
                 add_code_array = True
             )
 
-def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
-    chapterIndex = Chapters.items.index(item)
+def getChapterP(chapter: PhigrosGameObject.Chapter):
+    chapterIndex = Chapters.items.index(chapter)
+    ef = rpe_easing.ease_funcs[0]
+    atime = 1.0
     
     if chapterIndex == Chapters.aFrom:
-        p = 1.0 - (time.time() - Chapters.aSTime) / 1.5
+        p = 1.0 - (time.time() - Chapters.aSTime) / atime
+        ef = rpe_easing.ease_funcs[16]
     elif chapterIndex == Chapters.aTo:
-        p = (time.time() - Chapters.aSTime) / 1.5
+        p = (time.time() - Chapters.aSTime) / atime
+        ef = rpe_easing.ease_funcs[15]
     else:
         p = 0.0
     
     p = p if 0.0 <= p <= 1.0 else (0.0 if p < 0.0 else 1.0)
-    p = 1.0 - (1.0 - p) ** 2
-    
-    chapterWidth = w * (0.221875 + (0.5640625 - 0.221875) * p)
-    chapterImWidth = h * (1.0 - 140 / 1080 * 2) / item.im.height * item.im.width
-    dPower = 215 / 425 + (215 / 1085 - 215 / 425) * p
-    
-    chapterRect = (
+    return ef(p)
+
+def getChapterWidth(p: float):
+    return w * (0.221875 + (0.5640625 - 0.221875) * p)
+
+def getChapterToNextWidth(p: float):
+    return w * (295 / 1920) + (w * 0.5 - w * (295 / 1920)) * p
+
+def getChapterdPower(width: float, height: float):
+    l1 = 0, 0, width, 0
+    l2 = 0, height, *Tool_Functions.rotate_point(0, height, 75, (width ** 2 + height ** 2) ** 0.5)
+    return Tool_Functions.compute_intersection(*l1, *l2)[0] / width
+
+def getChapterRect(dx: float, chapterWidth: float):
+    return (
         dx, h * (140 / 1080),
         dx + chapterWidth, h * (1.0 - 140 / 1080)
     )
+
+def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
+    p = getChapterP(item)
+    chapterWidth = getChapterWidth(p)
+    chapterImWidth = h * (1.0 - 140 / 1080 * 2) / item.im.height * item.im.width
+    dPower = getChapterdPower(chapterWidth, h * (1.0 - 140 / 1080 * 2))
+    
+    chapterRect = getChapterRect(dx, chapterWidth)
     
     root.run_js_code(
         f"ctx.drawDiagonalRectangleClipImage(\
@@ -235,7 +261,7 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
         add_code_array = True
     )
     
-    return w * (295 / 1920) + (w * 0.5 - w * (295 / 1920)) * p
+    return getChapterToNextWidth(p)
 
 def drawChapters():
     chapterX = w * 0.034375 + chaptersDx
@@ -586,6 +612,42 @@ def cheapterUI_easeBack():
         lastv = v
         
         time.sleep(1 / 120)
+        
+def changeChapterMouseDown(x, y):
+    global changeChapterMouseDownX
+    
+    if y < h * (140 / 1080) or y > h * (1.0 - 140 / 1080):
+        return None
+    elif not inMainUI:
+        return None
+    
+    changeChapterMouseDownX = x
+
+def changeChapterMouseUp(x, y):
+    global lastChangeChapterTime
+    
+    if y < h * (140 / 1080) or y > h * (1.0 - 140 / 1080):
+        return None
+    elif abs(x - changeChapterMouseDownX) > w * 0.005:
+        return None
+    elif not inMainUI:
+        return None
+    elif time.time() - lastChangeChapterTime < 1.0: # 1s 间隔限制
+        return None
+    
+    lastChangeChapterTime = time.time()
+    
+    chapterX = w * 0.034375 + chaptersDx
+    for index, i in enumerate(Chapters.items):
+        p = getChapterP(i)
+        width = getChapterWidth(p)
+        dPower = getChapterdPower(width, h * (1.0 - 140 / 1080 * 2))
+        if Tool_Functions.inDiagonalRectangle(*getChapterRect(chapterX, width), dPower, x, y):
+            if Chapters.aTo != index:
+                Chapters.aFrom, Chapters.aTo, Chapters.aSTime = Chapters.aTo, index, time.time()
+                Resource["UISound_3"].play()
+            break
+        chapterX += getChapterToNextWidth(p)
 
 def mainRender():
     global inMainUI
