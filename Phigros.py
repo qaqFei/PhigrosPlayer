@@ -904,8 +904,10 @@ def mainRender():
         JoinQQGuildBackingSt = time.time()
         clickedJoinQQGuildBanner = False
         
-        eventManager.unregClickEvent(JoinQQGuildPromoNoEvent)
-        eventManager.unregClickEvent(JoinQQGuildPromoYesEvent)
+        eventManager.unregEvent(JoinQQGuildPromoNoEvent)
+        eventManager.unregEvent(JoinQQGuildPromoYesEvent)
+        events.remove(JoinQQGuildPromoNoEvent)
+        events.remove(JoinQQGuildPromoYesEvent)
         
         JoinQQGuildPromoNoEvent = None
         JoinQQGuildPromoYesEvent = None
@@ -914,6 +916,27 @@ def mainRender():
     def JoinQQGuildPromoYesCallback(*args):
         webbrowser.open_new("https://qun.qq.com/qqweb/qunpro/share?inviteCode=21JzOLUd6J0")
         JoinQQGuildPromoNoCallback(*args)
+    
+    SettingClicked = False
+    SettingClickedTime = float("nan")
+    
+    def SettingCallback(*args):
+        nonlocal SettingClicked, SettingClickedTime
+        if not SettingClicked:
+            for e in events:
+                eventManager.unregEvent(e)
+            
+            SettingClicked = True
+            SettingClickedTime = time.time()
+            Resource["UISound_2"].play()
+    
+    events.append(PhigrosGameObject.ClickEvent(
+        rect = (w - ButtonWidth, h - ButtonHeight, w, h),
+        callback = SettingCallback,
+        once = False,
+        tag = "mainUI"
+    ))
+    eventManager.regClickEvent(events[-1])
     
     while True:
         root.clear_canvas(wait_execute = True)
@@ -1017,6 +1040,8 @@ def mainRender():
                 JoinQQGuildPromoYesEvent = PhigrosGameObject.ClickEvent(
                     yesRect, JoinQQGuildPromoYesCallback, False
                 )
+                events.append(JoinQQGuildPromoNoEvent)
+                events.append(JoinQQGuildPromoYesEvent)
                 eventManager.regClickEvent(JoinQQGuildPromoNoEvent)
                 eventManager.regClickEvent(JoinQQGuildPromoYesEvent)
             else:
@@ -1059,16 +1084,31 @@ def mainRender():
             messageBackTime = 0.0
         
         if time.time() - mainRenderSt < 2.0:
+            p = (time.time() - mainRenderSt) / 2.0
             root.create_rectangle(
                 0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {(1.0 - (time.time() - mainRenderSt) / 2.0) ** 2})",
+                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
                 wait_execute = True
             )
         
+        if SettingClicked and time.time() - SettingClickedTime < 0.75:
+            p = (time.time() - SettingClickedTime) / 0.75
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
+                wait_execute = True
+            )
+        elif SettingClicked:
+            inMainUI = False
+            root.clear_canvas(wait_execute = True)
+            root.run_js_wait_code()
+            Thread(target=settingRender, daemon=True).start()
+            break
+        
         root.run_js_wait_code()
-    
-    eventManager.clickEvents.clear()
-    inMainUI = False
+
+def settingRender():
+    print('123')
 
 root = webcvapis.WebCanvas(
     width = 1, height = 1,

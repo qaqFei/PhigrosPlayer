@@ -44,7 +44,7 @@ class EventManager:
         if Tool_Functions.InRect(x, y, e.rect):
             e.callback(x, y)
             if e.once:
-                self.unregClickEvent(e)
+                self.unregEvent(e)
     
     def click(self, x: int, y: int) -> None:
         for e in self.clickEvents:
@@ -72,11 +72,12 @@ class EventManager:
         self.regClickEvent(e)
         return e
     
-    def unregClickEvent(self, e: ClickEvent):
-        try:
-            self.clickEvents.remove(e)
-        except ValueError:
-            pass
+    def unregEvent(self, e: ClickEvent):
+        for elist in [self.clickEvents, self.moveEvents, self.releaseEvents]:
+            try:
+                elist.remove(e)
+            except ValueError:
+                pass
 
 @dataclass
 class FaculaAnimationManager:
