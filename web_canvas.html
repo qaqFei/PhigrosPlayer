@@ -238,7 +238,7 @@
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();
-        this.globalAlpha = alpha;
+        this.globalAlpha *= alpha;
         if (!!deg){
             this.translate(x,y);
             this.rotate(deg * Math.PI / 180);
@@ -253,7 +253,7 @@
     CanvasRenderingContext2D.prototype.drawAnchorESRotateImage = function(im, x, y, width, height, deg, alpha) {
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();
-        this.globalAlpha = alpha;
+        this.globalAlpha *= alpha;
         if (!!deg){
             this.translate(x,y);
             this.rotate(deg * Math.PI / 180);
@@ -281,7 +281,7 @@
 
     CanvasRenderingContext2D.prototype.drawAlphaImage = function(im, x, y, width, height, alpha) {
         this.save()
-        this.globalAlpha = alpha;
+        this.globalAlpha *= alpha;
         this.drawImage(im, x, y, width, height);
         this.restore();
     }
@@ -359,9 +359,9 @@
     }
 
     CanvasRenderingContext2D.prototype.drawDiagonalRectangleClipImage = function(x0, y0, x1, y1, im, imx, imy, imw, imh, power, alpha) {
-        if (this.globalAlpha == 0.0) return;
+        if (alpha == 0.0) return;
         this.save();
-        this.globalAlpha = alpha;
+        this.globalAlpha *= alpha;
         this.beginPath();
         this._diagonalRectangle(x0, y0, x1, y1, power);
         this.clip();

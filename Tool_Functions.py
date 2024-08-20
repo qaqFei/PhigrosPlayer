@@ -333,6 +333,11 @@ def PhigrosChapterDataAlphaValueTransfrom(p: float):
         return 0.0
     return (p - 0.6) / 0.4
 
+def getDPower(width: float, height: float, deg: float):
+    l1 = 0, 0, width, 0
+    l2 = 0, height, *rotate_point(0, height, deg, (width ** 2 + height ** 2) ** 0.5)
+    return compute_intersection(*l1, *l2)[0] / width
+
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
 TextureLine_CanRender(1920, 1080, 50, 0, 0)

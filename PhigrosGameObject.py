@@ -177,8 +177,6 @@ class SettingState:
     aTo: int = Const.PHIGROS_SETTING_STATE.PLAY
     aSTime: float = float("-inf")
     
-    # cannot use tfunc.lerp, ... dub float overflow.
-    
     def __post_init__(self):
         self._ease_fast = rpe_easing.ease_funcs[11]
         self._ease_slow = rpe_easing.ease_funcs[12]
@@ -248,6 +246,35 @@ class SettingState:
                 
             return self._lerFromTextColor(p) if self.aFrom == t else self._lerToTextColor(p)
     
+    def getTextScale(self, t: int):
+        if t not in (self.aFrom, self.aTo):
+            return 1.0
+        elif self.aSTime == float("-inf"):
+            return 1.175
+        else:
+            st = self.aSTime
+            et = self.aSTime + self._atime
+            p = (time.time() - st) / (et - st)
+            p = Tool_Functions.fixOutofRangeP(p)
+            p = self._ease_slow(p)
+            
+            return Tool_Functions.linear_interpolation(p, 0.0, 1.0, 1.175, 1.0) if self.aFrom == t else Tool_Functions.linear_interpolation(p, 0.0, 1.0, 1.0, 1.175)
+    
+    def getShadowRect(self):
+        sv = Const.PHIGROS_SETTING_SHADOW_XRECT_MAP[self.aFrom]
+        ev = Const.PHIGROS_SETTING_SHADOW_XRECT_MAP[self.aTo]
+        if self.aSTime == float("-inf"):
+            return ev
+        st = self.aSTime
+        et = self.aSTime + self._atime
+        p = (time.time() - st) / (et - st)
+        p = Tool_Functions.fixOutofRangeP(p)
+        p = self._ease_slow(p)
+        return (
+            p * (ev[0] - sv[0]) + sv[0],
+            p * (ev[1] - sv[1]) + sv[1]
+        )
+        
     def changeState(self, state: int):
         self.aFrom, self.aTo = self.aTo, state
         self.aSTime = time.time()

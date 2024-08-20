@@ -238,11 +238,6 @@ def getChapterWidth(p: float):
 def getChapterToNextWidth(p: float):
     return w * (295 / 1920) + (w * 0.5 - w * (295 / 1920)) * p
 
-def getDPower(width: float, height: float, deg: float):
-    l1 = 0, 0, width, 0
-    l2 = 0, height, *Tool_Functions.rotate_point(0, height, deg, (width ** 2 + height ** 2) ** 0.5)
-    return Tool_Functions.compute_intersection(*l1, *l2)[0] / width
-
 def getChapterRect(dx: float, chapterWidth: float):
     return (
         dx, h * (140 / 1080),
@@ -255,7 +250,7 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
     chapterWidth = getChapterWidth(p)
     if dx + chapterWidth < 0: return getChapterToNextWidth(p)
     chapterImWidth = h * (1.0 - 140 / 1080 * 2) / item.im.height * item.im.width
-    dPower = getDPower(chapterWidth, h * (1.0 - 140 / 1080 * 2), 75)
+    dPower = Tool_Functions.getDPower(chapterWidth, h * (1.0 - 140 / 1080 * 2), 75)
     
     chapterRect = getChapterRect(dx, chapterWidth)
     
@@ -716,7 +711,6 @@ def showStartAnimation():
     
     root.run_js_code(f"mask.style.backdropFilter = '';", add_code_array = True)
     mixer.music.load("./Resources/ChapterSelect.mp3")
-    mixer.music.play(-1)
     mainRender()
 
 def soundEffect_From0To1():
@@ -834,7 +828,7 @@ def changeChapterMouseUp(x, y):
     for index, i in enumerate(Chapters.items):
         p = getChapterP(i)
         width = getChapterWidth(p)
-        dPower = getDPower(width, h * (1.0 - 140 / 1080 * 2), 75)
+        dPower = Tool_Functions.getDPower(width, h * (1.0 - 140 / 1080 * 2), 75)
         if Tool_Functions.inDiagonalRectangle(*getChapterRect(chapterX, width), dPower, x, y):
             if Chapters.aTo != index:
                 Chapters.aFrom, Chapters.aTo, Chapters.aSTime = Chapters.aTo, index, time.time()
@@ -849,6 +843,7 @@ def mainRender():
     
     faManager.faculas.clear()
     mainRenderSt = time.time()
+    mixer.music.play(-1)
     
     messageRect = (w * 0.015, h * 0.985 - MessageButtonSize, MessageButtonSize, MessageButtonSize)
     JoinQQGuildBannerRect = (0.0, h - JoinQQGuildBannerHeight, JoinQQGuildBannerWidth, JoinQQGuildBannerHeight)
@@ -933,6 +928,7 @@ def mainRender():
             
             SettingClicked = True
             SettingClickedTime = time.time()
+            mixer.music.fadeout(500)
             Resource["UISound_2"].play()
     
     events.append(PhigrosGameObject.ClickEvent(
@@ -1108,7 +1104,6 @@ def mainRender():
             root.clear_canvas(wait_execute = True)
             root.run_js_wait_code()
             Thread(target=settingRender, daemon=True).start()
-            mixer.music.fadeout(500)
             break
         
         root.run_js_wait_code()
@@ -1173,6 +1168,15 @@ def settingRender():
     )
     eventManager.regClickEvent(settingMainClickEvent)
     
+    def drawPlaySetting(dx: float, alpha: float):
+        if alpha == 0.0: return None
+    
+    def drawAccountAndCountSetting(dx: float, alpha: float):
+        if alpha == 0.0: return
+
+    def drawOtherSetting(dx: float, alpha: float):
+        if alpha == 0.0: return
+    
     while True:
         root.clear_canvas(wait_execute = True)
         
@@ -1186,9 +1190,24 @@ def settingRender():
         
         drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
         
+        ShadowXRect = settingState.getShadowRect()
+        ShadowRect = (
+            ShadowXRect[0] * w, 0.0,
+            ShadowXRect[1] * w, h
+        )
+        ShadowDPower = Tool_Functions.getDPower(ShadowRect[2] - ShadowRect[0], h, 75)
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {", ".join(map(str, ShadowRect))},\
+                {ShadowDPower}, 'rgba(0, 0, 0, 0.2)'\
+            );",
+            add_code_array = True
+        )
+        
         BarWidth = settingState.getBarWidth() * w
         BarHeight = h * (2 / 27)
-        BarDPower = getDPower(BarWidth, BarHeight, 75)
+        BarDPower = Tool_Functions.getDPower(BarWidth, BarHeight, 75)
         BarRect = (
             w * 0.153125, h * 0.025,
             w * 0.153125 + BarWidth, h * 0.025 + BarHeight
@@ -1204,7 +1223,7 @@ def settingRender():
         
         LabelWidth = settingState.getLabelWidth() * w
         LabelHeight = h * (113 / 1080)
-        LabelDPower = getDPower(LabelWidth, LabelHeight, 75)
+        LabelDPower = Tool_Functions.getDPower(LabelWidth, LabelHeight, 75)
         LabelX = settingState.getLabelX() * w
         LabelRect = (
             LabelX, h * 1 / 108,
@@ -1222,12 +1241,15 @@ def settingRender():
         PlayTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.PLAY)
         AccountAndCountTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
         OtherTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.OTHER)
+        PlayTextFontScale = settingState.getTextScale(Const.PHIGROS_SETTING_STATE.PLAY)
+        AccountAndCountTextFontScale = settingState.getTextScale(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
+        OtherTextFontScale = settingState.getTextScale(Const.PHIGROS_SETTING_STATE.OTHER)
         settingTextY = h * 0.025 + BarHeight / 2
         
         root.create_text(
             w * 0.209375, settingTextY,
             "游玩",
-            font = f"{(w + h) / 100}px PhigrosFont",
+            font = f"{(w + h) / 100 * PlayTextFontScale}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = f"rgb{PlayTextColor}",
@@ -1237,7 +1259,7 @@ def settingRender():
         root.create_text(
             w * 0.3296875, settingTextY,
             "账号与统计",
-            font = f"{(w + h) / 100}px PhigrosFont",
+            font = f"{(w + h) / 100 * AccountAndCountTextFontScale}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = f"rgb{AccountAndCountTextColor}",
@@ -1247,7 +1269,7 @@ def settingRender():
         root.create_text(
             w * 0.4484375, settingTextY,
             "其他",
-            font = f"{(w + h) / 100}px PhigrosFont",
+            font = f"{(w + h) / 100 * OtherTextFontScale}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = f"rgb{OtherTextColor}",
@@ -1299,7 +1321,7 @@ root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(
 # Constant
 PlayButtonWidth = w * 0.1453125
 PlayButtonHeight = h * (5 / 54)
-PlayButtonDPower = getDPower(PlayButtonWidth, PlayButtonHeight, 75)
+PlayButtonDPower = Tool_Functions.getDPower(PlayButtonWidth, PlayButtonHeight, 75)
 
 if "--window-host" in sys.argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))

@@ -508,7 +508,7 @@
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im,x,y,width,height,deg,alpha) { // draw at the position center
         this.save();
-        this.globalAlpha = alpha;
+        this.globalAlpha *= alpha;
         if (!!deg){
             this.translate(x,y);
             this.rotate(deg * Math.PI / 180);
@@ -522,7 +522,7 @@
 
     CanvasRenderingContext2D.prototype.drawAnchorESRotateImage = function(im,x,y,width,height,deg,alpha) {
         this.save();
-        this.globalAlpha = alpha;
+        this.globalAlpha *= alpha;
         if (!!deg){
             this.translate(x,y);
             this.rotate(deg * Math.PI / 180);
