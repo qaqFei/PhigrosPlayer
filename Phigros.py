@@ -1172,10 +1172,40 @@ def settingRender():
         if alpha == 0.0: return None
     
     def drawAccountAndCountSetting(dx: float, alpha: float):
-        if alpha == 0.0: return
+        if alpha == 0.0: return None
 
     def drawOtherSetting(dx: float, alpha: float):
-        if alpha == 0.0: return
+        if alpha == 0.0: return None
+        
+        root.run_js_code(
+            f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
+            add_code_array = True
+        )
+
+        phiIconWidth = w * 0.215625
+        phiIconHeight = phiIconWidth / Resource["phigros"].width * Resource["phigros"].height
+        root.run_js_code(
+            f"ctx.drawImage(\
+                {root.get_img_jsvarname("phigros")},\
+                {w * 0.3890625 - phiIconWidth / 2}, {h * ((0.275 + 371 / 1080) / 2) - phiIconHeight / 2},\
+                {phiIconWidth}, {phiIconHeight}\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawLineEx(\
+                {w * 0.5296875}, {h * 0.275},\
+                {w * 0.5296875}, {h * (371 / 1080)},\
+                {(w + h) / 2000}, 'rgb(138, 138, 138, 0.95)'\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.restore();",
+            add_code_array = True
+        )
     
     while True:
         root.clear_canvas(wait_execute = True)
@@ -1275,6 +1305,8 @@ def settingRender():
             fillStyle = f"rgb{OtherTextColor}",
             wait_execute = True
         )
+        
+        settingState.render(drawPlaySetting, drawAccountAndCountSetting, drawOtherSetting, ShadowXRect[0], w)
                 
         if time.time() - settingRenderSt < 1.25:
             p = (time.time() - settingRenderSt) / 1.25

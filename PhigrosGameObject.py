@@ -278,3 +278,31 @@ class SettingState:
     def changeState(self, state: int):
         self.aFrom, self.aTo = self.aTo, state
         self.aSTime = time.time()
+    
+    def getSettingDx(self, shadowRectLeft: float, w: int, t: int):
+        return (Const.PHIGROS_SETTING_SHADOW_XRECT_MAP[t][0] - shadowRectLeft) * w
+        
+    def render(
+        self,
+        drawPlaySetting: typing.Callable[[float, float], None],
+        drawAccountAndCountSetting: typing.Callable[[float, float], None],
+        drawOtherSetting: typing.Callable[[float, float], None],
+        shadowRectLeft: float, w: int
+    ):
+        st = self.aSTime
+        et = self.aSTime + self._atime
+        p = (time.time() - st) / (et - st) if self.aSTime != float("-inf") else 1.0
+        p = Tool_Functions.fixOutofRangeP(p)
+        p = self._ease_slow(p)
+        
+        drawPlaySettingDx = self.getSettingDx(shadowRectLeft, w, Const.PHIGROS_SETTING_STATE.PLAY)
+        drawAccountAndCountSettingDx = self.getSettingDx(shadowRectLeft, w, Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
+        drawOtherSettingDx = self.getSettingDx(shadowRectLeft, w, Const.PHIGROS_SETTING_STATE.OTHER)
+
+        drawPlaySettingAlpha = 0.0 if Const.PHIGROS_SETTING_STATE.PLAY not in (self.aFrom, self.aTo) else ((1.0 - p) if self.aFrom == Const.PHIGROS_SETTING_STATE.PLAY else p)
+        drawAccountAndCountSettingAlpha = 0.0 if Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT not in (self.aFrom, self.aTo) else ((1.0 - p) if self.aFrom == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT else p)
+        drawOtherSettingAlpha = 0.0 if Const.PHIGROS_SETTING_STATE.OTHER not in (self.aFrom, self.aTo) else ((1.0 - p) if self.aFrom == Const.PHIGROS_SETTING_STATE.OTHER else p)
+
+        drawPlaySetting(drawPlaySettingDx, drawPlaySettingAlpha)
+        drawAccountAndCountSetting(drawAccountAndCountSettingDx, drawAccountAndCountSettingAlpha)
+        drawOtherSetting(drawOtherSettingDx, drawOtherSettingAlpha)
