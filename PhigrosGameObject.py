@@ -6,6 +6,7 @@ import time
 from PIL import Image
 
 import Tool_Functions
+import Const
 
 @dataclass
 class ClickEvent:
@@ -155,3 +156,115 @@ class Chapters:
     aFrom: int = -1
     aTo: int = 0
     aSTime: float = float("-inf")
+
+@dataclass
+class Setting:
+    offset: int = 0 # ms, -400 ~ 600
+    scale: float = 1.0 # 1.0 ~ 1.3
+    background_dim: float = 1.0 # 0.2 ~ 1.0 (?)
+    enable_click_sound: bool = True
+    sound_volume: float = 1.0 # 0.0 ~ 1.0
+    ui_volume: float = 1.0 # 0.0 ~ 1.0
+    click_sound_volume: float = 1.0 # 0.0 ~ 1.0
+    moerbets_auxiliary: bool = True
+    fcap_indicator: bool = True
+    low_quality: bool = False
+    
+@dataclass
+class SettingState:
+    aFrom: int = Const.PHIGROS_SETTING_STATE.PLAY
+    aTo: int = Const.PHIGROS_SETTING_STATE.PLAY
+    aSTime: float = float("-inf")
+    
+    # cannot use tfunc.lerp, ... dub float overflow.
+    
+    def __post_init__(self):
+        from threading import Thread
+        Thread(target=self._i, daemon=True).start()
+
+    def _i(self):
+        while 1:
+            self.changeState(2)
+            time.sleep(1.2)
+            self.changeState(1)
+            time.sleep(1.2)
+            self.changeState(3)
+            time.sleep(1.2)
+            self.changeState(1)
+            time.sleep(1.2)
+            self.changeState(2)
+            time.sleep(1.2)
+            self.changeState(3)
+            time.sleep(1.2)
+            self.changeState(2)
+            time.sleep(1.2)
+            self.changeState(1)
+            time.sleep(1.2)
+    
+    def getBarWidth(self):
+        sv = Const.PHIGROS_SETTING_BAR_WIDTH_MAP[self.aFrom]
+        ev = Const.PHIGROS_SETTING_BAR_WIDTH_MAP[self.aTo]
+        if self.aSTime == float("-inf"):
+            return ev
+        st = self.aSTime
+        et = self.aSTime + 0.75
+        p = (time.time() - st) / (et - st)
+        p = Tool_Functions.fixOutofRangeP(p)
+        p = (1.0 - (1.0 - p) ** 3)
+        return p * (ev - sv) + sv
+    
+    def getLabelWidth(self):
+        sv = Const.PHIGROS_SETTING_LABEL_WIDTH_MAP[self.aFrom]
+        ev = Const.PHIGROS_SETTING_LABEL_WIDTH_MAP[self.aTo]
+        if self.aSTime == float("-inf"):
+            return ev
+        st = self.aSTime
+        et = self.aSTime + 0.75
+        p = (time.time() - st) / (et - st)
+        p = Tool_Functions.fixOutofRangeP(p)
+        p = (1.0 - (1.0 - p) ** 4)
+        return p * (ev - sv) + sv
+    
+    def getLabelX(self):
+        sv = Const.PHIGROS_SETTING_LABEL_X_MAP[self.aFrom]
+        ev = Const.PHIGROS_SETTING_LABEL_X_MAP[self.aTo]
+        if self.aSTime == float("-inf"):
+            return ev
+        st = self.aSTime
+        et = self.aSTime + 0.75
+        p = (time.time() - st) / (et - st)
+        p = Tool_Functions.fixOutofRangeP(p)
+        p = (1.0 - (1.0 - p) ** 3)
+        return p * (ev - sv) + sv
+    
+    def _lerFromTextColor(self, p: float):
+        return (255 * p, ) * 3
+    
+    def _lerToTextColor(self, p: float):
+        return (255 * (1.0 - p), ) * 3
+    
+    def getTextColor(self, t: int):
+        if t not in (self.aFrom, self.aTo):
+            return (255, 255, 255)
+        elif self.aSTime == float("-inf"):
+            return (0, 0, 0) # aFrom and aTo is 1
+        else:
+            st = self.aSTime
+            et = self.aSTime + 0.75
+            p = (time.time() - st) / (et - st)
+            p = Tool_Functions.fixOutofRangeP(p)
+            
+            # 这里奇怪的算法: 为了视觉上好看和还原一点
+            absv = abs(self.aFrom - self.aTo) if self.aFrom != self.aTo else 1.0
+            absv += 0.5
+            absv **= 1.25
+            if t == self.aFrom:
+                p = 1.0 - (1.0 - p) ** absv
+            else:
+                p = 1.0 - (1.0 - p) ** (1 / absv)
+                
+            return self._lerFromTextColor(p) if self.aFrom == t else self._lerToTextColor(p)
+    
+    def changeState(self, state: int):
+        self.aFrom, self.aTo = self.aTo, state
+        self.aSTime = time.time()

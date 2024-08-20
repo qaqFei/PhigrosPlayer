@@ -37,6 +37,7 @@ lastLastMainUI_ChaptersClickX = 0.0
 mainUI_ChaptersMouseDown = False
 changeChapterMouseDownX = float("nan")
 lastChangeChapterTime = float("-inf")
+setting = PhigrosGameObject.Setting()
 
 def Load_Chapters():
     global Chapters, ChaptersMaxDx
@@ -95,6 +96,7 @@ def Load_Resource():
         "UISound_2": mixer.Sound("./Resources/UISound_2.wav"),
         "UISound_3": mixer.Sound("./Resources/UISound_3.wav"),
         "JoinQQGuildPromo": Image.open("./Resources/JoinQQGuildPromo.png"),
+        "Arrow_Left": Image.open("./Resources/Arrow_Left.png"),
     }
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -121,6 +123,7 @@ def Load_Resource():
     root.reg_img(Resource["message"], "message")
     root.reg_img(Resource["JoinQQGuildBanner"], "JoinQQGuildBanner")
     root.reg_img(Resource["JoinQQGuildPromo"], "JoinQQGuildPromo")
+    root.reg_img(Resource["Arrow_Left"], "Arrow_Left")
         
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -235,9 +238,9 @@ def getChapterWidth(p: float):
 def getChapterToNextWidth(p: float):
     return w * (295 / 1920) + (w * 0.5 - w * (295 / 1920)) * p
 
-def getChapterdPower(width: float, height: float):
+def getDPower(width: float, height: float, deg: float):
     l1 = 0, 0, width, 0
-    l2 = 0, height, *Tool_Functions.rotate_point(0, height, 75, (width ** 2 + height ** 2) ** 0.5)
+    l2 = 0, height, *Tool_Functions.rotate_point(0, height, deg, (width ** 2 + height ** 2) ** 0.5)
     return Tool_Functions.compute_intersection(*l1, *l2)[0] / width
 
 def getChapterRect(dx: float, chapterWidth: float):
@@ -252,7 +255,7 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
     chapterWidth = getChapterWidth(p)
     if dx + chapterWidth < 0: return getChapterToNextWidth(p)
     chapterImWidth = h * (1.0 - 140 / 1080 * 2) / item.im.height * item.im.width
-    dPower = getChapterdPower(chapterWidth, h * (1.0 - 140 / 1080 * 2))
+    dPower = getDPower(chapterWidth, h * (1.0 - 140 / 1080 * 2), 75)
     
     chapterRect = getChapterRect(dx, chapterWidth)
     
@@ -781,10 +784,12 @@ def cheapterUI_easeBack():
         return None
 
     if cdx < 0:
-        dx = -cdx
+        dx = - cdx
     else:
         dx = ChaptersMaxDx - cdx
     dx *= -1 # 前面cdx = 负的, 所以变回来
+    if chaptersDx + dx > 0: # 超出左界
+        dx = - chaptersDx
     
     lastv = 0.0
     av = 0.0
@@ -829,7 +834,7 @@ def changeChapterMouseUp(x, y):
     for index, i in enumerate(Chapters.items):
         p = getChapterP(i)
         width = getChapterWidth(p)
-        dPower = getChapterdPower(width, h * (1.0 - 140 / 1080 * 2))
+        dPower = getDPower(width, h * (1.0 - 140 / 1080 * 2), 75)
         if Tool_Functions.inDiagonalRectangle(*getChapterRect(chapterX, width), dPower, x, y):
             if Chapters.aTo != index:
                 Chapters.aFrom, Chapters.aTo, Chapters.aSTime = Chapters.aTo, index, time.time()
@@ -1103,12 +1108,148 @@ def mainRender():
             root.clear_canvas(wait_execute = True)
             root.run_js_wait_code()
             Thread(target=settingRender, daemon=True).start()
+            mixer.music.fadeout(500)
             break
         
         root.run_js_wait_code()
 
 def settingRender():
-    print('123')
+    settingRenderSt = time.time()
+    settingState = PhigrosGameObject.SettingState()
+    
+    clickedBackButton = False
+    clickedBackButtonTime = float("nan")
+    
+    def clickBackButtonCallback(*args):
+        nonlocal clickedBackButton, clickedBackButtonTime
+        if not clickedBackButton:
+            eventManager.unregEvent(clickBackButtonEvent)
+            eventManager.unregEvent(settingMainClickEvent)
+            
+            clickedBackButton = True
+            clickedBackButtonTime = time.time()
+            Resource["UISound_2"].play()
+    
+    clickBackButtonEvent = PhigrosGameObject.ClickEvent(
+        rect = (0, 0, ButtonWidth, ButtonHeight),
+        callback = clickBackButtonCallback,
+        once = False
+    )
+    eventManager.regClickEvent(clickBackButtonEvent)
+    
+    def settingMainClickCallback(x, y):
+        pass
+    
+    settingMainClickEvent = PhigrosGameObject.ClickEvent(
+        rect = (0, 0, w, h),
+        callback = settingMainClickCallback,
+        once = False
+    )
+    eventManager.regClickEvent(settingMainClickEvent)
+    
+    while True:
+        root.clear_canvas(wait_execute = True)
+        
+        drawBackground()
+        
+        root.create_rectangle(
+            0, 0, w, h,
+            fillStyle = "rgba(0, 0, 0, 0.5)",
+            wait_execute = True
+        )
+        
+        drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
+        
+        BarWidth = settingState.getBarWidth() * w
+        BarHeight = h * (2 / 27)
+        BarDPower = getDPower(BarWidth, BarHeight, 75)
+        BarRect = (
+            w * 0.153125, h * 0.025,
+            w * 0.153125 + BarWidth, h * 0.025 + BarHeight
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {", ".join(map(str, BarRect))},\
+                {BarDPower}, 'rgba(0, 0, 0, 0.45)'\
+            );",
+            add_code_array = True
+        )
+        
+        LabelWidth = settingState.getLabelWidth() * w
+        LabelHeight = h * (113 / 1080)
+        LabelDPower = getDPower(LabelWidth, LabelHeight, 75)
+        LabelX = settingState.getLabelX() * w
+        LabelRect = (
+            LabelX, h * 1 / 108,
+            LabelX + LabelWidth, h * 1 / 108 + LabelHeight
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {", ".join(map(str, LabelRect))},\
+                {LabelDPower}, 'rgba(255, 255, 255, 1.0)'\
+            );",
+            add_code_array = True
+        )
+        
+        PlayTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.PLAY)
+        AccountAndCountTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
+        OtherTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.OTHER)
+        settingTextY = h * 0.025 + BarHeight / 2
+        
+        root.create_text(
+            w * 0.209375, settingTextY,
+            "游玩",
+            font = f"{(w + h) / 100}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = f"rgb{PlayTextColor}",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * 0.3296875, settingTextY,
+            "账号与统计",
+            font = f"{(w + h) / 100}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = f"rgb{AccountAndCountTextColor}",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * 0.4484375, settingTextY,
+            "其他",
+            font = f"{(w + h) / 100}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = f"rgb{OtherTextColor}",
+            wait_execute = True
+        )
+                
+        if time.time() - settingRenderSt < 1.25:
+            p = (time.time() - settingRenderSt) / 1.25
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
+                wait_execute = True
+            )
+        
+        if clickedBackButton and time.time() - clickedBackButtonTime < 0.75:
+            p = (time.time() - clickedBackButtonTime) / 0.75
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
+                wait_execute = True
+            )
+        elif clickedBackButton:
+            root.clear_canvas(wait_execute = True)
+            root.run_js_wait_code()
+            Thread(target=mainRender, daemon=True).start()
+            break
+        
+        root.run_js_wait_code()
 
 root = webcvapis.WebCanvas(
     width = 1, height = 1,
@@ -1132,7 +1273,7 @@ root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(
 # Constant
 PlayButtonWidth = w * 0.1453125
 PlayButtonHeight = h * (5 / 54)
-PlayButtonDPower = getChapterdPower(PlayButtonWidth, PlayButtonHeight)
+PlayButtonDPower = getDPower(PlayButtonWidth, PlayButtonHeight, 75)
 
 if "--window-host" in sys.argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
