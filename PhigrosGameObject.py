@@ -7,6 +7,7 @@ from PIL import Image
 
 import Tool_Functions
 import Const
+import rpe_easing
 
 @dataclass
 class ClickEvent:
@@ -179,27 +180,9 @@ class SettingState:
     # cannot use tfunc.lerp, ... dub float overflow.
     
     def __post_init__(self):
-        from threading import Thread
-        Thread(target=self._i, daemon=True).start()
-
-    def _i(self):
-        while 1:
-            self.changeState(2)
-            time.sleep(1.2)
-            self.changeState(1)
-            time.sleep(1.2)
-            self.changeState(3)
-            time.sleep(1.2)
-            self.changeState(1)
-            time.sleep(1.2)
-            self.changeState(2)
-            time.sleep(1.2)
-            self.changeState(3)
-            time.sleep(1.2)
-            self.changeState(2)
-            time.sleep(1.2)
-            self.changeState(1)
-            time.sleep(1.2)
+        self._ease_fast = rpe_easing.ease_funcs[11]
+        self._ease_slow = rpe_easing.ease_funcs[12]
+        self._atime = 0.65
     
     def getBarWidth(self):
         sv = Const.PHIGROS_SETTING_BAR_WIDTH_MAP[self.aFrom]
@@ -207,10 +190,10 @@ class SettingState:
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
-        et = self.aSTime + 0.75
+        et = self.aSTime + self._atime
         p = (time.time() - st) / (et - st)
         p = Tool_Functions.fixOutofRangeP(p)
-        p = (1.0 - (1.0 - p) ** 3)
+        p = self._ease_slow(p)
         return p * (ev - sv) + sv
     
     def getLabelWidth(self):
@@ -219,10 +202,10 @@ class SettingState:
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
-        et = self.aSTime + 0.75
+        et = self.aSTime + self._atime
         p = (time.time() - st) / (et - st)
         p = Tool_Functions.fixOutofRangeP(p)
-        p = (1.0 - (1.0 - p) ** 4)
+        p = self._ease_fast(p)
         return p * (ev - sv) + sv
     
     def getLabelX(self):
@@ -231,10 +214,10 @@ class SettingState:
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
-        et = self.aSTime + 0.75
+        et = self.aSTime + self._atime
         p = (time.time() - st) / (et - st)
         p = Tool_Functions.fixOutofRangeP(p)
-        p = (1.0 - (1.0 - p) ** 3)
+        p = self._ease_slow(p)
         return p * (ev - sv) + sv
     
     def _lerFromTextColor(self, p: float):
@@ -250,7 +233,7 @@ class SettingState:
             return (0, 0, 0) # aFrom and aTo is 1
         else:
             st = self.aSTime
-            et = self.aSTime + 0.75
+            et = self.aSTime + self._atime
             p = (time.time() - st) / (et - st)
             p = Tool_Functions.fixOutofRangeP(p)
             

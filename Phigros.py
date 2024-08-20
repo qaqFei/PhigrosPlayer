@@ -1137,8 +1137,34 @@ def settingRender():
     )
     eventManager.regClickEvent(clickBackButtonEvent)
     
+    lastChangeSettingStateTime = float("-inf")
+    
+    def _setSettingState(t: int):
+        nonlocal lastChangeSettingStateTime
+        
+        if time.time() - lastChangeSettingStateTime < 0.6:
+            return None
+        elif t == settingState.aTo:
+            return None
+        lastChangeSettingStateTime = time.time()
+        settingState.changeState(t)
+    
     def settingMainClickCallback(x, y):
-        pass
+        if Tool_Functions.InRect(x, y, (
+            346 / 1920 * w, 35 / 1080 * h,
+            458 / 1920 * w, 97 / 1080 * h
+        )):
+            _setSettingState(Const.PHIGROS_SETTING_STATE.PLAY)
+        elif Tool_Functions.InRect(x, y, (
+            540 / 1920 * w, 35 / 1080 * h,
+            723 / 1920 * w, 97 / 1080 * h
+        )):
+            _setSettingState(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
+        elif Tool_Functions.InRect(x, y, (
+            807 / 1920 * w, 35 / 1080 * h,
+            915 / 1920 * w, 97 / 1080 * h
+        )):
+            _setSettingState(Const.PHIGROS_SETTING_STATE.OTHER)
     
     settingMainClickEvent = PhigrosGameObject.ClickEvent(
         rect = (0, 0, w, h),
