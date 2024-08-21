@@ -683,7 +683,7 @@ def showStartAnimation():
         root.create_text(
             w / 2,
             h * 0.98,
-            text = "Version: NULL",
+            text = f"Version: {Const.PHIGROS_VERSION}",
             font = f"{(w + h) / 250}px PhigrosFont",
             textAlign = "center",
             textBaseline = "bottom",
@@ -1168,6 +1168,9 @@ def settingRender():
     )
     eventManager.regClickEvent(settingMainClickEvent)
     
+    def getShadowDiagonalXByY(y: float):
+        return (ShadowRect[2] - ShadowRect[0]) * ShadowDPower * ((h - y) / h)
+    
     def drawPlaySetting(dx: float, alpha: float):
         if alpha == 0.0: return None
     
@@ -1200,6 +1203,70 @@ def settingRender():
                 {(w + h) / 2000}, 'rgb(138, 138, 138, 0.95)'\
             );",
             add_code_array = True
+        )
+        
+        root.create_text(
+            w * 0.5703125, h * (308 / 1080),
+            f"Version: {Const.PHIGROS_VERSION}",
+            font = f"{(w + h) /125}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "rgb(138, 138, 138, 0.95)",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * 0.5703125, h * (361 / 1080),
+            f"Device: {Const.DEVICE}",
+            font = f"{(w + h) /125}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "rgb(138, 138, 138, 0.95)",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.575),
+            h * 0.575,
+            "音频问题疑难解答",
+            font = f"{(w + h) / 90}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.675),
+            h * 0.675,
+            "观看教学",
+            font = f"{(w + h) / 90}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.575),
+            h * 0.575,
+            "开源许可证",
+            font = f"{(w + h) / 90}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.675),
+            h * 0.675,
+            "隐私政策",
+            font = f"{(w + h) / 90}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
         )
         
         root.run_js_code(
