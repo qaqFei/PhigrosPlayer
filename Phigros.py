@@ -75,7 +75,8 @@ def Load_Chapters():
 
 def Load_Resource():
     global ButtonWidth, ButtonHeight
-    global CollectiblesIconWidth, CollectiblesIconHeight
+    global MainUIIconWidth, MainUIIconHeight
+    global SettingUIOtherIconWidth, SettingUIOtherIconHeight
     global MessageButtonSize
     global JoinQQGuildBannerWidth, JoinQQGuildBannerHeight
     global JoinQQGuildPromoWidth, JoinQQGuildPromoHeight
@@ -97,6 +98,7 @@ def Load_Resource():
         "UISound_3": mixer.Sound("./Resources/UISound_3.wav"),
         "JoinQQGuildPromo": Image.open("./Resources/JoinQQGuildPromo.png"),
         "Arrow_Left": Image.open("./Resources/Arrow_Left.png"),
+        "Arrow_Right_Black": Image.open("./Resources/Arrow_Right_Black.png"),
     }
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -124,11 +126,14 @@ def Load_Resource():
     root.reg_img(Resource["JoinQQGuildBanner"], "JoinQQGuildBanner")
     root.reg_img(Resource["JoinQQGuildPromo"], "JoinQQGuildPromo")
     root.reg_img(Resource["Arrow_Left"], "Arrow_Left")
+    root.reg_img(Resource["Arrow_Right_Black"], "Arrow_Right_Black")
         
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
-    CollectiblesIconWidth = w * 0.0265
-    CollectiblesIconHeight = CollectiblesIconWidth / Resource["collectibles"].width * Resource["collectibles"].height
+    MainUIIconWidth = w * 0.0265
+    MainUIIconHeight = MainUIIconWidth / Resource["collectibles"].width * Resource["collectibles"].height # or arr or oth w/h same ratio
+    SettingUIOtherIconWidth = w * 0.01325
+    SettingUIOtherIconHeight = SettingUIOtherIconWidth / Resource["Arrow_Right_Black"].width * Resource["Arrow_Right_Black"].height
     MessageButtonSize = w * 0.025
     JoinQQGuildBannerWidth = w * 0.2
     JoinQQGuildBannerHeight = JoinQQGuildBannerWidth / Resource["JoinQQGuildBanner"].width * Resource["JoinQQGuildBanner"].height
@@ -470,9 +475,9 @@ def drawButton(buttonName: typing.Literal["ButtonLeftBlack", "ButtonRightBlack"]
     root.run_js_code(
         f"ctx.drawImage(\
            {root.get_img_jsvarname(iconName)},\
-           {buttonPos[0] + ButtonWidth * centerPoint[0] - CollectiblesIconWidth / 2},\
-           {buttonPos[1] + ButtonHeight * centerPoint[1] - CollectiblesIconHeight / 2},\
-           {CollectiblesIconWidth}, {CollectiblesIconHeight}\
+           {buttonPos[0] + ButtonWidth * centerPoint[0] - MainUIIconWidth / 2},\
+           {buttonPos[1] + ButtonHeight * centerPoint[1] - MainUIIconHeight / 2},\
+           {MainUIIconWidth}, {MainUIIconHeight}\
         );",
         add_code_array = True
     )
@@ -1176,6 +1181,26 @@ def settingRender():
     
     def drawAccountAndCountSetting(dx: float, alpha: float):
         if alpha == 0.0: return None
+    
+    def drawOtherSettingButton(x0: float, y0: float, x1: float, y1: float, dpower: float):
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {x0}, {y0},\
+                {x1}, {y1},\
+                {dpower}, '#FFFFFF'\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawImage(\
+                {root.get_img_jsvarname("Arrow_Right_Black")},\
+                {x0 + (x1 - x0) / 2 - SettingUIOtherIconWidth / 2},\
+                {y0 + (y1 - y0) / 2 - SettingUIOtherIconHeight / 2},\
+                {SettingUIOtherIconWidth}, {SettingUIOtherIconHeight}\
+            );",
+            add_code_array = True
+        )
 
     def drawOtherSetting(dx: float, alpha: float):
         if alpha == 0.0: return None
@@ -1225,6 +1250,8 @@ def settingRender():
             wait_execute = True
         )
         
+        settingOtherButtonDPower = Tool_Functions.getDPower(90, 50, 75)
+        
         root.create_text(
             w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.575),
             h * 0.575,
@@ -1234,6 +1261,12 @@ def settingRender():
             textBaseline = "top",
             fillStyle = "rgb(255, 255, 255)",
             wait_execute = True
+        )
+        
+        drawOtherSettingButton(
+            w * 0.3921875, h * (611 / 1080),
+            w * (0.3921875 + 0.046875), h * ((611 + 50) / 1080),
+            settingOtherButtonDPower
         )
         
         root.create_text(
@@ -1247,6 +1280,12 @@ def settingRender():
             wait_execute = True
         )
         
+        drawOtherSettingButton(
+            w * 0.3765625, h * (711 / 1080),
+            w * (0.3765625 + 0.046875), h * ((711 + 50) / 1080),
+            settingOtherButtonDPower
+        )
+        
         root.create_text(
             w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.575),
             h * 0.575,
@@ -1258,6 +1297,12 @@ def settingRender():
             wait_execute = True
         )
         
+        drawOtherSettingButton(
+            w * 0.7890625, h * (611 / 1080),
+            w * (0.7890625 + 0.046875), h * ((611 + 50) / 1080),
+            settingOtherButtonDPower
+        )
+        
         root.create_text(
             w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.675),
             h * 0.675,
@@ -1267,6 +1312,12 @@ def settingRender():
             textBaseline = "top",
             fillStyle = "rgb(255, 255, 255)",
             wait_execute = True
+        )
+        
+        drawOtherSettingButton(
+            w * 0.7734375, h * (711 / 1080),
+            w * (0.7734375 + 0.046875), h * ((711 + 50) / 1080),
+            settingOtherButtonDPower
         )
         
         root.run_js_code(
