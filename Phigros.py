@@ -80,6 +80,8 @@ def Load_Resource():
     global MessageButtonSize
     global JoinQQGuildBannerWidth, JoinQQGuildBannerHeight
     global JoinQQGuildPromoWidth, JoinQQGuildPromoHeight
+    global SettingUIOtherDownIconWidth
+    global SettingUIOtherDownIconHeight_Twitter, SettingUIOtherDownIconHeight_QQ, SettingUIOtherDownIconHeight_Bilibili
     
     Resource = {
         "logoipt": Image.open("./Resources/logoipt.png"),
@@ -99,6 +101,9 @@ def Load_Resource():
         "JoinQQGuildPromo": Image.open("./Resources/JoinQQGuildPromo.png"),
         "Arrow_Left": Image.open("./Resources/Arrow_Left.png"),
         "Arrow_Right_Black": Image.open("./Resources/Arrow_Right_Black.png"),
+        "twitter": Image.open("./Resources/twitter.png"),
+        "qq": Image.open("./Resources/qq.png"),
+        "bilibili": Image.open("./Resources/bilibili.png"),
     }
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -127,6 +132,9 @@ def Load_Resource():
     root.reg_img(Resource["JoinQQGuildPromo"], "JoinQQGuildPromo")
     root.reg_img(Resource["Arrow_Left"], "Arrow_Left")
     root.reg_img(Resource["Arrow_Right_Black"], "Arrow_Right_Black")
+    root.reg_img(Resource["twitter"], "twitter")
+    root.reg_img(Resource["qq"], "qq")
+    root.reg_img(Resource["bilibili"], "bilibili")
         
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -139,6 +147,10 @@ def Load_Resource():
     JoinQQGuildBannerHeight = JoinQQGuildBannerWidth / Resource["JoinQQGuildBanner"].width * Resource["JoinQQGuildBanner"].height
     JoinQQGuildPromoWidth = w * 0.61
     JoinQQGuildPromoHeight = JoinQQGuildPromoWidth / Resource["JoinQQGuildPromo"].width * Resource["JoinQQGuildPromo"].height
+    SettingUIOtherDownIconWidth = w * 0.01725
+    SettingUIOtherDownIconHeight_Twitter = SettingUIOtherDownIconWidth / Resource["twitter"].width * Resource["twitter"].height
+    SettingUIOtherDownIconHeight_QQ = SettingUIOtherDownIconWidth / Resource["qq"].width * Resource["qq"].height
+    SettingUIOtherDownIconHeight_Bilibili = SettingUIOtherDownIconWidth / Resource["bilibili"].width * Resource["bilibili"].height
     
     for chapter in Chapters.items:
         im = Image.open(f"./PhigrosAssets/{chapter.image}")
@@ -1201,6 +1213,25 @@ def settingRender():
             );",
             add_code_array = True
         )
+    
+    otherSettingButtonRects = [
+        (
+            w * 0.3921875, h * (611 / 1080),
+            w * (0.3921875 + 0.046875), h * ((611 + 50) / 1080)
+        ),
+        (
+            w * 0.3765625, h * (711 / 1080),
+            w * (0.3765625 + 0.046875), h * ((711 + 50) / 1080)
+        ),
+        (
+            w * 0.7890625, h * (611 / 1080),
+            w * (0.7890625 + 0.046875), h * ((611 + 50) / 1080)
+        ),
+        (
+            w * 0.7734375, h * (711 / 1080),
+            w * (0.7734375 + 0.046875), h * ((711 + 50) / 1080)
+        )
+    ]
 
     def drawOtherSetting(dx: float, alpha: float):
         if alpha == 0.0: return None
@@ -1264,8 +1295,7 @@ def settingRender():
         )
         
         drawOtherSettingButton(
-            w * 0.3921875, h * (611 / 1080),
-            w * (0.3921875 + 0.046875), h * ((611 + 50) / 1080),
+            *otherSettingButtonRects[0],
             settingOtherButtonDPower
         )
         
@@ -1281,8 +1311,7 @@ def settingRender():
         )
         
         drawOtherSettingButton(
-            w * 0.3765625, h * (711 / 1080),
-            w * (0.3765625 + 0.046875), h * ((711 + 50) / 1080),
+            *otherSettingButtonRects[1],
             settingOtherButtonDPower
         )
         
@@ -1298,8 +1327,7 @@ def settingRender():
         )
         
         drawOtherSettingButton(
-            w * 0.7890625, h * (611 / 1080),
-            w * (0.7890625 + 0.046875), h * ((611 + 50) / 1080),
+            *otherSettingButtonRects[2],
             settingOtherButtonDPower
         )
         
@@ -1315,9 +1343,76 @@ def settingRender():
         )
         
         drawOtherSettingButton(
-            w * 0.7734375, h * (711 / 1080),
-            w * (0.7734375 + 0.046875), h * ((711 + 50) / 1080),
+            *otherSettingButtonRects[3],
             settingOtherButtonDPower
+        )
+        
+        root.create_text(
+            w * 0.5453125,
+            h * (1031 / 1080),
+            Const.OTHERSERTTING_RIGHTDOWN_TEXT,
+            font = f"{(w + h) / 135}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "rgba(255, 255, 255, 0.5)",
+            wait_execute = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawImage(\
+                {root.get_img_jsvarname("twitter")},\
+                {w * 0.0734375 - SettingUIOtherIconWidth / 2}, {h * (1031 / 1080) - SettingUIOtherDownIconHeight_Twitter / 2},\
+                {SettingUIOtherDownIconWidth}, {SettingUIOtherDownIconHeight_Twitter}\
+            );",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            w * 0.0875, h * (1031 / 1080),
+            Const.OTHER_SETTING_LB_STRINGS.TWITTER,
+            font = f"{(w + h) / 135}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "rgba(255, 255, 255, 0.5)",
+            wait_execute = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawImage(\
+                {root.get_img_jsvarname("bilibili")},\
+                {w * 0.203125 - SettingUIOtherIconWidth / 2}, {h * (1031 / 1080) - SettingUIOtherDownIconHeight_Bilibili / 2},\
+                {SettingUIOtherDownIconWidth}, {SettingUIOtherDownIconHeight_Bilibili}\
+            );",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            w * 0.2171875, h * (1031 / 1080),
+            Const.OTHER_SETTING_LB_STRINGS.BILIBILI,
+            font = f"{(w + h) / 135}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "rgba(255, 255, 255, 0.5)",
+            wait_execute = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawImage(\
+                {root.get_img_jsvarname("qq")},\
+                {w * 0.3328125 - SettingUIOtherIconWidth / 2 * 0.85}, {h * (1031 / 1080) - SettingUIOtherDownIconHeight_QQ / 2 * 0.85},\
+                {SettingUIOtherDownIconWidth * 0.85}, {SettingUIOtherDownIconHeight_QQ * 0.85}\
+            );",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            w * 0.346875, h * (1031 / 1080),
+            Const.OTHER_SETTING_LB_STRINGS.QQ,
+            font = f"{(w + h) / 135}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "rgba(255, 255, 255, 0.5)",
+            wait_execute = True
         )
         
         root.run_js_code(
@@ -1458,6 +1553,11 @@ root = webcvapis.WebCanvas(
 )
 webdpr = root.run_js_code("window.devicePixelRatio;")
 root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
+
+# w, h = root.winfo_screenwidth(), root.winfo_screenheight()
+# root.resize(w, h)
+# root._web.toggle_fullscreen()
+
 w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
 root.resize(w, h)
 w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()

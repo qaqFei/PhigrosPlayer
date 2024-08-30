@@ -22,12 +22,23 @@ class PHIGROS_SETTING_STATE:
     ACCOUNT_AND_COUNT = 2
     OTHER = 3
 
+class OTHER_SETTING_LB_STRINGS:
+    TWITTER = "@Phigros PGS"
+    BILIBILI = "@Phigros官方"
+    QQ = "鸽游网络@Phigros"
+
+class PHIGROS_LINKS:
+    TWITTER = "https://twitter.com/Phigros_PGS"
+    BILIBILI = "https://space.bilibili.com/414149787"
+    QQ = "https://pd.qq.com/s/433r43ehu"
+
 INF = float("inf")
 NAN = float("nan")
 JUDGELINE_PERFECT_COLOR = "#feffa9"
 RENDER_RANGE_MORE_FRAME_LINE_COLOR = "rgba(0, 94, 255, 0.65)"
 PHIGROS_VERSION = "NULL"
 DEVICE = platform.platform()
+OTHERSERTTING_RIGHTDOWN_TEXT = "@2019-2024 Pigeon Games. All right Reserverd."
 FINISH_UI_BUTTON_SIZE = 0.095
 JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER = 127 / 975
 CHAPTER_DIAGONALRECTANGLEDEG = -75
