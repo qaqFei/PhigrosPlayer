@@ -287,7 +287,8 @@ class SettingState:
         drawPlaySetting: typing.Callable[[float, float], None],
         drawAccountAndCountSetting: typing.Callable[[float, float], None],
         drawOtherSetting: typing.Callable[[float, float], None],
-        shadowRectLeft: float, w: int
+        shadowRectLeft: float, w: int,
+        settingDx: list[float]
     ):
         st = self.aSTime
         et = self.aSTime + self._atime
@@ -306,3 +307,5 @@ class SettingState:
         drawPlaySetting(drawPlaySettingDx, drawPlaySettingAlpha)
         drawAccountAndCountSetting(drawAccountAndCountSettingDx, drawAccountAndCountSettingAlpha)
         drawOtherSetting(drawOtherSettingDx, drawOtherSettingAlpha)
+        settingDx.clear()
+        settingDx.extend([drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx])

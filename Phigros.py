@@ -1185,6 +1185,8 @@ def settingRender():
     )
     eventManager.regClickEvent(settingMainClickEvent)
     
+    settingDx = [0.0, 0.0, 0.0]
+    
     def getShadowDiagonalXByY(y: float):
         return (ShadowRect[2] - ShadowRect[0]) * ShadowDPower * ((h - y) / h)
     
@@ -1519,7 +1521,7 @@ def settingRender():
             wait_execute = True
         )
         
-        settingState.render(drawPlaySetting, drawAccountAndCountSetting, drawOtherSetting, ShadowXRect[0], w)
+        settingState.render(drawPlaySetting, drawAccountAndCountSetting, drawOtherSetting, ShadowXRect[0], w, settingDx)
                 
         if time.time() - settingRenderSt < 1.25:
             p = (time.time() - settingRenderSt) / 1.25
