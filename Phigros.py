@@ -1188,13 +1188,7 @@ def settingRender():
     settingDx = [0.0, 0.0, 0.0]
     
     def getShadowDiagonalXByY(y: float):
-        return (ShadowRect[2] - ShadowRect[0]) * ShadowDPower * ((h - y) / h)
-    
-    def drawPlaySetting(dx: float, alpha: float):
-        if alpha == 0.0: return None
-    
-    def drawAccountAndCountSetting(dx: float, alpha: float):
-        if alpha == 0.0: return None
+        return w * Tool_Functions.getDPower(w, h, 75) * ((h - y) / h)
     
     def drawOtherSettingButton(x0: float, y0: float, x1: float, y1: float, dpower: float):
         root.run_js_code(
@@ -1234,6 +1228,22 @@ def settingRender():
             w * (0.7734375 + 0.046875), h * ((711 + 50) / 1080)
         )
     ]
+    
+    def drawPlaySetting(dx: float, alpha: float):
+        if alpha == 0.0: return None
+    
+    def drawAccountAndCountSetting(dx: float, alpha: float):
+        if alpha == 0.0: return None
+        
+        root.run_js_code(
+            f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.restore();",
+            add_code_array = True
+        )
 
     def drawOtherSetting(dx: float, alpha: float):
         if alpha == 0.0: return None
@@ -1421,6 +1431,141 @@ def settingRender():
             f"ctx.restore();",
             add_code_array = True
         )
+    
+    PlaySettingWidgets = {
+        "OffsetLabel": PhigrosGameObject.PhiLabel(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            left_text = "谱面延时",
+            right_text = "0ms",
+            font = "10px PhigrosFont",
+            color = "#FFFFFF"
+        ),
+        "OffsetSlider": PhigrosGameObject.PhiSlider(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            value = 0.0,
+            number_points = (
+                (0.0, -400.0),
+                (0.4, 0.0),
+                (1.0, 600.0)
+            ),
+            lr_button = True
+        ),
+        "OffsetTip": PhigrosGameObject.PhiLabel(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            left_text = "",
+            right_text = "*请调节至第三拍的声音与按键音恰好重合的状态",
+            font = "10px PhigrosFont",
+            color = "rgba(255, 255, 255, 0.6)"
+        ),
+        "NoteScaleLabel": PhigrosGameObject.PhiLabel(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            left_text = "按键缩放",
+            right_text = "",
+            font = "10px PhigrosFont",
+            color = "#FFFFFF"
+        ),
+        "NoteScaleSlider": PhigrosGameObject.PhiSlider(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            value = 1.0,
+            number_points = ((0.0, 1.0), (1.0, 1.29)),
+            lr_button = False
+        ),
+        "BackgroundDimLabel": PhigrosGameObject.PhiLabel(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            left_text = "背景亮度",
+            right_text = "",
+            font = "10px PhigrosFont",
+            color = "#FFFFFF"
+        ),
+        "BackgroundDimSlider": PhigrosGameObject.PhiSlider(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            value = 0.6,
+            number_points = ((0.0, 0.0), (1.0, 1.0)),
+            lr_button = False
+        ),
+        "ClickSoundCheckbox": PhigrosGameObject.PhiCheckbox(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            text = "打开打击音效",
+            font = "10px PhigrosFont",
+            checked = True
+        ),
+        "MusicVolumeLabel": PhigrosGameObject.PhiLabel(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            left_text = "音乐音量",
+            right_text = "",
+            font = "10px PhigrosFont",
+            color = "#FFFFFF"
+        ),
+        "MusicVolumeSlider": PhigrosGameObject.PhiSlider(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            value = 1.0,
+            number_points = ((0.0, 0.0), (1.0, 1.0)),
+            lr_button = False
+        ),
+        "UISoundVolumeLabel": PhigrosGameObject.PhiLabel(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            left_text = "界面音效音量",
+            right_text = "",
+            font = "10px PhigrosFont",
+            color = "#FFFFFF"
+        ),
+        "UISoundVolumeSlider": PhigrosGameObject.PhiSlider(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            value = 1.0,
+            number_points = ((0.0, 0.0), (1.0, 1.0)),
+            lr_button = False
+        ),
+        "ClickSoundVolumeLabel": PhigrosGameObject.PhiLabel(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            left_text = "打击音效音量",
+            right_text = "",
+            font = "10px PhigrosFont",
+            color = "#FFFFFF"
+        ),
+        "ClickSoundVolumeSlider": PhigrosGameObject.PhiSlider(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            value = 1.0,
+            number_points = ((0.0, 0.0), (1.0, 1.0)),
+            lr_button = False
+        ),
+        "MorebetsAuxiliaryCheckbox": PhigrosGameObject.PhiCheckbox(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            text = "开启多押辅助",
+            font = "10px PhigrosFont",
+            checked = True
+        ),
+        "FCAPIndicatorCheckbox": PhigrosGameObject.PhiCheckbox(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            text = "开启FC/AP指示器",
+            font = "10px PhigrosFont",
+            checked = True
+        ),
+        "LowQualityCheckbox": PhigrosGameObject.PhiCheckbox(
+            padding_top = 0.0,
+            padding_bottom = 0.0,
+            text = "低分辨率模式",
+            font = "10px PhigrosFont",
+            checked = False
+        )
+    }
+    
+    print(PlaySettingWidgets)
     
     while True:
         root.clear_canvas(wait_execute = True)

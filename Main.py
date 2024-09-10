@@ -140,7 +140,7 @@ for item in chart_files:
                     chart_files_dict["charts"].append([item, json.loads(chart_text)])
                     print(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
             except Exception as e:
-                if isinstance(e, json.decoder.JSONDecodeError) and chart_text.startswith("175"): # pec chart
+                if isinstance(e, json.decoder.JSONDecodeError) and (chart_text.startswith("175") or chart_text.startswith("0")): # pec chart
                     rpeJson = { # if some key and value is not exists, in loading rpe chart, it will be set to default value.
                         "META": {},
                         "BPMList": [],

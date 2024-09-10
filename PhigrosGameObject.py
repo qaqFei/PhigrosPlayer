@@ -309,3 +309,27 @@ class SettingState:
         drawOtherSetting(drawOtherSettingDx, drawOtherSettingAlpha)
         settingDx.clear()
         settingDx.extend([drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx])
+
+@dataclass
+class PhiBaseWidget:
+    padding_top: float = 0.0
+    padding_bottom: float = 0.0
+
+@dataclass
+class PhiLabel(PhiBaseWidget):
+    left_text: str = ""
+    right_text: str = ""
+    font: str = "1px PhigrosFont"
+    color: str = "#FFFFFF"
+
+@dataclass
+class PhiSlider(PhiBaseWidget):
+    value: float = 0.0
+    number_points: tuple[tuple[float, float]] = ((0.0, 0.0), (1.0, 1.0))
+    lr_button: bool = False
+
+@dataclass
+class PhiCheckbox(PhiBaseWidget):
+    text: str = ""
+    font: str = "1px PhigrosFont"
+    checked: bool = False
