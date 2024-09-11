@@ -1514,7 +1514,7 @@ def GetFrameRenderTask_Phi(
                     )
                 
                 if note_iscan_render:
-                    judgeLine_rotate = (judgeLine_to_note_rotate_deg + 90) % 360
+                    noteRotate = judgeLine_to_note_rotate_deg + 90
                     dub_text = "_dub" if note_item.morebets else ""
                     if not this_note_ishold:
                         this_note_img_keyname = f"{note_item.type_string}{dub_text}"
@@ -1558,7 +1558,7 @@ def GetFrameRenderTask_Phi(
                                 {holdend_y},\
                                 {this_note_width},\
                                 {this_noteend_height},\
-                                {judgeLine_rotate},\
+                                {noteRotate},\
                                 {miss_alpha_change}\
                             );",
                             add_code_array = True
@@ -1573,7 +1573,7 @@ def GetFrameRenderTask_Phi(
                                     {holdbody_y},\
                                     {this_note_width},\
                                     {holdbody_length},\
-                                    {judgeLine_rotate},\
+                                    {noteRotate},\
                                     {miss_alpha_change}\
                                 );",
                                 add_code_array = True
@@ -1588,7 +1588,7 @@ def GetFrameRenderTask_Phi(
                                 {y},\
                                 {this_note_width},\
                                 {this_note_height},\
-                                {judgeLine_rotate},\
+                                {noteRotate},\
                                 1.0\
                             );",
                             add_code_array = True #eq wait_exec true
@@ -1978,6 +1978,7 @@ def GetFrameRenderTask_Rpe(
             )
             
             if canRender and abs(now_t - note.secst) <= note.visibleTime:
+                noteRotate = lineRotate + (0 if note.above == 1 else 180)
                 dub_text = "_dub" if note.morebets else ""
                 if not note.ishold:
                     this_note_img_keyname = f"{note.type_string}{dub_text}"
@@ -2010,6 +2011,9 @@ def GetFrameRenderTask_Rpe(
                             *holdhead_pos, lineToNoteRotate, this_note_height / 2
                         )
                         holdbody_length = holdLength - (this_note_height + this_noteend_height) / 2
+                    
+                    if holdbody_length < 0.0:
+                        holdbody_length = 0.0
                         
                     miss_alpha_change = 0.5 if noautoplay and note.player_missed else 1.0
                     
@@ -2021,7 +2025,7 @@ def GetFrameRenderTask_Rpe(
                             {holdend_y},\
                             {this_note_width * note.width},\
                             {this_noteend_height},\
-                            {lineRotate},\
+                            {noteRotate},\
                             {note.float_alpha * miss_alpha_change}\
                         );",
                         add_code_array = True
@@ -2036,7 +2040,7 @@ def GetFrameRenderTask_Rpe(
                                 {holdbody_y},\
                                 {this_note_width * note.width},\
                                 {holdbody_length},\
-                                {lineRotate},\
+                                {noteRotate},\
                                 {note.float_alpha * miss_alpha_change}\
                             );",
                             add_code_array = True
@@ -2051,7 +2055,7 @@ def GetFrameRenderTask_Rpe(
                             {y},\
                             {this_note_width * note.width},\
                             {this_note_height},\
-                            {lineRotate},\
+                            {noteRotate},\
                             {note.float_alpha}\
                         );",
                         add_code_array = True #eq wait_exec true
