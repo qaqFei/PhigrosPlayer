@@ -1918,8 +1918,6 @@ def GetFrameRenderTask_Rpe(
                 wait_execute = True
             )
         
-        if negative_alpha: continue
-        
         line.playingFloorPosition = line.GetFloorPosition(0.0, now_t, chart_obj)
         for note in line.notes:
             note_clicked = note.startTime.value < beatTime
@@ -1975,7 +1973,7 @@ def GetFrameRenderTask_Rpe(
                 Tool_Functions.Note_CanRender(w, h, note_max_size_half, x, y)
                 if not note.ishold
                 else Tool_Functions.Note_CanRender(w, h, note_max_size_half, x, y, holdbody_range)
-            )
+            ) and not negative_alpha
             
             if canRender and abs(now_t - note.secst) <= note.visibleTime:
                 noteRotate = lineRotate + (0 if note.above == 1 else 180)
