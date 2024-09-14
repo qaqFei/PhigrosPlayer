@@ -1207,20 +1207,28 @@ def PlayChart_ThreadFunction():
                     note.player_missed = True
                     PhigrosPlayManagerObject.addEvent("M")
                 
-                if ( # hold hold judge
+                if ( # hold judge sustain
+                    keydown and
                     note.type == Const.Note.HOLD and 
                     note.player_clicked and
                     note.state != Const.NOTE_STATE.MISS and
                     note.hold_endtime - 0.2 >= PlayChart_NowTime
                 ):
-                    if note.player_last_testholdismiss_time + 0.16 <= time.time():
-                        if keydown:
-                            note.player_last_testholdismiss_time = time.time()
-                        else:
-                            note.player_holdmiss_time = PlayChart_NowTime
-                            note.state = Const.NOTE_STATE.MISS
-                            note.player_missed = True
-                            PhigrosPlayManagerObject.addEvent("M")
+                    note.player_last_testholdismiss_time = time.time()
+                    
+                
+                if ( # hold hold sustain miss judge
+                    not keydown and
+                    note.type == Const.Note.HOLD and
+                    note.player_clicked and
+                    note.state != Const.NOTE_STATE.MISS and
+                    note.hold_endtime - 0.2 >= PlayChart_NowTime and
+                    note.player_last_testholdismiss_time + 0.16 <= time.time()
+                ):
+                    note.player_holdmiss_time = PlayChart_NowTime
+                    note.state = Const.NOTE_STATE.MISS
+                    note.player_missed = True
+                    PhigrosPlayManagerObject.addEvent("M")
                 
                 if ( # hold end add event to manager judge
                     note.type == Const.Note.HOLD and
@@ -1270,21 +1278,29 @@ def PlayChart_ThreadFunction():
                     note.player_missed = True
                     PhigrosPlayManagerObject.addEvent("M")
                 
-                if ( # hold hold judge
+                
+                if ( # hold judge sustain
+                    keydown and
                     note.ishold and 
                     note.player_clicked and
                     note.state != Const.NOTE_STATE.MISS and
                     note.secet - 0.2 >= PlayChart_NowTime
                 ):
-                    if note.player_last_testholdismiss_time + 0.16 <= time.time():
-                        if keydown:
-                            note.player_last_testholdismiss_time = time.time()
-                        else:
-                            note.player_holdmiss_time = PlayChart_NowTime
-                            note.state = Const.NOTE_STATE.MISS
-                            note.player_missed = True
-                            PhigrosPlayManagerObject.addEvent("M")
+                    note.player_last_testholdismiss_time = time.time()
                 
+                if ( # hold hold sustain miss judge
+                    not keydown and
+                    note.ishold and
+                    note.player_clicked and
+                    note.state != Const.NOTE_STATE.MISS and
+                    note.secet - 0.2 >= PlayChart_NowTime and
+                    note.player_last_testholdismiss_time + 0.16 <= time.time()
+                ):
+                    note.player_holdmiss_time = PlayChart_NowTime
+                    note.state = Const.NOTE_STATE.MISS
+                    note.player_missed = True
+                    PhigrosPlayManagerObject.addEvent("M")
+                    
                 if ( # hold end add event to manager judge
                     note.ishold and
                     note.player_holdjudged and # if judged is true, hold state is perfect/good/ miss(miss at clicking)
