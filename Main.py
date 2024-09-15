@@ -1032,7 +1032,7 @@ def PlayChart_ThreadFunction():
     notes = [i for line in chart_obj.judgeLineList for i in line.notesAbove + line.notesBelow] if CHART_TYPE == Const.CHART_TYPE.PHI else [i for line in chart_obj.JudgeLineList for i in line.notes if not i.isFake]
     
     if CHART_TYPE == Const.CHART_TYPE.PHI:
-        def _KeyDown(key:str):
+        def _KeyDown(key: str):
             nonlocal KeyDownCount
             key = key.lower()
             if len(key) != 1: return
@@ -1089,7 +1089,7 @@ def PlayChart_ThreadFunction():
                     n.player_click_offset = offset
                     n.player_clicked = True
     elif CHART_TYPE == Const.CHART_TYPE.RPE:
-        def _KeyDown(key:str):
+        def _KeyDown(key: str):
             nonlocal KeyDownCount
             key = key.lower()
             if len(key) != 1: return
@@ -2542,32 +2542,18 @@ def PlayerStart():
                 )
             
             if lfdaot_fp != "":
-                data = {
-                    "meta":{
-                        "frame_speed":frame_speed,
-                        "frame_num":len(lfdaot_tasks),
-                        "render_range_more":render_range_more,
-                        "render_range_more_scale":render_range_more_scale,
-                        "size":[w,h]
-                    },
-                    "data":[]
-                }
-                for Task in lfdaot_tasks.values():
-                    Task_data = {
-                        "render":[],
-                        "ex":[]
-                    }
-                    for rendertask in Task.RenderTasks:
-                        Task_data["render"].append({
-                            "func_name":rendertask.func.__code__.co_name,
-                            "args":list(rendertask.args),
-                            "kwargs":rendertask.kwargs
-                        })
-                    for ex in Task.ExTask:
-                        Task_data["ex"].append(list(ex))
-                    data["data"].append(Task_data)
+                recorder = Chart_Objects_Phi.FrameTaskRecorder(
+                    meta = Chart_Objects_Phi.FrameTaskRecorder_Meta(
+                        frame_speed = frame_speed,
+                        frame_num = len(lfdaot_tasks),
+                        render_range_more = render_range_more,
+                        render_range_more_scale = render_range_more_scale,
+                        size = (w, h)
+                    ),
+                    data = lfdaot_tasks.values()
+                )
                 with open(lfdaot_fp,"w") as f:
-                    f.write(json.dumps(data).replace(" ",""))
+                    f.write(recorder.jsonify())
                     
             if "--lfdaot-file-output-autoexit" in sys.argv:
                 root.destroy()

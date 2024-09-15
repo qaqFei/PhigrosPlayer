@@ -1,8 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import typing
-
-from PIL import Image
+import json
 
 import Const
 import Tool_Functions
@@ -336,4 +335,46 @@ class judgeLine_Config_Item:
 class judgeLine_Configs:
     Configs: list[judgeLine_Config_Item]
 
-del typing,dataclass
+@dataclass
+class FrameTaskRecorder_Meta:
+    frame_speed: int
+    frame_num: int
+    render_range_more: bool
+    render_range_more_scale: float
+    size: tuple[float, float]
+
+@dataclass
+class FrameTaskRecorder:
+    meta: FrameTaskRecorder_Meta
+    data: typing.Iterable[FrameRenderTask]
+    
+    def jsonify(self):
+        data = {
+            "meta": {
+                "frame_speed": self.meta.frame_speed,
+                "frame_num": self.meta.frame_num,
+                "render_range_more": self.meta.render_range_more,
+                "render_range_more_scale": self.meta.render_range_more_scale,
+                "size": self.meta.size
+            },
+            "data": []
+        }
+        
+        for task in self.data:
+            task_data = {
+                "render": [],
+                "ex": list(map(list, task.ExTask))
+            }
+            
+            for rendertask in task.RenderTasks:
+                task_data["render"].append({
+                    "func_name":rendertask.func.__code__.co_name,
+                    "args":list(rendertask.args),
+                    "kwargs":rendertask.kwargs
+                })
+            
+            data["data"].append(task_data)
+        
+        return json.dumps(data)
+
+del typing, dataclass
