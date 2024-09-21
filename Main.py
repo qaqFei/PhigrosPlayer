@@ -1498,10 +1498,10 @@ def GetFrameRenderTask_Phi(
                     else:
                         holdhead_pos = x, y
                     holdbody_range = (
-                        Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
-                        Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg - 90,Note_width / 2),
-                        Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
-                        Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90,Note_width / 2),
+                        Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg - 90, Note_width / 2),
+                        Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg - 90, Note_width / 2),
+                        Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg + 90, Note_width / 2),
+                        Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90, Note_width / 2),
                     )
                     
                 if not render_range_more:
