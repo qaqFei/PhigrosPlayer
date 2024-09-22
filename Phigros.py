@@ -43,11 +43,10 @@ def saveUserData():
 
 def loadUserData():
     global userData
+    userData = userData_default.copy()
     try:
-        userData = userData_default.copy()
         userData.update(json.loads(open("./Phigros_UserData.json", "r", encoding="utf-8").read()))
     except:
-        userData = userData_default
         print("Phigros_UserData.json load failed, using default data")
 
 def getUserData(key: str):
