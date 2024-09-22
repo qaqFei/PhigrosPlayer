@@ -11,7 +11,7 @@ import sys
 import time
 import math
 
-sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else sys.__excepthook__(*args)
+if __name__ == "__main__": sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else sys.__excepthook__(*args)
 
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 from pygame import mixer

@@ -2,3 +2,4 @@ __pycache__
 .mypy_cache
 ppr-server-*
 PhigrosAssets
+Phigros_UserData.json

@@ -29,6 +29,39 @@ if not exists("./PhigrosAssets"):
         print("PhigrosAssets not found, please download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
         time.sleep(0.1)
 
+userData_default = {
+    "userName": "GUEST",
+    "userAvatar": "avatars/fengyv.png",
+    "userBackground": "backgrounds/rr.png",
+    "rankingScore": 0.0,
+    "selfIntroduction": "There is a self-introduction, write something just like:\nTwitter: @Phigros_PGS\nYouTube: Pigeon Games\n\nHope you have fun in Phigros.\nBest regards,\nPigeon Games"
+}
+
+def saveUserData():
+    with open("./Phigros_UserData.json", "w", encoding="utf-8") as f:
+        f.write(json.dumps(userData_default, indent=4, ensure_ascii=False))
+
+def loadUserData():
+    global userData
+    try:
+        userData = userData_default.copy()
+        userData.update(json.loads(open("./Phigros_UserData.json", "r", encoding="utf-8").read()))
+    except:
+        userData = userData_default
+        print("Phigros_UserData.json load failed, using default data")
+
+def getUserData(key: str):
+    return userData.get(key, userData_default[key])
+
+def setUserData(key: str, value: typing.Any):
+    userData[key] = value
+
+if not exists("./Phigros_UserData.json"):
+    userData = {}
+    saveUserData()
+
+loadUserData()
+
 mixer.init()
 chaptersDx = 0.0
 inMainUI = False
@@ -157,6 +190,9 @@ def Load_Resource():
         chapter.im = im
         root.reg_img(im, f"chapter_{chapter.chapterId}_raw")
         root.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
+    
+    root.reg_img(Image.open(f"./PhigrosAssets/{getUserData("userAvatar")}"), "userAvatar")
+    root.reg_img(Image.open(f"./PhigrosAssets/{getUserData("userBackground")}"), "userBackground")
     
     with open("./Resources/font.ttf", "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
@@ -1237,6 +1273,49 @@ def settingRender():
         
         root.run_js_code(
             f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            w * 0.1765625, h * 0.2,
+            "玩家信息",
+            font = f"{(w + h) / 75}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "bottom",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleClipImage(\
+                {w * 0.0796875}, {h * 0.225},\
+                {w * 0.940625}, {h * 0.65},\
+                {root.get_img_jsvarname("userBackground")},\
+                0, {h * 0.425 - w * 0.8609375 / 16 * 9},\
+                {w * 0.8609375}, {w * 0.8609375 / 16 * 9},\
+                {Tool_Functions.getDPower(w * 0.8609375, h * 0.425, 75)}, 1.0\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {w * 0.0796875}, {h * 0.225},\
+                {w * 0.940625}, {h * 0.65},\
+                {Tool_Functions.getDPower(w * 0.8609375, h * 0.425, 75)},\
+                'rgba(0, 0, 0, 0.375)'\
+            );",
+            add_code_array = True
+        )
+        
+        leftBlackDiagonalX = 0.538
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {w * 0.0796875}, {h * 0.225},\
+                {w * ((0.940625 - 0.0796875) * leftBlackDiagonalX + 0.0796875)}, {h * 0.65},\
+                {Tool_Functions.getDPower(w * ((0.940625 - 0.0796875) * leftBlackDiagonalX), h * 0.425, 75)},\
+                'rgba(0, 0, 0, 0.25)'\
+            );",
             add_code_array = True
         )
         
