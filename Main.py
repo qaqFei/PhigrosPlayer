@@ -1607,7 +1607,7 @@ def GetFrameRenderTask_Phi(
                                 {noteRotate},\
                                 1.0\
                             );",
-                            add_code_array = True #eq wait_exec true
+                            add_code_array = True
                         )
         process(judgeLine.notesAbove,1)
         process(judgeLine.notesBelow,-1)
@@ -2072,7 +2072,7 @@ def GetFrameRenderTask_Rpe(
                             {noteRotate},\
                             {note.float_alpha}\
                         );",
-                        add_code_array = True #eq wait_exec true
+                        add_code_array = True
                     )
                     
     effect_time = 0.5
@@ -3218,7 +3218,7 @@ PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
-Thread(target=Show_Start,daemon=True).start()
+Thread(target=Show_Start, daemon=True).start()
 root.loop_to_close()
 
 for item in [item for item in listdir(gettempdir()) if item.startswith("qfppr_cctemp_")]:
