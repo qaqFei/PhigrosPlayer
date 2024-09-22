@@ -368,6 +368,10 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
         wait_execute = True
     )
     
+    PlayButtonWidth = w * 0.1453125
+    PlayButtonHeight = h * (5 / 54)
+    PlayButtonDPower = Tool_Functions.getDPower(PlayButtonWidth, PlayButtonHeight, 75)
+
     playButtonRect = (
         chapterRect[2] - dPower * chapterWidth + PlayButtonDPower * PlayButtonWidth - PlayButtonWidth, chapterRect[3] - PlayButtonHeight,
         chapterRect[2] - dPower * chapterWidth + PlayButtonDPower * PlayButtonWidth, chapterRect[3]
@@ -1290,7 +1294,7 @@ def settingRender():
                 {w * 0.0796875}, {h * 0.225},\
                 {w * 0.940625}, {h * 0.65},\
                 {root.get_img_jsvarname("userBackground")},\
-                0, {h * 0.425 - w * 0.8609375 / 16 * 9},\
+                0, {(h * 0.425 - w * 0.8609375 / 16 * 9) / 2},\
                 {w * 0.8609375}, {w * 0.8609375 / 16 * 9},\
                 {Tool_Functions.getDPower(w * 0.8609375, h * 0.425, 75)}, 1.0\
             );",
@@ -1314,6 +1318,77 @@ def settingRender():
                 {w * ((0.940625 - 0.0796875) * leftBlackDiagonalX + 0.0796875)}, {h * 0.65},\
                 {Tool_Functions.getDPower(w * ((0.940625 - 0.0796875) * leftBlackDiagonalX), h * 0.425, 75)},\
                 'rgba(0, 0, 0, 0.25)'\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {w * 0.121875}, {h * (283 / 1080)},\
+                {w * 0.465625}, {h * (397 / 1080)},\
+                {Tool_Functions.getDPower(w * 0.34375, h * (114 / 1080), 75)},\
+                'rgba(0, 0, 0, 0.9)'\
+            );",
+            add_code_array = True
+        )
+        
+        avatarSize = max(w * 0.096875, h * (120 / 1080)) * 1.25
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleClipImage(\
+                {w * 0.128125}, {h * (280 / 1080)},\
+                {w * 0.225}, {h * (400 / 1080)},\
+                {root.get_img_jsvarname("userAvatar")},\
+                {(w * 0.096875 - avatarSize) / 2},\
+                {(h * (120 / 1080) - avatarSize) / 2},\
+                {avatarSize}, {avatarSize},\
+                {Tool_Functions.getDPower(w * 0.096875, h * (120 / 1080), 75)}, 1.0\
+            );",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            w * 0.234375, h * (340 / 1080),
+            getUserData("userName"),
+            font = f"{userName_FontSize}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        rankingScoreRect = (
+            w * 0.465625 - (w * 0.34375) * Tool_Functions.getDPower(w * 0.34375, h * (114 / 1080), 75),
+            h * (357 / 1080),
+            w * 0.5140625,
+            h * (397 / 1080)
+        )
+        root.run_js_code( # 这个矩形真头疼...
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {",".join(map(str, rankingScoreRect))},\
+                {Tool_Functions.getDPower(rankingScoreRect[2] - rankingScoreRect[0], rankingScoreRect[3] - rankingScoreRect[1], 75)},\
+                'rgb(255, 255, 255)'\
+            );",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            (rankingScoreRect[0] + rankingScoreRect[2]) / 2, (rankingScoreRect[1] + rankingScoreRect[3]) / 2,
+            f"{getUserData("rankingScore"):.2f}",
+            font = f"{(rankingScoreRect[3] - rankingScoreRect[1]) * 0.8}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgb(83, 83, 83)",
+            wait_execute = True
+        )
+        
+        selfIntroduction_fontSize = (w + h) / 135
+        root.run_js_code(
+            f"ctx.drawRectMultilineText(\
+                {w * 0.14375}, {h * (442 / 1080)},\
+                {w * 0.4546875}, {h * (660 / 1080)},\
+                {root.process_code_string_syntax_tocode(getUserData("selfIntroduction"))},\
+                'rgb(255, 255, 255)', '{selfIntroduction_fontSize}px PhigrosFont',\
+                {selfIntroduction_fontSize}\
             );",
             add_code_array = True
         )
@@ -1769,34 +1844,45 @@ def settingRender():
         
         root.run_js_wait_code()
 
+def updateFontSizes():
+    global userName_FontSize
+    
+    userName_Width1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(getUserData("userName"))}).width;") / 50
+    userName_FontSize = w * 0.209375 / userName_Width1px
+    if userName_FontSize > w * 0.0234375:
+        userName_FontSize = w * 0.0234375
+
+def resize(w_: int, h_: int):
+    global w, h
+    w, h = w_ - dw_legacy, h_ - dh_legacy
+    updateFontSizes()
+
 root = webcvapis.WebCanvas(
     width = 1, height = 1,
     x = 0, y = 0,
     title = "Phigros",
     debug = "--debug" in sys.argv,
-    resizable = False
+    resizable = "--resizeable" in sys.argv,
 )
 webdpr = root.run_js_code("window.devicePixelRatio;")
 root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
 
-# w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-# root.resize(w, h)
-# root._web.toggle_fullscreen()
-
-w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+w, h = root.winfo_screenwidth(), root.winfo_screenheight()
 root.resize(w, h)
-w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
-dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
-dw_legacy *= webdpr; dh_legacy *= webdpr
-dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
-del w_legacy, h_legacy
-root.resize(w + dw_legacy, h + dh_legacy)
-root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
+root._web.toggle_fullscreen()
+dw_legacy, dh_legacy = 0, 0
 
-# Constant
-PlayButtonWidth = w * 0.1453125
-PlayButtonHeight = h * (5 / 54)
-PlayButtonDPower = Tool_Functions.getDPower(PlayButtonWidth, PlayButtonHeight, 75)
+# w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+# root.resize(w, h)
+# w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
+# dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
+# dw_legacy *= webdpr; dh_legacy *= webdpr
+# dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
+# del w_legacy, h_legacy
+# root.resize(w + dw_legacy, h + dh_legacy)
+# root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
+
+root.reg_event("resized", resize)
 
 if "--window-host" in sys.argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
@@ -1805,6 +1891,7 @@ Load_Chapters()
 Resource = Load_Resource()
 eventManager = PhigrosGameObject.EventManager()
 bindEvents()
+updateFontSizes()
 Thread(target=showStartAnimation, daemon=True).start()
     
 root.loop_to_close()
