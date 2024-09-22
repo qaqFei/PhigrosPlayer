@@ -46,7 +46,7 @@ def loadUserData():
     userData = userData_default.copy()
     try:
         userData.update(json.loads(open("./Phigros_UserData.json", "r", encoding="utf-8").read()))
-    except:
+    except Exception:
         print("Phigros_UserData.json load failed, using default data")
 
 def getUserData(key: str):
