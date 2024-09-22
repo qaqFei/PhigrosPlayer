@@ -36,17 +36,6 @@ import ppr_help
 import rpe_easing
 import ChartAnimation
 
-if len(sys.argv) == 1:
-    HELP = ppr_help.HELP_EN if windll.kernel32.GetSystemDefaultUILanguage() != 0x804 else ppr_help.HELP_ZH
-    print(HELP)
-    windll.kernel32.ExitProcess(0)
-    
-version.print_hello()
-Thread(target=version.check_new_version, daemon=True).start()
-
-if "--hideconsole" in sys.argv:
-    ConsoleWindow.Hide()
-
 Kill_PlayThread_Flag = False
 
 selfdir = dirname(sys.argv[0])
@@ -57,7 +46,18 @@ if not exists("./7z.exe") or not exists("./7z.dll"):
     print("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
 
-temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time.time()}"
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        HELP = ppr_help.HELP_EN if windll.kernel32.GetSystemDefaultUILanguage() != 0x804 else ppr_help.HELP_ZH
+        print(HELP)
+        windll.kernel32.ExitProcess(0)
+        
+    version.print_hello()
+    Thread(target=version.check_new_version, daemon=True).start()
+
+    if "--hideconsole" in sys.argv:
+        ConsoleWindow.Hide()
+
 for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_chart_temp_")]:
     item = f"{gettempdir()}\\{item}"
     try:
@@ -65,6 +65,8 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_
         print(f"Remove Temp Dir: {item}")
     except Exception as e:
         print(f"Warning: {e}")
+        
+temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time.time()}"
 print(f"Temp Dir: {temp_dir}")
 
 enable_clicksound = "--noclicksound" not in sys.argv
@@ -111,293 +113,294 @@ print("Init Pygame Mixer...")
 mixer.init()
 mixer.music.set_volume(0.85)
 
-print("Unpack Chart...")
-popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" >> nul").read()
+if __name__ == "__main__":
+    print("Unpack Chart...")
+    popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" >> nul").read()
 
-print("Loading All Files of Chart...")
-chart_files = Find_Files.Get_All_Files(temp_dir)
-chart_files_dict = {
-    "charts": [],
-    "images": [],
-    "audio": [],
-}
-for item in chart_files:
-    if item.endswith("info.txt") or item.endswith("info.csv") or item.endswith("info.yml") or item.endswith("extra.json"):
-        continue
-    
-    try:
-        chart_files_dict["images"].append([item,Image.open(item).convert("RGB")])
-        print(f"Add Resource (image): {item.replace(f"{temp_dir}\\", "")}")
-    except Exception:
+    print("Loading All Files of Chart...")
+    chart_files = Find_Files.Get_All_Files(temp_dir)
+    chart_files_dict = {
+        "charts": [],
+        "images": [],
+        "audio": [],
+    }
+    for item in chart_files:
+        if item.endswith("info.txt") or item.endswith("info.csv") or item.endswith("info.yml") or item.endswith("extra.json"):
+            continue
+        
         try:
-            mixer.music.load(item)
-            chart_files_dict["audio"].append(item)
-            print(f"Add Resource (audio): {item.replace(f"{temp_dir}\\", "")}")
+            chart_files_dict["images"].append([item,Image.open(item).convert("RGB")])
+            print(f"Add Resource (image): {item.replace(f"{temp_dir}\\", "")}")
         except Exception:
             try:
-                with open(item, "r", encoding="utf-8") as f:
-                    chart_text = f.read()
-                    chart_files_dict["charts"].append([item, json.loads(chart_text)])
-                    print(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
-            except Exception as e:
-                if isinstance(e, json.decoder.JSONDecodeError) and (chart_text.startswith("175") or chart_text.startswith("0")): # pec chart
-                    rpeJson = { # if some key and value is not exists, in loading rpe chart, it will be set to default value.
-                        "META": {},
-                        "BPMList": [],
-                        "judgeLineList": []
-                    }
-                    judgeLines = {}
-                    checkLineExists = lambda k: [judgeLines.update({k: {
-                        "eventLayers": [{
-                            "speedEvents": [],
-                            "moveXEvents": [],
-                            "moveYEvents": [],
-                            "rotateEvents": [],
-                            "alphaEvents": []
-                        }],
-                        "notes": []
-                    }}), rpeJson["judgeLineList"].append(judgeLines[k]),
-                        waitAddEventMove.update({k: {}}),
-                        waitAddEventRotate.update({k: {}}),
-                        waitAddEventAlpha.update({k: {}})
-                    ] if k not in judgeLines else None
-                    waitAddEventMove = {}
-                    waitAddEventRotate = {}
-                    waitAddEventAlpha = {}
-                    textlines = list(filter(lambda x: x, chart_text.split("\n")))
-                    eventLevelDict = {
-                        "bp": 0,
-                        "cp": 1, "cd": 1, "ca": 1,
-                        "cm": 2, "cr": 2, "cf": 2, "cv": 3,
-                        "n1": 4, "n2": 4, "n3": 4, "n4": 4, "&": 4, "#": 4
-                    }
-                    textlines.sort(key = lambda x: (eventLevelDict[x.split(" ")[0]] if x.split(" ")[0] in eventLevelDict else -1))
-                    for i, textline in enumerate(textlines):
-                        tokens = textline.split(" ")
-                        try:
-                            match tokens[0]:
-                                case "bp":
-                                    rpeJson["BPMList"].append({
-                                        "startTime": [float(tokens[1]), 0, 1],
-                                        "bpm": float(tokens[2])
-                                    })
-                                case "cp":
-                                    checkLineExists(tokens[1])
-                                    waitAddEventMove[tokens[1]][float(tokens[2])] = {
-                                        "startTime": [float(tokens[2]), 0, 1],
-                                        "startX": (float(tokens[3]) / 2048 - 0.5) * 1350,
-                                        "startY": (float(tokens[4]) / 1400 - 0.5) * 900
-                                    }
-                                case "cm":
-                                    checkLineExists(tokens[1])
-                                    line = judgeLines[tokens[1]]
-                                    try: startEvent = waitAddEventMove[tokens[1]][float(tokens[2])]
-                                    except KeyError: startEvent = {
-                                        "startTime": [float(tokens[2]), 0, 1],
-                                        "startX": (float(tokens[4]) / 2048 - 0.5) * 1350,
-                                        "startY": (float(tokens[5]) / 1400 - 0.5) * 900
-                                    }
-                                    line["eventLayers"][0]["moveXEvents"].append({
-                                        "startTime": startEvent["startTime"],
-                                        "endTime": [float(tokens[3]), 0, 1],
-                                        "start": startEvent["startX"],
-                                        "end": (float(tokens[4]) / 2048 - 0.5) * 1350,
-                                        "easingType": int(float(tokens[6]))
-                                    })
-                                    line["eventLayers"][0]["moveYEvents"].append({
-                                        "startTime": startEvent["startTime"],
-                                        "endTime": [float(tokens[3]), 0, 1],
-                                        "start": startEvent["startY"],
-                                        "end": (float(tokens[5]) / 1400 - 0.5) * 900,
-                                        "easingType": int(float(tokens[6]))
-                                    })
-                                case "cd":
-                                    checkLineExists(tokens[1])
-                                    waitAddEventRotate[tokens[1]][float(tokens[2])] = {
-                                        "startTime": [float(tokens[2]), 0, 1],
-                                        "start": float(tokens[3]),
-                                    }
-                                case "cr":
-                                    checkLineExists(tokens[1])
-                                    line = judgeLines[tokens[1]]
-                                    try: startEvent = waitAddEventRotate[tokens[1]][float(tokens[2])]
-                                    except KeyError: startEvent = {
-                                        "startTime": [float(tokens[2]), 0, 1],
-                                        "start": float(tokens[4])
-                                    }
-                                    line["eventLayers"][0]["rotateEvents"].append({
-                                        "startTime": startEvent["startTime"],
-                                        "endTime": [float(tokens[3]), 0, 1],
-                                        "start": startEvent["start"],
-                                        "end": float(tokens[4]),
-                                        "easingType": int(float(tokens[5]))
-                                    })
-                                case "ca":
-                                    checkLineExists(tokens[1])
-                                    waitAddEventAlpha[tokens[1]][float(tokens[2])] = {
-                                        "startTime": [float(tokens[2]), 0, 1],
-                                        "start": float(tokens[3]),
-                                    }
-                                case "cf":
-                                    checkLineExists(tokens[1])
-                                    line = judgeLines[tokens[1]]
-                                    try: startEvent = waitAddEventAlpha[tokens[1]][float(tokens[2])]
-                                    except KeyError: startEvent = {
-                                        "startTime": [float(tokens[2]), 0, 1],
-                                        "start": float(tokens[4])
-                                    }
-                                    line["eventLayers"][0]["alphaEvents"].append({
-                                        "startTime": startEvent["startTime"],
-                                        "endTime": [float(tokens[3]), 0, 1],
-                                        "start": startEvent["start"],
-                                        "end": float(tokens[4]),
-                                        "easingType": 1
-                                    })
-                                case "cv":
-                                    checkLineExists(tokens[1])
-                                    line = judgeLines[tokens[1]]
-                                    line["eventLayers"][0]["speedEvents"].append({
-                                        "startTime": [float(tokens[2]), 0, 1],
-                                        "start": float(tokens[3]) * 0.5844193793466191, # 1 / 1.7111
-                                        "end": float(tokens[3]) * 0.5844193793466191,
-                                        "easingType": 1
-                                    })
-                                case "n1" | "n2" | "n3" | "n4":
-                                    checkLineExists(tokens[1])
-                                    line = judgeLines[tokens[1]]
-                                    ntls = [textlines[i + 1], textlines[i + 2]]
-                                    ntl1 = ntls[0] if "#" in ntls[0] else ntls[1]
-                                    ntl2 = ntls[1] if "&" in ntls[1] else ntls[0]
-                                    if tokens[0] == "n2":
-                                        et = [float(tokens[3]), 0, 1]
-                                        del tokens[3]
-                                    line["notes"].append({
-                                        "type": {"n1": 1, "n2": 2, "n3": 3, "n4": 4}[tokens[0]],
-                                        "startTime": [float(tokens[2]), 0, 1],
-                                        "endTime": [float(tokens[2]), 0, 1] if tokens[0] != "n2" else et,
-                                        "positionX": float(tokens[3]) / 2048 * 1350,
-                                        "above": int(float(tokens[4])),
-                                        "isFake": bool(int(float(tokens[5]))),
-                                        "speed": float(ntl1.replace(" ", "").replace("#", "")),
-                                        "size": float(ntl2.replace(" ", "").replace("&", ""))
-                                    })
-                        except Exception as e:
-                            print(f"Warning in pec2rpe: {repr(e)}")
-                    for line in rpeJson["judgeLineList"]:
-                        for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):
-                            if i != len(line["eventLayers"][0]["speedEvents"]) - 1:
-                                e["endTime"] = line["eventLayers"][0]["speedEvents"][i + 1]["startTime"]
-                            else:
-                                e["endTime"] = [e["startTime"][0] + 31250000, 0, 1]
-                    chart_files_dict["charts"].append([item, rpeJson])
-                else:
-                    name = item.replace(f"{temp_dir}\\", "")
-                    print(f"Warning: Unknown Resource Type. Path = {name}")
-                    
-if len(chart_files_dict["charts"]) == 0:
-    print("No Chart File Found.")
-    windll.kernel32.ExitProcess(1)
-if len(chart_files_dict["audio"]) == 0:
-    print("No Audio File Found.")
-    windll.kernel32.ExitProcess(1)
-if len(chart_files_dict["images"]) == 0:
-    chart_files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
+                mixer.music.load(item)
+                chart_files_dict["audio"].append(item)
+                print(f"Add Resource (audio): {item.replace(f"{temp_dir}\\", "")}")
+            except Exception:
+                try:
+                    with open(item, "r", encoding="utf-8") as f:
+                        chart_text = f.read()
+                        chart_files_dict["charts"].append([item, json.loads(chart_text)])
+                        print(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
+                except Exception as e:
+                    if isinstance(e, json.decoder.JSONDecodeError) and (chart_text.startswith("175") or chart_text.startswith("0")): # pec chart
+                        rpeJson = { # if some key and value is not exists, in loading rpe chart, it will be set to default value.
+                            "META": {},
+                            "BPMList": [],
+                            "judgeLineList": []
+                        }
+                        judgeLines = {}
+                        checkLineExists = lambda k: [judgeLines.update({k: {
+                            "eventLayers": [{
+                                "speedEvents": [],
+                                "moveXEvents": [],
+                                "moveYEvents": [],
+                                "rotateEvents": [],
+                                "alphaEvents": []
+                            }],
+                            "notes": []
+                        }}), rpeJson["judgeLineList"].append(judgeLines[k]),
+                            waitAddEventMove.update({k: {}}),
+                            waitAddEventRotate.update({k: {}}),
+                            waitAddEventAlpha.update({k: {}})
+                        ] if k not in judgeLines else None
+                        waitAddEventMove = {}
+                        waitAddEventRotate = {}
+                        waitAddEventAlpha = {}
+                        textlines = list(filter(lambda x: x, chart_text.split("\n")))
+                        eventLevelDict = {
+                            "bp": 0,
+                            "cp": 1, "cd": 1, "ca": 1,
+                            "cm": 2, "cr": 2, "cf": 2, "cv": 3,
+                            "n1": 4, "n2": 4, "n3": 4, "n4": 4, "&": 4, "#": 4
+                        }
+                        textlines.sort(key = lambda x: (eventLevelDict[x.split(" ")[0]] if x.split(" ")[0] in eventLevelDict else -1))
+                        for i, textline in enumerate(textlines):
+                            tokens = textline.split(" ")
+                            try:
+                                match tokens[0]:
+                                    case "bp":
+                                        rpeJson["BPMList"].append({
+                                            "startTime": [float(tokens[1]), 0, 1],
+                                            "bpm": float(tokens[2])
+                                        })
+                                    case "cp":
+                                        checkLineExists(tokens[1])
+                                        waitAddEventMove[tokens[1]][float(tokens[2])] = {
+                                            "startTime": [float(tokens[2]), 0, 1],
+                                            "startX": (float(tokens[3]) / 2048 - 0.5) * 1350,
+                                            "startY": (float(tokens[4]) / 1400 - 0.5) * 900
+                                        }
+                                    case "cm":
+                                        checkLineExists(tokens[1])
+                                        line = judgeLines[tokens[1]]
+                                        try: startEvent = waitAddEventMove[tokens[1]][float(tokens[2])]
+                                        except KeyError: startEvent = {
+                                            "startTime": [float(tokens[2]), 0, 1],
+                                            "startX": (float(tokens[4]) / 2048 - 0.5) * 1350,
+                                            "startY": (float(tokens[5]) / 1400 - 0.5) * 900
+                                        }
+                                        line["eventLayers"][0]["moveXEvents"].append({
+                                            "startTime": startEvent["startTime"],
+                                            "endTime": [float(tokens[3]), 0, 1],
+                                            "start": startEvent["startX"],
+                                            "end": (float(tokens[4]) / 2048 - 0.5) * 1350,
+                                            "easingType": int(float(tokens[6]))
+                                        })
+                                        line["eventLayers"][0]["moveYEvents"].append({
+                                            "startTime": startEvent["startTime"],
+                                            "endTime": [float(tokens[3]), 0, 1],
+                                            "start": startEvent["startY"],
+                                            "end": (float(tokens[5]) / 1400 - 0.5) * 900,
+                                            "easingType": int(float(tokens[6]))
+                                        })
+                                    case "cd":
+                                        checkLineExists(tokens[1])
+                                        waitAddEventRotate[tokens[1]][float(tokens[2])] = {
+                                            "startTime": [float(tokens[2]), 0, 1],
+                                            "start": float(tokens[3]),
+                                        }
+                                    case "cr":
+                                        checkLineExists(tokens[1])
+                                        line = judgeLines[tokens[1]]
+                                        try: startEvent = waitAddEventRotate[tokens[1]][float(tokens[2])]
+                                        except KeyError: startEvent = {
+                                            "startTime": [float(tokens[2]), 0, 1],
+                                            "start": float(tokens[4])
+                                        }
+                                        line["eventLayers"][0]["rotateEvents"].append({
+                                            "startTime": startEvent["startTime"],
+                                            "endTime": [float(tokens[3]), 0, 1],
+                                            "start": startEvent["start"],
+                                            "end": float(tokens[4]),
+                                            "easingType": int(float(tokens[5]))
+                                        })
+                                    case "ca":
+                                        checkLineExists(tokens[1])
+                                        waitAddEventAlpha[tokens[1]][float(tokens[2])] = {
+                                            "startTime": [float(tokens[2]), 0, 1],
+                                            "start": float(tokens[3]),
+                                        }
+                                    case "cf":
+                                        checkLineExists(tokens[1])
+                                        line = judgeLines[tokens[1]]
+                                        try: startEvent = waitAddEventAlpha[tokens[1]][float(tokens[2])]
+                                        except KeyError: startEvent = {
+                                            "startTime": [float(tokens[2]), 0, 1],
+                                            "start": float(tokens[4])
+                                        }
+                                        line["eventLayers"][0]["alphaEvents"].append({
+                                            "startTime": startEvent["startTime"],
+                                            "endTime": [float(tokens[3]), 0, 1],
+                                            "start": startEvent["start"],
+                                            "end": float(tokens[4]),
+                                            "easingType": 1
+                                        })
+                                    case "cv":
+                                        checkLineExists(tokens[1])
+                                        line = judgeLines[tokens[1]]
+                                        line["eventLayers"][0]["speedEvents"].append({
+                                            "startTime": [float(tokens[2]), 0, 1],
+                                            "start": float(tokens[3]) * 0.5844193793466191, # 1 / 1.7111
+                                            "end": float(tokens[3]) * 0.5844193793466191,
+                                            "easingType": 1
+                                        })
+                                    case "n1" | "n2" | "n3" | "n4":
+                                        checkLineExists(tokens[1])
+                                        line = judgeLines[tokens[1]]
+                                        ntls = [textlines[i + 1], textlines[i + 2]]
+                                        ntl1 = ntls[0] if "#" in ntls[0] else ntls[1]
+                                        ntl2 = ntls[1] if "&" in ntls[1] else ntls[0]
+                                        if tokens[0] == "n2":
+                                            et = [float(tokens[3]), 0, 1]
+                                            del tokens[3]
+                                        line["notes"].append({
+                                            "type": {"n1": 1, "n2": 2, "n3": 3, "n4": 4}[tokens[0]],
+                                            "startTime": [float(tokens[2]), 0, 1],
+                                            "endTime": [float(tokens[2]), 0, 1] if tokens[0] != "n2" else et,
+                                            "positionX": float(tokens[3]) / 2048 * 1350,
+                                            "above": int(float(tokens[4])),
+                                            "isFake": bool(int(float(tokens[5]))),
+                                            "speed": float(ntl1.replace(" ", "").replace("#", "")),
+                                            "size": float(ntl2.replace(" ", "").replace("&", ""))
+                                        })
+                            except Exception as e:
+                                print(f"Warning in pec2rpe: {repr(e)}")
+                        for line in rpeJson["judgeLineList"]:
+                            for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):
+                                if i != len(line["eventLayers"][0]["speedEvents"]) - 1:
+                                    e["endTime"] = line["eventLayers"][0]["speedEvents"][i + 1]["startTime"]
+                                else:
+                                    e["endTime"] = [e["startTime"][0] + 31250000, 0, 1]
+                        chart_files_dict["charts"].append([item, rpeJson])
+                    else:
+                        name = item.replace(f"{temp_dir}\\", "")
+                        print(f"Warning: Unknown Resource Type. Path = {name}")
+                        
+    if len(chart_files_dict["charts"]) == 0:
+        print("No Chart File Found.")
+        windll.kernel32.ExitProcess(1)
+    if len(chart_files_dict["audio"]) == 0:
+        print("No Audio File Found.")
+        windll.kernel32.ExitProcess(1)
+    if len(chart_files_dict["images"]) == 0:
+        chart_files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
 
-phigros_chart_index = 0
-chart_image_index = 0
-audio_file_index = 0
+    phigros_chart_index = 0
+    chart_image_index = 0
+    audio_file_index = 0
 
-if len(chart_files_dict["charts"]) > 1:
-    for index,chart_file in enumerate(chart_files_dict["charts"]):
-        name = chart_file[0].split("/")[-1].split("\\")[-1]
-        print(f"{index + 1}. {name}")
-    phigros_chart_index = int(input("请选择谱面文件: ")) - 1
-    chart_json = chart_files_dict["charts"][phigros_chart_index][1]
-else:
-    chart_json = chart_files_dict["charts"][phigros_chart_index][1]
-phigros_chart_filepath = chart_files_dict["charts"][phigros_chart_index][0]
-
-if "formatVersion" in chart_json:
-    CHART_TYPE = Const.CHART_TYPE.PHI
-elif "META" in chart_json:
-    CHART_TYPE = Const.CHART_TYPE.RPE
-    render_range_more = False
-else:
-    print("This is what format chart???")
-    windll.kernel32.ExitProcess(1)
-
-def LoadChartObject():
-    global chart_obj
-    if CHART_TYPE == Const.CHART_TYPE.PHI:
-        chart_obj = Chart_Functions_Phi.Load_Chart_Object(chart_json)
-    elif CHART_TYPE == Const.CHART_TYPE.RPE:
-        chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
-LoadChartObject()
-
-if len(chart_files_dict["images"]) > 1:
-    if CHART_TYPE == Const.CHART_TYPE.RPE and chart_obj.META.background in [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]]:
-        chart_image_index = [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]].index(chart_obj.META.background)
-        chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
-    else:
-        for index, file in enumerate(chart_files_dict["images"]):
-            name = file[0].split("/")[-1].split("\\")[-1]
+    if len(chart_files_dict["charts"]) > 1:
+        for index,chart_file in enumerate(chart_files_dict["charts"]):
+            name = chart_file[0].split("/")[-1].split("\\")[-1]
             print(f"{index + 1}. {name}")
-        chart_image_index = int(input("请选择谱面图片: ")) - 1
-        chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
-else:
-    chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
-chart_image_filepath = chart_files_dict["images"][chart_image_index][0]
-
-if len(chart_files_dict["audio"]) > 1:
-    if CHART_TYPE == Const.CHART_TYPE.RPE and chart_obj.META.song in [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]]:
-        audio_file_index = [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]].index(chart_obj.META.song)
-        audio_file = chart_files_dict["audio"][audio_file_index]
+        phigros_chart_index = int(input("请选择谱面文件: ")) - 1
+        chart_json = chart_files_dict["charts"][phigros_chart_index][1]
     else:
-        for index, file in enumerate(chart_files_dict["audio"]):
-            name = file.split("/")[-1].split("\\")[-1]
-            print(f"{index + 1}. {name}")
-        audio_file_index = int(input("请选择音频文件: ")) - 1
+        chart_json = chart_files_dict["charts"][phigros_chart_index][1]
+    phigros_chart_filepath = chart_files_dict["charts"][phigros_chart_index][0]
+
+    if "formatVersion" in chart_json:
+        CHART_TYPE = Const.CHART_TYPE.PHI
+    elif "META" in chart_json:
+        CHART_TYPE = Const.CHART_TYPE.RPE
+        render_range_more = False
+    else:
+        print("This is what format chart???")
+        windll.kernel32.ExitProcess(1)
+
+    def LoadChartObject():
+        global chart_obj
+        if CHART_TYPE == Const.CHART_TYPE.PHI:
+            chart_obj = Chart_Functions_Phi.Load_Chart_Object(chart_json)
+        elif CHART_TYPE == Const.CHART_TYPE.RPE:
+            chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
+    LoadChartObject()
+
+    if len(chart_files_dict["images"]) > 1:
+        if CHART_TYPE == Const.CHART_TYPE.RPE and chart_obj.META.background in [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]]:
+            chart_image_index = [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]].index(chart_obj.META.background)
+            chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
+        else:
+            for index, file in enumerate(chart_files_dict["images"]):
+                name = file[0].split("/")[-1].split("\\")[-1]
+                print(f"{index + 1}. {name}")
+            chart_image_index = int(input("请选择谱面图片: ")) - 1
+            chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
+    else:
+        chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
+    chart_image_filepath = chart_files_dict["images"][chart_image_index][0]
+
+    if len(chart_files_dict["audio"]) > 1:
+        if CHART_TYPE == Const.CHART_TYPE.RPE and chart_obj.META.song in [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]]:
+            audio_file_index = [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]].index(chart_obj.META.song)
+            audio_file = chart_files_dict["audio"][audio_file_index]
+        else:
+            for index, file in enumerate(chart_files_dict["audio"]):
+                name = file.split("/")[-1].split("\\")[-1]
+                print(f"{index + 1}. {name}")
+            audio_file_index = int(input("请选择音频文件: ")) - 1
+            audio_file = chart_files_dict["audio"][audio_file_index]
+    else:
         audio_file = chart_files_dict["audio"][audio_file_index]
-else:
-    audio_file = chart_files_dict["audio"][audio_file_index]
 
-raw_audio_file = audio_file
-if speed != 1.0:
-    print("Processing audio...")
-    seg: AudioSegment = AudioSegment.from_file(audio_file)
-    seg = seg._spawn(seg.raw_data, overrides = {
-        "frame_rate": int(seg.frame_rate * speed)
-    }).set_frame_rate(seg.frame_rate)
-    audio_file = f"{temp_dir}/ppr_temp_audio_{time.time()}.mp3"
-    seg.export(audio_file, format="mp3")
+    raw_audio_file = audio_file
+    if speed != 1.0:
+        print("Processing audio...")
+        seg: AudioSegment = AudioSegment.from_file(audio_file)
+        seg = seg._spawn(seg.raw_data, overrides = {
+            "frame_rate": int(seg.frame_rate * speed)
+        }).set_frame_rate(seg.frame_rate)
+        audio_file = f"{temp_dir}/ppr_temp_audio_{time.time()}.mp3"
+        seg.export(audio_file, format="mp3")
 
-mixer.music.load(audio_file)
-raw_audio_length = mixer.Sound(audio_file).get_length()
-audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == Const.CHART_TYPE.RPE else 0.0)
-all_inforamtion = {}
-print("Loading Chart Information...")
+    mixer.music.load(audio_file)
+    raw_audio_length = mixer.Sound(audio_file).get_length()
+    audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == Const.CHART_TYPE.RPE else 0.0)
+    all_inforamtion = {}
+    print("Loading Chart Information...")
 
-ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
-chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(raw_audio_file), basename(chart_image_filepath))
-    
-print("Loading Chart Information Successfully.")
-print("Inforamtions: ")
-for k,v in chart_information.items():
-    print(f"              {k}: {v}")
+    ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
+    chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(raw_audio_file), basename(chart_image_filepath))
+        
+    print("Loading Chart Information Successfully.")
+    print("Inforamtions: ")
+    for k,v in chart_information.items():
+        print(f"              {k}: {v}")
 
-del chart_files,chart_files_dict
+    del chart_files,chart_files_dict
 
-extraPath = f"{temp_dir}/extra.json"
-extra = {
-    "bpm": [ { "time": [ 0, 0, 1 ], "bpm": 1.0 } ],
-    "effects": []
-}
-if exists(extraPath) and isfile(extraPath):
-    try:
-        with open(extraPath, "r", encoding="utf-8") as f:
-            extra.update(json.load(f))
-    except Exception as e:
-        print("Warning: extra.json is not valid.", repr(e))
+    extraPath = f"{temp_dir}/extra.json"
+    extra = {
+        "bpm": [ { "time": [ 0, 0, 1 ], "bpm": 1.0 } ],
+        "effects": []
+    }
+    if exists(extraPath) and isfile(extraPath):
+        try:
+            with open(extraPath, "r", encoding="utf-8") as f:
+                extra.update(json.load(f))
+        except Exception as e:
+            print("Warning: extra.json is not valid.", repr(e))
 
 def getResPath(path:str, file: bool = True):
     for rp in reversed(respaths):
@@ -3169,64 +3172,64 @@ def PlayerStart():
     mixer.music.fadeout(250)
     Chart_Finish_Animation()
 
-print("Loading Window...")
-# root.iconbitmap("./icon.ico")
-root = webcvapis.WebCanvas(
-    width = 1, height = 1,
-    x = 0, y = 0,
-    title = "Phigros Chart Player",
-    debug = "--debug" in sys.argv,
-    resizable = False,
-    frameless = "--frameless" in sys.argv
-)
-    
-webdpr = root.run_js_code("window.devicePixelRatio;")
-if webdpr != 1.0:
-    lowquality = True
-    lowquality_scale *= 1.0 / webdpr # ...?
+if __name__ == "__main__":
+    print("Loading Window...")
+    root = webcvapis.WebCanvas(
+        width = 1, height = 1,
+        x = 0, y = 0,
+        title = "Phigros Chart Player",
+        debug = "--debug" in sys.argv,
+        resizable = False,
+        frameless = "--frameless" in sys.argv
+    )
+        
+    webdpr = root.run_js_code("window.devicePixelRatio;")
+    if webdpr != 1.0:
+        lowquality = True
+        lowquality_scale *= 1.0 / webdpr # ...?
 
-if lowquality:
-    root.run_js_code(f"lowquality_scale = {lowquality_scale};")
+    if lowquality:
+        root.run_js_code(f"lowquality_scale = {lowquality_scale};")
 
-if "--window-host" in sys.argv:
-    windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
-if "--fullscreen" in sys.argv:
-    w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-    root._web.toggle_fullscreen()
-else:
-    if "--size" not in sys.argv:
-        w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+    if "--window-host" in sys.argv:
+        windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
+    if "--fullscreen" in sys.argv:
+        w, h = root.winfo_screenwidth(), root.winfo_screenheight()
+        root._web.toggle_fullscreen()
     else:
-        w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
-    root.resize(w, h)
-    w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
-    dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
-    dw_legacy *= webdpr; dh_legacy *= webdpr
-    dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
-    del w_legacy, h_legacy
-    root.resize(w + dw_legacy, h + dh_legacy)
-    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
+        if "--size" not in sys.argv:
+            w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+        else:
+            w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
+        root.resize(w, h)
+        w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
+        dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
+        dw_legacy *= webdpr; dh_legacy *= webdpr
+        dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
+        del w_legacy, h_legacy
+        root.resize(w + dw_legacy, h + dh_legacy)
+        root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
 
-if render_range_more:
-    root.run_js_code("render_range_more = true;")
-    root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
+    if render_range_more:
+        root.run_js_code("render_range_more = true;")
+        root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
 
-background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
-background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
-root.reg_img(background_image,"background")
-PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
-JUDGELINE_WIDTH = h * 0.0075
-Resource = Load_Resource()
-EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
-Thread(target=Show_Start, daemon=True).start()
-root.loop_to_close()
+    background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
+    background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
+    root.reg_img(background_image,"background")
+    PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
+    JUDGELINE_WIDTH = h * 0.0075
+    Resource = Load_Resource()
+    EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
+    Thread(target=Show_Start, daemon=True).start()
+    root.loop_to_close()
 
-for item in [item for item in listdir(gettempdir()) if item.startswith("qfppr_cctemp_")]:
-    item = f"{gettempdir()}\\{item}"
-    try:
-        rmtree(item)
-        print(f"Remove Temp Dir: {item}")
-    except Exception as e:
-        print(f"Warning: {e}")
+    for item in [item for item in listdir(gettempdir()) if item.startswith("qfppr_cctemp_")]:
+        item = f"{gettempdir()}\\{item}"
+        try:
+            rmtree(item)
+            print(f"Remove Temp Dir: {item}")
+        except Exception as e:
+            print(f"Warning: {e}")
 
-windll.kernel32.ExitProcess(0)
+    windll.kernel32.ExitProcess(0)
