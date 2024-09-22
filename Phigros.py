@@ -34,20 +34,33 @@ userData_default = {
     "userAvatar": "avatars/fengyv.png",
     "userBackground": "backgrounds/rr.png",
     "rankingScore": 0.0,
-    "selfIntroduction": "There is a self-introduction, write something just like:\nTwitter: @Phigros_PGS\nYouTube: Pigeon Games\n\nHope you have fun in Phigros.\nBest regards,\nPigeon Games"
+    "selfIntroduction": "There is a self-introduction, write something just like:\nTwitter: @Phigros_PGS\nYouTube: Pigeon Games\n\nHope you have fun in Phigros.\nBest regards,\nPigeon Games",
+    "setting-chartOffset": 0,
+    "setting-noteScale": 1.0,
+    "setting-backgroundDim": 0.6,
+    "setting-enableClickSound": True,
+    "setting-musicVolume": 1.0,
+    "setting-uiVolume": 1.0,
+    "setting-clickSoundVolume": 1.0,
+    "setting-enableMorebetsAuxiliary": True,
+    "setting-enableFCAPIndicator": True,
+    "setting-enableLowQuality": False
 }
 
-def saveUserData():
-    with open("./Phigros_UserData.json", "w", encoding="utf-8") as f:
-        f.write(json.dumps(userData_default, indent=4, ensure_ascii=False))
+def saveUserData(data: dict):
+    try:
+        with open("./Phigros_UserData.json", "w", encoding="utf-8") as f:
+            f.write(json.dumps(data, indent=4, ensure_ascii=False))
+    except Exception as e:
+        print(f"Phigros_UserData.json save failed: {e}")
 
 def loadUserData():
     global userData
     userData = userData_default.copy()
     try:
         userData.update(json.loads(open("./Phigros_UserData.json", "r", encoding="utf-8").read()))
-    except Exception:
-        print("Phigros_UserData.json load failed, using default data")
+    except Exception as e:
+        print(f"Phigros_UserData.json load failed, using default data, {e}")
 
 def getUserData(key: str):
     return userData.get(key, userData_default[key])
@@ -56,10 +69,11 @@ def setUserData(key: str, value: typing.Any):
     userData[key] = value
 
 if not exists("./Phigros_UserData.json"):
-    userData = {}
-    saveUserData()
+    saveUserData(userData_default)
+    loadUserData()
 
 loadUserData()
+saveUserData(userData)
 
 mixer.init()
 chaptersDx = 0.0
@@ -114,6 +128,7 @@ def Load_Resource():
     global JoinQQGuildPromoWidth, JoinQQGuildPromoHeight
     global SettingUIOtherDownIconWidth
     global SettingUIOtherDownIconHeight_Twitter, SettingUIOtherDownIconHeight_QQ, SettingUIOtherDownIconHeight_Bilibili
+    global TapTapIconWidth, TapTapIconHeight
     
     Resource = {
         "logoipt": Image.open("./Resources/logoipt.png"),
@@ -136,6 +151,7 @@ def Load_Resource():
         "twitter": Image.open("./Resources/twitter.png"),
         "qq": Image.open("./Resources/qq.png"),
         "bilibili": Image.open("./Resources/bilibili.png"),
+        "taptap": Image.open("./Resources/taptap.png"),
     }
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -167,6 +183,7 @@ def Load_Resource():
     root.reg_img(Resource["twitter"], "twitter")
     root.reg_img(Resource["qq"], "qq")
     root.reg_img(Resource["bilibili"], "bilibili")
+    root.reg_img(Resource["taptap"], "taptap")
         
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -183,7 +200,9 @@ def Load_Resource():
     SettingUIOtherDownIconHeight_Twitter = SettingUIOtherDownIconWidth / Resource["twitter"].width * Resource["twitter"].height
     SettingUIOtherDownIconHeight_QQ = SettingUIOtherDownIconWidth / Resource["qq"].width * Resource["qq"].height
     SettingUIOtherDownIconHeight_Bilibili = SettingUIOtherDownIconWidth / Resource["bilibili"].width * Resource["bilibili"].height
-    
+    TapTapIconWidth = w * 0.05
+    TapTapIconHeight = TapTapIconWidth / Resource["taptap"].width * Resource["taptap"].height
+
     for chapter in Chapters.items:
         im = Image.open(f"./PhigrosAssets/{chapter.image}")
         chapter.im = im
@@ -1332,7 +1351,7 @@ def settingRender():
             add_code_array = True
         )
         
-        avatarSize = max(w * 0.096875, h * (120 / 1080)) * 1.25
+        avatarSize = max(w * 0.096875, h * (120 / 1080))
         root.run_js_code(
             f"ctx.drawDiagonalRectangleClipImage(\
                 {w * 0.128125}, {h * (280 / 1080)},\
@@ -1392,6 +1411,152 @@ def settingRender():
             );",
             add_code_array = True
         )
+        
+        editButtonRect = (
+            w * 0.85625, h * (181 / 1080),
+            w * 0.921875, h * (220 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {",".join(map(str, editButtonRect))},\
+                {Tool_Functions.getDPower(editButtonRect[2] - editButtonRect[0], editButtonRect[3] - editButtonRect[1], 75)},\
+                'rgb(255, 255, 255)'\
+            );",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            (editButtonRect[0] + editButtonRect[2]) / 2, (editButtonRect[1] + editButtonRect[3]) / 2,
+            "编辑",
+            font = f"{(editButtonRect[3] - editButtonRect[1]) * 0.7}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgb(83, 83, 83)",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * 0.46875, h * (805 / 1080),
+            "登录以使用云存档功能",
+            font = f"{(w + h) / 90}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        loginButtonRect = (
+            w * 0.4171875, h * (860 / 1080),
+            w * 0.5109375, h * (910 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {",".join(map(str, loginButtonRect))},\
+                {Tool_Functions.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
+                'rgb(255, 255, 255)'\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleClipImage(\
+                {",".join(map(str, loginButtonRect))},\
+                {root.get_img_jsvarname("taptap")},\
+                {((loginButtonRect[2] - loginButtonRect[0]) - TapTapIconWidth) / 2},\
+                {((loginButtonRect[3] - loginButtonRect[1]) - TapTapIconHeight) / 2},\
+                {TapTapIconWidth}, {TapTapIconHeight},\
+                {Tool_Functions.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
+                1.0\
+            );",
+            add_code_array = True
+        )
+        
+        chartDataDifRect = (
+            w * 0.5015625, h * (589 / 1080),
+            w * 0.5765625, h * (672 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {",".join(map(str, chartDataDifRect))},\
+                {Tool_Functions.getDPower(chartDataDifRect[2] - chartDataDifRect[0], chartDataDifRect[3] - chartDataDifRect[1], 75)},\
+                'rgb(255, 255, 255)'\
+            );",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            (chartDataDifRect[0] + chartDataDifRect[2]) / 2, (chartDataDifRect[1] + chartDataDifRect[3]) / 2,
+            "IN",
+            font = f"{(chartDataDifRect[3] - chartDataDifRect[1]) * 0.55}px PhigrosFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgb(50, 50, 50)",
+            wait_execute = True
+        )
+        
+        chartDataRect = (
+            chartDataDifRect[2] - Tool_Functions.getDPower(chartDataDifRect[2] - chartDataDifRect[0], chartDataDifRect[3] - chartDataDifRect[1], 75) * (chartDataDifRect[2] - chartDataDifRect[0]) * (77 / 85),
+            chartDataDifRect[1] + (chartDataDifRect[3] - chartDataDifRect[1]) * (9 / 85),
+            w * 0.871875,
+            chartDataDifRect[1] + (chartDataDifRect[3] - chartDataDifRect[1]) * (77 / 85),
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {",".join(map(str, chartDataRect))},\
+                {Tool_Functions.getDPower(chartDataRect[2] - chartDataRect[0], chartDataRect[3] - chartDataRect[1], 75)},\
+                'rgb(0, 0, 0, 0.45)'\
+            );",
+            add_code_array = True
+        )
+        
+        def _drawChartDataItem(x: float, text: str):
+            root.run_js_code(
+                f"ctx.save(); ctx.font = '{(w + h) / 125}px PhigrosFont'; SlashWidth = ctx.measureText('/').width; ctx.restore();",
+                add_code_array = True
+            )
+            
+            textHeight = h * (635 / 1080)
+            
+            root.run_js_code(
+                f"ctx.drawTextEx(\
+                    '/',\
+                    {x}, {textHeight}, '{(w + h) / 125}px PhigrosFont',\
+                    'rgb(255, 255, 255)', 'center', 'bottom'\
+                );",
+                add_code_array = True
+            )
+            
+            root.run_js_code(
+                f"ctx.drawTextEx(\
+                    '-',\
+                    {x} + SlashWidth, {textHeight}, '{(w + h) / 125}px PhigrosFont',\
+                    'rgb(255, 255, 255)', 'left', 'bottom'\
+                );",
+                add_code_array = True
+            )
+            
+            root.run_js_code(
+                f"ctx.drawTextEx(\
+                    '0',\
+                    {x} - SlashWidth, {textHeight}, '{(w + h) / 85}px PhigrosFont',\
+                    'rgb(255, 255, 255)', 'right', 'bottom'\
+                );",
+                add_code_array = True
+            )
+            
+            root.create_text(
+                x, h * (648 / 1080),
+                text,
+                font = f"{(w + h) / 180}px PhigrosFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "rgb(255, 255, 255)",
+                wait_execute = True
+            )
+        
+        _drawChartDataItem(w * 0.621875, "Cleared")
+        _drawChartDataItem(w * 0.71875, "Full Combo")
+        _drawChartDataItem(w * 0.8140625, "Phi")
         
         root.run_js_code(
             f"ctx.restore();",
@@ -1718,8 +1883,6 @@ def settingRender():
         )
     }
     
-    print(PlaySettingWidgets)
-    
     while True:
         root.clear_canvas(wait_execute = True)
         
@@ -1867,20 +2030,20 @@ root = webcvapis.WebCanvas(
 webdpr = root.run_js_code("window.devicePixelRatio;")
 root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
 
-w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-root.resize(w, h)
-root._web.toggle_fullscreen()
-dw_legacy, dh_legacy = 0, 0
-
-# w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+# w, h = root.winfo_screenwidth(), root.winfo_screenheight()
 # root.resize(w, h)
-# w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
-# dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
-# dw_legacy *= webdpr; dh_legacy *= webdpr
-# dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
-# del w_legacy, h_legacy
-# root.resize(w + dw_legacy, h + dh_legacy)
-# root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
+# root._web.toggle_fullscreen()
+# dw_legacy, dh_legacy = 0, 0
+
+w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+root.resize(w, h)
+w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
+dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
+dw_legacy *= webdpr; dh_legacy *= webdpr
+dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
+del w_legacy, h_legacy
+root.resize(w + dw_legacy, h + dh_legacy)
+root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
 
 root.reg_event("resized", resize)
 

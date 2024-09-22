@@ -299,6 +299,16 @@
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawTextEx = function(text, x, y, font, color, align, baseline) {
+        this.save();
+        this.fillStyle = color;
+        this.textAlign = align;
+        this.textBaseline = baseline;
+        this.font = font;
+        this.fillText(text, x, y);
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.roundRectEx = function (x, y, w, h, r, color) {
         ctx.save();
         ctx.fillStyle = color;
