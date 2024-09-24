@@ -290,6 +290,11 @@ class SettingState:
         shadowRectLeft: float, w: int,
         settingDx: list[float]
     ):
+        sp_state = self.aFrom == self.aTo # before user change ui state
+        if sp_state:
+            self.aFrom = Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT
+            self.aTo = Const.PHIGROS_SETTING_STATE.PLAY
+        
         st = self.aSTime
         et = self.aSTime + self._atime
         p = (time.time() - st) / (et - st) if self.aSTime != float("-inf") else 1.0
@@ -309,19 +314,24 @@ class SettingState:
         drawOtherSetting(drawOtherSettingDx, drawOtherSettingAlpha)
         settingDx.clear()
         settingDx.extend([drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx])
+        
+        if sp_state:
+            self.aFrom = Const.PHIGROS_SETTING_STATE.PLAY
+            self.aTo = Const.PHIGROS_SETTING_STATE.PLAY
 
 @dataclass
 class PhiBaseWidget:
     padding_top: float = 0.0
     padding_bottom: float = 0.0
-
+    tonext: float = 0.0
+    
 @dataclass
 class PhiLabel(PhiBaseWidget):
     left_text: str = ""
     right_text: str = ""
-    font: str = "1px PhigrosFont"
+    fontsize: float = 1.0
     color: str = "#FFFFFF"
-
+    
 @dataclass
 class PhiSlider(PhiBaseWidget):
     value: float = 0.0
@@ -331,5 +341,5 @@ class PhiSlider(PhiBaseWidget):
 @dataclass
 class PhiCheckbox(PhiBaseWidget):
     text: str = ""
-    font: str = "1px PhigrosFont"
+    fontsize: float = 1.0
     checked: bool = False

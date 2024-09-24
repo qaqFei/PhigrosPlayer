@@ -1183,6 +1183,74 @@ def mainRender():
         
         root.run_js_wait_code()
 
+def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.Callable[[float], float], max_width: float):
+    for widget in widgets:
+        x, y = sx - dx_f(sy + dy), sy + dy
+        if isinstance(widget, PhigrosGameObject.PhiLabel):
+            _temp = lambda text, align: root.create_text(
+                x + (max_width if align == "right" else 0.0), y, text, 
+                font = f"{widget.fontsize}px PhigrosFont",
+                textAlign = align,
+                textBaseline = "top",
+                fillStyle = widget.color,
+                wait_execute = True
+            ) if text else None
+            _temp(widget.left_text, "left")
+            _temp(widget.right_text, "right")
+            
+            dy += widget.fontsize
+            dy += widget.tonext
+            dy += h * (30 / 1080)
+        elif isinstance(widget, PhigrosGameObject.PhiSlider):
+            sliderShadowRect = (
+                x, y + h * (6 / 1080),
+                x + max_width, y + h * ((41 + 6) / 1080)
+            )
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, sliderShadowRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(sliderShadowRect), 75)},\
+                    'rgba(0, 0, 0, 0.25)'\
+                );",
+                add_code_array = True
+            )
+            
+            conButtonHeight = h * (52 / 1080)
+            conWidth = w * 0.0359375 if widget.lr_button else w * 0.0046875
+            lConRect = (
+                x, y,
+                x + conWidth, y + conButtonHeight
+            )
+            rConRect = (
+                lConRect[0] + max_width - conWidth, lConRect[1],
+                lConRect[2] + max_width - conWidth, lConRect[3]
+            )
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, lConRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(lConRect), 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, rConRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(rConRect), 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
+            
+            if widget.lr_button:
+                pass
+            
+            dy += h * (36 / 1080)
+            dy += conButtonHeight
+            dy += widget.tonext
+            
 def settingRender():
     settingRenderSt = time.time()
     settingState = PhigrosGameObject.SettingState()
@@ -1289,6 +1357,28 @@ def settingRender():
     
     def drawPlaySetting(dx: float, alpha: float):
         if alpha == 0.0: return None
+        
+        root.run_js_code(
+            f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
+            add_code_array = True
+        )
+        
+        renderPhigrosWidgets(PlaySettingWidgets.values(), w * 0.175, h * 0.175, 0.0, lambda x: getShadowDiagonalXByY(h - x), w * 0.3953125)
+        
+        lineColor = "rgb(254, 255, 169)" if getUserData("setting-enableFCAPIndicator") else "rgb(255, 255, 255)"
+        root.run_js_code(
+            f"ctx.drawLineEx(\
+                {w * 0.49375}, {h * 0.8},\
+                {w}, {h * 0.8},\
+                {h * 0.0075}, '{lineColor}'\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.restore();",
+            add_code_array = True
+        )
     
     def drawAccountAndCountSetting(dx: float, alpha: float):
         if alpha == 0.0: return None
@@ -1750,13 +1840,13 @@ def settingRender():
             add_code_array = True
         )
     
-    PlaySettingWidgets = {
+    PlaySettingWidgets: dict[str, PhigrosGameObject.PhiBaseWidget] = {
         "OffsetLabel": PhigrosGameObject.PhiLabel(
             padding_top = 0.0,
             padding_bottom = 0.0,
             left_text = "谱面延时",
             right_text = "0ms",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "OffsetSlider": PhigrosGameObject.PhiSlider(
@@ -1775,7 +1865,7 @@ def settingRender():
             padding_bottom = 0.0,
             left_text = "",
             right_text = "*请调节至第三拍的声音与按键音恰好重合的状态",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 125,
             color = "rgba(255, 255, 255, 0.6)"
         ),
         "NoteScaleLabel": PhigrosGameObject.PhiLabel(
@@ -1783,7 +1873,7 @@ def settingRender():
             padding_bottom = 0.0,
             left_text = "按键缩放",
             right_text = "",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "NoteScaleSlider": PhigrosGameObject.PhiSlider(
@@ -1798,7 +1888,7 @@ def settingRender():
             padding_bottom = 0.0,
             left_text = "背景亮度",
             right_text = "",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "BackgroundDimSlider": PhigrosGameObject.PhiSlider(
@@ -1812,7 +1902,7 @@ def settingRender():
             padding_top = 0.0,
             padding_bottom = 0.0,
             text = "打开打击音效",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             checked = True
         ),
         "MusicVolumeLabel": PhigrosGameObject.PhiLabel(
@@ -1820,7 +1910,7 @@ def settingRender():
             padding_bottom = 0.0,
             left_text = "音乐音量",
             right_text = "",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "MusicVolumeSlider": PhigrosGameObject.PhiSlider(
@@ -1835,7 +1925,7 @@ def settingRender():
             padding_bottom = 0.0,
             left_text = "界面音效音量",
             right_text = "",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "UISoundVolumeSlider": PhigrosGameObject.PhiSlider(
@@ -1850,7 +1940,7 @@ def settingRender():
             padding_bottom = 0.0,
             left_text = "打击音效音量",
             right_text = "",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "ClickSoundVolumeSlider": PhigrosGameObject.PhiSlider(
@@ -1864,21 +1954,21 @@ def settingRender():
             padding_top = 0.0,
             padding_bottom = 0.0,
             text = "开启多押辅助",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             checked = True
         ),
         "FCAPIndicatorCheckbox": PhigrosGameObject.PhiCheckbox(
             padding_top = 0.0,
             padding_bottom = 0.0,
             text = "开启FC/AP指示器",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             checked = True
         ),
         "LowQualityCheckbox": PhigrosGameObject.PhiCheckbox(
             padding_top = 0.0,
             padding_bottom = 0.0,
             text = "低分辨率模式",
-            font = "10px PhigrosFont",
+            fontsize = (w + h) / 75,
             checked = False
         )
     }
@@ -2030,20 +2120,21 @@ root = webcvapis.WebCanvas(
 webdpr = root.run_js_code("window.devicePixelRatio;")
 root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
 
-# w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-# root.resize(w, h)
-# root._web.toggle_fullscreen()
-# dw_legacy, dh_legacy = 0, 0
-
-w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
-root.resize(w, h)
-w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
-dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
-dw_legacy *= webdpr; dh_legacy *= webdpr
-dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
-del w_legacy, h_legacy
-root.resize(w + dw_legacy, h + dh_legacy)
-root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
+if "--fullscreen" in sys.argv:
+    w, h = root.winfo_screenwidth(), root.winfo_screenheight()
+    root.resize(w, h)
+    root._web.toggle_fullscreen()
+    dw_legacy, dh_legacy = 0, 0
+else:
+    w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+    root.resize(w, h)
+    w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
+    dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
+    dw_legacy *= webdpr; dh_legacy *= webdpr
+    dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
+    del w_legacy, h_legacy
+    root.resize(w + dw_legacy, h + dh_legacy)
+    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
 
 root.reg_event("resized", resize)
 
