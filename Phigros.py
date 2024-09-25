@@ -129,6 +129,7 @@ def Load_Resource():
     global SettingUIOtherDownIconWidth
     global SettingUIOtherDownIconHeight_Twitter, SettingUIOtherDownIconHeight_QQ, SettingUIOtherDownIconHeight_Bilibili
     global TapTapIconWidth, TapTapIconHeight
+    global CheckedIconWidth, CheckedIconHeight
     
     Resource = {
         "logoipt": Image.open("./Resources/logoipt.png"),
@@ -152,6 +153,7 @@ def Load_Resource():
         "qq": Image.open("./Resources/qq.png"),
         "bilibili": Image.open("./Resources/bilibili.png"),
         "taptap": Image.open("./Resources/taptap.png"),
+        "checked": Image.open("./Resources/checked.png"),
     }
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -184,7 +186,8 @@ def Load_Resource():
     root.reg_img(Resource["qq"], "qq")
     root.reg_img(Resource["bilibili"], "bilibili")
     root.reg_img(Resource["taptap"], "taptap")
-        
+    root.reg_img(Resource["checked"], "checked")
+
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
     MainUIIconWidth = w * 0.0265
@@ -202,6 +205,8 @@ def Load_Resource():
     SettingUIOtherDownIconHeight_Bilibili = SettingUIOtherDownIconWidth / Resource["bilibili"].width * Resource["bilibili"].height
     TapTapIconWidth = w * 0.05
     TapTapIconHeight = TapTapIconWidth / Resource["taptap"].width * Resource["taptap"].height
+    CheckedIconWidth = w * 0.0140625
+    CheckedIconHeight = CheckedIconWidth / Resource["checked"].width * Resource["checked"].height
 
     for chapter in Chapters.items:
         im = Image.open(f"./PhigrosAssets/{chapter.image}")
@@ -1184,8 +1189,14 @@ def mainRender():
         root.run_js_wait_code()
 
 def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.Callable[[float], float], max_width: float):
+    root.run_js_code(
+        f"ctx.save(); ctx.clipRect(0.0, {h * (180 / 1080)}, {w}, {h * (1015 / 1080)});",
+        add_code_array = True
+    )
+    
     for widget in widgets:
         x, y = sx - dx_f(sy + dy), sy + dy
+        
         if isinstance(widget, PhigrosGameObject.PhiLabel):
             _temp = lambda text, align: root.create_text(
                 x + (max_width if align == "right" else 0.0), y, text, 
@@ -1245,12 +1256,116 @@ def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.
             )
             
             if widget.lr_button:
-                pass
+                ctp_l, ctp_r = Tool_Functions.getCenterPointByRect(lConRect), Tool_Functions.getCenterPointByRect(rConRect)
+                coniw_l, coniw_r = (w + h) * 0.003, (w + h) * 0.005 # 控制按钮图标线长度
+                root.run_js_code(
+                    f"ctx.drawLineEx(\
+                        {ctp_l[0] - coniw_l / 2}, {ctp_l[1]},\
+                        {ctp_l[0] + coniw_l / 2}, {ctp_l[1]},\
+                        {(w + h) * (1 / 1500)}, 'rgb(63, 63, 63)'\
+                    );",
+                    add_code_array = True
+                )
+                root.run_js_code(
+                    f"ctx.drawLineEx(\
+                        {ctp_r[0] - coniw_r / 2}, {ctp_r[1]},\
+                        {ctp_r[0] + coniw_r / 2}, {ctp_r[1]},\
+                        {(w + h) * (1 / 1500)}, 'rgb(63, 63, 63)'\
+                    );",
+                    add_code_array = True
+                )
+                root.run_js_code(
+                    f"ctx.drawLineEx(\
+                        {ctp_r[0]}, {ctp_r[1] - coniw_r / 2},\
+                        {ctp_r[0]}, {ctp_r[1] + coniw_r / 2},\
+                        {(w + h) * (1 / 1500)}, 'rgb(63, 63, 63)'\
+                    );",
+                    add_code_array = True
+                )
             
-            dy += h * (36 / 1080)
-            dy += conButtonHeight
+            slider_p = Tool_Functions.sliderValueP(widget.value, widget.number_points)
+            sliderFrameWidth = conWidth - conWidth * Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(lConRect), 75) + w * 0.0046875
+            sliderBlockWidth, sliderBlockHeight = w * 0.0359375, conButtonHeight
+            sliderBlock_x = x + sliderFrameWidth + slider_p * (max_width - sliderFrameWidth * 2 - sliderBlockWidth)
+            sliderBlockRect = (
+                sliderBlock_x, y,
+                sliderBlock_x + sliderBlockWidth, y + sliderBlockHeight
+            )
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, sliderBlockRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(sliderBlockRect), 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
+            
             dy += widget.tonext
+        elif isinstance(widget, PhigrosGameObject.PhiCheckbox):
+            root.create_text(
+                x, y, widget.text,
+                font = f"{widget.fontsize}px PhigrosFont",
+                textAlign = "left",
+                textBaseline = "top",
+                fillStyle = "rgb(255, 255, 255)",
+                wait_execute = True
+            )
             
+            checkboxShadowRect = (
+                x + w * 0.321875, y + h * (6 / 1080),
+                x + w * 0.321875 + w * 0.06875, y + h * ((41 + 6) / 1080)
+            )
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, checkboxShadowRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(checkboxShadowRect), 75)},\
+                    'rgba(0, 0, 0, 0.25)'\
+                );",
+                add_code_array = True
+            )
+            
+            checkAnimationP = (time.time() - widget.check_animation_st) / 0.2
+            checkAnimationP = Tool_Functions.fixOutofRangeP(checkAnimationP)
+            checkAnimationP = 1.0 - (1.0 - checkAnimationP) ** 2
+            
+            checkButtonDx = (w * 0.06875 - w * 0.0375) * checkAnimationP
+            checkButtonRect = (
+                x + w * 0.321875 + checkButtonDx, y,
+                x + w * 0.321875 + w * 0.0375 + checkButtonDx, y + h * (52 / 1080)
+            )
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, checkButtonRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(checkButtonRect), 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
+            
+            root.run_js_code(
+                f"ctx.drawImage(\
+                    {root.get_img_jsvarname("checked")},\
+                    {x + w * 0.340625 - CheckedIconWidth / 2},\
+                    {y + Tool_Functions.getSizeByRect(checkButtonRect)[1] / 2 - CheckedIconHeight / 2},\
+                    {CheckedIconWidth}, {CheckedIconHeight}\
+                );",
+                add_code_array = True
+            )
+            
+            dy += widget.tonext
+        
+        if not isinstance(widget, PhigrosGameObject.PhiLabel):
+            dy += h * 0.1
+            
+    root.run_js_code(
+        "ctx.restore();",
+        add_code_array = True
+    )
+    
+    return dy
+        
 def settingRender():
     settingRenderSt = time.time()
     settingState = PhigrosGameObject.SettingState()
@@ -1363,14 +1478,14 @@ def settingRender():
             add_code_array = True
         )
         
-        renderPhigrosWidgets(PlaySettingWidgets.values(), w * 0.175, h * 0.175, 0.0, lambda x: getShadowDiagonalXByY(h - x), w * 0.3953125)
+        renderPhigrosWidgets(list(PlaySettingWidgets.values()), w * 0.175, h * 0.175, 0.0, lambda x: getShadowDiagonalXByY(h - x), w * 0.3953125)
         
-        lineColor = "rgb(254, 255, 169)" if getUserData("setting-enableFCAPIndicator") else "rgb(255, 255, 255)"
-        root.run_js_code(
+        lineColor = "254, 255, 169" if getUserData("setting-enableFCAPIndicator") else "255, 255, 255"
+        root.run_js_code( # 2 layers alpha
             f"ctx.drawLineEx(\
                 {w * 0.49375}, {h * 0.8},\
                 {w}, {h * 0.8},\
-                {h * 0.0075}, '{lineColor}'\
+                {h * 0.0075}, 'rgba({lineColor}, {alpha})'\
             );",
             add_code_array = True
         )
@@ -1845,14 +1960,15 @@ def settingRender():
             padding_top = 0.0,
             padding_bottom = 0.0,
             left_text = "谱面延时",
-            right_text = "0ms",
+            right_text = f"{int(getUserData("setting-chartOffset"))}ms",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "OffsetSlider": PhigrosGameObject.PhiSlider(
             padding_top = 0.0,
             padding_bottom = 0.0,
-            value = 0.0,
+            tonext = h * (-40 / 1080),
+            value = getUserData("setting-chartOffset"),
             number_points = (
                 (0.0, -400.0),
                 (0.4, 0.0),
@@ -1879,7 +1995,7 @@ def settingRender():
         "NoteScaleSlider": PhigrosGameObject.PhiSlider(
             padding_top = 0.0,
             padding_bottom = 0.0,
-            value = 1.0,
+            value = getUserData("setting-noteScale"),
             number_points = ((0.0, 1.0), (1.0, 1.29)),
             lr_button = False
         ),
@@ -1894,7 +2010,7 @@ def settingRender():
         "BackgroundDimSlider": PhigrosGameObject.PhiSlider(
             padding_top = 0.0,
             padding_bottom = 0.0,
-            value = 0.6,
+            value = getUserData("setting-backgroundDim"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False
         ),
@@ -1903,7 +2019,7 @@ def settingRender():
             padding_bottom = 0.0,
             text = "打开打击音效",
             fontsize = (w + h) / 75,
-            checked = True
+            checked = getUserData("setting-enableClickSound"),
         ),
         "MusicVolumeLabel": PhigrosGameObject.PhiLabel(
             padding_top = 0.0,
@@ -1916,7 +2032,7 @@ def settingRender():
         "MusicVolumeSlider": PhigrosGameObject.PhiSlider(
             padding_top = 0.0,
             padding_bottom = 0.0,
-            value = 1.0,
+            value = getUserData("setting-musicVolume"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False
         ),
@@ -1931,7 +2047,7 @@ def settingRender():
         "UISoundVolumeSlider": PhigrosGameObject.PhiSlider(
             padding_top = 0.0,
             padding_bottom = 0.0,
-            value = 1.0,
+            value = getUserData("setting-uiVolume"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False
         ),
@@ -1946,7 +2062,7 @@ def settingRender():
         "ClickSoundVolumeSlider": PhigrosGameObject.PhiSlider(
             padding_top = 0.0,
             padding_bottom = 0.0,
-            value = 1.0,
+            value = getUserData("setting-clickSoundVolume"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False
         ),
@@ -1955,21 +2071,21 @@ def settingRender():
             padding_bottom = 0.0,
             text = "开启多押辅助",
             fontsize = (w + h) / 75,
-            checked = True
+            checked = getUserData("setting-enableMorebetsAuxiliary")
         ),
         "FCAPIndicatorCheckbox": PhigrosGameObject.PhiCheckbox(
             padding_top = 0.0,
             padding_bottom = 0.0,
             text = "开启FC/AP指示器",
             fontsize = (w + h) / 75,
-            checked = True
+            checked = getUserData("setting-enableFCAPIndicator")
         ),
         "LowQualityCheckbox": PhigrosGameObject.PhiCheckbox(
             padding_top = 0.0,
             padding_bottom = 0.0,
             text = "低分辨率模式",
             fontsize = (w + h) / 75,
-            checked = False
+            checked = getUserData("setting-enableLowQuality")
         )
     }
     

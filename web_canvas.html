@@ -337,6 +337,12 @@
         this.lineTo(x0 + (x1 - x0) * power, y0);
     }
 
+    CanvasRenderingContext2D.prototype.clipRect = function(x0, y0, x1, y1) {
+        this.beginPath();
+        this.rect(x0, y0, x1 - x0, y1 - y0);
+        this.clip();
+    }
+
     CanvasRenderingContext2D.prototype.drawDiagonalRectangle = function(x0, y0, x1, y1, power, color) {
         x0 += canvas_ele.width / lowquality_scale * (1.35 / 1920); // ??, 写到这里, 再不开学就要精神异常了...
         this.save();

@@ -343,3 +343,5 @@ class PhiCheckbox(PhiBaseWidget):
     text: str = ""
     fontsize: float = 1.0
     checked: bool = False
+    
+    check_animation_st: float = float("-inf")
