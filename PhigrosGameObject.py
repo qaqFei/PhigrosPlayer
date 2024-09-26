@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from random import uniform
+import threading
 import typing
 import time
 
@@ -321,8 +322,6 @@ class SettingState:
 
 @dataclass
 class PhiBaseWidget:
-    padding_top: float = 0.0
-    padding_bottom: float = 0.0
     tonext: float = 0.0
     
 @dataclass
@@ -345,3 +344,138 @@ class PhiCheckbox(PhiBaseWidget):
     checked: bool = False
     
     check_animation_st: float = float("-inf")
+
+# 屎, 看不懂了
+class SlideControler:
+    def __init__(
+        self,
+        eventRect: typing.Callable[[int, int], bool],
+        setFunc: typing.Callable[[float, float], typing.Any],
+        minValueX: float, maxValueX: float,
+        minValueY: float, maxValueY: float,
+        w: int, h: int
+    ):
+        self.eventRect = eventRect
+        self.setFunc = setFunc
+        self.minValueX, self.maxValueX = minValueX, maxValueX
+        self.minValueY, self.maxValueY = minValueY, maxValueY
+        self.w, self.h = w, h
+        self._lastlastclickx, self._lastclicky = 0.0, 0.0
+        self._lastclickx, self._lastclicky = 0.0, 0.0
+        self._dx, self._dy = 0.0, 0.0
+        self._mouseDown = False
+    
+    def mouseDown(self, x: int, y: int):
+        if not self.eventRect(x, y):
+            return None
+        
+        self._lastclickx, self._lastclicky = x, y
+        self._lastlastclickx, self._lastlastclicky = x, y
+        self._mouseDown = True
+    
+    def mouseUp(self, x: int, y: int):
+        if self._mouseDown:
+            threading.Thread(target=self._easeSroll, daemon=True).start()
+            
+        self._mouseDown = False
+    
+    def mouseMove(self, x: int, y: int):
+        if not self._mouseDown:
+            return None
+        
+        self._dx += x - self._lastclickx
+        self._dy += y - self._lastclicky
+        self._lastlastclickx, self._lastlastclicky = self._lastclickx, self._lastclicky
+        self._lastclickx, self._lastclicky = x, y
+        self._set()
+    
+    def _easeSroll(self):
+        dx = self._lastclickx - self._lastlastclickx
+        dy = self._lastclicky - self._lastlastclicky
+        called_easeBackX, called_easeBackY = False, False
+        
+        while abs(dx) > self.w * 0.001 and abs(dy) > self.h * 0.001:
+            dx *= 0.9; dy *= 0.9
+            self._dx += dx; self._dy += dy
+            self._set()
+            
+            # 往右 = 负, 左 = 正, 反的, 所以`- self._d(x / y)`
+            
+            if - self._dx <= - self.minValueX or - self._dx >= self.maxValueX - self.minValueX:
+                threading.Thread(target=self._easeBackX, daemon=True).start()
+                called_easeBackX = True
+                dx = 0.0
+            
+            if - self._dy <= - self.minValueY or - self._dy >= self.maxValueY - self.minValueY:
+                threading.Thread(target=self._easeBackY, daemon=True).start()
+                called_easeBackY = True
+                dy = 0.0
+            
+            time.sleep(1 / 120)
+        if not called_easeBackX:
+            threading.Thread(target=self._easeBackX, daemon=True).start()
+        if not called_easeBackY:
+            threading.Thread(target=self._easeBackY, daemon=True).start()
+    
+    def _easeBackX(self):
+        cdx = - self._dx
+        if self.minValueX <= cdx <= self.maxValueX:
+            return None
+        
+        if cdx < 0:
+            dx = - cdx
+        else:
+            dx = self.maxValueX - cdx
+        dx *= -1 # 前面cdx = 负的, 所以变回来
+        if self._dx + dx > 0: # 超出左界
+            dx = - self._dx
+        
+        lastv, av, ast = 0.0, 0.0, time.time()
+        while True:
+            p = (time.time() - ast) / 0.75
+            if p > 1.0:
+                self._dx += dx - av
+                self._set()
+                break
+            
+            v = 1.0 - (1.0 - p) ** 4
+            dxv = (v - lastv) * dx
+            av += dxv
+            self._dx += dxv
+            self._set()
+            lastv = v
+
+            time.sleep(1 / 120)
+    
+    def _easeBackY(self):
+        cdy = - self._dy
+        if self.minValueY <= cdy <= self.maxValueY:
+            return None
+        
+        if cdy < 0:
+            dy = - cdy
+        else:
+            dy = self.maxValueY - cdy
+        dy *= -1 # 前面cdy = 负的, 所以变回来
+        if self._dy + dy > 0: # 超出左界
+            dy = - self._dy
+        
+        lastv, av, ast = 0.0, 0.0, time.time()
+        while True:
+            p = (time.time() - ast) / 0.75
+            if p > 1.0:
+                self._dy += dy - av
+                self._set()
+                break
+            
+            v = 1.0 - (1.0 - p) ** 4
+            dyv = (v - lastv) * dy
+            av += dyv
+            self._dy += dyv
+            self._set()
+            lastv = v
+
+            time.sleep(1 / 120)
+
+    def _set(self):
+        self.setFunc(self._dx, self._dy)

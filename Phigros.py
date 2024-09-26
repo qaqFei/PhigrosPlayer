@@ -78,8 +78,11 @@ saveUserData(userData)
 mixer.init()
 chaptersDx = 0.0
 inMainUI = False
+inSettingUI = False
+settingState = None
 lastMainUI_ChaptersClickX = 0.0
 lastLastMainUI_ChaptersClickX = 0.0
+settingPlayWidgetsDy = 0.0
 mainUI_ChaptersMouseDown = False
 changeChapterMouseDownX = float("nan")
 lastChangeChapterTime = float("-inf")
@@ -238,6 +241,8 @@ def Load_Resource():
     return Resource
 
 def bindEvents():
+    global mainUISlideControler, settingUIPlaySlideControler
+    
     root.jsapi.set_attr("click", eventManager.click)
     root.run_js_code("_click = (e) => pywebview.api.call_attr('click', e.x, e.y);")
     root.run_js_code("document.addEventListener('mousedown', _click);")
@@ -250,9 +255,26 @@ def bindEvents():
     root.run_js_code("_mouseup = (e) => pywebview.api.call_attr('mouseup', e.x, e.y);")
     root.run_js_code("document.addEventListener('mouseup', _mouseup);")
     
-    eventManager.regClickEventFs(mainUI_mouseClick, False)
-    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(mainUI_mouseRelease))
-    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(mainUI_mouseMove))
+    mainUISlideControler = PhigrosGameObject.SlideControler(
+        mainUI_slideControlerMouseDown_valid,
+        mainUI_slideControler_setValue,
+        0.0, ChaptersMaxDx,
+        0.0, 0.0, w, h
+    )
+    eventManager.regClickEventFs(mainUISlideControler.mouseDown, False)
+    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(mainUISlideControler.mouseUp))
+    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(mainUISlideControler.mouseMove))
+    
+    settingUIPlaySlideControler = PhigrosGameObject.SlideControler(
+        settingUI_slideControlerMouseDown_valid,
+        settingUI_slideControler_setValue,
+        0.0, 0.0,
+        0.0, 0.0, w, h
+    )
+    eventManager.regClickEventFs(settingUIPlaySlideControler.mouseDown, False)
+    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(settingUIPlaySlideControler.mouseUp))
+    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(settingUIPlaySlideControler.mouseMove))
+
     eventManager.regClickEventFs(changeChapterMouseDown, False)
     eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(changeChapterMouseUp))
 
@@ -807,81 +829,34 @@ def soundEffect_From0To1():
 def processStringToLiteral(string: str):
     return string.replace("\\","\\\\").replace("'","\\'").replace("\"","\\\"").replace("`","\\`").replace("\n", "\\n")
 
-def mainUI_mouseMove(x, y):
-    global lastMainUI_ChaptersClickX, lastLastMainUI_ChaptersClickX, chaptersDx
-    if inMainUI and mainUI_ChaptersMouseDown:
-        chaptersDx += x - lastMainUI_ChaptersClickX
-        lastLastMainUI_ChaptersClickX = lastMainUI_ChaptersClickX
-        lastMainUI_ChaptersClickX = x
-
-def mainUI_mouseClick(x, y):
-    global lastMainUI_ChaptersClickX, lastLastMainUI_ChaptersClickX, mainUI_ChaptersMouseDown
-    
+def mainUI_slideControlerMouseDown_valid(x, y):
     if not inMainUI:
-        return None
+        return False
     
     for e in eventManager.clickEvents:
         if e.tag == "mainUI" and Tool_Functions.InRect(x, y, e.rect):
-            return None
+            return False
     
-    lastMainUI_ChaptersClickX = x
-    lastLastMainUI_ChaptersClickX = x
-    mainUI_ChaptersMouseDown = True
+    return True
 
-def mainUI_mouseRelease(x, y):
-    global mainUI_ChaptersMouseDown
-    downed = mainUI_ChaptersMouseDown # 按下过
-    mainUI_ChaptersMouseDown = False
-    
-    if downed and inMainUI:
-        Thread(target=chapterUI_easeSroll, daemon=True).start()    
-
-def chapterUI_easeSroll():
+def mainUI_slideControler_setValue(x, y):
     global chaptersDx
-    dx = (lastMainUI_ChaptersClickX - lastLastMainUI_ChaptersClickX)
-    
-    while abs(dx) > w * 0.001:
-        dx *= 0.9
-        chaptersDx += dx
-        if - chaptersDx <= - w / 10 or - chaptersDx >= ChaptersMaxDx - w / 10: # 往右 = 负, 左 = 正, 反的, 所以`-cheaptersDx`
-            Thread(target=cheapterUI_easeBack, daemon=True).start()
-            return None
-        time.sleep(1 / 120)
-    Thread(target=cheapterUI_easeBack, daemon=True).start()
+    chaptersDx = x
 
-def cheapterUI_easeBack():
-    global chaptersDx
+def settingUI_slideControlerMouseDown_valid(x, y):
+    if not inSettingUI or settingState is None:
+        return False
     
-    cdx = - chaptersDx
-    
-    if 0 <= cdx <= ChaptersMaxDx:
-        return None
+    return (
+        settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY and
+        w * 0.0921875 <= x <= w * 0.534375 and
+        h * (180 / 1080) <= y <= h * (1015 / 1080)
+    )
 
-    if cdx < 0:
-        dx = - cdx
-    else:
-        dx = ChaptersMaxDx - cdx
-    dx *= -1 # 前面cdx = 负的, 所以变回来
-    if chaptersDx + dx > 0: # 超出左界
-        dx = - chaptersDx
-    
-    lastv = 0.0
-    av = 0.0
-    ast = time.time()
-    while True:
-        p = (time.time() - ast) / 0.75
-        if p > 1.0:
-            chaptersDx += dx - av
-            break
-        
-        v = 1.0 - (1.0 - p) ** 4
-        dxv = (v - lastv) * dx
-        av += dxv
-        chaptersDx += dxv
-        lastv = v
-        
-        time.sleep(1 / 120)
-        
+def settingUI_slideControler_setValue(x, y):
+    global settingPlayWidgetsDy
+    settingPlayWidgetsDy = y
+
 def changeChapterMouseDown(x, y):
     global changeChapterMouseDownX
     
@@ -1211,7 +1186,7 @@ def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.
             
             dy += widget.fontsize
             dy += widget.tonext
-            dy += h * (30 / 1080)
+            dy += h * (27 / 1080)
         elif isinstance(widget, PhigrosGameObject.PhiSlider):
             sliderShadowRect = (
                 x, y + h * (6 / 1080),
@@ -1336,15 +1311,6 @@ def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.
             )
             
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
-                    {",".join(map(str, checkButtonRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(checkButtonRect), 75)},\
-                    'rgb(255, 255, 255)'\
-                );",
-                add_code_array = True
-            )
-            
-            root.run_js_code(
                 f"ctx.drawImage(\
                     {root.get_img_jsvarname("checked")},\
                     {x + w * 0.340625 - CheckedIconWidth / 2},\
@@ -1354,10 +1320,19 @@ def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.
                 add_code_array = True
             )
             
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, checkButtonRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(checkButtonRect), 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
+            
             dy += widget.tonext
         
         if not isinstance(widget, PhigrosGameObject.PhiLabel):
-            dy += h * 0.1
+            dy += h * (150 / 1080)
             
     root.run_js_code(
         "ctx.restore();",
@@ -1367,11 +1342,17 @@ def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.
     return dy
         
 def settingRender():
+    global inSettingUI, settingState
+    global settingPlayWidgetsDy
+    inSettingUI = True
+    
     settingRenderSt = time.time()
     settingState = PhigrosGameObject.SettingState()
     
     clickedBackButton = False
     clickedBackButtonTime = float("nan")
+    
+    settingPlayWidgetsDy = 0.0
     
     def clickBackButtonCallback(*args):
         nonlocal clickedBackButton, clickedBackButtonTime
@@ -1478,7 +1459,13 @@ def settingRender():
             add_code_array = True
         )
         
-        renderPhigrosWidgets(list(PlaySettingWidgets.values()), w * 0.175, h * 0.175, 0.0, lambda x: getShadowDiagonalXByY(h - x), w * 0.3953125)
+        settingUIPlaySlideControler.maxValueY = renderPhigrosWidgets(
+            list(PlaySettingWidgets.values()),
+            w * 0.175, h * 0.175,
+            settingPlayWidgetsDy,
+            lambda x: getShadowDiagonalXByY(h - x),
+            w * 0.3953125
+        ) + h * 0.175
         
         lineColor = "254, 255, 169" if getUserData("setting-enableFCAPIndicator") else "255, 255, 255"
         root.run_js_code( # 2 layers alpha
@@ -1957,17 +1944,13 @@ def settingRender():
     
     PlaySettingWidgets: dict[str, PhigrosGameObject.PhiBaseWidget] = {
         "OffsetLabel": PhigrosGameObject.PhiLabel(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             left_text = "谱面延时",
             right_text = f"{int(getUserData("setting-chartOffset"))}ms",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "OffsetSlider": PhigrosGameObject.PhiSlider(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
-            tonext = h * (-40 / 1080),
+            tonext = h * (-67 / 1080),
             value = getUserData("setting-chartOffset"),
             number_points = (
                 (0.0, -400.0),
@@ -1977,112 +1960,82 @@ def settingRender():
             lr_button = True
         ),
         "OffsetTip": PhigrosGameObject.PhiLabel(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             left_text = "",
             right_text = "*请调节至第三拍的声音与按键音恰好重合的状态",
-            fontsize = (w + h) / 125,
+            fontsize = (w + h) / 150,
             color = "rgba(255, 255, 255, 0.6)"
         ),
         "NoteScaleLabel": PhigrosGameObject.PhiLabel(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             left_text = "按键缩放",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "NoteScaleSlider": PhigrosGameObject.PhiSlider(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             value = getUserData("setting-noteScale"),
             number_points = ((0.0, 1.0), (1.0, 1.29)),
             lr_button = False
         ),
         "BackgroundDimLabel": PhigrosGameObject.PhiLabel(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             left_text = "背景亮度",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "BackgroundDimSlider": PhigrosGameObject.PhiSlider(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             value = getUserData("setting-backgroundDim"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False
         ),
         "ClickSoundCheckbox": PhigrosGameObject.PhiCheckbox(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             text = "打开打击音效",
             fontsize = (w + h) / 75,
             checked = getUserData("setting-enableClickSound"),
         ),
         "MusicVolumeLabel": PhigrosGameObject.PhiLabel(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             left_text = "音乐音量",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "MusicVolumeSlider": PhigrosGameObject.PhiSlider(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             value = getUserData("setting-musicVolume"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False
         ),
         "UISoundVolumeLabel": PhigrosGameObject.PhiLabel(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             left_text = "界面音效音量",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "UISoundVolumeSlider": PhigrosGameObject.PhiSlider(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             value = getUserData("setting-uiVolume"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False
         ),
         "ClickSoundVolumeLabel": PhigrosGameObject.PhiLabel(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             left_text = "打击音效音量",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
         "ClickSoundVolumeSlider": PhigrosGameObject.PhiSlider(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             value = getUserData("setting-clickSoundVolume"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False
         ),
         "MorebetsAuxiliaryCheckbox": PhigrosGameObject.PhiCheckbox(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             text = "开启多押辅助",
             fontsize = (w + h) / 75,
             checked = getUserData("setting-enableMorebetsAuxiliary")
         ),
         "FCAPIndicatorCheckbox": PhigrosGameObject.PhiCheckbox(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             text = "开启FC/AP指示器",
             fontsize = (w + h) / 75,
             checked = getUserData("setting-enableFCAPIndicator")
         ),
         "LowQualityCheckbox": PhigrosGameObject.PhiCheckbox(
-            padding_top = 0.0,
-            padding_bottom = 0.0,
             text = "低分辨率模式",
             fontsize = (w + h) / 75,
             checked = getUserData("setting-enableLowQuality")
@@ -2099,8 +2052,6 @@ def settingRender():
             fillStyle = "rgba(0, 0, 0, 0.5)",
             wait_execute = True
         )
-        
-        drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
         
         ShadowXRect = settingState.getShadowRect()
         ShadowRect = (
@@ -2189,6 +2140,8 @@ def settingRender():
         )
         
         settingState.render(drawPlaySetting, drawAccountAndCountSetting, drawOtherSetting, ShadowXRect[0], w, settingDx)
+        
+        drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
                 
         if time.time() - settingRenderSt < 1.25:
             p = (time.time() - settingRenderSt) / 1.25
@@ -2212,6 +2165,9 @@ def settingRender():
             break
         
         root.run_js_wait_code()
+    
+    inSettingUI = False
+    settingState = None
 
 def updateFontSizes():
     global userName_FontSize
