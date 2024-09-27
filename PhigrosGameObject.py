@@ -345,7 +345,6 @@ class PhiCheckbox(PhiBaseWidget):
     
     check_animation_st: float = float("-inf")
 
-# 屎, 看不懂了
 class SlideControler:
     def __init__(
         self,
@@ -393,9 +392,10 @@ class SlideControler:
         dx = self._lastclickx - self._lastlastclickx
         dy = self._lastclicky - self._lastlastclicky
         called_easeBackX, called_easeBackY = False, False
+        dx *= 1.6; dy *= 1.6
         
-        while abs(dx) > self.w * 0.001 and abs(dy) > self.h * 0.001:
-            dx *= 0.9; dy *= 0.9
+        while abs(dx) > self.w * 0.001 or abs(dy) > self.h * 0.001:
+            dx *= 0.92; dy *= 0.92
             self._dx += dx; self._dy += dy
             self._set()
             
