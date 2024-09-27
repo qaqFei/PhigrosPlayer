@@ -1,7 +1,10 @@
 from threading import Thread
 from ctypes import windll
-from os import chdir, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
+from os import chdir, environ, mkdir, system, popen; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
 from os.path import exists, abspath, dirname
+from shutil import rmtree
+from random import randint
+import urllib.request
 import webbrowser
 import typing
 import json
@@ -19,20 +22,57 @@ import Const
 import Tool_Functions
 import PhigrosGameObject
 import rpe_easing
+import ConsoleWindow
 
 selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
-if not exists("./PhigrosAssets"):
-    while True:
-        print("PhigrosAssets not found, please download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
-        time.sleep(0.1)
+if not exists("./7z.exe") or not exists("./7z.dll"):
+    print("7z.exe or 7z.dll Not Found.")
+    windll.kernel32.ExitProcess(1)
+    
+if not exists("./PhigrosAssets") or not all([
+    exists(f"./PhigrosAssets/{i}") for i in [
+        "config.json",
+        "chapters.json"
+    ]
+]):
+    print("PhigrosAssets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
+    print("downloading from gitmirror...")
+    assetType = "development" if "--assets-type" not in sys.argv else sys.argv[sys.argv.index("--assets-type") + 1]
+    assetUrl = f"https://raw.gitmirror.com/qaqFei/PhigrosPlayer_PhigrosAssets/main/assets/{assetType}"
+    
+    try: rmtree("./PhigrosAssets_tmp")
+    except FileNotFoundError: pass
+    try: mkdir("./PhigrosAssets_tmp")
+    except FileExistsError: pass
+    try: mkdir("./PhigrosAssets")
+    except FileExistsError: pass
+    
+    try:
+        with open("./PhigrosAssets_tmp/PhigrosAssets.zip", "wb") as f:
+            f.write(urllib.request.urlopen(urllib.request.Request(assetUrl, headers={"User-Agent": Const.UAS[randint(0, len(Const.UAS) - 1)]})).read())
+        
+        print("download finished, extracting...")
+        popen(f".\\7z.exe x .\\PhigrosAssets_tmp\\ -o.\\PhigrosAssets -y >> nul").read()
+        print("extract finished.")
+    except Exception as e:
+        print(f"download failed: {e}")
+        system("pause")
+        windll.kernel32.ExitProcess(0)
 
+try: rmtree("./PhigrosAssets_tmp")
+except Exception: pass
+
+if sys.argv[0].endswith(".exe"):
+    ConsoleWindow.Hide()
+
+assetConfig = json.loads(open("./PhigrosAssets/config.json", "r", encoding="utf-8").read())
 userData_default = {
     "userName": "GUEST",
-    "userAvatar": "avatars/fengyv.png",
-    "userBackground": "backgrounds/rr.png",
+    "userAvatar": assetConfig["default-avatar"],
+    "userBackground": assetConfig["default-background"],
     "rankingScore": 0.0,
     "selfIntroduction": "There is a self-introduction, write something just like:\nTwitter: @Phigros_PGS\nYouTube: Pigeon Games\n\nHope you have fun in Phigros.\nBest regards,\nPigeon Games",
     "setting-chartOffset": 0,

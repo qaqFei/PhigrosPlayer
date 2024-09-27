@@ -115,7 +115,7 @@ mixer.music.set_volume(0.85)
 
 if __name__ == "__main__":
     print("Unpack Chart...")
-    popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" >> nul").read()
+    popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y >> nul").read()
 
     print("Loading All Files of Chart...")
     chart_files = Find_Files.Get_All_Files(temp_dir)
