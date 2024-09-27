@@ -84,7 +84,8 @@ userData_default = {
     "setting-clickSoundVolume": 1.0,
     "setting-enableMorebetsAuxiliary": True,
     "setting-enableFCAPIndicator": True,
-    "setting-enableLowQuality": False
+    "setting-enableLowQuality": False,
+    "internal-lowQualityScale": 1.75
 }
 
 def saveUserData(data: dict):
@@ -1203,14 +1204,23 @@ def mainRender():
         
         root.run_js_wait_code()
 
-def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.Callable[[float], float], max_width: float):
+def renderPhigrosWidgets(
+    widgets,
+    sx: float,
+    sy: float,
+    dy: float,
+    dx_f: typing.Callable[[float], float],
+    max_width: float,
+    minY: float, maxY: float
+):
     root.run_js_code(
-        f"ctx.save(); ctx.clipRect(0.0, {h * (180 / 1080)}, {w}, {h * (1015 / 1080)});",
+        f"ctx.save(); ctx.clipRect(0.0, {minY}, {w}, {maxY});",
         add_code_array = True
     )
+    widgets_height = 0.0
     
     for widget in widgets:
-        x, y = sx - dx_f(sy + dy), sy + dy
+        x, y = sx - dx_f(sy + (dy + widgets_height)), sy + (dy + widgets_height)
         
         if isinstance(widget, PhigrosGameObject.PhiLabel):
             _temp = lambda text, align: root.create_text(
@@ -1224,9 +1234,9 @@ def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.
             _temp(widget.left_text, "left")
             _temp(widget.right_text, "right")
             
-            dy += widget.fontsize
-            dy += widget.tonext
-            dy += h * (27 / 1080)
+            widgets_height += widget.fontsize
+            widgets_height += widget.tonext
+            widgets_height += h * (27 / 1080)
         elif isinstance(widget, PhigrosGameObject.PhiSlider):
             sliderShadowRect = (
                 x, y + h * (6 / 1080),
@@ -1316,7 +1326,7 @@ def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.
                 add_code_array = True
             )
             
-            dy += widget.tonext
+            widgets_height += widget.tonext
         elif isinstance(widget, PhigrosGameObject.PhiCheckbox):
             root.create_text(
                 x, y, widget.text,
@@ -1342,6 +1352,8 @@ def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.
             
             checkAnimationP = (time.time() - widget.check_animation_st) / 0.2
             checkAnimationP = Tool_Functions.fixOutofRangeP(checkAnimationP)
+            if not widget.checked:
+                checkAnimationP = 1.0 - checkAnimationP
             checkAnimationP = 1.0 - (1.0 - checkAnimationP) ** 2
             
             checkButtonDx = (w * 0.06875 - w * 0.0375) * checkAnimationP
@@ -1369,17 +1381,17 @@ def renderPhigrosWidgets(widgets, sx: float, sy: float, dy: float, dx_f: typing.
                 add_code_array = True
             )
             
-            dy += widget.tonext
+            widgets_height += widget.tonext
         
         if not isinstance(widget, PhigrosGameObject.PhiLabel):
-            dy += h * (150 / 1080)
+            widgets_height += h * (150 / 1080)
             
     root.run_js_code(
         "ctx.restore();",
         add_code_array = True
     )
     
-    return dy
+    return widgets_height
         
 def settingRender():
     global inSettingUI, settingState
@@ -1504,8 +1516,9 @@ def settingRender():
             w * 0.175, h * 0.175,
             settingPlayWidgetsDy,
             lambda x: getShadowDiagonalXByY(h - x),
-            w * 0.3953125
-        ) + h * 0.175
+            w * 0.3953125,
+            h * (180 / 1080), h * (1015 / 1080)
+        ) - h * (835 / 1080) # 这里为什么要减, ???
         
         lineColor = "254, 255, 169" if getUserData("setting-enableFCAPIndicator") else "255, 255, 255"
         root.run_js_code( # 2 layers alpha
@@ -2222,6 +2235,15 @@ def resize(w_: int, h_: int):
     w, h = w_ - dw_legacy, h_ - dh_legacy
     updateFontSizes()
 
+def applyConfig():
+    if getUserData("setting-enableLowQuality"):
+        root.run_js_code(f"lowquality_scale = {1.0 / webdpr * getUserData("internal-lowQualityScale")};")
+        root.run_js_code(f"ctx.imageSmoothingEnabled = false;")
+    else:
+        root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
+        root.run_js_code(f"ctx.imageSmoothingEnabled = true;")
+    root.run_js_code("resizeCanvas();") # update canvas
+
 root = webcvapis.WebCanvas(
     width = 1, height = 1,
     x = 0, y = 0,
@@ -2258,6 +2280,7 @@ Resource = Load_Resource()
 eventManager = PhigrosGameObject.EventManager()
 bindEvents()
 updateFontSizes()
+applyConfig()
 Thread(target=showStartAnimation, daemon=True).start()
     
 root.loop_to_close()

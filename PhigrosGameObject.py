@@ -412,6 +412,7 @@ class SlideControler:
                 dy = 0.0
             
             time.sleep(1 / 120)
+            
         if not called_easeBackX:
             threading.Thread(target=self._easeBackX, daemon=True).start()
         if not called_easeBackY:
