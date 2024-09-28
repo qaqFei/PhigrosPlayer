@@ -1,12 +1,13 @@
 from threading import Thread
 from ctypes import windll
-from os import chdir, environ, mkdir, system, popen; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
+from os import chdir, environ, mkdir, system, popen, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
 from os.path import exists, abspath, dirname
 from shutil import rmtree
-from random import randint
+from tempfile import gettempdir
 import urllib.request
 import webbrowser
 import typing
+import random
 import json
 import sys
 import time
@@ -16,6 +17,7 @@ sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if 
 
 from PIL import Image, ImageFilter
 from pygame import mixer
+from pydub import AudioSegment
 import webcvapis
 
 import Const
@@ -23,6 +25,7 @@ import Tool_Functions
 import PhigrosGameObject
 import rpe_easing
 import ConsoleWindow
+import PlaySound
 
 selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
@@ -52,7 +55,7 @@ if not exists("./PhigrosAssets") or not all([
     
     try:
         with open("./PhigrosAssets_tmp/PhigrosAssets.zip", "wb") as f:
-            f.write(urllib.request.urlopen(urllib.request.Request(assetUrl, headers={"User-Agent": Const.UAS[randint(0, len(Const.UAS) - 1)]})).read())
+            f.write(urllib.request.urlopen(urllib.request.Request(assetUrl, headers={"User-Agent": Const.UAS[random.randint(0, len(Const.UAS) - 1)]})).read())
         
         print("download finished, extracting...")
         popen(f".\\7z.exe x .\\PhigrosAssets_tmp\\ -o.\\PhigrosAssets -y >> nul").read()
@@ -67,6 +70,14 @@ except Exception: pass
 
 if sys.argv[0].endswith(".exe"):
     ConsoleWindow.Hide()
+
+for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_temp_")]:
+    try: rmtree(f"{gettempdir()}\\{item}")
+    except Exception as e: pass
+        
+temp_dir = f"{gettempdir()}\\phigros_temp_{time.time()}"
+try: mkdir(temp_dir)
+except FileExistsError: pass
 
 assetConfig = json.loads(open("./PhigrosAssets/config.json", "r", encoding="utf-8").read())
 userData_default = {
@@ -85,7 +96,7 @@ userData_default = {
     "setting-enableMorebetsAuxiliary": True,
     "setting-enableFCAPIndicator": True,
     "setting-enableLowQuality": False,
-    "internal-lowQualityScale": 1.75
+    "internal-lowQualityScale": 2.0
 }
 
 def saveUserData(data: dict):
@@ -164,8 +175,21 @@ def Load_Chapters():
     
     ChaptersMaxDx = w * (len(Chapters.items) - 1) * (295 / 1920) + w * 0.5 - w * 0.875
 
+def loadAudio(path: str):
+    seg = AudioSegment.from_file(path)
+    fp = f"{temp_dir}/{hash(path)}.wav"
+    seg.export(fp, format="wav")
+    return open(fp, "rb").read()
+
+def putColor(color: tuple|str, im: Image.Image):
+    return Image.merge("RGBA", (
+        *Image.new("RGB", im.size, color).split(),
+        im.split()[-1]
+    ))
+    
 def Load_Resource():
     global ButtonWidth, ButtonHeight
+    global ClickEffectFrameCount
     global MainUIIconWidth, MainUIIconHeight
     global SettingUIOtherIconWidth, SettingUIOtherIconHeight
     global MessageButtonSize
@@ -176,7 +200,34 @@ def Load_Resource():
     global TapTapIconWidth, TapTapIconHeight
     global CheckedIconWidth, CheckedIconHeight
     
+    ClickEffectFrameCount = len(listdir("./Resources/Note_Click_Effect/Frames"))
+    ClickEffectImages = [Image.open(f"./Resources/Note_Click_Effect/Frames/{i + 1}.png") for i in range(ClickEffectFrameCount)]
     Resource = {
+        "Notes":{
+            "Tap": Image.open("./Resources/Notes/Tap.png"),
+            "Tap_dub": Image.open("./Resources/Notes/Tap_dub.png"),
+            "Drag": Image.open("./Resources/Notes/Drag.png"),
+            "Drag_dub": Image.open("./Resources/Notes/Drag_dub.png"),
+            "Flick": Image.open("./Resources/Notes/Flick.png"),
+            "Flick_dub": Image.open("./Resources/Notes/Flick_dub.png"),
+            "Hold_Head": Image.open("./Resources/Notes/Hold_Head.png"),
+            "Hold_Head_dub": Image.open("./Resources/Notes/Hold_Head_dub.png"),
+            "Hold_End": Image.open("./Resources/Notes/Hold_End.png"),
+            "Hold_End_dub": Image.open("./Resources/Notes/Hold_End_dub.png"),
+            "Hold_Body": Image.open("./Resources/Notes/Hold_Body.png"),
+            "Hold_Body_dub": Image.open("./Resources/Notes/Hold_Body_dub.png"),
+            "Bad": None
+        },
+        "Note_Click_Effect":{
+            "Perfect": list(map(lambda im: putColor((204, 196, 138), im), ClickEffectImages)),
+            "Good": list(map(lambda im: putColor((180, 225, 255), im), ClickEffectImages)),
+        },
+        "Note_Click_Audio":{
+            "Tap": loadAudio("./Resources/Note_Click_Audio/Tap.wav"),
+            "Drag": loadAudio("./Resources/Note_Click_Audio/Drag.wav"),
+            "Hold": loadAudio("./Resources/Note_Click_Audio/Hold.wav"),
+            "Flick": loadAudio("./Resources/Note_Click_Audio/Flick.wav")
+        },
         "logoipt": Image.open("./Resources/logoipt.png"),
         "warning": Image.open("./Resources/Start.png"),
         "phigros": Image.open("./Resources/phigros.png"),
@@ -198,10 +249,12 @@ def Load_Resource():
         "qq": Image.open("./Resources/qq.png"),
         "bilibili": Image.open("./Resources/bilibili.png"),
         "taptap": Image.open("./Resources/taptap.png"),
-        "checked": Image.open("./Resources/checked.png"),
+        "checked": Image.open("./Resources/checked.png")
     }
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
+    Resource["Notes"]["Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
+    Const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     
     imageBlackMaskHeight = 12
     imageBlackMask = Image.new("RGBA", (1, imageBlackMaskHeight), (0, 0, 0, 0))
@@ -252,6 +305,13 @@ def Load_Resource():
     TapTapIconHeight = TapTapIconWidth / Resource["taptap"].width * Resource["taptap"].height
     CheckedIconWidth = w * 0.0140625
     CheckedIconHeight = CheckedIconWidth / Resource["checked"].width * Resource["checked"].height
+    
+    for k, v in Resource["Notes"].items():
+        root.reg_img(Resource["Notes"][k], f"Note_{k}")
+    
+    for i in range(ClickEffectFrameCount):
+        root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
+        root.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
 
     for chapter in Chapters.items:
         im = Image.open(f"./PhigrosAssets/{chapter.image}")
@@ -860,7 +920,7 @@ def showStartAnimation():
         root.run_js_wait_code()
     
     root.run_js_code(f"mask.style.backdropFilter = '';", add_code_array = True)
-    mixer.music.load("./Resources/ChapterSelect.mp3")
+    
     mainRender()
 
 def soundEffect_From0To1():
@@ -946,6 +1006,7 @@ def mainRender():
     
     faManager.faculas.clear()
     mainRenderSt = time.time()
+    mixer.music.load("./Resources/ChapterSelect.mp3")
     mixer.music.play(-1)
     
     messageRect = (w * 0.015, h * 0.985 - MessageButtonSize, MessageButtonSize, MessageButtonSize)
@@ -1419,11 +1480,13 @@ def settingRender():
     
     settingRenderSt = time.time()
     settingState = PhigrosGameObject.SettingState()
-    
     clickedBackButton = False
     clickedBackButtonTime = float("nan")
-    
     settingPlayWidgetsDy = 0.0
+    CalibrationClickSoundPlayed = False
+    
+    mixer.music.load("./Resources/Calibration.wav")
+    mixer.music.play(-1)
     
     def clickBackButtonCallback(*args):
         nonlocal clickedBackButton, clickedBackButtonTime
@@ -1459,16 +1522,20 @@ def settingRender():
             346 / 1920 * w, 35 / 1080 * h,
             458 / 1920 * w, 97 / 1080 * h
         )):
+            if settingState.aTo != Const.PHIGROS_SETTING_STATE.PLAY:
+                Thread(target=lambda: (time.sleep(settingState.atime / 2), mixer.music.stop(), mixer.music.play(-1)), daemon=True).start()
             _setSettingState(Const.PHIGROS_SETTING_STATE.PLAY)
         elif Tool_Functions.InRect(x, y, (
             540 / 1920 * w, 35 / 1080 * h,
             723 / 1920 * w, 97 / 1080 * h
         )):
+            mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
         elif Tool_Functions.InRect(x, y, (
             807 / 1920 * w, 35 / 1080 * h,
             915 / 1920 * w, 97 / 1080 * h
         )):
+            mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.OTHER)
     
     settingMainClickEvent = PhigrosGameObject.ClickEvent(
@@ -1523,6 +1590,8 @@ def settingRender():
     ]
     
     def drawPlaySetting(dx: float, alpha: float):
+        nonlocal CalibrationClickSoundPlayed
+        
         if alpha == 0.0: return None
         
         root.run_js_code(
@@ -1548,6 +1617,61 @@ def settingRender():
             );",
             add_code_array = True
         )
+        
+        CalibrationMusicPosition = mixer.music.get_pos() / 1000
+        if CalibrationMusicPosition > 0.0:
+            efctrseed = CalibrationMusicPosition - CalibrationMusicPosition % 2.0
+            CalibrationMusicPosition += getUserData("setting-chartOffset") / 1000
+            CalibrationMusicPosition %= 2.0
+            noteWidth = w * 0.1234375 * getUserData("setting-noteScale")
+            noteHeight = noteWidth * Resource["Notes"]["Tap"].height / Resource["Notes"]["Tap"].width
+            ClickEffect_Size = noteWidth * 1.375
+            if CalibrationMusicPosition < 1.0:
+                noteY = h * 0.85 * CalibrationMusicPosition - h * 0.05
+                root.run_js_code(
+                    f"ctx.drawImage(\
+                        {root.get_img_jsvarname("Note_Tap")},\
+                        {w * 0.75 - noteWidth / 2}, {noteY - noteHeight / 2},\
+                        {noteWidth}, {noteHeight}\
+                    );",
+                    add_code_array = True
+                )
+                if CalibrationClickSoundPlayed:
+                    CalibrationClickSoundPlayed = False
+            else:
+                p = (CalibrationMusicPosition - 1.0) / 0.5
+                if p <= 1.0:
+                    root.run_js_code(
+                        f"ctx.drawImage(\
+                            {root.get_img_jsvarname(f"Note_Click_Effect_Perfect_{int(p * (ClickEffectFrameCount - 1)) + 1}")},\
+                            {w * 0.75 - ClickEffect_Size / 2}, {h * 0.8 - ClickEffect_Size / 2},\
+                            {ClickEffect_Size}, {ClickEffect_Size}\
+                        );",
+                        add_code_array = True
+                    )
+                    
+                    random.seed(efctrseed)
+                    block_size = noteWidth / 5.5 * (0.4 * math.sin(p * math.pi) + 0.6)
+                    for i, deg in enumerate([random.uniform(0, 90) for _ in range(4)]):
+                        effect_random_point = Tool_Functions.rotate_point(
+                            w * 0.75, h * 0.85, deg + i * 90,
+                            ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.35
+                        )
+                        root.run_js_code(
+                            f"ctx.rectEx(\
+                                {effect_random_point[0] - block_size / 2},\
+                                {effect_random_point[1] - block_size / 2},\
+                                {block_size}, {block_size},\
+                                'rgba(254, 255, 169, {(1.0 - p) * 0.85})'\
+                            );",
+                            add_code_array = True
+                        )
+                    random.seed(time.time())
+                    
+                if not CalibrationClickSoundPlayed:
+                    CalibrationClickSoundPlayed = True
+                    if getUserData("setting-enableClickSound"):
+                        Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"]["Tap"],), daemon=True).start()
         
         root.run_js_code(
             f"ctx.restore();",
@@ -2018,7 +2142,7 @@ def settingRender():
     PlaySettingWidgets.update({
         "OffsetLabel": PhigrosGameObject.PhiLabel(
             left_text = "谱面延时",
-            right_text = "0ms",
+            right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
@@ -2037,7 +2161,7 @@ def settingRender():
         ),
         "OffsetTip": PhigrosGameObject.PhiLabel(
             left_text = "",
-            right_text = "*请调节至第三拍的声音与按键音恰好重合的状态",
+            right_text = "",
             fontsize = (w + h) / 150,
             color = "rgba(255, 255, 255, 0.6)"
         ),
@@ -2257,6 +2381,7 @@ def settingRender():
     
     inSettingUI = False
     settingState = None
+    
 
 def updateFontSizes():
     global userName_FontSize
@@ -2286,12 +2411,13 @@ def updateConfig():
         "setting-enableLowQuality": PlaySettingWidgets["LowQualityCheckbox"].checked,
     })
     
-    PlaySettingWidgets["OffsetLabel"].right_text = f"{int(userData["setting-chartOffset"])}ms"
+    PlaySettingWidgets["OffsetLabel"].right_text = f"{int(getUserData("setting-chartOffset"))}ms"
+    PlaySettingWidgets["OffsetTip"].right_text = "*请调节至第三拍的声音与按键音恰好重合的状态" if getUserData("setting-enableClickSound") else "*请调节至第三拍的声音与按键爆开几乎同时的状态"
     
     if userData != rcfg:
         saveUserData(userData)
     
-    if rcfg["setting-enableLowQuality"] != userData["setting-enableLowQuality"]:
+    if rcfg["setting-enableLowQuality"] != getUserData("setting-enableLowQuality"):
         applyConfig()
 
 def applyConfig():

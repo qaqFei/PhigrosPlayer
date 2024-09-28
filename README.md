@@ -44,7 +44,7 @@
 - `--lfdaot-render-video-savefp <filepath-string-value>` 在使用`--lfdaot-render-video`的视频保存路径
 - `--lfdaot-file-output-autoexit` 在使用`--lfdaot`时 生成`lfdaot`文件后不播放 自动退出
 - `--lowquality` 开启低画质模式
-- `--lowquality-scale <float-value>` 设置低画质模式的画质降低程度 为n时, 即为正常1/n倍的渲染量 默认为2.0
+- `--lowquality-scale <float-value>` 设置低画质模式的画质降低程度, 默认为`2.0`
 - `--res <res-path>` 优先从资源路径加载资源
 - `--showfps` 显示`fps`, 在使用`--lfdaot-render-video`时无效
 - `--lfdaot-start-frame-num <number-value>` 使用`--lfdaot`时, 生成开始时的帧数, 默认为`0` // 仅适用于生成视频

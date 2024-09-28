@@ -182,7 +182,7 @@ class SettingState:
     def __post_init__(self):
         self._ease_fast = rpe_easing.ease_funcs[11]
         self._ease_slow = rpe_easing.ease_funcs[12]
-        self._atime = 0.65
+        self.atime = 0.65
     
     def getBarWidth(self):
         sv = Const.PHIGROS_SETTING_BAR_WIDTH_MAP[self.aFrom]
@@ -190,7 +190,7 @@ class SettingState:
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
-        et = self.aSTime + self._atime
+        et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
         p = Tool_Functions.fixOutofRangeP(p)
         p = self._ease_slow(p)
@@ -202,7 +202,7 @@ class SettingState:
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
-        et = self.aSTime + self._atime
+        et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
         p = Tool_Functions.fixOutofRangeP(p)
         p = self._ease_fast(p)
@@ -214,7 +214,7 @@ class SettingState:
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
-        et = self.aSTime + self._atime
+        et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
         p = Tool_Functions.fixOutofRangeP(p)
         p = self._ease_slow(p)
@@ -233,7 +233,7 @@ class SettingState:
             return (0, 0, 0) # aFrom and aTo is 1
         else:
             st = self.aSTime
-            et = self.aSTime + self._atime
+            et = self.aSTime + self.atime
             p = (time.time() - st) / (et - st)
             p = Tool_Functions.fixOutofRangeP(p)
             
@@ -255,7 +255,7 @@ class SettingState:
             return 1.175
         else:
             st = self.aSTime
-            et = self.aSTime + self._atime
+            et = self.aSTime + self.atime
             p = (time.time() - st) / (et - st)
             p = Tool_Functions.fixOutofRangeP(p)
             p = self._ease_slow(p)
@@ -268,7 +268,7 @@ class SettingState:
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
-        et = self.aSTime + self._atime
+        et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
         p = Tool_Functions.fixOutofRangeP(p)
         p = self._ease_slow(p)
@@ -298,7 +298,7 @@ class SettingState:
             self.aTo = Const.PHIGROS_SETTING_STATE.PLAY
         
         st = self.aSTime
-        et = self.aSTime + self._atime
+        et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st) if self.aSTime != float("-inf") else 1.0
         p = Tool_Functions.fixOutofRangeP(p)
         p = self._ease_slow(p)

@@ -309,6 +309,13 @@
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.rectEx = function (x, y, w, h, color) {
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, w, h);
+        ctx.restore();
+    }
+
     CanvasRenderingContext2D.prototype.roundRectEx = function (x, y, w, h, r, color) {
         ctx.save();
         ctx.fillStyle = color;
