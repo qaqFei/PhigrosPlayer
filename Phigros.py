@@ -140,6 +140,7 @@ changeChapterMouseDownX = float("nan")
 lastChangeChapterTime = float("-inf")
 setting = PhigrosGameObject.Setting()
 PlaySettingWidgets: dict[str, PhigrosGameObject.PhiBaseWidget] = {}
+dspSettingWidgets: dict[str, PhigrosGameObject.PhiBaseWidget] = {}
 
 def Load_Chapters():
     global Chapters, ChaptersMaxDx
@@ -346,7 +347,7 @@ def Load_Resource():
 
 def bindEvents():
     global mainUISlideControler, settingUIPlaySlideControler
-    global SettingPlayWidgetEventManager
+    global SettingPlayWidgetEventManager, dspSettingWidgetEventManager
     
     root.jsapi.set_attr("click", eventManager.click)
     root.run_js_code("_click = (e) => pywebview.api.call_attr('click', e.x, e.y);")
@@ -384,6 +385,11 @@ def bindEvents():
     eventManager.regClickEventFs(SettingPlayWidgetEventManager.MouseDown, False)
     eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(SettingPlayWidgetEventManager.MouseUp))
     eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(SettingPlayWidgetEventManager.MouseMove))
+    
+    dspSettingWidgetEventManager = PhigrosGameObject.WidgetEventManager([])
+    eventManager.regClickEventFs(dspSettingWidgetEventManager.MouseDown, False)
+    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(dspSettingWidgetEventManager.MouseUp))
+    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(dspSettingWidgetEventManager.MouseMove))
 
     eventManager.regClickEventFs(changeChapterMouseDown, False)
     eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(changeChapterMouseUp))
@@ -1462,6 +1468,32 @@ def renderPhigrosWidgets(
             widget.checkboxRect = checkboxShadowRect
             
             widgets_height += widget.tonext
+        elif isinstance(widget, PhigrosGameObject.PhiButton):
+            buttonRect = (
+                x + max_width / 2 - widget.width / 2, y,
+                x + max_width / 2 + widget.width / 2, y + h * (80 / 1080)
+            )
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, buttonRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(buttonRect), 75)},\
+                    'rga(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
+            
+            root.create_text(
+                buttonRect[0] + (buttonRect[2] - buttonRect[0]) / 2, buttonRect[1] + (buttonRect[3] - buttonRect[1]) / 2,
+                widget.text,
+                font = f"{widget.fontsize}px PhigrosFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "rgb(0, 0, 0)",
+                wait_execute = True
+            )
+            
+            widget.buttonRect = buttonRect
         
         if not isinstance(widget, PhigrosGameObject.PhiLabel):
             widgets_height += h * (150 / 1080)
@@ -2448,6 +2480,8 @@ def settingRender():
     settingState = None
 
 def audioQARender():
+    global dspSettingWidgets
+    
     audioQARenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     clickedBackButton = False
@@ -2471,6 +2505,34 @@ def audioQARender():
     )
     eventManager.regClickEvent(clickBackButtonEvent)
     
+    dspSettingWidgets.clear()
+    dspSettingWidgets.update({
+        "ValueLabel": PhigrosGameObject.PhiLabel(
+            left_text = "DSP Buffer",
+            right_text = "",
+            fontsize = (w + h) / 75,
+            color = "#FFFFFF"
+        ),
+        "ValueSlider": PhigrosGameObject.PhiSlider(
+            value = getUserData("internal-dspBufferExponential"),
+            number_points = [(0.0, 7.0), (1.0, 12.0)],
+            lr_button = False,
+            sliderUnit = 1.0,
+            numberType = int,
+            command = updateConfig
+        ),
+        "PlayButton": PhigrosGameObject.PhiButton(
+            text = "播放音频",
+            fontsize = (w + h) / 75,
+            width = w * 0.19375,
+            command = lambda: (mixer.music.load("./Resources/TouchToStart.mp3"), mixer.music.play())
+        )
+    })
+    
+    dspSettingWidgetEventManager.widgets.clear()
+    dspSettingWidgetEventManager.widgets.extend(dspSettingWidgets.values())
+    updateConfig()
+    
     while True:
         root.clear_canvas(wait_execute = True)
         
@@ -2480,6 +2542,44 @@ def audioQARender():
             0, 0, w, h,
             fillStyle = "rgba(0, 0, 0, 0.5)",
             wait_execute = True
+        )
+        
+        shadowRect = (
+            w * 0.1015625, 0.0,
+            w * 0.9, h
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleNoFix(\
+                {",".join(map(str, shadowRect))},\
+                {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(shadowRect), 75)}, 'rgba(0, 0, 0, 0.25)'\
+            );",
+            add_code_array = True
+        )
+    
+        renderPhigrosWidgets(
+            dspSettingWidgets.values(), w * 0.275, h * (665 / 1080), 0.0,
+            lambda y: ((y - h * (665 / 1080)) / h) * (Tool_Functions.getSizeByRect(shadowRect)[0] * Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(shadowRect), 75)),
+            w * 0.425, 0.0, h
+        )
+        
+        root.create_text(
+            w * 0.3, h * (98 / 1080),
+            "音频问题疑难解答",
+            font = f"{(w + h) / 62.5}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawRectMultilineTextDiagonal(\
+                {w * 0.28125}, {h * (241 / 1080)},\
+                {w * 0.7984375}, {h}, {root.process_code_string_syntax_tocode(Const.DSP_SETTING_TIP)},\
+                'rgb(255, 255, 255)',\
+                '{(w + h) / 120}px PhigrosFont', {(w + h) / 120}, {- w * 0.0046875}, 1.25\
+            );",
+            add_code_array = True
         )
         
         drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
@@ -2520,8 +2620,7 @@ def resize(w_: int, h_: int):
     w, h = w_ - dw_legacy, h_ - dh_legacy
     updateFontSizes()
 
-def updateConfig():
-    rcfg = userData.copy()
+def updateSettingConfig():
     userData.update({
         "setting-chartOffset": PlaySettingWidgets["OffsetSlider"].value,
         "setting-noteScale": PlaySettingWidgets["NoteScaleSlider"].value,
@@ -2532,11 +2631,33 @@ def updateConfig():
         "setting-clickSoundVolume": PlaySettingWidgets["ClickSoundVolumeSlider"].value,
         "setting-enableMorebetsAuxiliary": PlaySettingWidgets["MorebetsAuxiliaryCheckbox"].checked,
         "setting-enableFCAPIndicator": PlaySettingWidgets["FCAPIndicatorCheckbox"].checked,
-        "setting-enableLowQuality": PlaySettingWidgets["LowQualityCheckbox"].checked,
+        "setting-enableLowQuality": PlaySettingWidgets["LowQualityCheckbox"].checked
     })
-    
+
+def updateDSPConfig():
+    userData.update({
+        "internal-dspBufferExponential": dspSettingWidgets["ValueSlider"].value
+    })
+
+def updateSettingWidgets():
     PlaySettingWidgets["OffsetLabel"].right_text = f"{int(getUserData("setting-chartOffset"))}ms"
     PlaySettingWidgets["OffsetTip"].right_text = "*请调节至第三拍的声音与按键音恰好重合的状态" if getUserData("setting-enableClickSound") else "*请调节至第三拍的声音与按键爆开几乎同时的状态"
+
+def updateDSPWidgets():
+    dspSettingWidgets["ValueLabel"].right_text = f"{2 ** getUserData("internal-dspBufferExponential")}"
+
+def updateConfig():
+    rcfg = userData.copy()
+    
+    try: updateSettingConfig()
+    except KeyError: pass
+    try: updateDSPConfig()
+    except KeyError: pass
+    
+    try: updateSettingWidgets()
+    except KeyError: pass
+    try: updateDSPWidgets()
+    except KeyError: pass
     
     if userData != rcfg:
         saveUserData(userData)

@@ -416,6 +416,7 @@
         this.stroke();
         this.restore();
     }
+
     CanvasRenderingContext2D.prototype.drawRectMultilineText = function(x0, y0, x1, y1, text, color, font, fontsize) {
         this.save();
 
@@ -451,6 +452,55 @@
         for (let i = 0; i < texts.length; i++) {
             this.fillText(texts[i], x0, y0 + dy);
             dy += fontsize * 1.15;
+            if (dy >= (y1 - y0)) break;
+        }
+
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawRectMultilineTextDiagonal = function(x0, y0, x1, y1, text, color, font, fontsize, lineDiagonal, lineOffsetScale) {
+        this.save();
+
+        let linesplit_texts = text.split("\n");
+        this.font = font;
+        this.fillStyle = color;
+        this.textBaseline = "top";
+        this.textAlign = "left";
+        let texts = [];
+        let _fthis = this;
+        function _splitTexts (element) {
+            let width = _fthis.measureText(element).width;
+            if (width >= (x1 - x0) * 0.95) {
+                for (let i = element.length - 1; i >= 0; i--) {
+                    let new_element = element.substring(0, i);
+                    if (_fthis.measureText(new_element).width < (x1 - x0) * 0.95) {
+                        texts.push(new_element);
+                        _splitTexts(element.substring(i));
+                        return;
+                    }
+                }
+                texts.push(element);
+            }
+            else {
+                texts.push(element);
+            }
+        }
+        linesplit_texts.forEach(_splitTexts);
+
+        this.rect(x0, y0, x1 - x0, y1 - y0);
+        let dx = 0.0;
+        let dy = 0.0;
+
+        for (let i = 0; i < texts.length; i++) {
+            if (texts[i]) {
+                this.fillText(texts[i], x0 + dx, y0 + dy);
+                dy += fontsize * lineOffsetScale;
+                dx += lineDiagonal;
+            }
+            else {
+                dx += lineDiagonal * 0.5;
+                dy += fontsize * lineOffsetScale * 0.5;
+            }
             if (dy >= (y1 - y0)) break;
         }
 

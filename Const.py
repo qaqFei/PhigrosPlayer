@@ -44,6 +44,14 @@ JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER = 127 / 975
 CHAPTER_DIAGONALRECTANGLEDEG = -75
 PHIGROS_TAPTAP_CLIENT_ID = "rAK3FfdieFob2Nn8Am"
 
+DSP_SETTING_TIP = """\
+如果你在游戏中遇到游戏中的音乐无法正常播放的情况，请适当的更改这个设置。\n
+在游戏中，更小的 DSP Buffer 可以带来更低的音频延时，但同时会导致某些设备出现音频撕裂、音频嘈杂且缓慢，音频卡顿等问题。\n
+如果你遇到了上述问题，请将这个值调整至可以让音频正常播放的最小值。可以通过播放下方的示例音频来测试音频能否正常播放。\n
+// *部分设备须重启游戏后生效\n\n\n\n
+Tip: 由于技术性原因，您必须重启游戏才能使更改生效。\
+"""
+
 PHIGROS_SETTING_BAR_WIDTH_MAP = {
     PHIGROS_SETTING_STATE.PLAY: 0.465625,
     PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT: 0.8265625,

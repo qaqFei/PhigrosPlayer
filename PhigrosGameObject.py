@@ -429,7 +429,23 @@ class PhiCheckbox(PhiBaseWidget):
     
     def InRect(self, x: int, y: int):
         return Tool_Functions.InRect(x, y, self.checkboxRect)
-    
+
+@dataclass
+class PhiButton(PhiBaseWidget):
+    text: str = ""
+    fontsize: float = 1.0
+    width: float = 0.0
+    command: typing.Callable[[], typing.Any] = lambda *args, **kwargs: None
+
+    buttonRect = (0.0, 0.0, 0.0, 0.0)
+
+    def MouseDown(self, x: int, y: int):
+        if self.InRect(x, y):
+            self.command()
+
+    def InRect(self, x: int, y: int):
+        return Tool_Functions.InRect(x, y, self.buttonRect)
+
 class WidgetEventManager:
     def __init__(self, widgets: list[PhiBaseWidget]):
         self.widgets = widgets
