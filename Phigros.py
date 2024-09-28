@@ -25,7 +25,6 @@ import Tool_Functions
 import PhigrosGameObject
 import rpe_easing
 import ConsoleWindow
-import PlaySound
 
 selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
@@ -96,7 +95,8 @@ userData_default = {
     "setting-enableMorebetsAuxiliary": True,
     "setting-enableFCAPIndicator": True,
     "setting-enableLowQuality": False,
-    "internal-lowQualityScale": 2.0
+    "internal-lowQualityScale": 2.0,
+    "internal-dspBufferExponential": 8
 }
 
 def saveUserData(data: dict):
@@ -127,7 +127,7 @@ if not exists("./Phigros_UserData.json"):
 loadUserData()
 saveUserData(userData)
 
-mixer.init()
+mixer.init(buffer = 2 ** getUserData("internal-dspBufferExponential"))
 chaptersDx = 0.0
 inMainUI = False
 inSettingUI = False
@@ -1585,20 +1585,28 @@ def settingRender():
     
     otherSettingButtonRects = [
         (
-            w * 0.3921875, h * (611 / 1080),
-            w * (0.3921875 + 0.046875), h * ((611 + 50) / 1080)
+            w * (0.0515625 + 0.0265625 + 0.25) + getShadowDiagonalXByY(h * 0.575), h * 0.575,
+            w * (0.0515625 + 0.0265625 + 0.25 + 0.046875) + getShadowDiagonalXByY(h * 0.575), h * (0.575 + 0.05)
         ),
         (
-            w * 0.3765625, h * (711 / 1080),
-            w * (0.3765625 + 0.046875), h * ((711 + 50) / 1080)
+            w * (0.0515625 + 0.0265625 + 0.25) + getShadowDiagonalXByY(h * 0.675), h * 0.675,
+            w * (0.0515625 + 0.0265625 + 0.25 + 0.046875) + getShadowDiagonalXByY(h * 0.675), h * (0.675 + 0.05)
         ),
         (
-            w * 0.7890625, h * (611 / 1080),
-            w * (0.7890625 + 0.046875), h * ((611 + 50) / 1080)
+            w * (0.0515625 + 0.0265625 + 0.25) + getShadowDiagonalXByY(h * 0.775), h * 0.775,
+            w * (0.0515625 + 0.0265625 + 0.25 + 0.046875) + getShadowDiagonalXByY(h * 0.775), h * (0.775 + 0.05)
         ),
         (
-            w * 0.7734375, h * (711 / 1080),
-            w * (0.7734375 + 0.046875), h * ((711 + 50) / 1080)
+            w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25) + getShadowDiagonalXByY(h * 0.575), h * 0.575,
+            w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25 + 0.046875) + getShadowDiagonalXByY(h * 0.575), h * (0.575 + 0.05)
+        ),
+        (
+            w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25) + getShadowDiagonalXByY(h * 0.675), h * 0.675,
+            w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25 + 0.046875) + getShadowDiagonalXByY(h * 0.675), h * (0.675 + 0.05)
+        ),
+        (
+            w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25) + getShadowDiagonalXByY(h * 0.775), h * 0.775,
+            w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25 + 0.046875) + getShadowDiagonalXByY(h * 0.775), h * (0.775 + 0.05)
         )
     ]
     
@@ -2042,9 +2050,15 @@ def settingRender():
             wait_execute = True
         )
         
-        drawOtherSettingButton(
-            *otherSettingButtonRects[0],
-            settingOtherButtonDPower
+        root.create_text(
+            w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.575),
+            h * 0.575,
+            "开源许可证",
+            font = f"{(w + h) / 90}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
         )
         
         root.create_text(
@@ -2058,27 +2072,6 @@ def settingRender():
             wait_execute = True
         )
         
-        drawOtherSettingButton(
-            *otherSettingButtonRects[1],
-            settingOtherButtonDPower
-        )
-        
-        root.create_text(
-            w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.575),
-            h * 0.575,
-            "开源许可证",
-            font = f"{(w + h) / 90}px PhigrosFont",
-            textAlign = "left",
-            textBaseline = "top",
-            fillStyle = "rgb(255, 255, 255)",
-            wait_execute = True
-        )
-        
-        drawOtherSettingButton(
-            *otherSettingButtonRects[2],
-            settingOtherButtonDPower
-        )
-        
         root.create_text(
             w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.675),
             h * 0.675,
@@ -2090,10 +2083,30 @@ def settingRender():
             wait_execute = True
         )
         
-        drawOtherSettingButton(
-            *otherSettingButtonRects[3],
-            settingOtherButtonDPower
+        root.create_text(
+            w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.775),
+            h * 0.775,
+            "关于我们",
+            font = f"{(w + h) / 90}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
         )
+        
+        root.create_text(
+            w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.775),
+            h * 0.775,
+            "删除账号",
+            font = f"{(w + h) / 90}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        for i in otherSettingButtonRects:
+            drawOtherSettingButton(*i, settingOtherButtonDPower)
         
         root.create_text(
             w * 0.5453125,
