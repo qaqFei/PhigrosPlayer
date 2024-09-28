@@ -2234,6 +2234,7 @@ def settingRender():
             add_code_array = True
         )
     
+    SettingPlayWidgetEventManager.widgets.clear()
     PlaySettingWidgets.clear()
     PlaySettingWidgets.update({
         "OffsetLabel": PhigrosGameObject.PhiLabel(
@@ -2478,6 +2479,8 @@ def settingRender():
     
     inSettingUI = False
     settingState = None
+    SettingPlayWidgetEventManager.widgets.clear()
+    PlaySettingWidgets.clear()
 
 def audioQARender():
     global dspSettingWidgets
@@ -2505,6 +2508,7 @@ def audioQARender():
     )
     eventManager.regClickEvent(clickBackButtonEvent)
     
+    dspSettingWidgetEventManager.widgets.clear()
     dspSettingWidgets.clear()
     dspSettingWidgets.update({
         "ValueLabel": PhigrosGameObject.PhiLabel(
@@ -2606,6 +2610,9 @@ def audioQARender():
             break
         
         root.run_js_wait_code()
+    
+    dspSettingWidgetEventManager.widgets.clear()
+    dspSettingWidgets.clear()
     
 def updateFontSizes():
     global userName_FontSize
