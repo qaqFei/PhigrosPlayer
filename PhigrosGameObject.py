@@ -320,6 +320,8 @@ class SettingState:
         if sp_state:
             self.aFrom = Const.PHIGROS_SETTING_STATE.PLAY
             self.aTo = Const.PHIGROS_SETTING_STATE.PLAY
+        
+        return drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx
 
 @dataclass
 class PhiBaseWidget:

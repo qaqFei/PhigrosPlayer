@@ -81,11 +81,11 @@ except FileExistsError: pass
 
 assetConfig = json.loads(open("./PhigrosAssets/config.json", "r", encoding="utf-8").read())
 userData_default = {
-    "userName": "GUEST",
-    "userAvatar": assetConfig["default-avatar"],
-    "userBackground": assetConfig["default-background"],
-    "rankingScore": 0.0,
-    "selfIntroduction": "There is a self-introduction, write something just like:\nTwitter: @Phigros_PGS\nYouTube: Pigeon Games\n\nHope you have fun in Phigros.\nBest regards,\nPigeon Games",
+    "userdata-userName": "GUEST",
+    "userdata-userAvatar": assetConfig["default-avatar"],
+    "userdata-userBackground": assetConfig["default-background"],
+    "userdata-rankingScore": 0.0,
+    "userdata-selfIntroduction": "There is a self-introduction, write something just like:\nTwitter: @Phigros_PGS\nYouTube: Pigeon Games\n\nHope you have fun in Phigros.\nBest regards,\nPigeon Games",
     "setting-chartOffset": 0,
     "setting-noteScale": 1.0,
     "setting-backgroundDim": 0.6,
@@ -249,7 +249,8 @@ def Load_Resource():
         "qq": Image.open("./Resources/qq.png"),
         "bilibili": Image.open("./Resources/bilibili.png"),
         "taptap": Image.open("./Resources/taptap.png"),
-        "checked": Image.open("./Resources/checked.png")
+        "checked": Image.open("./Resources/checked.png"),
+        "CalibrationHit": mixer.Sound("./Resources/CalibrationHit.wav")
     }
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -319,8 +320,8 @@ def Load_Resource():
         root.reg_img(im, f"chapter_{chapter.chapterId}_raw")
         root.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
     
-    root.reg_img(Image.open(f"./PhigrosAssets/{getUserData("userAvatar")}"), "userAvatar")
-    root.reg_img(Image.open(f"./PhigrosAssets/{getUserData("userBackground")}"), "userBackground")
+    root.reg_img(Image.open(f"./PhigrosAssets/{getUserData("userdata-userAvatar")}"), "userAvatar")
+    root.reg_img(Image.open(f"./PhigrosAssets/{getUserData("userdata-userBackground")}"), "userBackground")
     
     with open("./Resources/font.ttf", "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
@@ -1484,6 +1485,8 @@ def settingRender():
     clickedBackButtonTime = float("nan")
     settingPlayWidgetsDy = 0.0
     CalibrationClickSoundPlayed = False
+    CalibrationClickEffectLines = []
+    drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx = 0.0, 0.0, 0.0
     
     mixer.music.load("./Resources/Calibration.wav")
     mixer.music.play(-1)
@@ -1525,19 +1528,29 @@ def settingRender():
             if settingState.aTo != Const.PHIGROS_SETTING_STATE.PLAY:
                 Thread(target=lambda: (time.sleep(settingState.atime / 2), mixer.music.stop(), mixer.music.play(-1)), daemon=True).start()
             _setSettingState(Const.PHIGROS_SETTING_STATE.PLAY)
-        elif Tool_Functions.InRect(x, y, (
+            
+        if Tool_Functions.InRect(x, y, (
             540 / 1920 * w, 35 / 1080 * h,
             723 / 1920 * w, 97 / 1080 * h
         )):
             mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
-        elif Tool_Functions.InRect(x, y, (
+            
+        if Tool_Functions.InRect(x, y, (
             807 / 1920 * w, 35 / 1080 * h,
             915 / 1920 * w, 97 / 1080 * h
         )):
             mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.OTHER)
-    
+        
+        if Tool_Functions.InRect(x + playSettingDx, y, (
+            w * 0.6015625, 0.0,
+            w, h
+        )):
+            mixer_pos = mixer.music.get_pos()
+            if mixer_pos != -1:
+                CalibrationClickEffectLines.append((time.time(), mixer_pos))
+            
     settingMainClickEvent = PhigrosGameObject.ClickEvent(
         rect = (0, 0, w, h),
         callback = settingMainClickCallback,
@@ -1590,7 +1603,7 @@ def settingRender():
     ]
     
     def drawPlaySetting(dx: float, alpha: float):
-        nonlocal CalibrationClickSoundPlayed
+        nonlocal CalibrationClickSoundPlayed, CalibrationClickEffectLines
         
         if alpha == 0.0: return None
         
@@ -1671,7 +1684,24 @@ def settingRender():
                 if not CalibrationClickSoundPlayed:
                     CalibrationClickSoundPlayed = True
                     if getUserData("setting-enableClickSound"):
-                        Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"]["Tap"],), daemon=True).start()
+                        Resource["CalibrationHit"].play()
+        
+        for t, p in CalibrationClickEffectLines: # vn, ? (time, mixer_pos)
+            ap = (time.time() - t) / 1.1
+            if ap > 1.0: continue
+            
+            y = h * 0.85 * (((p + getUserData("setting-chartOffset")) / 1000) % 2.0) - h * 0.05
+            lw = w * ap * 3.0
+            root.run_js_code( # 这里alpha值化简了
+                f"ctx.drawLineEx(\
+                    {w * 0.75 - lw / 2}, {y},\
+                    {w * 0.75 + lw / 2}, {y},\
+                    {h * 0.0075}, 'rgba(255, 255, 255, {(ap - 1.0) ** 2})'\
+                );",
+                add_code_array = True
+            )
+        
+        CalibrationClickEffectLines = list(filter(lambda x: time.time() - x[0] <= 1.1, CalibrationClickEffectLines))
         
         root.run_js_code(
             f"ctx.restore();",
@@ -1755,7 +1785,7 @@ def settingRender():
         
         root.create_text(
             w * 0.234375, h * (340 / 1080),
-            getUserData("userName"),
+            getUserData("userdata-userName"),
             font = f"{userName_FontSize}px PhigrosFont",
             textAlign = "left",
             textBaseline = "middle",
@@ -1780,7 +1810,7 @@ def settingRender():
         
         root.create_text(
             (rankingScoreRect[0] + rankingScoreRect[2]) / 2, (rankingScoreRect[1] + rankingScoreRect[3]) / 2,
-            f"{getUserData("rankingScore"):.2f}",
+            f"{getUserData("userdata-rankingScore"):.2f}",
             font = f"{(rankingScoreRect[3] - rankingScoreRect[1]) * 0.8}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
@@ -1793,7 +1823,7 @@ def settingRender():
             f"ctx.drawRectMultilineText(\
                 {w * 0.14375}, {h * (442 / 1080)},\
                 {w * 0.4546875}, {h * (660 / 1080)},\
-                {root.process_code_string_syntax_tocode(getUserData("selfIntroduction"))},\
+                {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction"))},\
                 'rgb(255, 255, 255)', '{selfIntroduction_fontSize}px PhigrosFont',\
                 {selfIntroduction_fontSize}\
             );",
@@ -2155,6 +2185,7 @@ def settingRender():
                 (1.0, 600.0)
             ),
             lr_button = True,
+            sliderUnit = 5.0,
             conUnit = 5.0,
             numberType = int,
             command = updateConfig
@@ -2352,7 +2383,7 @@ def settingRender():
             wait_execute = True
         )
         
-        settingState.render(drawPlaySetting, drawAccountAndCountSetting, drawOtherSetting, ShadowXRect[0], w, settingDx)
+        playSettingDx, accountAndCountSettingDx, otherSettingDx = settingState.render(drawPlaySetting, drawAccountAndCountSetting, drawOtherSetting, ShadowXRect[0], w, settingDx)
         
         drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
                 
@@ -2386,7 +2417,7 @@ def settingRender():
 def updateFontSizes():
     global userName_FontSize
     
-    userName_Width1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(getUserData("userName"))}).width;") / 50
+    userName_Width1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(getUserData("userdata-userName"))}).width;") / 50
     userName_FontSize = w * 0.209375 / userName_Width1px
     if userName_FontSize > w * 0.0234375:
         userName_FontSize = w * 0.0234375
