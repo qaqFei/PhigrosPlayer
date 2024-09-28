@@ -242,6 +242,7 @@ def Load_Resource():
         "UISound_1": mixer.Sound("./Resources/UISound_1.wav"),
         "UISound_2": mixer.Sound("./Resources/UISound_2.wav"),
         "UISound_3": mixer.Sound("./Resources/UISound_3.wav"),
+        "UISound_4": mixer.Sound("./Resources/UISound_4.wav"),
         "JoinQQGuildPromo": Image.open("./Resources/JoinQQGuildPromo.png"),
         "Arrow_Left": Image.open("./Resources/Arrow_Left.png"),
         "Arrow_Right_Black": Image.open("./Resources/Arrow_Right_Black.png"),
@@ -1482,23 +1483,27 @@ def settingRender():
     settingRenderSt = time.time()
     settingState = PhigrosGameObject.SettingState()
     clickedBackButton = False
-    clickedBackButtonTime = float("nan")
     settingPlayWidgetsDy = 0.0
     CalibrationClickSoundPlayed = False
     CalibrationClickEffectLines = []
-    drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx = 0.0, 0.0, 0.0
+    playSettingDx, accountAndCountSettingDx, otherSettingDx = 0.0, 0.0, 0.0
+    uiMask = False
+    nextUI, tonextUI, tonextUISt = None, False, float("nan")
     
     mixer.music.load("./Resources/Calibration.wav")
     mixer.music.play(-1)
     
+    def unregEvents():
+        eventManager.unregEvent(clickBackButtonEvent)
+        eventManager.unregEvent(settingMainClickEvent)
+    
     def clickBackButtonCallback(*args):
-        nonlocal clickedBackButton, clickedBackButtonTime
+        nonlocal clickedBackButton
+        nonlocal nextUI, tonextUI, tonextUISt
+        
         if not clickedBackButton:
-            eventManager.unregEvent(clickBackButtonEvent)
-            eventManager.unregEvent(settingMainClickEvent)
-            
-            clickedBackButton = True
-            clickedBackButtonTime = time.time()
+            unregEvents()
+            nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
             Resource["UISound_2"].play()
     
     clickBackButtonEvent = PhigrosGameObject.ClickEvent(
@@ -1521,35 +1526,51 @@ def settingRender():
         settingState.changeState(t)
     
     def settingMainClickCallback(x, y):
+        nonlocal nextUI, tonextUI, tonextUISt
+        
         if Tool_Functions.InRect(x, y, (
             346 / 1920 * w, 35 / 1080 * h,
             458 / 1920 * w, 97 / 1080 * h
-        )):
-            if settingState.aTo != Const.PHIGROS_SETTING_STATE.PLAY:
-                Thread(target=lambda: (time.sleep(settingState.atime / 2), mixer.music.stop(), mixer.music.play(-1)), daemon=True).start()
+        )) and not uiMask:
+            if settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY:
+                return None
+            
+            Thread(target=lambda: (time.sleep(settingState.atime / 2), mixer.music.stop(), mixer.music.play(-1)), daemon=True).start()
             _setSettingState(Const.PHIGROS_SETTING_STATE.PLAY)
             
         if Tool_Functions.InRect(x, y, (
             540 / 1920 * w, 35 / 1080 * h,
             723 / 1920 * w, 97 / 1080 * h
-        )):
+        )) and not uiMask:
+            if settingState.aTo == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT:
+                return None
+            
             mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
             
         if Tool_Functions.InRect(x, y, (
             807 / 1920 * w, 35 / 1080 * h,
             915 / 1920 * w, 97 / 1080 * h
-        )):
+        )) and not uiMask:
+            if settingState.aTo == Const.PHIGROS_SETTING_STATE.OTHER:
+                return None
+            
             mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.OTHER)
         
         if Tool_Functions.InRect(x + playSettingDx, y, (
             w * 0.6015625, 0.0,
             w, h
-        )):
+        )) and not uiMask:
             mixer_pos = mixer.music.get_pos()
             if mixer_pos != -1:
                 CalibrationClickEffectLines.append((time.time(), mixer_pos))
+        
+        # 音频问题疑难解答
+        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[0]) and not uiMask:
+            Resource["UISound_4"].play()
+            unregEvents()
+            nextUI, tonextUI, tonextUISt = audioQARender, True, time.time()
             
     settingMainClickEvent = PhigrosGameObject.ClickEvent(
         rect = (0, 0, w, h),
@@ -2408,25 +2429,84 @@ def settingRender():
                 wait_execute = True
             )
         
-        if clickedBackButton and time.time() - clickedBackButtonTime < 0.75:
-            p = (time.time() - clickedBackButtonTime) / 0.75
+        if tonextUI and time.time() - tonextUISt < 0.75:
+            p = (time.time() - tonextUISt) / 0.75
             root.create_rectangle(
                 0, 0, w, h,
                 fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
                 wait_execute = True
             )
-        elif clickedBackButton:
+        elif tonextUI:
             root.clear_canvas(wait_execute = True)
             root.run_js_wait_code()
-            Thread(target=mainRender, daemon=True).start()
+            Thread(target=nextUI, daemon=True).start()
             break
         
         root.run_js_wait_code()
     
     inSettingUI = False
     settingState = None
-    
 
+def audioQARender():
+    audioQARenderSt = time.time()
+    nextUI, tonextUI, tonextUISt = None, False, float("nan")
+    clickedBackButton = False
+    
+    def unregEvents():
+        eventManager.unregEvent(clickBackButtonEvent)
+    
+    def clickBackButtonCallback(*args):
+        nonlocal clickedBackButton
+        nonlocal nextUI, tonextUI, tonextUISt
+        
+        if not clickedBackButton:
+            unregEvents()
+            nextUI, tonextUI, tonextUISt = settingRender, True, time.time()
+            Resource["UISound_2"].play()
+    
+    clickBackButtonEvent = PhigrosGameObject.ClickEvent(
+        rect = (0, 0, ButtonWidth, ButtonHeight),
+        callback = clickBackButtonCallback,
+        once = False
+    )
+    eventManager.regClickEvent(clickBackButtonEvent)
+    
+    while True:
+        root.clear_canvas(wait_execute = True)
+        
+        drawBackground()
+        
+        root.create_rectangle(
+            0, 0, w, h,
+            fillStyle = "rgba(0, 0, 0, 0.5)",
+            wait_execute = True
+        )
+        
+        drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
+                
+        if time.time() - audioQARenderSt < 1.25:
+            p = (time.time() - audioQARenderSt) / 1.25
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
+                wait_execute = True
+            )
+        
+        if tonextUI and time.time() - tonextUISt < 0.75:
+            p = (time.time() - tonextUISt) / 0.75
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
+                wait_execute = True
+            )
+        elif tonextUI:
+            root.clear_canvas(wait_execute = True)
+            root.run_js_wait_code()
+            Thread(target=nextUI, daemon=True).start()
+            break
+        
+        root.run_js_wait_code()
+    
 def updateFontSizes():
     global userName_FontSize
     
