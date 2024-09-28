@@ -2499,6 +2499,7 @@ def audioQARender():
         if not clickedBackButton:
             unregEvents()
             nextUI, tonextUI, tonextUISt = settingRender, True, time.time()
+            mixer.music.fadeout(500)
             Resource["UISound_2"].play()
     
     clickBackButtonEvent = PhigrosGameObject.ClickEvent(
