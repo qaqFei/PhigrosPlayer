@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from random import uniform
 import threading
@@ -324,6 +325,11 @@ class SettingState:
 class PhiBaseWidget:
     tonext: float = 0.0
     
+    def MouseDown(self, x: int, y: int): ...
+    def MouseUp(self, x: int, y: int): ...
+    def MouseMove(self, x: int, y: int): ...
+    def InRect(self, x: int, y: int): return False
+    
 @dataclass
 class PhiLabel(PhiBaseWidget):
     left_text: str = ""
@@ -336,14 +342,113 @@ class PhiSlider(PhiBaseWidget):
     value: float = 0.0
     number_points: tuple[tuple[float, float]] = ((0.0, 0.0), (1.0, 1.0))
     lr_button: bool = False
-
+    sliderUnit: float = float("nan")
+    conUnit: float = 0.0
+    numberType: typing.Union[int, float] = float
+    command: typing.Callable[[], typing.Any] = lambda *args, **kwargs: None
+    
+    sliderRect = (0.0, 0.0, 0.0, 0.0)
+    lconButtonRect = (0.0, 0.0, 0.0, 0.0)
+    rconButtonRect = (0.0, 0.0, 0.0, 0.0)
+    _mouseDown: bool = False
+    
+    def _fixValue(self):
+        self.value = self.number_points[0][1] if self.value < self.number_points[0][1] else (
+            self.number_points[-1][1] if self.value > self.number_points[-1][1] else self.value
+        )
+        self.value = self.numberType(self.value)
+        
+        self.command()
+    
+    def _SliderEvent(self, x: int, y: int):
+        if not self._mouseDown or (
+            Tool_Functions.InRect(x, y, self.rconButtonRect)
+            or Tool_Functions.InRect(x, y, self.lconButtonRect)
+        ):
+            return None
+        
+        p = (x - self.sliderRect[0]) / (self.sliderRect[2] - self.sliderRect[0])
+        p = 0.0 if p < 0.02 else (1.0 if p > 0.97 else p)
+        v = Tool_Functions.sliderValueValue(p, self.number_points)
+        if self.sliderUnit != self.sliderUnit: # nan
+            self.value = v
+        else:
+            up = v / self.sliderUnit
+            up = int(up) if abs(up) % 1.0 < 0.5 else int(up) + 1
+            self.value = up * self.sliderUnit
+        
+        self._fixValue()
+    
+    def _ConButtonEvent(self, x: int, y: int):
+        if Tool_Functions.InRect(x, y, self.lconButtonRect):
+            self.value -= self.conUnit
+            
+        elif Tool_Functions.InRect(x, y, self.rconButtonRect):
+            self.value += self.conUnit
+        
+        self._fixValue()
+    
+    def MouseDown(self, x: int, y: int):
+        self._mouseDown = self.InRect(x, y)
+        self._SliderEvent(x, y)
+        self._ConButtonEvent(x, y)
+        
+    def MouseUp(self, x: int, y: int):
+        self._mouseDown = False
+    
+    def MouseMove(self, x: int, y: int):
+        if self._mouseDown:
+            self._SliderEvent(x, y)
+    
+    def InRect(self, x: int, y: int):
+        return any([
+            Tool_Functions.InRect(x, y, self.sliderRect),
+            Tool_Functions.InRect(x, y, self.lconButtonRect),
+            Tool_Functions.InRect(x, y, self.rconButtonRect)
+        ])
+    
 @dataclass
 class PhiCheckbox(PhiBaseWidget):
     text: str = ""
     fontsize: float = 1.0
     checked: bool = False
+    command: typing.Callable[[], typing.Any] = lambda *args, **kwargs: None
     
     check_animation_st: float = float("-inf")
+    checkboxRect = (0.0, 0.0, 0.0, 0.0)
+    
+    def MouseDown(self, x: int, y: int):
+        if not self.InRect(x, y):
+            return None
+        
+        self.checked = not self.checked
+        self.check_animation_st = time.time()
+        self.command()
+    
+    def InRect(self, x: int, y: int):
+        return Tool_Functions.InRect(x, y, self.checkboxRect)
+    
+class WidgetEventManager:
+    def __init__(self, widgets: list[PhiBaseWidget]):
+        self.widgets = widgets
+    
+    def MouseDown(self, x: int, y: int):
+        for widget in self.widgets:
+            widget.MouseDown(x, y)
+
+    def MouseUp(self, x: int, y: int):
+        for widget in self.widgets:
+            widget.MouseUp(x, y)
+
+    def MouseMove(self, x: int, y: int):
+        for widget in self.widgets:
+            widget.MouseMove(x, y)
+    
+    def InRect(self, x: int, y: int):
+        for widget in self.widgets:
+            if widget.InRect(x, y):
+                return True
+        return False
 
 class SlideControler:
     def __init__(
@@ -392,7 +497,7 @@ class SlideControler:
         dx = self._lastclickx - self._lastlastclickx
         dy = self._lastclicky - self._lastlastclicky
         called_easeBackX, called_easeBackY = False, False
-        dx *= 1.6; dy *= 1.6
+        dx *= 1.2; dy *= 1.2
         
         while abs(dx) > self.w * 0.001 or abs(dy) > self.h * 0.001:
             dx *= 0.92; dy *= 0.92

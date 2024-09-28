@@ -3,6 +3,7 @@ from sys import argv
 from threading import Thread
 import typing
 import math
+import time
 import base64
 
 import numba
@@ -350,6 +351,13 @@ def sliderValueP(value: float, values: tuple[tuple[float, float]]):
         if r[2] <= value <= r[3]:
             return (value - r[2]) / (r[3] - r[2]) * (r[1] - r[0]) + r[0]
     return 0.0 if value < values[0][1] else 1.0
+
+def sliderValueValue(p: float, values: tuple[tuple[float, float]]):
+    ranges = [(values[i - 1][0], values[i][0], values[i - 1][1], values[i][1]) for i in range(len(values)) if i != 0]
+    for r in ranges:
+        if r[0] <= p <= r[1]:
+            return (p - r[0]) / (r[1] - r[0]) * (r[3] - r[2]) + r[2]
+    return ranges[0][2] if p < ranges[0][0] else ranges[-1][3]
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
