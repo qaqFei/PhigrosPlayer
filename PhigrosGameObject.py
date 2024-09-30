@@ -423,14 +423,17 @@ class PhiCheckbox(PhiBaseWidget):
     
     check_animation_st: float = float("-inf")
     checkboxRect = (0.0, 0.0, 0.0, 0.0)
+    _mouseDown: bool = False
     
     def MouseDown(self, x: int, y: int):
-        if not self.InRect(x, y):
-            return None
-        
-        self.checked = not self.checked
-        self.check_animation_st = time.time()
-        self.command()
+        self._mouseDown = self.InRect(x, y)
+    
+    def MouseUp(self, x: int, y: int):
+        if self._mouseDown and self.InRect(x, y):
+            self.checked = not self.checked
+            self.check_animation_st = time.time()
+            self.command()
+        self._mouseDown = False
     
     def InRect(self, x: int, y: int):
         return Tool_Functions.InRect(x, y, self.checkboxRect)
