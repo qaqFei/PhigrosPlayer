@@ -52,6 +52,626 @@ DSP_SETTING_TIP = """\
 Tip: 由于技术性原因，您必须重启游戏才能使更改生效。\
 """
 
+PHI_OPENSOURCELICENSE = """\
+UniTask (https://github.com/Cysharp/UniTask)
+
+The MIT License (MIT)
+
+Copyright (c) 2019 Yoshifumi Kawai / Cysharp, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+Native Audio
+
+Copyright (c) 2018, Sirawat Pitaksarit, Exceed7 Experiments <5argon@exceed7.com>
+All rights reserved.
+
+Here is a list of license attribution that Native Audio uses. You have to do your part and abide to the rule as well as a part of the free software movement.
+
+SRC (Secret Rabbit Code) by Erik de Castro Lopo is a resampler code that Native Audio uses in Android part when it encounter a device with native sampling rate other than 44100Hz. We agreed on using only 44100Hz audio and therefore the "fast path" player that will be made to fit the native sampling rate of your player's device need a compatible audio.
+
+The license is 2-clause BSD which is really permissive and requires you only to put the attribution below in the game. (You are doing 2nd clause, and this file you are reading is me doing the 1st clause of the BSD license.)
+
+The credit screen in your game would be perfect for this.
+Native Audio being a paid product does not require any attributions but is welcomed if you would like to do so.
+
+---
+
+libsamplerate (Secret Rabbit Code)
+Copyright (c) 2012-2016, Erik de Castro Lopo <erikd@mega-nerd.com>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Source Han Sans (https://github.com/adobe-fonts/source-han-sans)
+
+Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font
+Name 'Source'. Source is a trademark of Adobe in the United States
+and/or other countries.
+
+This Font Software is licensed under the SIL Open Font License,
+Version 1.1.
+
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font
+creation efforts of academic and linguistic communities, and to
+provide a free and open framework in which fonts may be shared and
+improved in partnership with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply to
+any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software
+components as distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to,
+deleting, or substituting -- in part or in whole -- any of the
+components of the Original Version, by changing formats or by porting
+the Font Software to a new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed,
+modify, redistribute, and sell modified and unmodified copies of the
+Font Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components, in
+Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the
+corresponding Copyright Holder. This restriction only applies to the
+primary font name as presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created using
+the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+
+
+Saira (https://github.com/Omnibus-Type/Saira)
+
+Copyright 2020 The Saira Project Authors (https://github.com/Omnibus-Type/Saira)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://scripts.sil.org/OFL
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded, 
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+"""
+
+PHI_ABOUTUSTEXT = """\
+Original Director / 原作
+    
+Soullies（Liu Wen） 
+“
+作为《Phigros》的作者，我将在此——
+
+感谢 Pigeon Games 的所有成员，是大家无私的精诚合作造就了《Phigros》这一奇迹。
+
+感谢所有给予过 Pigeon Games 帮助的组织与公司，我们非常荣幸能够得到你们的关心和支持。
+
+感谢一直以来支持着《Phigros》的所有玩家，你们的每一次关注，每一个赞许，以及每一条意见，都深刻地影响了这份企划。
+
+更重要的是，感谢此时此刻正在看着这块屏幕的——
+
+你。
+
+As the author of Phigros, I would like to—
+
+Appreciate all the members of PigeonGames. It is our selflessness, sincerity, and cooperation that  has created this miracle.
+
+Appreciate all the organizations and companies that helped PigeonGames. We are very honored to receive your attention and support.
+
+Appreciate all the players who always have been supporting Phigros. Your attention, compliment, and advice have profoundly influenced our project.
+
+More importantly, appreciate the person who is staring at the screen unblinkingly at the moment—
+
+YOU.
+”
+
+Producer / 制作人
+CN_115（杜锐）
+“愿这款游戏也能被留在你的记忆中。”
+
+Director / 策划
+Barbarianerman（李茂昌）
+“Phigros从发布之初逐步成长，在这段时间内我们得到了无数玩家的鼓励与支持，我在这里对各位表示诚挚的感谢。希望Phigros能够带给各位欢乐，并成为各位心中一份美好的象征。”
+
+Leaders / 部门负责人
+
+Programming / 程序组
+CN_115（杜锐）
+月下樱（李天勤）
+“我们在Phigros中使用了一些有趣的技术，也在各种细节上做出了大胆的尝试，希望能给各位玩家带来更好的体验。同时我们也会不断优化，让Phigros变得更好！”
+
+Chart Design / 谱师组
+阿爽（周锐）
+“希望大家可以喜欢我们的脑洞（划掉）！”
+
+Illustration / 美术组
+喵n葵（刘贝瑜）
+“虽然是鸽游美术组，却是最不咕咕的组。一直感谢各位组员的爆肝（？）付出！我们会继续绘制精美的曲绘的！”
+
+Visual & UI Design / 视觉 & UI 设计组
+V17AMax（马煜）
+“Phigros一路走来，我们各方面的制作水平一直在不断提升，这一点大家有目共睹。视觉设计组仍会尽力给大家带来更多惊喜！”
+
+Music / 音乐组
+姜米條（青杰）
+“我是姜米條，是 Pigeon Games 的曲师组长，感谢大家支持 Phigros，同时也希望大家喜欢我们游戏的原创音乐。我们会在之后的更新里添加我们制作的音乐！”
+
+Plots Design / 剧情组
+DeathMark（赵芫华）
+“只要有你们在，名为phigros的奇迹就是不可磨灭的，未来种种，山河表里，大浪凌空，险阻艰难，锦绣衰隆，我们一起度过。”
+
+Advertising / 宣传组
+SparkFred_17（周泓怿）
+“愿鸽游给大家创造无限快乐，在未来我们一起努力、共同进步，成为每个人心中多彩的世界！”
+
+Pigeon Animation Team / 动画组
+汉堡（覃瀚钰）
+“感谢各位和我们一起见证Phigros的成长（磕头），不要的显卡统统可以到我这换不锈钢脸盆。”
+
+External Communications / 外部联络
+Ctymax
+“主要负责了版权商务相关大大小小的事宜，尽可能为玩家们搜罗来优质的音乐与美术作品。希望大家喜欢！”
+
+（以下所有排名不分先后顺序）
+
+Chart Design / 谱师组
+Catcats（王子恒）
+Ctymax
+Gausbon
+JKy
+StupiGGy
+Uvernight
+Snorkel
+阿爽（周锐）
+Rikko
+晨（林晨曦）
+鲲
+小鹏（周怡鹏）
+百九十八
+月下樱
+CN_115
+亜樹見希子
+Eaimo
+Sillyp
+TangScend
+Barbarianerman（李茂昌）
+NerSAN
+Harakuma
+Pcat
+TimiTini
+XMT小咩兔
+J.R
+Jeitie
+BlindForest
+Clutter
+Su1fuR
+VikingNexus
+_鉄
+Homeee
+Likey
+M3d1uM
+Lumiere
+iv
+Myna
+rN
+Latency
+陈天宇
+钱汉铭
+官忠鑫
+骆新程
+阳鉥
+
+Music / 音乐组
+BelieverInYou
+Ctymax
+Rinth_Live
+佑木いずみ(TNiK)
+ElousΛ.-FZ
+姜米條（青杰）
+A-39
+NceS
+陈天宇
+
+Sound Design / 音效设计
+姜米條（青杰）
+
+Illustration / 美术组
+CH
+Cycats
+DoublePian
+IvyTowers
+Jeffery
+Karyon
+knife美工刀
+KToyo
+L-sp4
+NEKO
+SparkFred_17（周泓怿）
+佑木いずみ(TNiK)
+xperz
+艾是Abby
+坂东
+笔记RE
+赤芽
+雏凉
+翠冷兮
+鸫鸫
+诡异童话
+海产
+何呵
+混乱の艾若拉
+Ctymax
+老张
+林语
+喵n葵（刘贝瑜）
+塔塔
+无良灬无惑
+昔璃
+英英英
+御坂果子
+冰绘
+青鸟
+幽灵星
+Rallxkurara
+天天
+犀牛坨动画工坊
+NerSAN
+Tsuioku
+圆规compasses
+Nico
+子狼
+谭清心
+高倩茹
+陈天宇
+
+Visual & UI Design / 视觉 & UI 设计组
+CN_115（杜锐）
+EndlessZero（郭旭）
+Nico
+SparkFred_17（周泓怿）
+佑木いずみ(TNiK)
+V17AMax（马煜）
+汉堡（覃瀚钰）
+喵n葵（刘贝瑜）
+小鹏（周怡鹏）
+Jizici
+
+Plots Design / 剧情组
+DeathMark（赵芫华）
+关若文
+漓染玄柒
+关河梦
+
+Localization / 翻译组
+312321432（吳安仁）
+hwanyeom
+jack
+Kitty
+Nice Player
+Saimu桜夢（徐泽城）
+Sakuyou
+Mai（Tan Chin Wan）
+TurretOmega
+ViscerΔ
+Yurim
+はなちゃん/はなまる
+徊奏
+鲲
+亘川锌酸猫
+梓澄
+漆伊澄
+ReFyo
+
+Pigeon Animation Team / 动画组
+汉堡（覃瀚钰）
+rN
+AiLANE
+小鹏（周怡鹏）
+V17AMax（马煜）
+
+Advertising / 宣传组
+Barbarianerman
+Ctymax
+EndlessZero（郭旭）
+Findstr
+SparkFred_17（周泓怿）
+佑木いずみ(TNiK)
+V17AMax（马煜）
+东方不buy菌
+华莱士
+七奏
+Sagilio
+小菊花
+小鹏（周怡鹏）
+312321432
+陈天宇
+Mai（Tan Chin Wan）
+阿爽
+rN
+ReFyo
+
+Customer Service / 客服组
+CN_115
+Ctymax
+joiec
+Sparkfred_17（周泓怿）
+Jizici
+阿爽
+喵n葵（刘贝瑜）
+月下樱
+陈天宇
+
+External Communications / 外部联络
+Ctymax
+
+Special Thanks / 特别鸣谢
+omegaPi
+TigerHix
+Soul Notes
+Rising Sun Traxx
+I-Inferno 《同步音律喵赛克》
+A-ZERO Entertainment 《WAVEAT ReLIGHT》
+PeroPeroGames 《Muse Dash 喵斯快跑》
+QueseraGames 《KALPA》
+CEM Records
+SUBBASE
+Noxy Games 《Lanota》
+Beo Meker Studio 《茶鸣拾贰律》
+Abyss Idols
+Oshiribeat
+SoT Records
+
+以及其他所有帮助过我们的人或组织
+
+
+Beta tester / 测试组
+98F
+C爆
+Likey
+Nxnfly
+Soul小东东
+UraniumW
+冰淇淋
+打火机D.H.Jack
+困锁Lockeder
+葉之Leviz
+Attack_cat
+比我还帅的地球人
+Caiyv
+赤赤菌
+垂星
+Excaive
+fanIST
+FrozenX
+晴岚
+Hikari
+哈拿捏口
+坚果
+Kirina
+切切
+Ska
+散唳
+石皮幼鸟
+三色绘本°
+Supa7onyz
+ThirdQuadrant
+VOII
+我爱吃肉wacr
+汐
+晓风竹林
+СУМÎС
+Y1cat
+一游
+ZxyD218
+温柔的小狮子
+Phoenix`palsar
+于铠歌
+肖斌文
+
+And all participants from Taptap's beta program!
+// 此处不展示谱师
+
+
+--------------------------------
+关于PhigrosPlayer项目 (https://github.com/qaqFei/PhigrosPlayer)，
+作者的一些话
+
+PhigrosPlayer 是一个项目，使用MIT协议进行开源。
+其实我也不是很清楚在这可以说什么，就随便写点吧。
+
+本项目最开始使用tkinter(一种Python图形界面库)进行开发，
+随后我很快就意识到了tkinter的性能问题，于是使用了本项目至今仍在使用的webview进行开发。
+
+同时也欢迎您到github上提交issue或pull request，这将帮助我更好地维护这个项目。
+
+
+好吧, 真的是没什么好说的了。 
+真的，真的。
+"""
+
 PHIGROS_SETTING_BAR_WIDTH_MAP = {
     PHIGROS_SETTING_STATE.PLAY: 0.465625,
     PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT: 0.8265625,

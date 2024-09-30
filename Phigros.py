@@ -1536,7 +1536,7 @@ def settingRender():
         if not clickedBackButton:
             unregEvents()
             nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
-            Resource["UISound_2"].play()
+            Resource["UISound_4"].play()
     
     clickBackButtonEvent = PhigrosGameObject.ClickEvent(
         rect = (0, 0, ButtonWidth, ButtonHeight),
@@ -1603,6 +1603,17 @@ def settingRender():
             Resource["UISound_4"].play()
             unregEvents()
             nextUI, tonextUI, tonextUISt = audioQARender, True, time.time()
+        
+        # 观看教学
+        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[1]) and not uiMask:
+            unregEvents()
+            # nextUI, tonextUI, tonextUISt = audioQARender, True, time.time()
+        
+        # 关于我们
+        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[2]) and not uiMask:
+            Resource["UISound_4"].play()
+            unregEvents()
+            nextUI, tonextUI, tonextUISt = aboutUsRender, True, time.time()
             
     settingMainClickEvent = PhigrosGameObject.ClickEvent(
         rect = (0, 0, w, h),
@@ -1757,7 +1768,7 @@ def settingRender():
                 f"ctx.drawLineEx(\
                     {w * 0.75 - lw / 2}, {y},\
                     {w * 0.75 + lw / 2}, {y},\
-                    {h * 0.0075}, 'rgba(255, 255, 255, {(ap - 1.0) ** 2})'\
+                    {h * 0.0075 * 0.75}, 'rgba(255, 255, 255, {(ap - 1.0) ** 2})'\
                 );",
                 add_code_array = True
             )
@@ -1886,7 +1897,7 @@ def settingRender():
                 {w * 0.4546875}, {h * (660 / 1080)},\
                 {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction"))},\
                 'rgb(255, 255, 255)', '{selfIntroduction_fontSize}px PhigrosFont',\
-                {selfIntroduction_fontSize}\
+                {selfIntroduction_fontSize}, 1.15\
             );",
             add_code_array = True
         )
@@ -2481,7 +2492,7 @@ def settingRender():
     settingState = None
     SettingPlayWidgetEventManager.widgets.clear()
     PlaySettingWidgets.clear()
-
+    
 def audioQARender():
     global dspSettingWidgets
     
@@ -2489,18 +2500,15 @@ def audioQARender():
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     clickedBackButton = False
     
-    def unregEvents():
-        eventManager.unregEvent(clickBackButtonEvent)
-    
     def clickBackButtonCallback(*args):
         nonlocal clickedBackButton
         nonlocal nextUI, tonextUI, tonextUISt
         
         if not clickedBackButton:
-            unregEvents()
+            eventManager.unregEvent(clickBackButtonEvent)
             nextUI, tonextUI, tonextUISt = settingRender, True, time.time()
             mixer.music.fadeout(500)
-            Resource["UISound_2"].play()
+            Resource["UISound_4"].play()
     
     clickBackButtonEvent = PhigrosGameObject.ClickEvent(
         rect = (0, 0, ButtonWidth, ButtonHeight),
@@ -2614,6 +2622,128 @@ def audioQARender():
     
     dspSettingWidgetEventManager.widgets.clear()
     dspSettingWidgets.clear()
+
+def aboutUsRender():
+    aboutUsRenderSt = time.time()
+    nextUI, tonextUI, tonextUISt = None, False, float("nan")
+    clickedStart = False
+    clickedStartButtonTime = float("nan")
+    skipStart = False
+    skipStartButtonTime = float("nan")
+    
+    def skipEventCallback(*args):
+        nonlocal skipStart, skipStartButtonTime
+        
+        skipStart, skipStartButtonTime = True, time.time()
+    
+    def CancalSkipEventCallback(*args):
+        nonlocal skipStart, skipStartButtonTime
+        
+        skipStart, skipStartButtonTime = False, float("nan")
+    
+    def clickStartButtonCallback(*args):
+        nonlocal clickedStart, clickedStartButtonTime
+        
+        if not clickedStart:
+            clickedStart, clickedStartButtonTime = True, time.time()
+    
+    skipEvent = eventManager.regClickEventFs(skipEventCallback, False)
+    skipEventRelease = eventManager.regReleaseEventFs(CancalSkipEventCallback)
+    clickStartButtonEvent = eventManager.regClickEventFs(clickStartButtonCallback, False)
+    
+    while True:
+        root.clear_canvas(wait_execute = True)
+        
+        if not clickedStart or time.time() - clickedStartButtonTime <= 0.75:
+            phiIconWidth = w * 0.296875
+            phiIconHeight = phiIconWidth / Resource["phigros"].width * Resource["phigros"].height
+            alpha = 1.0 if clickedStartButtonTime != clickedStartButtonTime else ((time.time() - clickedStartButtonTime) / 0.75 - 1.0) ** 2
+            
+            root.run_js_code(
+                f"ctx.drawAlphaImage(\
+                    {root.get_img_jsvarname("phigros")},\
+                    {w / 2 - phiIconWidth / 2}, {h / 2 - phiIconHeight / 2},\
+                    {phiIconWidth}, {phiIconHeight}, {alpha}\
+                );",
+                add_code_array = True
+            )
+            
+            root.create_text(
+                w * 0.5015625, h * (733 / 1080),
+                text = "t   o   u   c   h      t   o      s   t   a   r   t",
+                font = f"{(w + h) / 80 * (1.0 + (math.sin(time.time() * 1.5) + 1.1) / 35)}px PhigrosFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = f"rgba(255, 255, 255, {alpha})",
+                wait_execute = True
+            )
+        
+        if clickedStart:
+            if not mixer.music.get_busy():
+                mixer.music.load("./Resources/AboutUs.mp3")
+                mixer.music.play(-1)
+            dy = h - h * ((time.time() - clickedStartButtonTime) / 12.5)
+            fontsize = (w + h) / 102.5
+            root.run_js_code(
+                f"aboutus_textheight = ctx.drawRectMultilineTextCenter(\
+                    {w * 0.05}, {dy}, {w * 0.95}, {h},\
+                    {root.process_code_string_syntax_tocode(Const.PHI_ABOUTUSTEXT)},\
+                    'rgb(255, 255, 255)', '{fontsize}px PhigrosFont', {fontsize}, 1.4\
+                );",
+                add_code_array = True
+            )
+        else:
+            dy, fontsize = h, 0.0
+            root.run_js_code(f"aboutus_textheight = {h * 2.0};", add_code_array = True)
+        
+        if time.time() - aboutUsRenderSt < 1.25:
+            p = (time.time() - aboutUsRenderSt) / 1.25
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
+                wait_execute = True
+            )
+        
+        if (skipStart and skipStartButtonTime == skipStartButtonTime) or (tonextUI and skipStartButtonTime == skipStartButtonTime):
+            p = (time.time() - skipStartButtonTime) / 1.75 if (skipStart and skipStartButtonTime == skipStartButtonTime) else (1.0 - (time.time() - tonextUISt) / 0.75)
+            root.create_text(
+                w * 0.028125, h * (50 / 1080),
+                "长按以跳过",
+                font = f"{(w + h) / 80}px PhigrosFont",
+                textAlign = "left",
+                textBaseline = "top",
+                fillStyle = f"rgba(255, 255, 255, {p})",
+                wait_execute = True
+            )
+        
+        if tonextUI and time.time() - tonextUISt < 0.75:
+            p = (time.time() - tonextUISt) / 0.75
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
+                wait_execute = True
+            )
+        elif tonextUI:
+            root.clear_canvas(wait_execute = True)
+            root.run_js_wait_code()
+            Thread(target=nextUI, daemon=True).start()
+            break
+        
+        if skipStart and time.time() - skipStartButtonTime > 1.75:
+            eventManager.unregEvent(skipEvent)
+            eventManager.unregEvent(skipEventRelease)
+            eventManager.unregEvent(clickStartButtonEvent)
+            nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
+            mixer.music.fadeout(500)
+            skipStart = False
+        
+        root.run_js_wait_code()
+        if dy + root.run_js_code("aboutus_textheight;") < - fontsize and not tonextUI:
+            eventManager.unregEvent(skipEvent)
+            eventManager.unregEvent(skipEventRelease)
+            eventManager.unregEvent(clickStartButtonEvent)
+            nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
+            mixer.music.fadeout(500)
     
 def updateFontSizes():
     global userName_FontSize

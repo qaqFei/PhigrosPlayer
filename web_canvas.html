@@ -90,6 +90,18 @@
     uploadFrame_finish = false;
     lowquality_scale = 1.0;
     const textureLineColorFilterColorMatrix = document.getElementById("textureLineColorFilterColorMatrix");
+    const letters = [
+        "a", "b", "c", "d", "e",
+        "f", "g", "h", "i", "j",
+        "k", "l", "m", "n", "o",
+        "p", "q", "r", "s", "t",
+        "u", "v", "w", "x", "y", "z",
+        "A", "B", "C", "D", "E",
+        "F", "G", "H", "I", "J",
+        "K", "L", "M", "N", "O",
+        "P", "Q", "R", "S", "T",
+        "U", "V", "W", "X", "Y", "Z"
+    ]
 
     /*
     (if enable render_range_more)
@@ -233,6 +245,35 @@
         blackgrd.addColorStop(0.15, "rgba(0, 0, 0, 0.0)");
         blackgrd.addColorStop(0.85, "rgba(0, 0, 0, 0.0)");
         blackgrd.addColorStop(1.0, "rgba(0, 0, 0, 0.5)");
+    }
+
+    function splitText(x0, y0, x1, y1, text, cv) {
+        texts = [];
+        function _splitTexts (element) {
+            let width = cv.measureText(element).width;
+            if (width >= (x1 - x0) * 0.95) {
+                for (let i = element.length - 1; i >= 0; i--) {
+                    let new_element = element.substring(0, i);
+                    if (cv.measureText(new_element).width < (x1 - x0) * 0.95) {
+                        nextString = element.substring(i);
+                        // i think this is not necessary
+                        // if (letters.indexOf(new_element[new_element.length - 1]) != -1 && letters.indexOf(nextString[0]) != -1) {
+                        //     nextString = new_element[new_element.length - 1] + nextString;
+                        //     new_element = new_element.substring(0, new_element.length - 1) + "-";
+                        // }
+                        texts.push(new_element);
+                        _splitTexts(nextString);
+                        return;
+                    }
+                }
+                texts.push(element);
+            }
+            else {
+                texts.push(element);
+            }
+        }
+        text.split("\n").forEach(_splitTexts);
+        return texts;
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
@@ -417,75 +458,36 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.drawRectMultilineText = function(x0, y0, x1, y1, text, color, font, fontsize) {
+    CanvasRenderingContext2D.prototype.drawRectMultilineText = function(x0, y0, x1, y1, text, color, font, fontsize, lineOffsetScale) {
         this.save();
 
-        let linesplit_texts = text.split("\n");
         this.font = font;
         this.fillStyle = color;
         this.textBaseline = "top";
         this.textAlign = "left";
-        let texts = [];
-        let _fthis = this;
-        function _splitTexts (element) {
-            let width = _fthis.measureText(element).width;
-            if (width >= (x1 - x0) * 0.95) {
-                for (let i = element.length - 1; i >= 0; i--) {
-                    let new_element = element.substring(0, i);
-                    if (_fthis.measureText(new_element).width < (x1 - x0) * 0.95) {
-                        texts.push(new_element);
-                        _splitTexts(element.substring(i));
-                        return;
-                    }
-                }
-                texts.push(element);
-            }
-            else {
-                texts.push(element);
-            }
-        }
-        linesplit_texts.forEach(_splitTexts);
+        let texts = splitText(x0, y0, x1, y1, text, this);
 
         this.rect(x0, y0, x1 - x0, y1 - y0);
         let dy = 0.0;
 
         for (let i = 0; i < texts.length; i++) {
             this.fillText(texts[i], x0, y0 + dy);
-            dy += fontsize * 1.15;
+            dy += fontsize * lineOffsetScale;
             if (dy >= (y1 - y0)) break;
         }
 
         this.restore();
+        return texts.length * fontsize * lineOffsetScale;
     }
 
     CanvasRenderingContext2D.prototype.drawRectMultilineTextDiagonal = function(x0, y0, x1, y1, text, color, font, fontsize, lineDiagonal, lineOffsetScale) {
         this.save();
 
-        let linesplit_texts = text.split("\n");
         this.font = font;
         this.fillStyle = color;
         this.textBaseline = "top";
         this.textAlign = "left";
-        let texts = [];
-        let _fthis = this;
-        function _splitTexts (element) {
-            let width = _fthis.measureText(element).width;
-            if (width >= (x1 - x0) * 0.95) {
-                for (let i = element.length - 1; i >= 0; i--) {
-                    let new_element = element.substring(0, i);
-                    if (_fthis.measureText(new_element).width < (x1 - x0) * 0.95) {
-                        texts.push(new_element);
-                        _splitTexts(element.substring(i));
-                        return;
-                    }
-                }
-                texts.push(element);
-            }
-            else {
-                texts.push(element);
-            }
-        }
-        linesplit_texts.forEach(_splitTexts);
+        let texts = splitText(x0, y0, x1, y1, text, this);
 
         this.rect(x0, y0, x1 - x0, y1 - y0);
         let dx = 0.0;
@@ -505,6 +507,29 @@
         }
 
         this.restore();
+        return texts.length * fontsize * lineOffsetScale;
+    }
+
+    CanvasRenderingContext2D.prototype.drawRectMultilineTextCenter = function(x0, y0, x1, y1, text, color, font, fontsize, lineOffsetScale) {
+        this.save();
+
+        this.font = font;
+        this.fillStyle = color;
+        this.textBaseline = "top";
+        this.textAlign = "center";
+        let texts = splitText(x0, y0, x1, y1, text, this);
+
+        this.rect(x0, y0, x1 - x0, y1 - y0);
+        let dy = 0.0;
+
+        for (let i = 0; i < texts.length; i++) {
+            this.fillText(texts[i], x0 + (x1 - x0) / 2, y0 + dy);
+            dy += fontsize * lineOffsetScale;
+            if (dy >= (y1 - y0)) break;
+        }
+
+        this.restore();
+        return texts.length * fontsize * lineOffsetScale;
     }
 
     CanvasRenderingContext2D.prototype.clear = function() {

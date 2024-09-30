@@ -76,6 +76,11 @@ class EventManager:
         self.regClickEvent(e)
         return e
     
+    def regReleaseEventFs(self, callback: typing.Callable[[int, int], typing.Any]):
+        e = ReleaseEvent(callback)
+        self.regReleaseEvent(e)
+        return e
+    
     def unregEvent(self, e: ClickEvent):
         for elist in [self.clickEvents, self.moveEvents, self.releaseEvents]:
             try:
