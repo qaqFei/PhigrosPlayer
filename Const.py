@@ -31,6 +31,7 @@ class PHIGROS_LINKS:
     TWITTER = "https://twitter.com/Phigros_PGS"
     BILIBILI = "https://space.bilibili.com/414149787"
     QQ = "https://pd.qq.com/s/433r43ehu"
+    PRIVACYPOLIC = "https://www.pigeongames.cn/news/2"
 
 INF = float("inf")
 NAN = float("nan")
@@ -656,16 +657,20 @@ And all participants from Taptap's beta program!
 
 
 --------------------------------
+(以下内容与Phigros游戏无关)
 关于PhigrosPlayer项目 (https://github.com/qaqFei/PhigrosPlayer)，
 作者的一些话
 
 PhigrosPlayer 是一个项目，使用MIT协议进行开源。
 其实我也不是很清楚在这可以说什么，就随便写点吧。
 
-本项目最开始使用tkinter(一种Python图形界面库)进行开发，
-随后我很快就意识到了tkinter的性能问题，于是使用了本项目至今仍在使用的webview进行开发。
+项目的开发贡献者  // (好孤独)
+qaqFei (Owner)
 
-同时也欢迎您到github上提交issue或pull request，这将帮助我更好地维护这个项目。
+
+祝Phigros越来越好，祝鸽游越来越好。
+另外，其实上面那段文本是从Phigros 3.6.0安装包中提取的哦。
+
 
 
 好吧, 真的是没什么好说的了。 

@@ -55,8 +55,8 @@ if ChartFp == "__create__": # create a empty chart.
 ChartFp = abspath(ChartFp)
 AudioFp = abspath(AudioFp)
 
-if not validFile(ChartFp): exitProcess(1, "invaild chart file.")
-if not validFile(AudioFp): exitProcess(1, "invaild audio file.")
+if not validFile(ChartFp): exitProcess(1, "invalid chart file.")
+if not validFile(AudioFp): exitProcess(1, "invalid audio file.")
 mixer.music.load(AudioFp)
 
 selfdir = dirname(argv[0])

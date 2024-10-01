@@ -347,6 +347,7 @@ def Load_Resource():
 
 def bindEvents():
     global mainUISlideControler, settingUIPlaySlideControler
+    global settingUIOpenSourceLicenseSlideControler
     global SettingPlayWidgetEventManager, dspSettingWidgetEventManager
     
     root.jsapi.set_attr("click", eventManager.click)
@@ -380,6 +381,16 @@ def bindEvents():
     eventManager.regClickEventFs(settingUIPlaySlideControler.mouseDown, False)
     eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(settingUIPlaySlideControler.mouseUp))
     eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(settingUIPlaySlideControler.mouseMove))
+    
+    settingUIOpenSourceLicenseSlideControler = PhigrosGameObject.SlideControler(
+        lambda x, y: w * 0.2 <= x <= w * 0.8,
+        lambda x, y: None,
+        0.0, 0.0,
+        0.0, 0.0, w, h
+    )
+    eventManager.regClickEventFs(settingUIOpenSourceLicenseSlideControler.mouseDown, False)
+    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(settingUIOpenSourceLicenseSlideControler.mouseUp))
+    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(settingUIOpenSourceLicenseSlideControler.mouseMove))
     
     SettingPlayWidgetEventManager = PhigrosGameObject.WidgetEventManager([], settingPlayWidgetEvent_valid)
     eventManager.regClickEventFs(SettingPlayWidgetEventManager.MouseDown, False)
@@ -977,7 +988,7 @@ def settingPlayWidgetEvent_valid(x, y):
     if settingState is None:
         return False
     
-    return settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY
+    return settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY and inSettingUI
     
 def changeChapterMouseDown(x, y):
     global changeChapterMouseDownX
@@ -1523,10 +1534,19 @@ def settingRender():
     clickedBackButton = False
     settingPlayWidgetsDy = 0.0
     CalibrationClickSoundPlayed = False
+    CalibrationClickEffects = []
     CalibrationClickEffectLines = []
     playSettingDx, accountAndCountSettingDx, otherSettingDx = 0.0, 0.0, 0.0
-    uiMask = False
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
+    ShowOpenSource, ShowOpenSourceSt = False, float("nan")
+    CloseOpenSource, CloseOpenSourceSt = False, float("nan")
+    settingUIOpenSourceLicenseSlideControler.maxValueY = root.run_js_code(
+        f"ctx.drawRectMultilineText(\
+            0, 0, 0, 0,\
+            {root.process_code_string_syntax_tocode(Const.PHI_OPENSOURCELICENSE)},\
+            'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
+        );"
+    ) + h * (143 / 1080) * 2 - h
     
     mixer.music.load("./Resources/Calibration.wav")
     mixer.music.play(-1)
@@ -1539,7 +1559,7 @@ def settingRender():
         nonlocal clickedBackButton
         nonlocal nextUI, tonextUI, tonextUISt
         
-        if not clickedBackButton:
+        if not clickedBackButton and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
             Resource["UISound_4"].play()
@@ -1564,12 +1584,15 @@ def settingRender():
         settingState.changeState(t)
     
     def settingMainClickCallback(x, y):
+        global inSettingUI
         nonlocal nextUI, tonextUI, tonextUISt
+        nonlocal ShowOpenSource, ShowOpenSourceSt
+        nonlocal CloseOpenSource, CloseOpenSourceSt
         
         if Tool_Functions.InRect(x, y, (
             346 / 1920 * w, 35 / 1080 * h,
             458 / 1920 * w, 97 / 1080 * h
-        )) and not uiMask:
+        )) and inSettingUI:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY:
                 return None
             
@@ -1579,7 +1602,7 @@ def settingRender():
         if Tool_Functions.InRect(x, y, (
             540 / 1920 * w, 35 / 1080 * h,
             723 / 1920 * w, 97 / 1080 * h
-        )) and not uiMask:
+        )) and inSettingUI:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT:
                 return None
             
@@ -1589,7 +1612,7 @@ def settingRender():
         if Tool_Functions.InRect(x, y, (
             807 / 1920 * w, 35 / 1080 * h,
             915 / 1920 * w, 97 / 1080 * h
-        )) and not uiMask:
+        )) and inSettingUI:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.OTHER:
                 return None
             
@@ -1599,27 +1622,40 @@ def settingRender():
         if Tool_Functions.InRect(x + playSettingDx, y, (
             w * 0.6015625, 0.0,
             w, h
-        )) and not uiMask:
+        )) and inSettingUI:
             mixer_pos = mixer.music.get_pos()
             if mixer_pos != -1:
                 CalibrationClickEffectLines.append((time.time(), mixer_pos))
         
         # 音频问题疑难解答
-        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[0]) and not uiMask:
+        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[0]) and inSettingUI:
             Resource["UISound_4"].play()
             unregEvents()
             nextUI, tonextUI, tonextUISt = audioQARender, True, time.time()
         
         # 观看教学
-        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[1]) and not uiMask:
+        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[1]) and inSettingUI:
             unregEvents()
-            # nextUI, tonextUI, tonextUISt = audioQARender, True, time.time()
+            nextUI, tonextUI, tonextUISt = lambda: None, True, time.time()
         
         # 关于我们
-        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[2]) and not uiMask:
-            Resource["UISound_4"].play()
+        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[2]) and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = aboutUsRender, True, time.time()
+        
+        # 开源许可证
+        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[3]) and inSettingUI:
+            inSettingUI = False
+            ShowOpenSource, ShowOpenSourceSt = True, time.time()
+            settingUIOpenSourceLicenseSlideControler.setDy(settingUIOpenSourceLicenseSlideControler.minValueY)
+        
+        # 隐私政策
+        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[4]) and inSettingUI:
+            webbrowser.open(Const.PHIGROS_LINKS.PRIVACYPOLIC)
+        
+        if Tool_Functions.InRect(x, y, (0, 0, ButtonWidth, ButtonHeight)) and ShowOpenSource and time.time() - ShowOpenSourceSt > 0.15:
+            ShowOpenSource, ShowOpenSourceSt = False, float("nan")
+            CloseOpenSource, CloseOpenSourceSt = True, time.time()
             
     settingMainClickEvent = PhigrosGameObject.ClickEvent(
         rect = (0, 0, w, h),
@@ -1682,6 +1718,7 @@ def settingRender():
     
     def drawPlaySetting(dx: float, alpha: float):
         nonlocal CalibrationClickSoundPlayed, CalibrationClickEffectLines
+        nonlocal CalibrationClickEffects
         
         if alpha == 0.0: return None
         
@@ -1711,12 +1748,10 @@ def settingRender():
         
         CalibrationMusicPosition = mixer.music.get_pos() / 1000
         if CalibrationMusicPosition > 0.0:
-            efctrseed = CalibrationMusicPosition - CalibrationMusicPosition % 2.0
             CalibrationMusicPosition += getUserData("setting-chartOffset") / 1000
             CalibrationMusicPosition %= 2.0
             noteWidth = w * 0.1234375 * getUserData("setting-noteScale")
             noteHeight = noteWidth * Resource["Notes"]["Tap"].height / Resource["Notes"]["Tap"].width
-            ClickEffect_Size = noteWidth * 1.375
             if CalibrationMusicPosition < 1.0:
                 noteY = h * 0.85 * CalibrationMusicPosition - h * 0.05
                 root.run_js_code(
@@ -1730,7 +1765,16 @@ def settingRender():
                 if CalibrationClickSoundPlayed:
                     CalibrationClickSoundPlayed = False
             else:
-                p = (CalibrationMusicPosition - 1.0) / 0.5
+                if not CalibrationClickSoundPlayed:
+                    CalibrationClickSoundPlayed = True
+                    if getUserData("setting-enableClickSound"):
+                        Resource["CalibrationHit"].play()
+                    CalibrationClickEffects.append((time.time(), getUserData("setting-noteScale")))
+                    
+            for st, size in CalibrationClickEffects:
+                noteWidth = w * 0.1234375 * size
+                ClickEffect_Size = noteWidth * 1.375
+                p = (time.time() - st) / 0.5
                 if p <= 1.0:
                     root.run_js_code(
                         f"ctx.drawImage(\
@@ -1741,7 +1785,7 @@ def settingRender():
                         add_code_array = True
                     )
                     
-                    random.seed(efctrseed)
+                    random.seed(st)
                     block_size = noteWidth / 5.5 * (0.4 * math.sin(p * math.pi) + 0.6)
                     for i, deg in enumerate([random.uniform(0, 90) for _ in range(4)]):
                         effect_random_point = Tool_Functions.rotate_point(
@@ -1758,11 +1802,6 @@ def settingRender():
                             add_code_array = True
                         )
                     random.seed(time.time())
-                    
-                if not CalibrationClickSoundPlayed:
-                    CalibrationClickSoundPlayed = True
-                    if getUserData("setting-enableClickSound"):
-                        Resource["CalibrationHit"].play()
         
         for t, p in CalibrationClickEffectLines: # vn, ? (time, mixer_pos)
             ap = (time.time() - t) / 1.1
@@ -1780,6 +1819,7 @@ def settingRender():
             )
         
         CalibrationClickEffectLines = list(filter(lambda x: time.time() - x[0] <= 1.1, CalibrationClickEffectLines))
+        CalibrationClickEffects = list(filter(lambda x: time.time() - x[0] <= 0.5, CalibrationClickEffects))
         
         root.run_js_code(
             f"ctx.restore();",
@@ -2470,6 +2510,42 @@ def settingRender():
         playSettingDx, accountAndCountSettingDx, otherSettingDx = settingState.render(drawPlaySetting, drawAccountAndCountSetting, drawOtherSetting, ShadowXRect[0], w, settingDx)
         
         drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
+        
+        if ShowOpenSource or CloseOpenSource:
+            if CloseOpenSource:
+                if time.time() - CloseOpenSourceSt >= 0.35:
+                    CloseOpenSource, CloseOpenSourceSt = False, float("nan")
+                    inSettingUI = True
+                    root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", add_code_array = True)
+                    root.run_js_code("dialog_canvas_ctx.clear()", add_code_array = True)
+            
+            if ShowOpenSource:
+                p = Tool_Functions.fixOutofRangeP((time.time() - ShowOpenSourceSt) / 0.15)
+                p = 1.0 - (1.0 - p) ** 3
+            else: # CloseOpenSource
+                p = Tool_Functions.fixOutofRangeP((time.time() - CloseOpenSourceSt) / 0.35)
+                p = abs(p - 1.0) ** 3
+            
+            if ShowOpenSource or CloseOpenSource:
+                root.run_js_code(f"_ctxBak = ctx; ctx = dialog_canvas_ctx; dialog_canvas_ctx.clear();", add_code_array = True)
+                
+                root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 75 * p}px)';", add_code_array = True)
+                root.run_js_code(f"ctx.save(); ctx.globalAlpha = {p};", add_code_array = True)
+                
+                root.create_rectangle(0, 0, w, h, fillStyle = "rgba(0, 0, 0, 0.5)", wait_execute = True)
+                root.run_js_code(
+                    f"ctx.drawRectMultilineText(\
+                        {w * 0.2}, {settingUIOpenSourceLicenseSlideControler.getDy() + h * (143 / 1080)}, {w * 0.8}, {h},\
+                        {root.process_code_string_syntax_tocode(Const.PHI_OPENSOURCELICENSE)},\
+                        'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
+                    );",
+                    add_code_array = True
+                )
+                drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
+                
+                root.run_js_code(f"ctx.restore();", add_code_array = True)
+                
+                root.run_js_code(f"ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
                 
         if time.time() - settingRenderSt < 1.25:
             p = (time.time() - settingRenderSt) / 1.25

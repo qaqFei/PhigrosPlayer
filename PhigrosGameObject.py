@@ -524,6 +524,11 @@ class SlideControler:
         self._lastclickx, self._lastclicky = x, y
         self._set()
     
+    def setDx(self, v: float): self._dx = v
+    def setDy(self, v: float): self._dy = v
+    def getDx(self): return self._dx
+    def getDy(self): return self._dy
+    
     def _easeSroll(self):
         dx = self._lastclickx - self._lastlastclickx
         dy = self._lastclicky - self._lastlastclicky
