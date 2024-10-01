@@ -1,3 +1,4 @@
+import typing
 from threading import Thread
 
 import Chart_Objects_Phi
@@ -26,14 +27,12 @@ def Update_JudgeLine_Configs(judgeLine_Configs: Chart_Objects_Phi.judgeLine_Conf
         judgeLine_cfg.disappear = judgeLine.get_datavar_disappear(judgeLine_cfg.time)
         judgeLine_cfg.pos = judgeLine.get_datavar_move(judgeLine_cfg.time, w, h)
 
-def FrameData_ProcessExTask(ExTask,eval_func):
+def FrameData_ProcessExTask(ExTask, eval_func):
     break_flag = False
     
     for ext in ExTask:
         if ext[0] == "break":
             break_flag = True
-        elif ext[0] == "set":
-            eval_func(f"exec('global {ext[1]}; {ext[1]} = {ext[2]}')")
         elif ext[0] == "thread-call":
             Thread(
                 target = eval_func(ext[1]),

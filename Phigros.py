@@ -2899,6 +2899,8 @@ def chartPlayerRender(
     chart_information: dict,
     nextUI: typing.Callable[[], typing.Any]
 ):
+    global show_start_time, Kill_PlayThread_Flag
+    
     chartJsonData = json.loads(open(chartFile, "r", encoding="utf-8").read())
     CHART_TYPE = Const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else Const.CHART_TYPE.RPE
     chart_obj = Chart_Functions_Phi.Load_Chart_Object(chartJsonData) if CHART_TYPE == Const.CHART_TYPE.PHI else Chart_Functions_Rpe.Load_Chart_Object(chartJsonData)
@@ -2939,11 +2941,11 @@ def chartPlayerRender(
                 for judgeLine in chart_obj.judgeLineList
             ]
         )
-        
-    show_start_time = time.time()
+    
+    show_start_time = time.time() - 2.0
     Kill_PlayThread_Flag = False
     coreConfig = PhiCore.PhiCoreConfigure(
-        SETTER = lambda vn, vv: locals().update({vn: vv}),
+        SETTER = lambda vn, vv: globals().update({vn: vv}),
         root = root, w = w, h = h,
         chart_information = chart_information,
         chart_obj = chart_obj,
@@ -3005,7 +3007,7 @@ def chartPlayerRender(
             if break_flag and not stoped:
                 tonextUI, tonextUISt = True, time.time()
                 stoped = True
-        
+            
         if time.time() - chartPlayerRenderSt < 1.25:
             p = (time.time() - chartPlayerRenderSt) / 1.25
             root.create_rectangle(
