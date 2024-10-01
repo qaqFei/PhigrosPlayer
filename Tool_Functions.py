@@ -1,14 +1,14 @@
+import typing
+import math
+import base64
 from random import randint
 from sys import argv
 from threading import Thread
-import typing
-import math
-import time
-import base64
 
 import numba
 import numpy
 import cv2
+from PIL import Image, ImageDraw
 
 note_id = -1
 random_block_num = 4
@@ -358,6 +358,27 @@ def sliderValueValue(p: float, values: tuple[tuple[float, float]]):
         if r[0] <= p <= r[1]:
             return (p - r[0]) / (r[1] - r[0]) * (r[3] - r[2]) + r[2]
     return ranges[0][2] if p < ranges[0][0] else ranges[-1][3]
+
+def cutAnimationIllImage(im: Image.Image):
+    imdraw = ImageDraw.Draw(im)
+    imdraw.polygon(
+        [
+            (0, 0),
+            (0, im.height),
+            (im.width * 0.1, 0),
+            (0, 0)
+        ],
+        fill = "#00000000"
+    )
+    imdraw.polygon(
+        [
+            (im.width, 0),
+            (im.width, im.height),
+            (im.width * (1 - 0.1), im.height),
+            (im.width, 0)
+        ],
+        fill = "#00000000"
+    )
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))

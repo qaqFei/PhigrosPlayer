@@ -666,7 +666,7 @@ PhigrosPlayer 是一个项目，使用MIT协议进行开源。
 
 项目的开发贡献者  // (好孤独)
 qaqFei (Owner)
-
+星空孤雁 (Introduction 谱面贡献者)
 
 祝Phigros越来越好，祝鸽游越来越好。
 另外，其实上面那段文本是从Phigros 3.6.0安装包中提取的哦。

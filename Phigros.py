@@ -15,7 +15,7 @@ import sys
 import time
 import math
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageEnhance
 from pygame import mixer
 from pydub import AudioSegment
 import webcvapis
@@ -25,6 +25,11 @@ import Tool_Functions
 import PhigrosGameObject
 import rpe_easing
 import ConsoleWindow
+import PhiCore
+import Chart_Functions_Phi
+import Chart_Functions_Rpe
+import Chart_Objects_Phi
+import PlaySound
 
 selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
@@ -191,6 +196,9 @@ def putColor(color: tuple|str, im: Image.Image):
     ))
     
 def Load_Resource():
+    global note_max_width, note_max_height
+    global note_max_width_half, note_max_height_half
+    global note_max_size_half
     global ButtonWidth, ButtonHeight
     global ClickEffectFrameCount
     global MainUIIconWidth, MainUIIconHeight
@@ -345,6 +353,35 @@ def Load_Resource():
     
     root.run_js_code(f"createChapterBlackGrd({h * (140 / 1080)}, {h * (1.0 - 140 / 1080)});")
     
+    note_max_width = max(
+        [
+            Resource["Notes"]["Tap"].width,
+            Resource["Notes"]["Tap_dub"].width,
+            Resource["Notes"]["Drag"].width,
+            Resource["Notes"]["Drag_dub"].width,
+            Resource["Notes"]["Flick"].width,
+            Resource["Notes"]["Flick_dub"].width,
+            Resource["Notes"]["Hold_Head"].width,
+            Resource["Notes"]["Hold_Head_dub"].width,
+            Resource["Notes"]["Hold_End"].width
+        ]
+    )
+    note_max_height = max(
+        [
+            Resource["Notes"]["Tap"].height,
+            Resource["Notes"]["Tap_dub"].height,
+            Resource["Notes"]["Drag"].height,
+            Resource["Notes"]["Drag_dub"].height,
+            Resource["Notes"]["Flick"].height,
+            Resource["Notes"]["Flick_dub"].height,
+            Resource["Notes"]["Hold_Head"].height,
+            Resource["Notes"]["Hold_Head_dub"].height,
+            Resource["Notes"]["Hold_End"].height
+        ]
+    )
+    note_max_width_half = note_max_width / 2
+    note_max_height_half = note_max_height / 2
+    note_max_size_half = (note_max_width ** 2 + note_max_height ** 2) ** 0.5
     return Resource
 
 def bindEvents():
@@ -1642,7 +1679,21 @@ def settingRender():
         # 观看教学
         if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[1]) and inSettingUI:
             unregEvents()
-            nextUI, tonextUI, tonextUISt = lambda: None, True, time.time()
+            nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
+                "./Resources/Introduction/audio.mp3",
+                "./Resources/Introduction/image.png",
+                "./Resources/Introduction/chart.json",
+                True,
+                {
+                    "Name": "Introduction",
+                    "Artist": "姜米條",
+                    "Level": "IN Lv.13",
+                    "Illustrator": "Unknow",
+                    "Charter": "星空孤雁",
+                    "BackgroundDim": 0.6
+                },
+                mainRender
+            ), True, time.time()
         
         # 关于我们
         if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[2]) and inSettingUI:
@@ -2844,11 +2895,86 @@ def chartPlayerRender(
     chartAudio: str,
     chartImage: str,
     chartFile: str,
+    startAnimation: bool,
+    chart_information: dict,
     nextUI: typing.Callable[[], typing.Any]
 ):
     chartPlayerRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = nextUI, False, float("nan")
     
+    chartJsonData = json.loads(open(chartFile, "r", encoding="utf-8").read())
+    CHART_TYPE = Const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else Const.CHART_TYPE.RPE
+    chart_obj = Chart_Functions_Phi.Load_Chart_Object(chartJsonData) if CHART_TYPE == Const.CHART_TYPE.PHI else Chart_Functions_Rpe.Load_Chart_Object(chartJsonData)
+    mixer.music.load(chartAudio)
+    raw_audio_length = mixer.Sound(chartAudio).get_length()
+    audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == Const.CHART_TYPE.RPE else 0.0)
+    
+    root.run_js_code("delete background; delete begin_animation_image; delete finish_animation_image;")
+    chart_image = Image.open(chartImage)
+    background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
+    background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - getUserData("setting-backgroundDim"))
+    root.reg_img(background_image, "background")
+    
+    finish_animation_image_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
+    finish_animation_image_mask.putpixel((0, 4), (0, 0, 0, 204))
+    finish_animation_image_mask.putpixel((0, 3), (0, 0, 0, 128))
+    finish_animation_image_mask.putpixel((0, 2), (0, 0, 0, 64))
+    
+    animation_image = chart_image.copy().convert("RGBA")
+    Tool_Functions.cutAnimationIllImage(animation_image)
+    
+    finish_animation_image = chart_image.copy().convert("RGBA")
+    finish_animation_image_mask = finish_animation_image_mask.resize(finish_animation_image.size)
+    finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
+    Tool_Functions.cutAnimationIllImage(finish_animation_image)
+    
+    root.reg_img(animation_image, "begin_animation_image")
+    root.reg_img(finish_animation_image, "finish_animation_image")
+    
+    root.load_allimg()
+    
+    if CHART_TYPE == Const.CHART_TYPE.PHI:
+        judgeLine_Configs = Chart_Objects_Phi.judgeLine_Configs(
+            [
+                Chart_Objects_Phi.judgeLine_Config_Item(
+                    line = judgeLine
+                )
+                for judgeLine in chart_obj.judgeLineList
+            ]
+        )
+        
+    show_start_time = time.time()
+    Kill_PlayThread_Flag = False
+    coreConfig = PhiCore.PhiCoreConfigure(
+        SETTER = lambda vn, vv: locals().update({vn: vv}),
+        root = root, w = w, h = h,
+        chart_information = chart_information,
+        chart_obj = chart_obj,
+        CHART_TYPE = CHART_TYPE, Resource = Resource,
+        ClickEffect_Size = (0.125 * w + 0.2 * h) / 2 * getUserData("setting-noteScale") * 1.375,
+        EFFECT_RANDOM_BLOCK_SIZE = (0.125 * w + 0.2 * h) / 2 * getUserData("setting-noteScale") / 5.5,
+        ClickEffectFrameCount = ClickEffectFrameCount,
+        PHIGROS_X = 0.05625 * w, PHIGROS_Y = 0.6 * h,
+        Note_width = (0.125 * w + 0.2 * h) / 2 * getUserData("setting-noteScale"),
+        JUDGELINE_WIDTH = h * 0.0075, note_max_size_half = note_max_size_half,
+        audio_length = audio_length, raw_audio_length = raw_audio_length,
+        show_start_time = show_start_time, chart_res = {},
+        clickeffect_randomblock = True,
+        clickeffect_randomblock_roundn = 0.0,
+        Kill_PlayThread_Flag = Kill_PlayThread_Flag,
+        enable_clicksound = getUserData("setting-enableClickSound"),
+        rtacc = False, noautoplay = False, showfps = False,
+        lfdaot = False, no_mixer_reset_chart_time = False,
+        speed = 1.0, render_range_more = False,
+        render_range_more_scale = 1.0,
+        judgeline_notransparent = False,
+        debug = "--debug" in sys.argv,
+        combotips = "Combo",
+        noplaychart = False
+    )
+    PhiCore.CoreConfig(coreConfig)
+    
+    mixer.music.play()
     while True:
         root.clear_canvas(wait_execute = True)
         
@@ -2859,6 +2985,30 @@ def chartPlayerRender(
                 fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
                 wait_execute = True
             )
+        
+        while True:
+            now_t = time.time() - show_start_time
+            if CHART_TYPE == Const.CHART_TYPE.PHI:
+                Task = PhiCore.GetFrameRenderTask_Phi(
+                    now_t,
+                    judgeLine_Configs,
+                    False
+                )
+            elif CHART_TYPE == Const.CHART_TYPE.RPE:
+                Task = PhiCore.GetFrameRenderTask_Rpe(
+                    now_t, False
+                )
+                
+            Task.ExecTask()
+            
+            break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
+                Task.ExTask,
+                lambda x: eval(x)
+            )
+            
+            if break_flag:
+                tonextUI, tonextUISt = True, time.time()
+                break
         
         if tonextUI and time.time() - tonextUISt < 0.75:
             p = (time.time() - tonextUISt) / 0.75

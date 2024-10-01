@@ -420,27 +420,6 @@ def loadAudio(path: str):
     seg.export(fp, format="wav")
     return open(fp, "rb").read()
 
-def cutAnimationIllImage(im: Image.Image):
-    imdraw = ImageDraw.Draw(im)
-    imdraw.polygon(
-        [
-            (0, 0),
-            (0, im.height),
-            (im.width * 0.1, 0),
-            (0, 0)
-        ],
-        fill = "#00000000"
-    )
-    imdraw.polygon(
-        [
-            (im.width, 0),
-            (im.width, im.height),
-            (im.width * (1 - 0.1), im.height),
-            (im.width, 0)
-        ],
-        fill = "#00000000"
-    )
-
 def getLowqualityImage(im: Image.Image):
     if user_lowquality and lowquality_scale >= 1.0:
         uw, uh = int(im.width / lowquality_scale / 2), int(im.height / lowquality_scale / 2)
@@ -523,12 +502,12 @@ def Load_Resource():
     finish_animation_image_mask.putpixel((0, 2), (0, 0, 0, 64))
     
     animation_image = chart_image.copy().convert("RGBA")
-    cutAnimationIllImage(animation_image)
+    Tool_Functions.cutAnimationIllImage(animation_image)
     
     finish_animation_image = chart_image.copy().convert("RGBA")
     finish_animation_image_mask = finish_animation_image_mask.resize(finish_animation_image.size)
     finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
-    cutAnimationIllImage(finish_animation_image)
+    Tool_Functions.cutAnimationIllImage(finish_animation_image)
     
     Const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     for k, v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
@@ -1615,8 +1594,7 @@ def updateCoreConfigure():
     
     PhiCoreConfigureObject = PhiCoreConfigure(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
-        root = root,
-        w = w, h = h,
+        root = root, w = w, h = h,
         chart_information = chart_information,
         chart_obj = chart_obj, CHART_TYPE = CHART_TYPE,
         Resource = Resource, ClickEffect_Size = ClickEffect_Size,

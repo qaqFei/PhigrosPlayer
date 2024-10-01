@@ -792,7 +792,8 @@ def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
 
 def GetFrameRenderTask_Phi(
     now_t:float,
-    judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs
+    judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,
+    clear: bool = True
 ):
     
     # Important!!! note 和 note_item 不是同一个东西!!!!!
@@ -803,7 +804,7 @@ def GetFrameRenderTask_Phi(
     PlayChart_NowTime = now_t
     Task = Chart_Objects_Phi.FrameRenderTask([], [])
     Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs, now_t, w, h)
-    Task(root.clear_canvas, wait_execute = True)
+    if clear: Task(root.clear_canvas, wait_execute = True)
     Task(draw_background)
     if noplaychart: Task.ExTask.append(("break", ))
     
@@ -1266,13 +1267,14 @@ def GetFrameRenderTask_Phi(
     return Task
 
 def GetFrameRenderTask_Rpe(
-    now_t:float
+    now_t:float,
+    clear: bool
 ):
     global PlayChart_NowTime
     
     now_t *= speed
     Task = Chart_Objects_Phi.FrameRenderTask([], [])
-    Task(root.clear_canvas, wait_execute = True)
+    if clear: Task(root.clear_canvas, wait_execute = True)
     Task(draw_background)
     PlayChart_NowTime = now_t
     if noplaychart: Task.ExTask.append(("break", ))
