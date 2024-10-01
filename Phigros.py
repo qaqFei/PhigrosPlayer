@@ -2986,11 +2986,11 @@ def chartPlayerRender(
                 Task = PhiCore.GetFrameRenderTask_Phi(
                     now_t,
                     judgeLine_Configs,
-                    False
+                    False, False
                 )
             elif CHART_TYPE == Const.CHART_TYPE.RPE:
                 Task = PhiCore.GetFrameRenderTask_Rpe(
-                    now_t, False
+                    now_t, False, False
                 )
                 
             Task.ExecTask()
