@@ -1,3 +1,5 @@
+import errProcesser as _
+
 from threading import Thread
 from ctypes import windll
 from os import chdir, environ, mkdir, system, popen, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
@@ -12,8 +14,6 @@ import json
 import sys
 import time
 import math
-
-sys.excepthook = lambda *args: [print("^C"), windll.kernel32.ExitProcess(0)] if KeyboardInterrupt in args[0].mro() else sys.__excepthook__(*args)
 
 from PIL import Image, ImageFilter
 from pygame import mixer
