@@ -2899,9 +2899,6 @@ def chartPlayerRender(
     chart_information: dict,
     nextUI: typing.Callable[[], typing.Any]
 ):
-    chartPlayerRenderSt = time.time()
-    nextUI, tonextUI, tonextUISt = nextUI, False, float("nan")
-    
     chartJsonData = json.loads(open(chartFile, "r", encoding="utf-8").read())
     CHART_TYPE = Const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else Const.CHART_TYPE.RPE
     chart_obj = Chart_Functions_Phi.Load_Chart_Object(chartJsonData) if CHART_TYPE == Const.CHART_TYPE.PHI else Chart_Functions_Rpe.Load_Chart_Object(chartJsonData)
@@ -2951,11 +2948,11 @@ def chartPlayerRender(
         chart_information = chart_information,
         chart_obj = chart_obj,
         CHART_TYPE = CHART_TYPE, Resource = Resource,
-        ClickEffect_Size = (0.125 * w + 0.2 * h) / 2 * getUserData("setting-noteScale") * 1.375,
-        EFFECT_RANDOM_BLOCK_SIZE = (0.125 * w + 0.2 * h) / 2 * getUserData("setting-noteScale") / 5.5,
+        ClickEffect_Size = w * 0.1234375 * getUserData("setting-noteScale") * 1.375,
+        EFFECT_RANDOM_BLOCK_SIZE = w * 0.1234375 * getUserData("setting-noteScale") / 5.5,
         ClickEffectFrameCount = ClickEffectFrameCount,
         PHIGROS_X = 0.05625 * w, PHIGROS_Y = 0.6 * h,
-        Note_width = (0.125 * w + 0.2 * h) / 2 * getUserData("setting-noteScale"),
+        Note_width = w * 0.1234375 * getUserData("setting-noteScale"),
         JUDGELINE_WIDTH = h * 0.0075, note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,
         show_start_time = show_start_time, chart_res = {},
@@ -2974,13 +2971,18 @@ def chartPlayerRender(
     )
     PhiCore.CoreConfig(coreConfig)
     
-    stoped = False
     
+    # 前面初始化时间太长了, 放这里
+    chartPlayerRenderSt = time.time()
+    nextUI, tonextUI, tonextUISt = nextUI, False, float("nan")
+    
+    stoped = False
+    showingEnd = False
     mixer.music.play()
     while True:
         root.clear_canvas(wait_execute = True)
         
-        if not stoped:
+        if not showingEnd:
             now_t = time.time() - show_start_time
             if CHART_TYPE == Const.CHART_TYPE.PHI:
                 Task = PhiCore.GetFrameRenderTask_Phi(
@@ -3000,7 +3002,7 @@ def chartPlayerRender(
                 lambda x: eval(x)
             )
             
-            if break_flag:
+            if break_flag and not stoped:
                 tonextUI, tonextUISt = True, time.time()
                 stoped = True
         

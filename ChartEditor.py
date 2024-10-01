@@ -140,7 +140,7 @@ def Load_Resource():
     global IconSize
     
     print("Loading Resource...")
-    Note_width = (0.125 * w + 0.2 * h) / 2 / 2
+    Note_width = w * 0.1234375 / 2
     ClickEffect_Size = Note_width * 1.375
     IconSize = (w / 2 + h) / 100
     Resource = {

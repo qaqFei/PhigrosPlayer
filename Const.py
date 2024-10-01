@@ -664,7 +664,7 @@ And all participants from Taptap's beta program!
 PhigrosPlayer 是一个项目，使用MIT协议进行开源。
 其实我也不是很清楚在这可以说什么，就随便写点吧。
 
-项目的开发贡献者  // (好孤独)
+项目的开发贡献者
 qaqFei (Owner)
 星空孤雁 (Introduction 谱面贡献者)
 

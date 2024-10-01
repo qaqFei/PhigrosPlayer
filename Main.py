@@ -443,7 +443,7 @@ def Load_Resource():
     Thread(target=WaitLoading_FadeIn, daemon = True).start()
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
-    Note_width_raw = (0.125 * w + 0.2 * h) / 2
+    Note_width_raw = w * 0.1234375
     Note_width = (Note_width_raw) * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
     ClickEffect_Size = Note_width * 1.375
     ClickEffectFrameCount = len(listdir(getResPath("/Note_Click_Effect/Frames", False)))
