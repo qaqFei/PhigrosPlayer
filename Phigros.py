@@ -1542,7 +1542,7 @@ def settingRender():
     CloseOpenSource, CloseOpenSourceSt = False, float("nan")
     settingUIOpenSourceLicenseSlideControler.maxValueY = root.run_js_code(
         f"ctx.drawRectMultilineText(\
-            0, 0, 0, 0,\
+            -{w}, -{h}, 0, 0,\
             {root.process_code_string_syntax_tocode(Const.PHI_OPENSOURCELICENSE)},\
             'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
         );"
