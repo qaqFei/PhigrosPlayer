@@ -276,6 +276,14 @@
         return texts;
     }
 
+    CanvasRenderingContext2D.prototype._fillText = CanvasRenderingContext2D.prototype.fillText;
+
+    CanvasRenderingContext2D.prototype.fillText = function(text, x, y) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+        return this._fillText(text, x, y);
+    }
+
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
         if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
         this.save();

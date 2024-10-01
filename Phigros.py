@@ -381,12 +381,12 @@ def bindEvents():
     eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(settingUIPlaySlideControler.mouseUp))
     eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(settingUIPlaySlideControler.mouseMove))
     
-    SettingPlayWidgetEventManager = PhigrosGameObject.WidgetEventManager([])
+    SettingPlayWidgetEventManager = PhigrosGameObject.WidgetEventManager([], settingPlayWidgetEvent_valid)
     eventManager.regClickEventFs(SettingPlayWidgetEventManager.MouseDown, False)
     eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(SettingPlayWidgetEventManager.MouseUp))
     eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(SettingPlayWidgetEventManager.MouseMove))
     
-    dspSettingWidgetEventManager = PhigrosGameObject.WidgetEventManager([])
+    dspSettingWidgetEventManager = PhigrosGameObject.WidgetEventManager([], lambda x, y: True)
     eventManager.regClickEventFs(dspSettingWidgetEventManager.MouseDown, False)
     eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(dspSettingWidgetEventManager.MouseUp))
     eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(dspSettingWidgetEventManager.MouseMove))
@@ -973,6 +973,12 @@ def settingUI_slideControler_setValue(x, y):
     global settingPlayWidgetsDy
     settingPlayWidgetsDy = y
 
+def settingPlayWidgetEvent_valid(x, y):
+    if settingState is None:
+        return False
+    
+    return settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY
+    
 def changeChapterMouseDown(x, y):
     global changeChapterMouseDownX
     

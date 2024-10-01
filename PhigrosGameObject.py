@@ -455,22 +455,27 @@ class PhiButton(PhiBaseWidget):
         return Tool_Functions.InRect(x, y, self.buttonRect)
 
 class WidgetEventManager:
-    def __init__(self, widgets: list[PhiBaseWidget]):
+    def __init__(self, widgets: list[PhiBaseWidget], condition: typing.Callable[[int, int], bool]):
         self.widgets = widgets
+        self.condition = condition
     
     def MouseDown(self, x: int, y: int):
+        if not self.condition(x, y): return None
         for widget in self.widgets:
             widget.MouseDown(x, y)
 
     def MouseUp(self, x: int, y: int):
+        if not self.condition(x, y): return None
         for widget in self.widgets:
             widget.MouseUp(x, y)
 
     def MouseMove(self, x: int, y: int):
+        if not self.condition(x, y): return None
         for widget in self.widgets:
             widget.MouseMove(x, y)
     
     def InRect(self, x: int, y: int):
+        if not self.condition(x, y): return False
         for widget in self.widgets:
             if widget.InRect(x, y):
                 return True
