@@ -1709,10 +1709,6 @@ def settingRender():
         (
             w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25) + getShadowDiagonalXByY(h * 0.675), h * 0.675,
             w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25 + 0.046875) + getShadowDiagonalXByY(h * 0.675), h * (0.675 + 0.05)
-        ),
-        (
-            w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25) + getShadowDiagonalXByY(h * 0.775), h * 0.775,
-            w * (0.0515625 + 0.0265625 + 0.4015625 + 0.25 + 0.046875) + getShadowDiagonalXByY(h * 0.775), h * (0.775 + 0.05)
         )
     ]
     
@@ -2197,17 +2193,6 @@ def settingRender():
             w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.775),
             h * 0.775,
             "关于我们",
-            font = f"{(w + h) / 90}px PhigrosFont",
-            textAlign = "left",
-            textBaseline = "top",
-            fillStyle = "rgb(255, 255, 255)",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.775),
-            h * 0.775,
-            "删除账号",
             font = f"{(w + h) / 90}px PhigrosFont",
             textAlign = "left",
             textBaseline = "top",

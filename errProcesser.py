@@ -23,6 +23,7 @@ def excepthook(etype, value, tb):
         )
         windll.kernel32.ExitProcess(0)
     except (Exception, KeyboardInterrupt) as e:
+        print(e)
         windll.kernel32.ExitProcess(0)
 
 sys.excepthook = excepthook
