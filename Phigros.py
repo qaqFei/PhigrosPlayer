@@ -162,7 +162,9 @@ def Load_Chapters():
                             PhigrosGameObject.SongDifficlty(
                                 name = diff["name"],
                                 level = diff["level"],
-                                chart = diff["chart"]
+                                chart_audio = diff["chart_audio"],
+                                chart_image = diff["chart_image"],
+                                chart_file = diff["chart_file"]
                             )
                             for diff in song["difficlty"]
                         ]
@@ -1589,29 +1591,32 @@ def settingRender():
         nonlocal ShowOpenSource, ShowOpenSourceSt
         nonlocal CloseOpenSource, CloseOpenSourceSt
         
+        # 游玩
         if Tool_Functions.InRect(x, y, (
-            346 / 1920 * w, 35 / 1080 * h,
-            458 / 1920 * w, 97 / 1080 * h
+            w * 346 / 1920, h * 35 / 1080,
+            w * 458 / 1920, h * 97 / 1080
         )) and inSettingUI:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY:
                 return None
             
             Thread(target=lambda: (time.sleep(settingState.atime / 2), mixer.music.stop(), mixer.music.play(-1)), daemon=True).start()
             _setSettingState(Const.PHIGROS_SETTING_STATE.PLAY)
-            
+        
+        # 账号与统计
         if Tool_Functions.InRect(x, y, (
-            540 / 1920 * w, 35 / 1080 * h,
-            723 / 1920 * w, 97 / 1080 * h
+            w * 540 / 1920, h * 35 / 1080,
+            w * 723 / 1920, h * 97 / 1080
         )) and inSettingUI:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT:
                 return None
             
             mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
-            
+        
+        # 其他
         if Tool_Functions.InRect(x, y, (
-            807 / 1920 * w, 35 / 1080 * h,
-            915 / 1920 * w, 97 / 1080 * h
+            w * 807 / 1920, h * 35 / 1080,
+            w * 915 / 1920, h * 97 / 1080
         )) and inSettingUI:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.OTHER:
                 return None
@@ -1619,6 +1624,7 @@ def settingRender():
             mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.OTHER)
         
+        # 校准延迟点击扩散的线条
         if Tool_Functions.InRect(x + playSettingDx, y, (
             w * 0.6015625, 0.0,
             w, h
@@ -1653,6 +1659,28 @@ def settingRender():
         if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[4]) and inSettingUI:
             webbrowser.open(Const.PHIGROS_LINKS.PRIVACYPOLIC)
         
+        # 推特链接
+        if Tool_Functions.InRect(x + otherSettingDx, y, (
+            w * 128 / 1920, h * 1015 / 1080,
+            w * 315 / 1920, h * 1042 / 1080
+        )) and inSettingUI:
+            webbrowser.open(Const.PHIGROS_LINKS.TWITTER)
+        
+        # B站链接
+        if Tool_Functions.InRect(x + otherSettingDx, y, (
+            w * 376 / 1920, h * 1015 / 1080,
+            w * 561 / 1920, h * 1042 / 1080
+        )) and inSettingUI:
+            webbrowser.open(Const.PHIGROS_LINKS.BILIBILI)
+        
+        # QQ链接
+        if Tool_Functions.InRect(x + otherSettingDx, y, (
+            w * 626 / 1920, h * 1015 / 1080,
+            w * 856 / 1920, h * 1042 / 1080
+        )) and inSettingUI:
+            webbrowser.open(Const.PHIGROS_LINKS.QQ)
+        
+        # 开源许可证的关闭按钮
         if Tool_Functions.InRect(x, y, (0, 0, ButtonWidth, ButtonHeight)) and ShowOpenSource and time.time() - ShowOpenSourceSt > 0.15:
             ShowOpenSource, ShowOpenSourceSt = False, float("nan")
             CloseOpenSource, CloseOpenSourceSt = True, time.time()
@@ -2811,6 +2839,41 @@ def aboutUsRender():
             eventManager.unregEvent(clickStartButtonEvent)
             nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
             mixer.music.fadeout(500)
+
+def chartPlayerRender(
+    chartAudio: str,
+    chartImage: str,
+    chartFile: str,
+    nextUI: typing.Callable[[], typing.Any]
+):
+    chartPlayerRenderSt = time.time()
+    nextUI, tonextUI, tonextUISt = nextUI, False, float("nan")
+    
+    while True:
+        root.clear_canvas(wait_execute = True)
+        
+        if time.time() - chartPlayerRenderSt < 1.25:
+            p = (time.time() - chartPlayerRenderSt) / 1.25
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
+                wait_execute = True
+            )
+        
+        if tonextUI and time.time() - tonextUISt < 0.75:
+            p = (time.time() - tonextUISt) / 0.75
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
+                wait_execute = True
+            )
+        elif tonextUI:
+            root.clear_canvas(wait_execute = True)
+            root.run_js_wait_code()
+            Thread(target=nextUI, daemon=True).start()
+            break
+        
+        root.run_js_wait_code()
     
 def updateFontSizes():
     global userName_FontSize

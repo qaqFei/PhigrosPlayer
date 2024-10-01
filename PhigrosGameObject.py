@@ -133,8 +133,10 @@ class FaculaAnimationManager:
 class SongDifficlty:
     name: str
     level: str
-    chart: str
-
+    chart_audio: str
+    chart_image: str
+    chart_file: str
+    
 @dataclass
 class Song:
     name: str
