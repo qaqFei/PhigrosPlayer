@@ -793,7 +793,8 @@ def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
 def GetFrameRenderTask_Phi(
     now_t:float,
     judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,
-    clear: bool = True
+    clear: bool = True,
+    rjc: bool = True
 ):
     
     # Important!!! note 和 note_item 不是同一个东西!!!!!
@@ -1263,12 +1264,13 @@ def GetFrameRenderTask_Phi(
     )
     
     CheckMusicOffsetAndEnd(now_t, Task)
-    Task(root.run_js_wait_code)
+    if rjc: Task(root.run_js_wait_code)
     return Task
 
 def GetFrameRenderTask_Rpe(
     now_t:float,
-    clear: bool
+    clear: bool = True,
+    rjc: bool = True
 ):
     global PlayChart_NowTime
     
@@ -1680,5 +1682,5 @@ def GetFrameRenderTask_Rpe(
     )
     now_t += chart_obj.META.offset / 1000
     CheckMusicOffsetAndEnd(now_t, Task)
-    Task(root.run_js_wait_code)
+    if rjc: Task(root.run_js_wait_code)
     return Task

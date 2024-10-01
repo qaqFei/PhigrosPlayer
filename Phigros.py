@@ -2974,19 +2974,13 @@ def chartPlayerRender(
     )
     PhiCore.CoreConfig(coreConfig)
     
+    stoped = False
+    
     mixer.music.play()
     while True:
         root.clear_canvas(wait_execute = True)
         
-        if time.time() - chartPlayerRenderSt < 1.25:
-            p = (time.time() - chartPlayerRenderSt) / 1.25
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
-                wait_execute = True
-            )
-        
-        while True:
+        if not stoped:
             now_t = time.time() - show_start_time
             if CHART_TYPE == Const.CHART_TYPE.PHI:
                 Task = PhiCore.GetFrameRenderTask_Phi(
@@ -3008,7 +3002,15 @@ def chartPlayerRender(
             
             if break_flag:
                 tonextUI, tonextUISt = True, time.time()
-                break
+                stoped = True
+        
+        if time.time() - chartPlayerRenderSt < 1.25:
+            p = (time.time() - chartPlayerRenderSt) / 1.25
+            root.create_rectangle(
+                0, 0, w, h,
+                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
+                wait_execute = True
+            )
         
         if tonextUI and time.time() - tonextUISt < 0.75:
             p = (time.time() - tonextUISt) / 0.75
