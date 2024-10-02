@@ -11,7 +11,7 @@ import json
 import sys
 import time
 
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+from PIL import Image, ImageFilter, ImageEnhance
 from pygame import mixer
 from pydub import AudioSegment
 import cv2
@@ -26,11 +26,9 @@ import Find_Files
 import ConsoleWindow
 import Tool_Functions
 import dialog
-import Phigros_Tips
 import info_loader
 import version
 import ppr_help
-import ChartAnimation
 from PhiCore import *
 
 Kill_PlayThread_Flag = False
@@ -489,7 +487,7 @@ def Load_Resource():
         "Button_Right": None,
         "Retry": Image.open(getResPath("/Retry.png")),
         "Arrow_Right": Image.open(getResPath("/Arrow_Right.png")),
-        "Over": mixer.Sound(getResPath("/Over.wav")),
+        "Over": mixer.Sound(getResPath("/Over.mp3")),
         "Pause": loadAudio(getResPath("/Pause.wav"))
     }
     
@@ -533,13 +531,13 @@ def Load_Resource():
     for k,v in Resource["Levels"].items(): # reg levels img
         root.reg_img(v, f"Level_{k}")
         
-    root.reg_img(Resource["Start"],"Start")
-    root.reg_img(animation_image,"begin_animation_image")
-    root.reg_img(finish_animation_image,"finish_animation_image")
-    root.reg_img(Resource["Button_Left"],"Button_Left")
-    root.reg_img(Resource["Button_Right"],"Button_Right")
-    root.reg_img(Resource["Retry"],"Retry")
-    root.reg_img(Resource["Arrow_Right"],"Arrow_Right")
+    root.reg_img(Resource["Start"], "Start")
+    root.reg_img(animation_image, "begin_animation_image")
+    root.reg_img(finish_animation_image, "finish_animation_image")
+    root.reg_img(Resource["Button_Left"], "Button_Left")
+    root.reg_img(Resource["Button_Right"], "Button_Right")
+    root.reg_img(Resource["Retry"], "Retry")
+    root.reg_img(Resource["Arrow_Right"], "Arrow_Right")
     
     chart_res = {}
     if CHART_TYPE == Const.CHART_TYPE.RPE:
@@ -675,157 +673,11 @@ def Show_Start():
     time.sleep(1.25)
     Thread(target = PlayerStart,daemon = True).start()
 
-def Get_LevelNumber() -> str:
-    lv = chart_information["Level"].lower()
-    if "lv." in lv:
-        return lv.split("lv.")[1]
-    elif "lv" in lv:
-        return lv.split("lv")[1]
-    elif "level" in lv:
-        return lv.split("level")[1]
-    else:
-        return "?"
-
-def Get_LevelText() -> str:
-    return chart_information["Level"].split(" ")[0]
-
 def PlayerStart():
     global show_start_time
     print("Player Start")
     root.title("Phigros Chart Player")
     Resource["Over"].stop()
-    def Begin_Animation():
-        animation_time = 4.5
-        
-        chart_name_text = chart_information["Name"]
-        chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_name_text)}).width;") / 50
-        chart_level_number = Get_LevelNumber()
-        chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_level_number) if len(chart_level_number) >= 2 else "'00'"}).width;") / 50
-        if len(chart_level_number) == 1:
-            chart_level_number_width_1px /= 1.35
-        chart_level_text = Get_LevelText()
-        chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_level_text) if len(chart_level_text) >= 2 else "'00'"}).width;") / 50
-        chart_artist_text = chart_information["Artist"]
-        chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_artist_text)}).width;") / 50
-        chart_charter_text = chart_information["Charter"]
-        chart_charter_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_charter_text)}).width;") / 50
-        chart_illustrator_text = chart_information["Illustrator"]
-        chart_illustrator_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_illustrator_text)}).width;") / 50
-        tip = Phigros_Tips.get_tip()
-        tip_font_size = w * 0.020833 / 1.25
-        infoframe_x = w * 0.095
-        infoframe_y = h * 0.47
-        infoframe_width = 0.3 * w
-        infoframe_height = 0.118 * h
-        infoframe_ltr = w * 0.01
-        infoframe_text_place_width = w * 0.23
-        chart_name_font_size = infoframe_text_place_width * 0.75 / chart_name_text_width_1px
-        chart_level_number_font_size = infoframe_width * 0.215 * 0.45 / chart_level_number_width_1px
-        chart_level_text_font_size = infoframe_width * 0.215 * 0.175 / chart_level_text_width_1px
-        chart_artist_text_font_size = infoframe_text_place_width * 0.65 / chart_artist_text_width_1px
-        chart_charter_text_font_size = infoframe_text_place_width * 0.65 / chart_charter_text_width_1px
-        chart_illustrator_text_font_size = infoframe_text_place_width * 0.65 / chart_illustrator_text_width_1px
-        if chart_name_font_size > w * 0.020833 * 0.75:
-            chart_name_font_size = w * 0.020833 * 0.75
-        if chart_artist_text_font_size > w * 0.020833 * 0.65:
-            chart_artist_text_font_size = w * 0.020833 * 0.65
-        if chart_charter_text_font_size > w * 0.020833 * 0.65:
-            chart_charter_text_font_size = w * 0.020833 * 0.65
-        if chart_illustrator_text_font_size > w * 0.020833 * 0.65:
-            chart_illustrator_text_font_size = w * 0.020833 * 0.65
-        
-        LoadSuccess.play()
-        BeginLoadingAnimationVals = {
-            "root": root, "draw_background": draw_background,
-            "w": w, "h": h, "infoframe_x": infoframe_x, "infoframe_y": infoframe_y,
-            "infoframe_width": infoframe_width, "infoframe_height": infoframe_height,
-            "infoframe_ltr": infoframe_ltr,
-            "chart_name_text": chart_name_text, "chart_name_font_size": chart_name_font_size,
-            "chart_artist_text": chart_artist_text, "chart_artist_text_font_size": chart_artist_text_font_size,
-            "chart_level_number": chart_level_number, "chart_level_number_font_size": chart_level_number_font_size,
-            "chart_level_text": chart_level_text, "chart_level_text_font_size": chart_level_text_font_size,
-            "tip": tip, "tip_font_size": tip_font_size,
-            "chart_charter_text": chart_charter_text, "chart_charter_text_font_size": chart_charter_text_font_size,
-            "chart_illustrator_text": chart_illustrator_text, "chart_illustrator_text_font_size": chart_illustrator_text_font_size
-        }
-        
-        if "--render-begin-loading-animation-video" not in sys.argv:
-            animation_st = time.time()
-            while True:
-                p = (time.time() - animation_st) / animation_time
-                if p > 1.0:
-                    break
-                
-                Task = ChartAnimation.BeginLoadingAnimation(p, BeginLoadingAnimationVals)
-                Task.ExecTask()
-        else:
-            writer = cv2.VideoWriter(
-                sys.argv[sys.argv.index("--render-begin-loading-animation-video") + 1],
-                cv2.VideoWriter.fourcc(*"mp4v"),
-                120, (w, h), True
-            )
-            root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
-            fcut = 0
-            while True:
-                p = fcut / 120 / animation_time
-                if p > 1.0:
-                    break
-                
-                Task = ChartAnimation.BeginLoadingAnimation(p, BeginLoadingAnimationVals)
-                Task.ExecTask()
-                root.run_js_code("uploadFrame();")
-                fcut += 1
-                
-            root.run_js_code("uploadFrame_addQueue = true;")
-            while not root.run_js_code("uploadFrame_finish;"):
-                time.sleep(0.1)
-            root.run_js_code("resetUploadFrameFlags();")
-            writer.release()
-            
-    def ChartStart_Animation():
-        csat = 1.25
-        BeginJudgeLineAnimationVals = {
-            "draw_ui": draw_ui, "root": root,
-            "w": w, "h": h,
-            "audio_length": audio_length,
-            "JUDGELINE_WIDTH": JUDGELINE_WIDTH,
-            "render_range_more_scale": render_range_more_scale,
-            "render_range_more": render_range_more
-        }
-        if "--render-begin-judge-line-animation-video" not in sys.argv:
-            st = time.time()
-            while True:
-                p = (time.time() - st) / csat
-                if p > 1.0:
-                    break
-                
-                Task = ChartAnimation.BeginJudgeLineAnimation(p, BeginJudgeLineAnimationVals)
-                Task.ExecTask()
-        else:
-            writer = cv2.VideoWriter(
-                sys.argv[sys.argv.index("--render-begin-judge-line-animation-video") + 1],
-                cv2.VideoWriter.fourcc(*"mp4v"),
-                120, (w, h), True
-            )
-            root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
-            fcut = 0
-            while True:
-                p = fcut / 120 / csat
-                if p > 1.0:
-                    break
-                
-                Task = ChartAnimation.BeginJudgeLineAnimation(p, BeginJudgeLineAnimationVals)
-                Task.ExecTask()
-                root.run_js_code("uploadFrame();")
-                fcut += 1
-                
-            root.run_js_code("uploadFrame_addQueue = true;")
-            while not root.run_js_code("uploadFrame_finish;"):
-                time.sleep(0.1)
-            root.run_js_code("resetUploadFrameFlags();")
-            writer.release()
-        
-        time.sleep(0.35)
     
     Begin_Animation()
     ChartStart_Animation()
@@ -925,7 +777,6 @@ def PlayerStart():
             LoadChartObject()
             Thread(target=PlayerStart, daemon=True).start()
             return None
-                
     else:
         lfdaot_tasks = {}
         frame_speed = 60
@@ -1091,418 +942,17 @@ def PlayerStart():
                 
                 writer.release()
     
-    im_size = 0.475
-    LevelName = "AP" if not noautoplay else PhigrosPlayManagerObject.getLevelString()
-    EarlyCount = 0 if not noautoplay else PhigrosPlayManagerObject.getEarlyCount()
-    LateCount = 0 if not noautoplay else PhigrosPlayManagerObject.getLateCount()
-    PerfectCount = chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getPerfectCount()
-    GoodCount = 0 if not noautoplay else PhigrosPlayManagerObject.getGoodCount()
-    BadCount = 0 if not noautoplay else PhigrosPlayManagerObject.getBadCount()
-    MissCount = 0 if not noautoplay else PhigrosPlayManagerObject.getMissCount()
-    Acc = 1.0 if not noautoplay else PhigrosPlayManagerObject.getAcc()
-    ScoreString = "1000000" if not noautoplay else get_stringscore(PhigrosPlayManagerObject.getScore())
-    MaxCombo = chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getMaxCombo()
-    AccString = f"{(Acc * 100):.2f}%"
-    ChartNameString = chart_information["Name"]
-    ChartNameStringFontSize = w * im_size * 0.65 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(ChartNameString)}).width;") / 50)
-    ChartLevelString = chart_information["Level"]
-    ChartLevelStringFontSize = w * im_size * 0.25 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(ChartLevelString)}).width;") / 50)
-    if ChartNameStringFontSize > w * 0.0275:
-        ChartNameStringFontSize = w * 0.0275
-    if ChartLevelStringFontSize > w * 0.0275 * 0.5:
-        ChartLevelStringFontSize = w * 0.0275 * 0.5
-    
-    def Chart_Finish_Animation_Frame(p: float):
-        root.clear_canvas(wait_execute = True)
-        im_ease_value = Tool_Functions.finish_animation_eases.all_ease(p)
-        im_ease_pos = w * 1.25 * (1 - im_ease_value)
-        data_block_1_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.015)
-        data_block_1_ease_pos = w * 1.25 * (1 - data_block_1_ease_value)
-        data_block_2_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.035)
-        data_block_2_ease_pos = w * 1.25 * (1 - data_block_2_ease_value)
-        data_block_3_ease_value = Tool_Functions.finish_animation_eases.all_ease(p - 0.055)
-        data_block_3_ease_pos = w * 1.25 * (1 - data_block_3_ease_value)
-        button_ease_value = Tool_Functions.finish_animation_eases.button_ease(p * 4.5 - 0.95)
-        level_size = 0.125
-        level_size *= Tool_Functions.finish_animation_eases.level_size_ease(p)
-        button_ease_pos = - w * Const.FINISH_UI_BUTTON_SIZE * (1 - button_ease_value)
-        
-        draw_background()
-        
-        root.create_image(
-            "finish_animation_image",
-            w * 0.3 - w * im_size * 0.5 + im_ease_pos,
-            h * 0.5 - h * im_size * 0.5,
-            width = w * im_size,
-            height = h * im_size,
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.3 - w * im_size * 0.5 + w * im_size * 0.05 + im_ease_pos,
-            h * 0.5 + h * im_size * 0.5 - h * im_size * 0.04,
-            text = ChartNameString,
-            font = f"{ChartNameStringFontSize}px PhigrosFont",
-            textAlign = "left",
-            textBaseline = "bottom",
-            fillStyle = "#FFFFFF", 
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.3 + w * im_size * 0.5 - w * im_size * 0.125 + im_ease_pos,
-            h * 0.5 + h * im_size * 0.5 - h * im_size * 0.04,
-            text = ChartLevelString,
-            font = f"{ChartLevelStringFontSize}px PhigrosFont",
-            textAlign = "right",
-            textBaseline = "bottom",
-            fillStyle = "#FFFFFF", 
-            wait_execute = True
-        )
-            
-        
-        root.create_polygon(
-            [
-                (w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05, h * 0.5 - h * im_size * 0.5),
-                (w * 0.25 + w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05, h * 0.5 - h * im_size * 0.5),
-                (w * 0.25 + w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.5),
-                (w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.5),
-                (w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05, h * 0.5 - h * im_size * 0.5),
-            ],
-            strokeStyle = "rgba(0, 0, 0, 0)",
-            fillStyle = "#00000066",
-            wait_execute = True
-        )
-        
-        root.create_polygon(
-            [
-                (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
-                (w * 0.25 + w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
-                (w * 0.25 + w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545 + h * im_size * 0.205),
-                (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545 + h * im_size * 0.205),
-                (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
-            ],
-            strokeStyle = "rgba(0, 0, 0, 0)",
-            fillStyle = "#00000066",
-            wait_execute = True
-        )
-        
-        root.create_polygon(
-            [
-                (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
-                (w * 0.25 + w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
-                (w * 0.25 + w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205),
-                (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205),
-                (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
-            ],
-            strokeStyle = "rgba(0, 0, 0, 0)",
-            fillStyle = "#00000066",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.06,
-            h * 0.433,
-            text = ScoreString,
-            font = f"{(w + h) / 42}px PhigrosFont",
-            fillStyle = f"rgba(255, 255, 255, {Tool_Functions.finish_animation_eases.score_alpha_ease(p)})",
-            wait_execute = True
-        )
-        
-        root.run_js_code(
-            f"ctx.globalAlpha = {Tool_Functions.finish_animation_eases.level_alpha_ease(p)};",
-            add_code_array = True
-        )
-        
-        root.create_image(
-            f"Level_{LevelName}",
-            w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.6 - level_size * w / 2,
-            h * 0.375 - level_size * w / 2,
-            width = w * level_size,
-            height = w * level_size,
-            wait_execute = True
-        )
-        
-        root.run_js_code(
-            "ctx.globalAlpha = 1.0;",
-            add_code_array = True
-        )
-        
-        root.run_js_code(
-            f"ctx.globalAlpha = {Tool_Functions.finish_animation_eases.playdata_alpha_ease(p - 0.02)}",
-            add_code_array = True
-        )
-        
-        root.create_text( # Max Combo
-            w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 + w * im_size / 45,
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625,
-            text = f"{MaxCombo}",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 70}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 + w * im_size / 45,
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625 + (w + h) / 70 / 2 * 1.25,
-            text = "Max Combo",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 150}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text( # Accuracy
-            w * 0.25 + w * im_size * 0.38 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 45,
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625,
-            text = AccString,
-            textAlign = "end",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 70}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.25 + w * im_size * 0.38 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 45,
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625 + (w + h) / 70 / 2 * 1.25,
-            text = "Accuracy",
-            textAlign = "end",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 150}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.run_js_code(
-            f"ctx.globalAlpha = {Tool_Functions.finish_animation_eases.playdata_alpha_ease(p - 0.04)}",
-            add_code_array = True
-        )
-        
-        root.create_text( # Perfect Count
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.125),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-            text = f"{PerfectCount}",
-            textAlign = "center",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 75}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.125),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
-            text = "Perfect",
-            textAlign = "center",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 185}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text( # Good Count
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.315),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-            text = f"{GoodCount}",
-            textAlign = "center",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 75}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.315),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
-            text = "Good",
-            textAlign = "center",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 185}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text( # Bad Conut
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.505),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-            text = f"{BadCount}",
-            textAlign = "center",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 75}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.505),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
-            text = "Bad",
-            textAlign = "center",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 185}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text( # Miss Count
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.695),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-            text = f"{MissCount}",
-            textAlign = "center",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 75}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.695),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
-            text = "Miss",
-            textAlign = "center",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 185}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text( # Early Count
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.875),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.375,
-            text = "Early",
-            textAlign = "start",
-            textBaseline = "middle",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 150}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.925),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.375,
-            text = f"{EarlyCount}",
-            textAlign = "end",
-            textBaseline = "middle",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 150}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text( # Late Count
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.875),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.625,
-            text = "Late",
-            textAlign = "start",
-            textBaseline = "middle",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 150}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.create_text(
-            w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.925),
-            h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.625,
-            text = f"{LateCount}",
-            textAlign = "end",
-            textBaseline = "middle",
-            fillStyle = "#FFFFFF",
-            font = f"{(w + h) / 150}px PhigrosFont",
-            wait_execute = True
-        )
-        
-        root.run_js_code(
-            "ctx.globalAlpha = 1.0;",
-            add_code_array = True
-        )
-        
-        Retry_Button_Width = w * Const.FINISH_UI_BUTTON_SIZE
-        Retry_Button_Height = w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145
-        Retry_imsize = Retry_Button_Height * 0.3
-        
-        Continue_Button_Width, Continue_Button_Height = Retry_Button_Width, Retry_Button_Height
-        Continue_imsize = Retry_imsize
-        
-        root.create_image( # Retry Button
-            "Button_Left",
-            button_ease_pos, 0,
-            width = Retry_Button_Width,
-            height = Retry_Button_Height,
-            wait_execute = True
-        )
-        
-        root.create_image(
-            "Retry",
-            button_ease_pos + w * Const.FINISH_UI_BUTTON_SIZE * 0.3 - Retry_imsize / 2,
-            Retry_Button_Height / 2 - (Retry_Button_Height * (8 / 145)) - Retry_imsize / 2,
-            width = Retry_imsize,
-            height = Retry_imsize,
-            wait_execute = True
-        )
-        
-        root.create_image( # Continue Button
-            "Button_Right",
-            w - button_ease_pos - Continue_Button_Width, h - Continue_Button_Height,
-            width = Continue_Button_Width,
-            height = Continue_Button_Height,
-            wait_execute = True
-        )
-        
-        root.create_image(
-            "Arrow_Right",
-            w - (button_ease_pos + w * Const.FINISH_UI_BUTTON_SIZE * 0.35 + Continue_imsize / 2),
-            h - (Continue_Button_Height / 2 - (Continue_Button_Height * (8 / 145)) * 1.15 + Continue_imsize / 2),
-            width = Continue_imsize,
-            height = Continue_imsize,
-            wait_execute = True
-        )
-        root.run_js_wait_code()
-    
-    def Chart_BeforeFinish_Animation_Frame(p: float, a1_combo: int|None):
-        v = p ** 2
-        if not noautoplay:
-            draw_ui(
-                process = 1.0,
-                score = ScoreString,
-                combo_state = chart_obj.note_num >= 3,
-                combo = chart_obj.note_num,
-                now_time = f"{Tool_Functions.Format_Time(audio_length)}/{Tool_Functions.Format_Time(audio_length)}",
-                acc = AccString,
-                animationing = True,
-                dy = h / 7 * (1 - v)
-            )
-        else:
-            draw_ui(
-                process = 1.0,
-                score = ScoreString,
-                combo_state = a1_combo >= 3,
-                combo = a1_combo,
-                now_time = f"{Tool_Functions.Format_Time(audio_length)}/{Tool_Functions.Format_Time(audio_length)}",
-                acc = AccString,
-                animationing = True,
-                dy = h / 7 * (1 - v)
-            )
-        root.run_js_wait_code()
+    initFinishAnimation()
     
     def Chart_Finish_Animation():
         animation_1_time = 0.75
         a1_combo = PhigrosPlayManagerObject.getCombo() if noautoplay else None
         
-        if "--render-before-finish-animation-video" not in sys.argv:
-            animation_1_start_time = time.time()
-            while True:
-                p = (time.time() - animation_1_start_time) / animation_1_time
-                if p > 1.0: break
-                Chart_BeforeFinish_Animation_Frame(p, a1_combo)
-        else:
-            writer = cv2.VideoWriter(
-                sys.argv[sys.argv.index("--render-before-finish-animation-video") + 1],
-                cv2.VideoWriter.fourcc(*"mp4v"),
-                120, (w, h), True
-            )
-            root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
-            fcut = 0
-            while True:
-                p = fcut / 120 / animation_1_time
-                if p > 1.0: break
-                Chart_BeforeFinish_Animation_Frame(p, a1_combo)
-                root.run_js_code("uploadFrame();")
-                fcut += 1
-                
-            root.run_js_code("uploadFrame_addQueue = true;")
-            while not root.run_js_code("uploadFrame_finish;"):
-                time.sleep(0.1)
-            root.run_js_code("resetUploadFrameFlags();")
-            writer.release()
+        animation_1_start_time = time.time()
+        while True:
+            p = (time.time() - animation_1_start_time) / animation_1_time
+            if p > 1.0: break
+            Chart_BeforeFinish_Animation_Frame(p, a1_combo)
         
         time.sleep(0.25)
         Resource["Over"].play(-1)
@@ -1512,7 +962,6 @@ def PlayerStart():
         a2_loop_clicked = False
         a2_continue_clicked = False
         a2_break = False
-        video_writing = False
         
         def whileCheck():
             nonlocal a2_break
@@ -1538,13 +987,11 @@ def PlayerStart():
         
         def loopClick(clientX, clientY):
             nonlocal a2_loop_clicked
-            if video_writing: return None
             if clientX <= w * Const.FINISH_UI_BUTTON_SIZE and clientY <= w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145:
                 a2_loop_clicked = True
         
         def continueClick(clientX, clientY):
             nonlocal a2_continue_clicked
-            if video_writing: return None
             if clientX >= w - w * Const.FINISH_UI_BUTTON_SIZE and clientY >= h - w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145:
                 a2_continue_clicked = True
         
@@ -1555,33 +1002,10 @@ def PlayerStart():
         root.run_js_code("window.addEventListener('click', _loopClick);")
         root.run_js_code("window.addEventListener('click', _continueClick);")
         
-        if "--render-finish-animation-video" not in sys.argv:
-            while not a2_break:
-                p = (time.time() - animation_2_start_time) / animation_2_time
-                if p > 1.0: break
-                Chart_Finish_Animation_Frame(p)
-        else:
-            video_writing = True
-            writer = cv2.VideoWriter(
-                sys.argv[sys.argv.index("--render-finish-animation-video") + 1],
-                cv2.VideoWriter_fourcc(*"mp4v"),
-                120, (w, h), True
-            )
-            root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
-            fcut = 0
-            while True:
-                p = fcut / 120 / animation_2_time
-                if p > 1.0: break
-                Chart_Finish_Animation_Frame(p)
-                root.run_js_code("uploadFrame();")
-                fcut += 1
-            
-            root.run_js_code("uploadFrame_addQueue = true;")
-            while not root.run_js_code("uploadFrame_finish;"):
-                time.sleep(0.1)
-            root.run_js_code("resetUploadFrameFlags();")
-            writer.release()
-            video_writing = False
+        while not a2_break:
+            p = (time.time() - animation_2_start_time) / animation_2_time
+            if p > 1.0: break
+            Chart_Finish_Animation_Frame(p)
         
         while not a2_break:
             Chart_Finish_Animation_Frame(1.0)
@@ -1607,6 +1031,7 @@ def updateCoreConfigure():
         chart_res = chart_res, clickeffect_randomblock = clickeffect_randomblock,
         clickeffect_randomblock_roundn = clickeffect_randomblock_roundn,
         Kill_PlayThread_Flag = Kill_PlayThread_Flag,
+        LoadSuccess = LoadSuccess,
         enable_clicksound = enable_clicksound, rtacc = rtacc,
         noautoplay = noautoplay, showfps = showfps, lfdaot = lfdaot,
         no_mixer_reset_chart_time = no_mixer_reset_chart_time,

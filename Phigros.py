@@ -210,7 +210,9 @@ def Load_Resource():
     global SettingUIOtherDownIconHeight_Twitter, SettingUIOtherDownIconHeight_QQ, SettingUIOtherDownIconHeight_Bilibili
     global TapTapIconWidth, TapTapIconHeight
     global CheckedIconWidth, CheckedIconHeight
+    global LoadSuccess
     
+    LoadSuccess = mixer.Sound(("./Resources/LoadSuccess.wav"))
     ClickEffectFrameCount = len(listdir("./Resources/Note_Click_Effect/Frames"))
     ClickEffectImages = [Image.open(f"./Resources/Note_Click_Effect/Frames/{i + 1}.png") for i in range(ClickEffectFrameCount)]
     Resource = {
@@ -232,6 +234,16 @@ def Load_Resource():
         "Note_Click_Effect":{
             "Perfect": list(map(lambda im: putColor((204, 196, 138), im), ClickEffectImages)),
             "Good": list(map(lambda im: putColor((180, 225, 255), im), ClickEffectImages)),
+        },
+        "Levels":{
+            "AP": Image.open("./Resources/Levels/AP.png"),
+            "FC": Image.open("./Resources/Levels/FC.png"),
+            "V": Image.open("./Resources/Levels/V.png"),
+            "S": Image.open("./Resources/Levels/S.png"),
+            "A": Image.open("./Resources/Levels/A.png"),
+            "B": Image.open("./Resources/Levels/B.png"),
+            "C": Image.open("./Resources/Levels/C.png"),
+            "F": Image.open("./Resources/Levels/F.png")
         },
         "Note_Click_Audio":{
             "Tap": loadAudio("./Resources/Note_Click_Audio/Tap.wav"),
@@ -256,15 +268,19 @@ def Load_Resource():
         "UISound_4": mixer.Sound("./Resources/UISound_4.wav"),
         "JoinQQGuildPromo": Image.open("./Resources/JoinQQGuildPromo.png"),
         "Arrow_Left": Image.open("./Resources/Arrow_Left.png"),
+        "Arrow_Right": Image.open("./Resources/Arrow_Right.png"),
         "Arrow_Right_Black": Image.open("./Resources/Arrow_Right_Black.png"),
         "twitter": Image.open("./Resources/twitter.png"),
         "qq": Image.open("./Resources/qq.png"),
         "bilibili": Image.open("./Resources/bilibili.png"),
         "taptap": Image.open("./Resources/taptap.png"),
         "checked": Image.open("./Resources/checked.png"),
-        "CalibrationHit": mixer.Sound("./Resources/CalibrationHit.wav")
+        "CalibrationHit": mixer.Sound("./Resources/CalibrationHit.wav"),
+        "Button_Left": Image.open("./Resources/Button_Left.png"),
+        "Retry": Image.open("./Resources/Retry.png"),
     }
     
+    Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["Notes"]["Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
     Const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
@@ -279,6 +295,9 @@ def Load_Resource():
     imageBlackMask.putpixel((0, imageBlackMaskHeight - 1), (0, 0, 0, 64))
     
     root.reg_img(imageBlackMask.resize((1, 500)), "imageBlackMask")
+    root.reg_img(Resource["Button_Left"], "Button_Left")
+    root.reg_img(Resource["Button_Right"], "Button_Right")
+    root.reg_img(Resource["Retry"], "Retry")
     root.reg_img(Resource["logoipt"], "logoipt")
     root.reg_img(Resource["warning"], "warning")
     root.reg_img(Resource["phigros"], "phigros")
@@ -292,6 +311,7 @@ def Load_Resource():
     root.reg_img(Resource["JoinQQGuildBanner"], "JoinQQGuildBanner")
     root.reg_img(Resource["JoinQQGuildPromo"], "JoinQQGuildPromo")
     root.reg_img(Resource["Arrow_Left"], "Arrow_Left")
+    root.reg_img(Resource["Arrow_Right"], "Arrow_Right")
     root.reg_img(Resource["Arrow_Right_Black"], "Arrow_Right_Black")
     root.reg_img(Resource["twitter"], "twitter")
     root.reg_img(Resource["qq"], "qq")
@@ -319,6 +339,9 @@ def Load_Resource():
     CheckedIconWidth = w * 0.0140625
     CheckedIconHeight = CheckedIconWidth / Resource["checked"].width * Resource["checked"].height
     
+    for k,v in Resource["Levels"].items():
+        root.reg_img(v, f"Level_{k}")
+        
     for k, v in Resource["Notes"].items():
         root.reg_img(Resource["Notes"][k], f"Note_{k}")
     
@@ -1683,7 +1706,7 @@ def settingRender():
                 chartAudio = "./Resources/Introduction/audio.mp3",
                 chartImage = "./Resources/Introduction/image.png",
                 chartFile = "./Resources/Introduction/chart.json",
-                startAnimation = True,
+                startAnimation = False,
                 chart_information = {
                     "Name": "Introduction",
                     "Artist": "姜米條",
@@ -2948,7 +2971,6 @@ def chartPlayerRender(
             ]
         )
     
-    show_start_time = time.time()
     Kill_PlayThread_Flag = False
     coreConfig = PhiCore.PhiCoreConfigure(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
@@ -2963,12 +2985,13 @@ def chartPlayerRender(
         Note_width = w * 0.1234375 * getUserData("setting-noteScale"),
         JUDGELINE_WIDTH = h * 0.0075, note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,
-        show_start_time = show_start_time, chart_res = {},
+        show_start_time = float("nan"), chart_res = {},
         clickeffect_randomblock = True,
         clickeffect_randomblock_roundn = 0.0,
         Kill_PlayThread_Flag = Kill_PlayThread_Flag,
+        LoadSuccess = LoadSuccess,
         enable_clicksound = getUserData("setting-enableClickSound"),
-        rtacc = False, noautoplay = False, showfps = "--debug" in sys.argv,
+        rtacc = False, noautoplay = True, showfps = "--debug" in sys.argv,
         lfdaot = False, no_mixer_reset_chart_time = False,
         speed = 1.0, render_range_more = False,
         render_range_more_scale = 1.0,
@@ -2979,18 +3002,60 @@ def chartPlayerRender(
     )
     PhiCore.CoreConfig(coreConfig)
     
+    if startAnimation:
+        PhiCore.Begin_Animation(False, foregroundFrameRender)
+        
+    Thread(target=PhiCore.PlayChart_ThreadFunction, daemon=True).start()
+    while "PhigrosPlayManagerObject" not in globals(): pass
+        
+    show_start_time = time.time()
+    coreConfig.show_start_time = show_start_time
+    PhiCore.CoreConfig(coreConfig)
+    
+    def clickEventCallback(x, y):
+        nonlocal nextUI, tonextUI, tonextUISt
+        
+        if rendingAnimation is not PhiCore.Chart_Finish_Animation_Frame or (time.time() - rendingAnimationSt) <= 0.5:
+            return None
+        
+        if Tool_Functions.InRect(x, y, (
+            0, 0,
+            w * Const.FINISH_UI_BUTTON_SIZE, w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145
+        )):
+            eventManager.unregEvent(clickEvent)
+            nextUIBak = nextUI
+            nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
+                chartAudio = chartAudio,
+                chartImage = chartImage,
+                chartFile = chartFile,
+                startAnimation = False,
+                chart_information = chart_information,
+                blackIn = True,
+                foregroundFrameRender = lambda: None,
+                nextUI = nextUIBak
+            ), True, time.time()
+            mixer.music.fadeout(500)
+        elif Tool_Functions.InRect(x, y, (
+            w - w * Const.FINISH_UI_BUTTON_SIZE, h - w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145,
+            w, h
+        )):
+            eventManager.unregEvent(clickEvent)
+            tonextUI, tonextUISt = True, time.time()
+            mixer.music.fadeout(500)
+    
+    clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
     # 前面初始化时间太长了, 放这里
     chartPlayerRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = nextUI, False, float("nan")
-    
+    rendingAnimation = PhiCore.Chart_BeforeFinish_Animation_Frame
+    rendingAnimationSt = float("nan")
     stoped = False
-    showingEnd = False
     mixer.music.play()
     while True:
         root.clear_canvas(wait_execute = True)
         
-        if not showingEnd:
+        if not stoped:
             now_t = time.time() - show_start_time
             if CHART_TYPE == Const.CHART_TYPE.PHI:
                 Task = PhiCore.GetFrameRenderTask_Phi(
@@ -3011,8 +3076,21 @@ def chartPlayerRender(
             )
             
             if break_flag and not stoped:
-                tonextUI, tonextUISt = True, time.time()
+                PhiCore.initFinishAnimation()
+                rendingAnimationSt = time.time()
+                # tonextUI, tonextUISt = True, time.time()
                 stoped = True
+        else:
+            if rendingAnimation is PhiCore.Chart_BeforeFinish_Animation_Frame:
+                if time.time() - rendingAnimationSt <= 0.75:
+                    rendingAnimation((time.time() - rendingAnimationSt) / 0.75, globals()["PhigrosPlayManagerObject"].getCombo(), False)
+                else:
+                    rendingAnimation, rendingAnimationSt = PhiCore.Chart_Finish_Animation_Frame, time.time()
+                    mixer.music.load("./Resources/Over.mp3")
+                    Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
+            
+            if rendingAnimation is PhiCore.Chart_Finish_Animation_Frame: # 不能用elif, 不然会少渲染一个帧
+                rendingAnimation(Tool_Functions.fixOutofRangeP((time.time() - rendingAnimationSt) / 3.5), False)
             
         if time.time() - chartPlayerRenderSt < 1.25 and blackIn:
             p = (time.time() - chartPlayerRenderSt) / 1.25
@@ -3036,6 +3114,11 @@ def chartPlayerRender(
             break
         
         root.run_js_wait_code()
+    
+    Kill_PlayThread_Flag = True
+    coreConfig.Kill_PlayThread_Flag = Kill_PlayThread_Flag
+    PhiCore.CoreConfig(coreConfig)
+    while Kill_PlayThread_Flag: pass
     
 def updateFontSizes():
     global userName_FontSize

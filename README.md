@@ -50,10 +50,6 @@
 - `--lfdaot-start-frame-num <number-value>` 使用`--lfdaot`时, 生成开始时的帧数, 默认为`0` // 仅适用于生成视频
 - `--lfdaot-run-frame-num <number-value>` 使用`--lfdaot`时, 要生成的帧数, 默认为`float("inf")`, 即生成到结束
 - `--speed <number-value>` 倍速
-- `--render-begin-loading-animation-video <filepath-string-value>` 导出一个谱面开始的加载动画到指定路径 (帧率恒定120, 无声音)
-- `--render-begin-judge-line-animation-video <filepath-string-value>` 导出一个谱面开始的判定线展开动画到指定路径 (帧率恒定120, 无声音)
-- `--render-before-finish-animation-video <filepath-string-value>` 导出一个谱面结束UI过渡动画到指定路径 (帧率恒定120, 无声音)
-- `--render-finish-animation-video <filepath-string-value>` 导出一个谱面结束动画到指定路径 (帧率恒定120, 无声音) tip: 在视频导出过程中重开和继续按键无法使用
 - `--noplaychart` 不播放谱面, 立即结算
 - `--clickeffect-randomblock-roundn <number-value>` 设置打击效果方块的圆角系数 (0.0 = 方, 0.5 = 圆), 默认 = 0.0
 
