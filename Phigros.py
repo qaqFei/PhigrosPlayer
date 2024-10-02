@@ -1688,7 +1688,7 @@ def settingRender():
                     "Name": "Introduction",
                     "Artist": "姜米條",
                     "Level": "IN Lv.13",
-                    "Illustrator": "Unknow",
+                    "Illustrator": "L-sp4",
                     "Charter": "星空孤雁",
                     "BackgroundDim": 0.6
                 },
