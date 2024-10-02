@@ -1430,7 +1430,7 @@ def GetFrameRenderTask_Rpe(
                 Tool_Functions.Note_CanRender(w, h, note_max_size_half, x, y)
                 if not note.ishold
                 else Tool_Functions.Note_CanRender(w, h, note_max_size_half, x, y, holdbody_range)
-            ) and not negative_alpha
+            ) and not negative_alpha and now_t >= 0.0
             
             if canRender and abs(now_t - note.secst) <= note.visibleTime:
                 noteRotate = lineRotate + (0 if note.above == 1 else 180)

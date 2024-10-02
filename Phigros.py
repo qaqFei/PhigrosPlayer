@@ -1680,11 +1680,11 @@ def settingRender():
         if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[1]) and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
-                "./Resources/Introduction/audio.mp3",
-                "./Resources/Introduction/image.png",
-                "./Resources/Introduction/chart.json",
-                True,
-                {
+                chartAudio = "./Resources/Introduction/audio.mp3",
+                chartImage = "./Resources/Introduction/image.png",
+                chartFile = "./Resources/Introduction/chart.json",
+                startAnimation = True,
+                chart_information = {
                     "Name": "Introduction",
                     "Artist": "姜米條",
                     "Level": "IN Lv.13",
@@ -1692,7 +1692,9 @@ def settingRender():
                     "Charter": "星空孤雁",
                     "BackgroundDim": 0.6
                 },
-                mainRender
+                blackIn = True,
+                foregroundFrameRender = lambda: None,
+                nextUI = mainRender
             ), True, time.time()
         
         # 关于我们
@@ -2897,12 +2899,16 @@ def chartPlayerRender(
     chartFile: str,
     startAnimation: bool,
     chart_information: dict,
+    blackIn: bool,
+    foregroundFrameRender: typing.Callable[[], typing.Any],
     nextUI: typing.Callable[[], typing.Any]
 ):
     global show_start_time, Kill_PlayThread_Flag
     
-    chartJsonData = json.loads(open(chartFile, "r", encoding="utf-8").read())
+    chartJsonData: dict = json.loads(open(chartFile, "r", encoding="utf-8").read())
     CHART_TYPE = Const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else Const.CHART_TYPE.RPE
+    if CHART_TYPE == Const.CHART_TYPE.PHI: chartJsonData["offset"] += getUserData("setting-chartOffset") / 1000
+    elif CHART_TYPE == Const.CHART_TYPE.RPE: chartJsonData["META"]["offset"] += getUserData("setting-chartOffset")
     chart_obj = Chart_Functions_Phi.Load_Chart_Object(chartJsonData) if CHART_TYPE == Const.CHART_TYPE.PHI else Chart_Functions_Rpe.Load_Chart_Object(chartJsonData)
     mixer.music.load(chartAudio)
     raw_audio_length = mixer.Sound(chartAudio).get_length()
@@ -3008,7 +3014,7 @@ def chartPlayerRender(
                 tonextUI, tonextUISt = True, time.time()
                 stoped = True
             
-        if time.time() - chartPlayerRenderSt < 1.25:
+        if time.time() - chartPlayerRenderSt < 1.25 and blackIn:
             p = (time.time() - chartPlayerRenderSt) / 1.25
             root.create_rectangle(
                 0, 0, w, h,
