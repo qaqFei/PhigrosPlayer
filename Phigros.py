@@ -2942,7 +2942,7 @@ def chartPlayerRender(
             ]
         )
     
-    show_start_time = time.time() - 2.0
+    show_start_time = time.time()
     Kill_PlayThread_Flag = False
     coreConfig = PhiCore.PhiCoreConfigure(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
@@ -2962,7 +2962,7 @@ def chartPlayerRender(
         clickeffect_randomblock_roundn = 0.0,
         Kill_PlayThread_Flag = Kill_PlayThread_Flag,
         enable_clicksound = getUserData("setting-enableClickSound"),
-        rtacc = False, noautoplay = False, showfps = False,
+        rtacc = False, noautoplay = False, showfps = "--debug" in sys.argv,
         lfdaot = False, no_mixer_reset_chart_time = False,
         speed = 1.0, render_range_more = False,
         render_range_more_scale = 1.0,
