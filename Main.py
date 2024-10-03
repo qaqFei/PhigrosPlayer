@@ -488,7 +488,8 @@ def Load_Resource():
         "Retry": Image.open(getResPath("/Retry.png")),
         "Arrow_Right": Image.open(getResPath("/Arrow_Right.png")),
         "Over": mixer.Sound(getResPath("/Over.mp3")),
-        "Pause": loadAudio(getResPath("/Pause.wav"))
+        "Pause": loadAudio(getResPath("/Pause.wav")),
+        "PauseImg": Image.open(getResPath("/Pause.png"))
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -538,6 +539,7 @@ def Load_Resource():
     root.reg_img(Resource["Button_Right"], "Button_Right")
     root.reg_img(Resource["Retry"], "Retry")
     root.reg_img(Resource["Arrow_Right"], "Arrow_Right")
+    root.reg_img(Resource["PauseImg"], "PauseImg")
     
     chart_res = {}
     if CHART_TYPE == Const.CHART_TYPE.RPE:
@@ -666,7 +668,7 @@ def Show_Start():
     root.run_js_code("show_in_animation();")
     time.sleep(1.25)
     draw_background()
-    draw_ui(animationing = True, now_time = f"{Tool_Functions.Format_Time(0.0)}/{Tool_Functions.Format_Time(audio_length)}")
+    draw_ui(animationing = True)
     root.run_js_wait_code()
     time.sleep(0.5)
     root.run_js_code("show_out_animation();")
@@ -1084,7 +1086,7 @@ if __name__ == "__main__":
         root.run_js_code("render_range_more = true;")
         root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
 
-    background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
+    background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
     background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
     root.reg_img(background_image,"background")
     PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h

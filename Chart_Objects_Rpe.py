@@ -229,12 +229,12 @@ class JudgeLine:
                     break # loop for other layers
         return v
     
-    def GetState(self, t: float, defaultColor: list[int, int, int], master: Rpe_Chart) -> tuple[tuple[float, float], float, float, tuple[int, int, int], float, float, str|None]:
+    def GetState(self, t: float, defaultColor: tuple[int, int, int], master: Rpe_Chart) -> tuple[tuple[float, float], float, float, tuple[int, int, int], float, float, str|None]:
         "linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText"
         linePos = self.GetPos(t, master)
         lineAlpha = 0.0
         lineRotate = 0.0
-        lineColor = defaultColor
+        lineColor = defaultColor if not self.extended.textEvents else (255, 255, 255)
         lineScaleX = 1.0
         lineScaleY = 1.0
         lineText = None

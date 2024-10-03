@@ -621,13 +621,13 @@ def draw_background():
         );",
         add_code_array = True
     )
-    
+
+# color一定要传rgba的
 def draw_ui(
     process:float = 0.0,
     score:str = "0000000",
     combo_state:bool = False,
     combo:int = 0,
-    now_time:str = "0:00/0:00",
     acc:str = "100.00%",
     clear:bool = True,
     background:bool = True,
@@ -638,42 +638,42 @@ def draw_ui(
     combonumberUI_dy: float = 0.0,
     combonumberUI_scaleX: float = 1.0,
     combonumberUI_scaleY: float = 1.0,
-    combonumberUI_color: str = "rgb(255, 255, 255)",
+    combonumberUI_color: str = "rgba(255, 255, 255, 1.0)",
     combonumberUI_rotate: float = 0.0,
     
     comboUI_dx: float = 0.0,
     comboUI_dy: float = 0.0,
     comboUI_scaleX: float = 1.0,
     comboUI_scaleY: float = 1.0,
-    comboUI_color: str = "rgb(255, 255, 255)",
+    comboUI_color: str = "rgba(255, 255, 255, 1.0)",
     comboUI_rotate: float = 0.0,
     
     scoreUI_dx: float = 0.0,
     scoreUI_dy: float = 0.0,
     scoreUI_scaleX: float = 1.0,
     scoreUI_scaleY: float = 1.0,
-    scoreUI_color: str = "rgb(255, 255, 255)",
+    scoreUI_color: str = "rgba(255, 255, 255, 1.0)",
     scoreUI_rotate: float = 0.0,
     
     nameUI_dx: float = 0.0,
     nameUI_dy: float = 0.0,
     nameUI_scaleX: float = 1.0,
     nameUI_scaleY: float = 1.0,
-    nameUI_color: str = "rgb(255, 255, 255)",
+    nameUI_color: str = "rgba(255, 255, 255, 1.0)",
     nameUI_rotate: float = 0.0,
     
     levelUI_dx: float = 0.0,
     levelUI_dy: float = 0.0,
     levelUI_scaleX: float = 1.0,
     levelUI_scaleY: float = 1.0,
-    levelUI_color: str = "rgb(255, 255, 255)",
+    levelUI_color: str = "rgba(255, 255, 255, 1.0)",
     levelUI_rotate: float = 0.0,
     
     pauseUI_dx: float = 0.0, # in fact, timeUI...
     pauseUI_dy: float = 0.0,
     pauseUI_scaleX: float = 1.0,
     pauseUI_scaleY: float = 1.0,
-    pauseUI_color: str = "rgb(255, 255, 255)",
+    pauseUI_color: str = "rgba(255, 255, 255, 1.0)",
     pauseUI_rotate: float = 0.0
 ):
     global lastCallDrawUI
@@ -704,7 +704,7 @@ def draw_ui(
         f"ctx.drawUIText(\
             '{root.process_code_string_syntax_tostring(score)}',\
             {w * 0.988 + scoreUI_dx},\
-            {h * 0.045 + scoreUI_dy},\
+            {h * (58 / 1080) + scoreUI_dy},\
             {scoreUI_rotate},\
             {scoreUI_scaleX},\
             {scoreUI_scaleY},\
@@ -719,7 +719,7 @@ def draw_ui(
         root.run_js_code(
             f"ctx.drawUIText(\
                 '{root.process_code_string_syntax_tostring(acc)}',\
-                {w * 0.988 + scoreUI_dx},\
+                {w * 0.9796875 + scoreUI_dx},\
                 {h * 0.0875 + scoreUI_dy},\
                 {scoreUI_rotate},\
                 {scoreUI_scaleX},\
@@ -761,18 +761,15 @@ def draw_ui(
             );",
             add_code_array = True
         )
-        
+    
+    pauseImgWidth, pauseImgHeight = w * (36 / 1920) * pauseUI_scaleX, h * (41 / 1080) * pauseUI_scaleY
+    pauseImgAlpha = pauseUI_color.split(")")[-2].split(",")[-1].replace(" ", "")
     root.run_js_code(
-        f"ctx.drawUIText(\
-            '{root.process_code_string_syntax_tostring(now_time)}',\
-            {pauseUI_dx},\
-            {h * 0.01 + (w + h) / 175 / 0.75 / 2 + pauseUI_dy},\
-            {pauseUI_rotate},\
-            {pauseUI_scaleX},\
-            {pauseUI_scaleY},\
-            '{pauseUI_color}',\
-            {(w + h) / 175 / 0.75},\
-            'left',\
+        f"ctx.drawRotateImage(\
+            {root.get_img_jsvarname("PauseImg")},\
+            {w * (36 / 1920) + pauseImgWidth / 2 + pauseUI_dx}, {h * (41 / 1080) + pauseImgHeight / 2 + pauseUI_dy},\
+            {pauseImgWidth}, {pauseImgHeight},\
+            {pauseUI_rotate}, {pauseImgAlpha}\
         );",
         add_code_array = True
     )
@@ -1308,14 +1305,12 @@ def GetFrameRenderTask_Phi(
     
     combo = Chart_Functions_Phi.Cal_Combo(now_t, chart_obj) if not noautoplay else PhigrosPlayManagerObject.getCombo()
     now_t /= speed
-    time_text = f"{Tool_Functions.Format_Time(now_t)}/{Tool_Functions.Format_Time(audio_length)}"
     Task(
         draw_ui,
         process = now_t / audio_length,
         score = get_stringscore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else get_stringscore(PhigrosPlayManagerObject.getScore()),
         combo_state = combo >= 3,
         combo = combo,
-        now_time = time_text,
         acc = "100.00%" if not noautoplay else f"{(PhigrosPlayManagerObject.getAcc() * 100):.2f}%",
         clear = False,
         background = False
@@ -1725,14 +1720,12 @@ def GetFrameRenderTask_Rpe(
     
     combo = len([i for line in chart_obj.JudgeLineList for i in line.notes if not i.isFake and ((not i.ishold and i.clicked) or (i.ishold and i.secet - 0.2 < now_t))]) if not noautoplay else PhigrosPlayManagerObject.getCombo()
     now_t /= speed
-    time_text = f"{Tool_Functions.Format_Time(now_t)}/{Tool_Functions.Format_Time(audio_length)}"
     Task(
         draw_ui,
         process = now_t / audio_length,
         score = get_stringscore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else get_stringscore(PhigrosPlayManagerObject.getScore()),
         combo_state = combo >= 3,
         combo = combo,
-        now_time = time_text,
         acc = "100.00%" if not noautoplay else f"{(PhigrosPlayManagerObject.getAcc() * 100):.2f}%",
         clear = False,
         background = False,
@@ -1943,7 +1936,6 @@ def BeginJudgeLineAnimation(p: float) -> Chart_Objects_Phi.FrameRenderTask:
     Task(
         draw_ui,
         animationing = True,
-        now_time = f"{Tool_Functions.Format_Time(0.0)}/{Tool_Functions.Format_Time(audio_length)}",
         dy = h / 7 * val
     )
     Task(
@@ -2416,7 +2408,6 @@ def Chart_BeforeFinish_Animation_Frame(p: float, a1_combo: int|None, rjc: bool =
             score = ScoreString,
             combo_state = chart_obj.note_num >= 3,
             combo = chart_obj.note_num,
-            now_time = f"{Tool_Functions.Format_Time(audio_length)}/{Tool_Functions.Format_Time(audio_length)}",
             acc = AccString,
             animationing = True,
             dy = h / 7 * (1 - v)
@@ -2427,7 +2418,6 @@ def Chart_BeforeFinish_Animation_Frame(p: float, a1_combo: int|None, rjc: bool =
             score = ScoreString,
             combo_state = a1_combo >= 3,
             combo = a1_combo,
-            now_time = f"{Tool_Functions.Format_Time(audio_length)}/{Tool_Functions.Format_Time(audio_length)}",
             acc = AccString,
             animationing = True,
             dy = h / 7 * (1 - v)

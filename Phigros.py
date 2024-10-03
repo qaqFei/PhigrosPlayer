@@ -92,7 +92,7 @@ userData_default = {
     "userdata-selfIntroduction": "There is a self-introduction, write something just like:\nTwitter: @Phigros_PGS\nYouTube: Pigeon Games\n\nHope you have fun in Phigros.\nBest regards,\nPigeon Games",
     "setting-chartOffset": 0,
     "setting-noteScale": 1.0,
-    "setting-backgroundDim": 0.6,
+    "setting-backgroundDim": 0.4,
     "setting-enableClickSound": True,
     "setting-musicVolume": 1.0,
     "setting-uiVolume": 1.0,
@@ -278,6 +278,7 @@ def Load_Resource():
         "CalibrationHit": mixer.Sound("./Resources/CalibrationHit.wav"),
         "Button_Left": Image.open("./Resources/Button_Left.png"),
         "Retry": Image.open("./Resources/Retry.png"),
+        "PauseImg": Image.open("./Resources/Pause.png")
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -298,6 +299,7 @@ def Load_Resource():
     root.reg_img(Resource["Button_Left"], "Button_Left")
     root.reg_img(Resource["Button_Right"], "Button_Right")
     root.reg_img(Resource["Retry"], "Retry")
+    root.reg_img(Resource["PauseImg"], "PauseImg")
     root.reg_img(Resource["logoipt"], "logoipt")
     root.reg_img(Resource["warning"], "warning")
     root.reg_img(Resource["phigros"], "phigros")
@@ -1713,7 +1715,7 @@ def settingRender():
                     "Level": "IN Lv.13",
                     "Illustrator": "L-sp4",
                     "Charter": "星空孤雁",
-                    "BackgroundDim": 0.6
+                    "BackgroundDim": None
                 },
                 blackIn = True,
                 foregroundFrameRender = lambda: None,
@@ -2429,7 +2431,7 @@ def settingRender():
         ),
         "BackgroundDimSlider": PhigrosGameObject.PhiSlider(
             value = getUserData("setting-backgroundDim"),
-            number_points = ((0.0, 0.0), (1.0, 1.0)),
+            number_points = ((0.0, 0.05), (1.0, 0.4)),
             lr_button = False,
             command = updateConfig
         ),
@@ -2928,6 +2930,7 @@ def chartPlayerRender(
 ):
     global show_start_time, Kill_PlayThread_Flag
     
+    chart_information["BackgroundDim"] = getUserData("setting-backgroundDim")
     chartJsonData: dict = json.loads(open(chartFile, "r", encoding="utf-8").read())
     CHART_TYPE = Const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else Const.CHART_TYPE.RPE
     if CHART_TYPE == Const.CHART_TYPE.PHI: chartJsonData["offset"] += getUserData("setting-chartOffset") / 1000
@@ -2939,8 +2942,8 @@ def chartPlayerRender(
     
     root.run_js_code("delete background; delete begin_animation_image; delete finish_animation_image;")
     chart_image = Image.open(chartImage)
-    background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 125))
-    background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - getUserData("setting-backgroundDim"))
+    background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
+    background_image = ImageEnhance.Brightness(background_image_blur).enhance(getUserData("setting-backgroundDim"))
     root.reg_img(background_image, "background")
     
     finish_animation_image_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
