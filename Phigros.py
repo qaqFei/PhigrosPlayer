@@ -3016,8 +3016,23 @@ def chartPlayerRender(
     PhiCore.CoreConfig(coreConfig)
     
     def clickEventCallback(x, y):
+        global show_start_time
+        nonlocal paused, pauseAnimationSt, pauseSt
         nonlocal nextUI, tonextUI, tonextUISt
         
+        if rendingAnimationSt != rendingAnimationSt: # nan, playing chart
+            pauseATime = 0.25 if paused else 3.0
+            pauseP = Tool_Functions.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
+            if Tool_Functions.InRect(x, y, (
+                w * 9.6 / 1920, h * -1.0 / 1080,
+                w * 96 / 1920, h * 102.6 / 1080
+            )) and (time.time() - chartPlayerRenderSt) > 1.25 and pauseP == 1.0:
+                paused, pauseAnimationSt = not paused, time.time()
+                
+                if paused:
+                    mixer.music.pause()
+                    pauseSt = time.time()
+                
         if rendingAnimation is not PhiCore.Chart_Finish_Animation_Frame or (time.time() - rendingAnimationSt) <= 0.5:
             return None
         
@@ -3054,47 +3069,61 @@ def chartPlayerRender(
     rendingAnimation = PhiCore.Chart_BeforeFinish_Animation_Frame
     rendingAnimationSt = float("nan")
     stoped = False
+    paused, pauseAnimationSt, pauseSt = False, 0.0, float("nan")
     mixer.music.play()
     while True:
-        root.clear_canvas(wait_execute = True)
+        pauseATime = 0.25 if paused else 3.0
+        pauseP = Tool_Functions.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
+        pauseBgBlurP = (1.0 - (1.0 - pauseP) ** 4) if paused else 1.0 - pauseP ** 15
+        root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 100 * pauseBgBlurP}px)';", add_code_array = True)
         
-        if not stoped:
-            now_t = time.time() - show_start_time
-            if CHART_TYPE == Const.CHART_TYPE.PHI:
-                Task = PhiCore.GetFrameRenderTask_Phi(
-                    now_t,
-                    judgeLine_Configs,
-                    False, False
-                )
-            elif CHART_TYPE == Const.CHART_TYPE.RPE:
-                Task = PhiCore.GetFrameRenderTask_Rpe(
-                    now_t, False, False
+        if not paused and pauseP == 1.0 and pauseSt == pauseSt and not mixer.music.get_busy():
+            mixer.music.unpause()
+            show_start_time += time.time() - pauseSt
+            coreConfig.show_start_time = show_start_time
+            PhiCore.CoreConfig(coreConfig)
+            pauseSt = float("nan")
+        
+        if not paused and pauseP == 1.0:
+            root.clear_canvas(wait_execute = True)
+        
+            if not stoped:
+                now_t = time.time() - show_start_time
+                if CHART_TYPE == Const.CHART_TYPE.PHI:
+                    Task = PhiCore.GetFrameRenderTask_Phi(
+                        now_t,
+                        judgeLine_Configs,
+                        False, False
+                    )
+                elif CHART_TYPE == Const.CHART_TYPE.RPE:
+                    Task = PhiCore.GetFrameRenderTask_Rpe(
+                        now_t,
+                        False, False
+                    )
+                    
+                Task.ExecTask()
+                
+                break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
+                    Task.ExTask,
+                    lambda x: eval(x)
                 )
                 
-            Task.ExecTask()
-            
-            break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
-                Task.ExTask,
-                lambda x: eval(x)
-            )
-            
-            if break_flag and not stoped:
-                PhiCore.initFinishAnimation()
-                rendingAnimationSt = time.time()
-                # tonextUI, tonextUISt = True, time.time()
-                stoped = True
-        else:
-            if rendingAnimation is PhiCore.Chart_BeforeFinish_Animation_Frame:
-                if time.time() - rendingAnimationSt <= 0.75:
-                    rendingAnimation((time.time() - rendingAnimationSt) / 0.75, globals()["PhigrosPlayManagerObject"].getCombo(), False)
-                else:
-                    rendingAnimation, rendingAnimationSt = PhiCore.Chart_Finish_Animation_Frame, time.time()
-                    mixer.music.load("./Resources/Over.mp3")
-                    Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
-            
-            if rendingAnimation is PhiCore.Chart_Finish_Animation_Frame: # 不能用elif, 不然会少渲染一个帧
-                rendingAnimation(Tool_Functions.fixOutofRangeP((time.time() - rendingAnimationSt) / 3.5), False)
-            
+                if break_flag and not stoped:
+                    PhiCore.initFinishAnimation()
+                    rendingAnimationSt = time.time()
+                    stoped = True
+            else:
+                if rendingAnimation is PhiCore.Chart_BeforeFinish_Animation_Frame:
+                    if time.time() - rendingAnimationSt <= 0.75:
+                        rendingAnimation((time.time() - rendingAnimationSt) / 0.75, globals()["PhigrosPlayManagerObject"].getCombo(), False)
+                    else:
+                        rendingAnimation, rendingAnimationSt = PhiCore.Chart_Finish_Animation_Frame, time.time()
+                        mixer.music.load("./Resources/Over.mp3")
+                        Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
+                
+                if rendingAnimation is PhiCore.Chart_Finish_Animation_Frame: # 不能用elif, 不然会少渲染一个帧
+                    rendingAnimation(Tool_Functions.fixOutofRangeP((time.time() - rendingAnimationSt) / 3.5), False)
+        
         if time.time() - chartPlayerRenderSt < 1.25 and blackIn:
             p = (time.time() - chartPlayerRenderSt) / 1.25
             root.create_rectangle(
