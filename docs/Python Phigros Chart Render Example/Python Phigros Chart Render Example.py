@@ -407,9 +407,9 @@ def Main():
                     note_item.clicked = True #更新clicked状态
                 
                 if not is_hold and note_item.clicked:
-                    return None
+                    return
                 elif is_hold and now_t > note_item.hold_endtime:
-                    return None
+                    return
 
                 note_type = {
                     Const.Note.TAP:"Tap",

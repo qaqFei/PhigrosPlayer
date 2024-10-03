@@ -1022,7 +1022,7 @@ def soundEffect_From0To1():
             time.sleep(0.02)
         else:
             mixer.music.set_volume(1.0)
-            return None
+            return
 
 def processStringToLiteral(string: str):
     return string.replace("\\","\\\\").replace("'","\\'").replace("\"","\\\"").replace("`","\\`").replace("\n", "\\n")
@@ -1065,9 +1065,9 @@ def changeChapterMouseDown(x, y):
     global changeChapterMouseDownX
     
     if y < h * (140 / 1080) or y > h * (1.0 - 140 / 1080):
-        return None
+        return
     elif not inMainUI:
-        return None
+        return
     
     changeChapterMouseDownX = x
 
@@ -1075,13 +1075,13 @@ def changeChapterMouseUp(x, y):
     global lastChangeChapterTime
     
     if y < h * (140 / 1080) or y > h * (1.0 - 140 / 1080):
-        return None
+        return
     elif abs(x - changeChapterMouseDownX) > w * 0.005:
-        return None
+        return
     elif not inMainUI:
-        return None
+        return
     elif time.time() - lastChangeChapterTime < 0.85: # 1.0s 动画时间, 由于是ease out, 所以可以提前一点
-        return None
+        return
     
     chapterX = w * 0.034375 + chaptersDx
     for index, i in enumerate(Chapters.items):
@@ -1648,9 +1648,9 @@ def settingRender():
         nonlocal lastChangeSettingStateTime
         
         if time.time() - lastChangeSettingStateTime < 0.6:
-            return None
+            return
         elif t == settingState.aTo:
-            return None
+            return
         lastChangeSettingStateTime = time.time()
         settingState.changeState(t)
     
@@ -1666,7 +1666,7 @@ def settingRender():
             w * 458 / 1920, h * 97 / 1080
         )) and inSettingUI:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY:
-                return None
+                return
             
             Thread(target=lambda: (time.sleep(settingState.atime / 2), mixer.music.stop(), mixer.music.play(-1)), daemon=True).start()
             _setSettingState(Const.PHIGROS_SETTING_STATE.PLAY)
@@ -1677,7 +1677,7 @@ def settingRender():
             w * 723 / 1920, h * 97 / 1080
         )) and inSettingUI:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT:
-                return None
+                return
             
             mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
@@ -1688,7 +1688,7 @@ def settingRender():
             w * 915 / 1920, h * 97 / 1080
         )) and inSettingUI:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.OTHER:
-                return None
+                return
             
             mixer.music.fadeout(500)
             _setSettingState(Const.PHIGROS_SETTING_STATE.OTHER)
@@ -1829,7 +1829,7 @@ def settingRender():
         nonlocal CalibrationClickSoundPlayed, CalibrationClickEffectLines
         nonlocal CalibrationClickEffects
         
-        if alpha == 0.0: return None
+        if alpha == 0.0: return
         
         root.run_js_code(
             f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
@@ -1936,7 +1936,7 @@ def settingRender():
         )
     
     def drawAccountAndCountSetting(dx: float, alpha: float):
-        if alpha == 0.0: return None
+        if alpha == 0.0: return
         
         root.run_js_code(
             f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
@@ -2209,7 +2209,7 @@ def settingRender():
         )
 
     def drawOtherSetting(dx: float, alpha: float):
-        if alpha == 0.0: return None
+        if alpha == 0.0: return
         
         root.run_js_code(
             f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
@@ -3075,7 +3075,7 @@ def chartPlayerRender(
                 paused, pauseAnimationSt = False, time.time()
                 
         if rendingAnimation is not PhiCore.Chart_Finish_Animation_Frame or (time.time() - rendingAnimationSt) <= 0.5:
-            return None
+            return
         
         if Tool_Functions.InRect(x, y, (
             0, 0,
@@ -3119,7 +3119,6 @@ def chartPlayerRender(
         root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 100 * pauseBgBlurP}px)';", add_code_array = True)
         
         def _renderPauseUIButtons(p: float, dx: float):
-            root.run_js_code(f"dialog_canvas_ctx.clear();", add_code_array = True)
             def _drawPauseButton(x: float, imname: str, scale: float):
                 ims = (w + h) * 0.0275
                 root.run_js_code(
@@ -3135,15 +3134,35 @@ def chartPlayerRender(
             _drawPauseButton(w * 0.5 + dx, "PUIRetry", 1.0)
             _drawPauseButton(w * 0.5 + w * 0.1109375 + dx, "PUIResume", 0.95)
             
+        root.run_js_code(f"dialog_canvas_ctx.clear();", add_code_array = True)
         if paused:
             _renderPauseUIButtons(pauseP, 0.0)
         else:
-            pauseUIDrawPLP = 0.35 / 3.0
+            pauseUIDrawPLP = 0.2 / 3.0
             if pauseP <= pauseUIDrawPLP:
                 puiBsP = pauseP / pauseUIDrawPLP
-                _renderPauseUIButtons(1.0 - puiBsP, - w / 5 * (puiBsP ** 2))
-            else:
-                root.run_js_code(f"dialog_canvas_ctx.clear();", add_code_array = True)
+                _renderPauseUIButtons(1.0 - puiBsP, - w / 15 * (puiBsP ** 4))
+            numberEase = lambda x: int(x) + rpe_easing.ease_funcs[13](x % 1.0)
+            root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx;", add_code_array = True)
+            def _drawNumber(number: str, dxv: float):
+                if pauseP == 1.0: return
+                x = w / 2 - w * 0.1109375 * dxv
+                alpha = ((w / 2 - abs(w / 2 - x)) / (w / 2)) ** 25
+                if pauseP >= 0.8:
+                    alpha *= 1.0 - (1.0 - (1.0 - (pauseP - 0.8) / 0.2) ** 2)
+                root.create_text(
+                    x, h / 2,
+                    number,
+                    font = f"{(w + h) / 30}px PhigrosFont",
+                    textAlign = "center",
+                    textBaseline = "middle",
+                    fillStyle = f"rgba(255, 255, 255, {alpha})",
+                    wait_execute=True
+                )
+            _drawNumber("3", numberEase(pauseP * 3.0) - 1.0)
+            _drawNumber("2", numberEase(pauseP * 3.0) - 2.0)
+            _drawNumber("1", numberEase(pauseP * 3.0) - 3.0)
+            root.run_js_code("ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
         
         if not paused and pauseP == 1.0 and pauseSt == pauseSt and not mixer.music.get_busy():
             mixer.music.unpause()

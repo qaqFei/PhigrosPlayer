@@ -307,9 +307,9 @@ def renderChartView(nt: float): # sec
                 Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string], )).start()
                 
             if note.type != Const.Note.HOLD and note.time < lineTime:
-                return None
+                return
             elif note.type == Const.Note.HOLD and note.time + note.holdtime < lineTime:
-                return None
+                return
             
             holdLength = note.holdtime * (60 / line.bpm) * note.speed * PHIGROS_Y if note.type == Const.Note.HOLD else 0.0
             
@@ -319,7 +319,7 @@ def renderChartView(nt: float): # sec
                 noteFloorPosition = - (1.0 - (note.time + note.holdtime - lineTime) / note.holdtime) * holdLength
             
             if noteFloorPosition > (h / 2) * 2:
-                return None
+                return
             
             rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
                 *linePos, -lineRotate, note.positionX * PHIGROS_X
@@ -436,9 +436,9 @@ def renderChartView(nt: float): # sec
         t:float, t_sec:float, line: Chart_Objects_Ppre.judgeLine,
         effect_random_blocks
     ):
-        if note.fake: return None
+        if note.fake: return
         p = (nt - t_sec) / effect_time
-        if not (0.0 <= p <= 1.0): return None
+        if not (0.0 <= p <= 1.0): return
         linePos = line.getMove(t)
         linePos = [linePos[0] * w / 2, linePos[1] * h / 2]
         lineRotate = line.getRotate(t)
@@ -704,7 +704,7 @@ def getEventByyPos(y: int, es: list[Chart_Objects_Ppre.speedEvent | Chart_Object
     for e in es:
         if e.startTime <= lineTime <= e.endTime:
             return e
-    return None
+    return
 
 def getEventTimeByyPos(y: int):
     return EventEdit_uiDy + (h / 2 - (y - h / 2)) / (h / 2) * EventEdit_viewRange
@@ -716,7 +716,7 @@ def renderAEvent(e: Chart_Objects_Ppre.speedEvent | Chart_Objects_Ppre.alphaEven
     est_y = h - getEventViewTimeLengthPx(est) + EventEdit_uiDy / EventEdit_viewRange * h / 2
     eet_y = h - getEventViewTimeLengthPx(eet) + EventEdit_uiDy / EventEdit_viewRange * h / 2
     if est_y < h / 2 or eet_y > h:
-        return None
+        return
     if isinstance(e, Chart_Objects_Ppre.speedEvent):
         left_x = 0
     elif isinstance(e, Chart_Objects_Ppre.alphaEvent):
@@ -1096,9 +1096,9 @@ def KeyDown(
     
     if not repeat and key == "l" and ctrl:
         cmd = webcv.run_js_code("prompt('input command:');")
-        if not isinstance(cmd, str): return None
+        if not isinstance(cmd, str): return
         cmd = list(filter(lambda x: x, cmd.split(" ")))
-        if not cmd: return None
+        if not cmd: return
         
         match cmd[0]:
             case "help":
@@ -1235,7 +1235,7 @@ types:
                     webcv.run_js_code(f"alert('invalid input. {webcv.process_code_string_syntax_tostring(repr(e))}');")
             case _:
                 webcv.run_js_code(f"alert('unknow cmd.');")
-                return None
+                return
 
 def parseFloat(s: str, default: float):
     try:
@@ -1284,7 +1284,7 @@ def editEvent(data: dict):
                 try: ChartObject.lines[EventEdit_lineIndex].speedEvents.remove(editingEvent)
                 except ValueError: webcv.run_js_code("alert('event not found in line.')")
             eventEditing, editingEvent = False, None
-            return None
+            return
         startTime = parseFloat(data["startTime"], editingEvent.startTime)
         endTime = parseFloat(data["endTime"], editingEvent.endTime)
         value = (parseFloat(data["startValue"], editingEvent.value) + parseFloat(data["endValue"], editingEvent.value)) / 2.0
@@ -1298,7 +1298,7 @@ def editEvent(data: dict):
                 try: ChartObject.lines[EventEdit_lineIndex].alphaEvents.remove(editingEvent)
                 except ValueError: webcv.run_js_code("alert('event not found in line.')")
             eventEditing, editingEvent = False, None
-            return None
+            return
         startTime = parseFloat(data["startTime"], editingEvent.startTime)
         endTime = parseFloat(data["endTime"], editingEvent.endTime)
         start = parseFloat(data["startValue"], editingEvent.start)
@@ -1314,7 +1314,7 @@ def editEvent(data: dict):
                 try: ChartObject.lines[EventEdit_lineIndex].moveEvents.remove(editingEvent)
                 except ValueError: webcv.run_js_code("alert('event not found in line.')")
             eventEditing, editingEvent = False, None
-            return None
+            return
         startTime = parseFloat(data["startTime"], editingEvent.startTime)
         endTime = parseFloat(data["endTime"], editingEvent.endTime)
         startX, startY = parseTwoFloats(data["startValue"], (editingEvent.startX, editingEvent.startY))
@@ -1330,7 +1330,7 @@ def editEvent(data: dict):
                 try: ChartObject.lines[EventEdit_lineIndex].rotateEvents.remove(editingEvent)
                 except ValueError: webcv.run_js_code("alert('event not found in line.')")
             eventEditing, editingEvent = False, None
-            return None
+            return
         startTime = parseFloat(data["startTime"], editingEvent.startTime)
         endTime = parseFloat(data["endTime"], editingEvent.endTime)
         start = parseFloat(data["startValue"], editingEvent.start)
@@ -1351,7 +1351,7 @@ def editNote(data: dict):
             try: ChartObject.lines[EventEdit_lineIndex].notes.remove(editingNote)
             except ValueError: webcv.run_js_code("alert('note not found in line.')")
         noteEditing, editingNote = False, None
-        return None
+        return
     
     time = parseFloat(data["time"], editingNote.time)
     type = parseRangeInt(data["type"], editingNote.type, range(1, 4 + 1))

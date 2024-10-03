@@ -110,7 +110,7 @@ def Launch():
             title = TEXT.ERROR_TITLE,
             message = TEXT.LAUNCH_FILE_ERROR_TEXT
         )
-        return None
+        return
     
     if debug_checkbutton_var.get():
         launch_args.append("--debug")

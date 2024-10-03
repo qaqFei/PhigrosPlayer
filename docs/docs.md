@@ -1079,7 +1079,7 @@ windll.kernel32.ExitProcess(0)
   ```python
   is_hold = note_item.type == Const.Note.HOLD
   if is_hold:
-      return None
+      return
   ```
   - 计算`note`现在的时间(秒)
   ```python
@@ -1092,7 +1092,7 @@ windll.kernel32.ExitProcess(0)
   - 如果距离为负数, 则无需渲染, `Hold`除外
   ```python
   if not is_hold and this_note_sectime - now_t < 0.0:
-      return None
+      return
   ```
   - 计算绘制中心坐标
   ```python
@@ -1651,10 +1651,10 @@ def Main():
                 this_note_sectime = note_item.time * judgeLine.T
                 is_hold = note_item.type == Const.Note.HOLD
                 if is_hold:
-                    return None
+                    return
                 
                 if not is_hold and this_note_sectime - now_t < 0.0:
-                    return None
+                    return
 
                 note_type = {
                     Const.Note.TAP:"Tap",
@@ -2208,9 +2208,9 @@ def Main():
                     note_item.clicked = True #更新clicked状态
                 
                 if not is_hold and note_item.clicked:
-                    return None
+                    return
                 elif is_hold and now_t > note_item.hold_endtime:
-                    return None
+                    return
 
                 note_type = {
                     Const.Note.TAP:"Tap",
@@ -2865,9 +2865,9 @@ def Main():
                     note_item.clicked = True #更新clicked状态
                 
                 if not is_hold and note_item.clicked:
-                    return None
+                    return
                 elif is_hold and now_t > note_item.hold_endtime:
-                    return None
+                    return
 
                 note_type = {
                     Const.Note.TAP:"Tap",

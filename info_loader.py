@@ -17,10 +17,10 @@ class InfoLoader:
             self.load(file)
     
     def load(self, filename, encoding="utf-8", _failed=False):
-        "if load failed, return None. else return True"
+        "if load failed, return. else return True"
         
         if not exists(filename):
-            return None
+            return
         
         with open(filename, "r", encoding=encoding) as f:
             try:
@@ -31,7 +31,7 @@ class InfoLoader:
                         return self.load(filename, "gbk", True)
                     except Exception:
                         pass
-                return None
+                return
             file_type = filename.split(".")[-1]
             
             try:
@@ -82,11 +82,11 @@ class InfoLoader:
                         
                         self.infomap[key] = value
                     case "yml":
-                        return None #  i think ... we don't need process yml, becasuse: normal, if yml file is exists, it can process info.txt!
+                        return #  i think ... we don't need process yml, becasuse: normal, if yml file is exists, it can process info.txt!
                     case _:
-                        return None
+                        return
             except Exception:
-                return None
+                return
             
             return True
     

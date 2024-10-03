@@ -368,7 +368,7 @@ def PlayChart_ThreadFunction():
                             drag.player_will_click = True
                             drag.player_click_offset = drag_offset
                         drag.player_drag_judge_safe_used = True
-                        return None
+                        return
                     
                     n.player_badtime = PlayChart_NowTime
                     n.state = Const.NOTE_STATE.BAD
@@ -425,7 +425,7 @@ def PlayChart_ThreadFunction():
                             drag.player_will_click = True
                             drag.player_click_offset = drag_offset
                         drag.player_drag_judge_safe_used = True
-                        return None
+                        return
                     
                     n.player_badtime = PlayChart_NowTime
                     n.player_badtime_beat = chart_obj.sec2beat(n.player_badtime)
@@ -1115,7 +1115,7 @@ def GetFrameRenderTask_Phi(
         perfect:bool
     ):
         p = (now_t - t * note.master.T) / effect_time
-        if not (0.0 <= p <= 1.0): return None
+        if not (0.0 <= p <= 1.0): return
         will_show_effect_pos = judgeLine.get_datavar_move(t, w, h)
         will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
         pos = Tool_Functions.rotate_point(
@@ -1577,7 +1577,7 @@ def GetFrameRenderTask_Rpe(
         perfect: bool
     ):
         p = (now_t - chart_obj.beat2sec(t)) / effect_time
-        if not (0.0 <= p <= 1.0): return None
+        if not (0.0 <= p <= 1.0): return
         linePos = Tool_Functions.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
         lineRotate = sum([line.GetEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
         pos = Tool_Functions.rotate_point(

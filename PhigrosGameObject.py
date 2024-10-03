@@ -374,7 +374,7 @@ class PhiSlider(PhiBaseWidget):
             Tool_Functions.InRect(x, y, self.rconButtonRect)
             or Tool_Functions.InRect(x, y, self.lconButtonRect)
         ):
-            return None
+            return
         
         p = (x - self.sliderRect[0]) / (self.sliderRect[2] - self.sliderRect[0])
         p = 0.0 if p < 0.02 else (1.0 if p > 0.97 else p)
@@ -462,17 +462,17 @@ class WidgetEventManager:
         self.condition = condition
     
     def MouseDown(self, x: int, y: int):
-        if not self.condition(x, y): return None
+        if not self.condition(x, y): return
         for widget in self.widgets:
             widget.MouseDown(x, y)
 
     def MouseUp(self, x: int, y: int):
-        if not self.condition(x, y): return None
+        if not self.condition(x, y): return
         for widget in self.widgets:
             widget.MouseUp(x, y)
 
     def MouseMove(self, x: int, y: int):
-        if not self.condition(x, y): return None
+        if not self.condition(x, y): return
         for widget in self.widgets:
             widget.MouseMove(x, y)
     
@@ -504,7 +504,7 @@ class SlideControler:
     
     def mouseDown(self, x: int, y: int):
         if not self.eventRect(x, y):
-            return None
+            return
         
         self._lastclickx, self._lastclicky = x, y
         self._lastlastclickx, self._lastlastclicky = x, y
@@ -518,7 +518,7 @@ class SlideControler:
     
     def mouseMove(self, x: int, y: int):
         if not self._mouseDown:
-            return None
+            return
         
         self._dx += x - self._lastclickx
         self._dy += y - self._lastclicky
@@ -564,7 +564,7 @@ class SlideControler:
     def _easeBackX(self):
         cdx = - self._dx
         if self.minValueX <= cdx <= self.maxValueX:
-            return None
+            return
         
         if cdx < 0:
             dx = - cdx
@@ -594,7 +594,7 @@ class SlideControler:
     def _easeBackY(self):
         cdy = - self._dy
         if self.minValueY <= cdy <= self.maxValueY:
-            return None
+            return
         
         if cdy < 0:
             dy = - cdy

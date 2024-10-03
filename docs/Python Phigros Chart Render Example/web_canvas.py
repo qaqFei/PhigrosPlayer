@@ -485,7 +485,7 @@ class WebCanvas:
     ) -> None:
         while True:
             if self._destroyed:
-                return None
+                return
             time.sleep(0.05)
     
     def shutdown_fileserver(

@@ -2,7 +2,7 @@ from threading import Thread
 from ctypes import windll
 import importlib.util
 
-import web_canvas
+import webcvapis
 
 def Main():
     while True:
@@ -14,6 +14,7 @@ def Main():
             ease_func = module.ease
             
             cv.clear_canvas(wait_execute = True)
+            cv.create_rectangle(0,0,700,700,fillStyle="#FFF",wait_execute=True)
             cv.create_line(
                 100, 600, 600, 600,
                 lineWidth = 2,
@@ -42,7 +43,7 @@ def Main():
         except Exception as e:
             print(f"Error: {e}")
 
-cv = web_canvas.WebCanvas(
+cv = webcvapis.WebCanvas(
     700, 700,
     100, 100,
     title = "Ease Dev Tool",

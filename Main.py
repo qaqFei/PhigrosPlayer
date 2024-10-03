@@ -778,7 +778,7 @@ def PlayerStart():
             mixer.music.fadeout(250)
             LoadChartObject()
             Thread(target=PlayerStart, daemon=True).start()
-            return None
+            return
     else:
         lfdaot_tasks = {}
         frame_speed = 60
@@ -830,7 +830,7 @@ def PlayerStart():
                     
             if "--lfdaot-file-output-autoexit" in sys.argv:
                 root.destroy()
-                return None
+                return
         else: #--lfdaot-file
             fp = sys.argv[sys.argv.index("--lfdaot-file") + 1]
             with open(fp,"r",encoding="utf-8") as f:
