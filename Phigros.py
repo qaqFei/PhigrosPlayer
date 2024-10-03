@@ -3072,7 +3072,6 @@ def chartPlayerRender(
                 w * 0.5 + w * 0.1109375 + pauseUIButtonR / 2,
                 h * 0.5 + pauseUIButtonR / 2
             )):
-                eventManager.unregEvent(clickEvent)
                 paused, pauseAnimationSt = False, time.time()
                 
         if rendingAnimation is not PhiCore.Chart_Finish_Animation_Frame or (time.time() - rendingAnimationSt) <= 0.5:
