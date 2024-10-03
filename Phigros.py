@@ -278,7 +278,11 @@ def Load_Resource():
         "CalibrationHit": mixer.Sound("./Resources/CalibrationHit.wav"),
         "Button_Left": Image.open("./Resources/Button_Left.png"),
         "Retry": Image.open("./Resources/Retry.png"),
-        "PauseImg": Image.open("./Resources/Pause.png")
+        "Pause": mixer.Sound("./Resources/Pause.wav"),
+        "PauseImg": Image.open("./Resources/Pause.png"),
+        "PUIBack": Image.open("./Resources/PUIBack.png"),
+        "PUIRetry": Image.open("./Resources/PUIRetry.png"),
+        "PUIResume": Image.open("./Resources/PUIResume.png")
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -320,6 +324,9 @@ def Load_Resource():
     root.reg_img(Resource["bilibili"], "bilibili")
     root.reg_img(Resource["taptap"], "taptap")
     root.reg_img(Resource["checked"], "checked")
+    root.reg_img(Resource["PUIBack"], "PUIBack")
+    root.reg_img(Resource["PUIRetry"], "PUIRetry")
+    root.reg_img(Resource["PUIResume"], "PUIResume")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -2618,7 +2625,7 @@ def settingRender():
                 p = abs(p - 1.0) ** 3
             
             if ShowOpenSource or CloseOpenSource:
-                root.run_js_code(f"_ctxBak = ctx; ctx = dialog_canvas_ctx; dialog_canvas_ctx.clear();", add_code_array = True)
+                root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx; dialog_canvas_ctx.clear();", add_code_array = True)
                 
                 root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 75 * p}px)';", add_code_array = True)
                 root.run_js_code(f"ctx.save(); ctx.globalAlpha = {p};", add_code_array = True)
@@ -2634,9 +2641,9 @@ def settingRender():
                 )
                 drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
                 
-                root.run_js_code(f"ctx.restore();", add_code_array = True)
+                root.run_js_code("ctx.restore();", add_code_array = True)
                 
-                root.run_js_code(f"ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
+                root.run_js_code("ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
                 
         if time.time() - settingRenderSt < 1.25:
             p = (time.time() - settingRenderSt) / 1.25
@@ -3023,15 +3030,50 @@ def chartPlayerRender(
         if rendingAnimationSt != rendingAnimationSt: # nan, playing chart
             pauseATime = 0.25 if paused else 3.0
             pauseP = Tool_Functions.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
-            if Tool_Functions.InRect(x, y, (
+            if not paused and Tool_Functions.InRect(x, y, (
                 w * 9.6 / 1920, h * -1.0 / 1080,
                 w * 96 / 1920, h * 102.6 / 1080
             )) and (time.time() - chartPlayerRenderSt) > 1.25 and pauseP == 1.0:
-                paused, pauseAnimationSt = not paused, time.time()
-                
-                if paused:
-                    mixer.music.pause()
-                    pauseSt = time.time()
+                paused, pauseAnimationSt = True, time.time()
+                mixer.music.pause()
+                Resource["Pause"].play()
+                pauseSt = time.time()
+            
+            pauseUIButtonR = (w + h) * 0.0275
+            if paused and Tool_Functions.InRect(x, y, (
+                w * 0.5 - w * 0.1109375 - pauseUIButtonR / 2,
+                h * 0.5 - pauseUIButtonR / 2,
+                w * 0.5 - w * 0.1109375 + pauseUIButtonR / 2,
+                h * 0.5 + pauseUIButtonR / 2
+            )):
+                eventManager.unregEvent(clickEvent)
+                tonextUI, tonextUISt = True, time.time()
+            elif paused and Tool_Functions.InRect(x, y, (
+                w * 0.5 - pauseUIButtonR / 2,
+                h * 0.5 - pauseUIButtonR / 2,
+                w * 0.5 + pauseUIButtonR / 2,
+                h * 0.5 + pauseUIButtonR / 2
+            )):
+                eventManager.unregEvent(clickEvent)
+                nextUIBak = nextUI
+                nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
+                    chartAudio = chartAudio,
+                    chartImage = chartImage,
+                    chartFile = chartFile,
+                    startAnimation = False,
+                    chart_information = chart_information,
+                    blackIn = True,
+                    foregroundFrameRender = lambda: None,
+                    nextUI = nextUIBak
+                ), True, time.time()
+            elif paused and Tool_Functions.InRect(x, y, (
+                w * 0.5 + w * 0.1109375 - pauseUIButtonR / 2,
+                h * 0.5 - pauseUIButtonR / 2,
+                w * 0.5 + w * 0.1109375 + pauseUIButtonR / 2,
+                h * 0.5 + pauseUIButtonR / 2
+            )):
+                eventManager.unregEvent(clickEvent)
+                paused, pauseAnimationSt = False, time.time()
                 
         if rendingAnimation is not PhiCore.Chart_Finish_Animation_Frame or (time.time() - rendingAnimationSt) <= 0.5:
             return None
@@ -3076,6 +3118,33 @@ def chartPlayerRender(
         pauseP = Tool_Functions.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
         pauseBgBlurP = (1.0 - (1.0 - pauseP) ** 4) if paused else 1.0 - pauseP ** 15
         root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 100 * pauseBgBlurP}px)';", add_code_array = True)
+        
+        def _renderPauseUIButtons(p: float, dx: float):
+            root.run_js_code(f"dialog_canvas_ctx.clear();", add_code_array = True)
+            def _drawPauseButton(x: float, imname: str, scale: float):
+                ims = (w + h) * 0.0275
+                root.run_js_code(
+                    f"dialog_canvas_ctx.drawAlphaImage(\
+                        {root.get_img_jsvarname(imname)},\
+                        {x - ims / 2}, {h / 2 - ims / 2},\
+                        {ims * scale}, {ims * scale},\
+                        {1.0 - (1.0 - p) ** 2}\
+                    );",
+                    add_code_array = True
+                )
+            _drawPauseButton(w * 0.5 - w * 0.1109375 + dx, "PUIBack", 1.0)
+            _drawPauseButton(w * 0.5 + dx, "PUIRetry", 1.0)
+            _drawPauseButton(w * 0.5 + w * 0.1109375 + dx, "PUIResume", 0.95)
+            
+        if paused:
+            _renderPauseUIButtons(pauseP, 0.0)
+        else:
+            pauseUIDrawPLP = 0.35 / 3.0
+            if pauseP <= pauseUIDrawPLP:
+                puiBsP = pauseP / pauseUIDrawPLP
+                _renderPauseUIButtons(1.0 - puiBsP, - w / 5 * (puiBsP ** 2))
+            else:
+                root.run_js_code(f"dialog_canvas_ctx.clear();", add_code_array = True)
         
         if not paused and pauseP == 1.0 and pauseSt == pauseSt and not mixer.music.get_busy():
             mixer.music.unpause()
@@ -3134,13 +3203,24 @@ def chartPlayerRender(
         
         if tonextUI and time.time() - tonextUISt < 0.75:
             p = (time.time() - tonextUISt) / 0.75
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
-                wait_execute = True
-            )
+            if not paused:
+                root.create_rectangle(
+                    0, 0, w, h,
+                    fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
+                    wait_execute = True
+                )
+            else:
+                root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx;", add_code_array = True)
+                root.create_rectangle(
+                    0, 0, w, h,
+                    fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
+                    wait_execute = True
+                )
+                root.run_js_code("ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
         elif tonextUI:
             root.clear_canvas(wait_execute = True)
+            root.run_js_code(f"dialog_canvas_ctx.clear()", add_code_array = True)
+            root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", add_code_array = True)
             root.run_js_wait_code()
             Thread(target=nextUI, daemon=True).start()
             break
