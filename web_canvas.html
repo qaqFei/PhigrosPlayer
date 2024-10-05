@@ -10,13 +10,13 @@
                     0 0 0 1 0
                 " id="textureLineColorFilterColorMatrix"></feColorMatrix>
             </filter>
-          </svg>
-          <div class="mask"></div>
+        </svg>
+        <div class="mask"></div>
     </body>
 </html>
 
 <style type="text/css">
-    body{
+    body {
         overflow-x: hidden;
         overflow-y: hidden;
         padding: 0;
@@ -358,10 +358,18 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.rectEx = function (x, y, w, h, color) {
+    CanvasRenderingContext2D.prototype.fillRectEx = function (x, y, w, h, color) {
         ctx.save();
         ctx.fillStyle = color;
         ctx.fillRect(x, y, w, h);
+        ctx.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.strokeRectEx = function (x, y, w, h, color, width) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.strokeRect(x, y, w, h);
         ctx.restore();
     }
 

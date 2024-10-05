@@ -282,7 +282,8 @@ def Load_Resource():
         "PauseImg": Image.open("./Resources/Pause.png"),
         "PUIBack": Image.open("./Resources/PUIBack.png"),
         "PUIRetry": Image.open("./Resources/PUIRetry.png"),
-        "PUIResume": Image.open("./Resources/PUIResume.png")
+        "PUIResume": Image.open("./Resources/PUIResume.png"),
+        "edit": Image.open("./Resources/edit.png"),
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -327,6 +328,7 @@ def Load_Resource():
     root.reg_img(Resource["PUIBack"], "PUIBack")
     root.reg_img(Resource["PUIRetry"], "PUIRetry")
     root.reg_img(Resource["PUIResume"], "PUIResume")
+    root.reg_img(Resource["edit"], "edit")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -1605,9 +1607,11 @@ def settingRender():
     clickedBackButton = False
     settingPlayWidgetsDy = 0.0
     CalibrationClickSoundPlayed = False
+    editingUserData = False
     CalibrationClickEffects = []
     CalibrationClickEffectLines = []
     playSettingDx, accountAndCountSettingDx, otherSettingDx = 0.0, 0.0, 0.0
+    editUserNameRect, editIntroductionRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     ShowOpenSource, ShowOpenSourceSt = False, float("nan")
     CloseOpenSource, CloseOpenSourceSt = False, float("nan")
@@ -1659,12 +1663,13 @@ def settingRender():
         nonlocal nextUI, tonextUI, tonextUISt
         nonlocal ShowOpenSource, ShowOpenSourceSt
         nonlocal CloseOpenSource, CloseOpenSourceSt
+        nonlocal editingUserData
         
         # 游玩
         if Tool_Functions.InRect(x, y, (
             w * 346 / 1920, h * 35 / 1080,
             w * 458 / 1920, h * 97 / 1080
-        )) and inSettingUI:
+        )) and inSettingUI and not editingUserData:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY:
                 return
             
@@ -1675,7 +1680,7 @@ def settingRender():
         if Tool_Functions.InRect(x, y, (
             w * 540 / 1920, h * 35 / 1080,
             w * 723 / 1920, h * 97 / 1080
-        )) and inSettingUI:
+        )) and inSettingUI and not editingUserData:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT:
                 return
             
@@ -1686,7 +1691,7 @@ def settingRender():
         if Tool_Functions.InRect(x, y, (
             w * 807 / 1920, h * 35 / 1080,
             w * 915 / 1920, h * 97 / 1080
-        )) and inSettingUI:
+        )) and inSettingUI and not editingUserData:
             if settingState.aTo == Const.PHIGROS_SETTING_STATE.OTHER:
                 return
             
@@ -1701,6 +1706,29 @@ def settingRender():
             mixer_pos = mixer.music.get_pos()
             if mixer_pos != -1:
                 CalibrationClickEffectLines.append((time.time(), mixer_pos))
+        
+        # 账号与统计 - 编辑
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, (
+            w * 0.85625, h * (181 / 1080),
+            w * 0.921875, h * (220 / 1080)
+        )):
+            editingUserData = not editingUserData
+        
+        # 编辑用户名字
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editUserNameRect) and editingUserData:
+            newName = root.run_js_code(f"prompt('请输入新名字', {root.process_code_string_syntax_tocode(getUserData("userdata-userName"))});")
+            if newName is not None:
+                setUserData("userdata-userName", newName)
+                updateFontSizes()
+                saveUserData(userData)
+        
+        # 编辑用户介绍
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editIntroductionRect) and editingUserData:
+            newName = root.run_js_code(f"prompt('请输入新介绍 (输入\"\\\\n\"可换行)', {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction").replace("\n", "\\n"))});")
+            if newName is not None:
+                setUserData("userdata-selfIntroduction", newName.replace("\\n", "\n"))
+                updateFontSizes()
+                saveUserData(userData)
         
         # 音频问题疑难解答
         if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[0]) and inSettingUI:
@@ -1902,7 +1930,7 @@ def settingRender():
                             ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.35
                         )
                         root.run_js_code(
-                            f"ctx.rectEx(\
+                            f"ctx.fillRectEx(\
                                 {effect_random_point[0] - block_size / 2},\
                                 {effect_random_point[1] - block_size / 2},\
                                 {block_size}, {block_size},\
@@ -1936,6 +1964,8 @@ def settingRender():
         )
     
     def drawAccountAndCountSetting(dx: float, alpha: float):
+        nonlocal editUserNameRect, editIntroductionRect
+        
         if alpha == 0.0: return
         
         root.run_js_code(
@@ -1997,18 +2027,50 @@ def settingRender():
         )
         
         avatarSize = max(w * 0.096875, h * (120 / 1080))
+        avatarRect = (
+            w * 0.128125, h * (280 / 1080),
+            w * 0.225, h * (400 / 1080)
+        )
+        avatarWidth, avatarHeight = Tool_Functions.getSizeByRect(avatarRect)
         root.run_js_code(
             f"ctx.drawDiagonalRectangleClipImage(\
-                {w * 0.128125}, {h * (280 / 1080)},\
-                {w * 0.225}, {h * (400 / 1080)},\
+                {",".join(map(str, avatarRect))},\
                 {root.get_img_jsvarname("userAvatar")},\
-                {(w * 0.096875 - avatarSize) / 2},\
-                {(h * (120 / 1080) - avatarSize) / 2},\
+                {(avatarWidth - avatarSize) / 2},\
+                {(avatarHeight - avatarSize) / 2},\
                 {avatarSize}, {avatarSize},\
-                {Tool_Functions.getDPower(w * 0.096875, h * (120 / 1080), 75)}, 1.0\
+                {Tool_Functions.getDPower(avatarWidth, avatarHeight, 75)}, 1.0\
             );",
             add_code_array = True
         )
+        
+        if editingUserData:
+            editAvatarIconSize = (w + h) * 0.007
+            editAvatarRect = (
+                avatarRect[0] + avatarWidth * (105 / 185),
+                avatarRect[1],
+                avatarRect[2],
+                avatarRect[1] + avatarHeight * (1 / 3)
+            )
+            editAvatarRectSize = Tool_Functions.getSizeByRect(editAvatarRect)
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, editAvatarRect))},\
+                    {Tool_Functions.getDPower(*editAvatarRectSize, 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
+            
+            root.run_js_code(
+                f"ctx.drawImage(\
+                    {root.get_img_jsvarname("edit")},\
+                    {editAvatarRect[0] + editAvatarRectSize[0] / 2 - editAvatarIconSize / 2},\
+                    {editAvatarRect[1] + editAvatarRectSize[1] / 2 - editAvatarIconSize / 2},\
+                    {editAvatarIconSize}, {editAvatarIconSize}\
+                );",
+                add_code_array = True
+            )
         
         root.create_text(
             w * 0.234375, h * (340 / 1080),
@@ -2048,7 +2110,7 @@ def settingRender():
         selfIntroduction_fontSize = (w + h) / 135
         root.run_js_code(
             f"ctx.drawRectMultilineText(\
-                {w * 0.14375}, {h * (442 / 1080)},\
+                {w * 0.1484375}, {h * (447 / 1080)},\
                 {w * 0.4546875}, {h * (660 / 1080)},\
                 {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction"))},\
                 'rgb(255, 255, 255)', '{selfIntroduction_fontSize}px PhigrosFont',\
@@ -2072,7 +2134,7 @@ def settingRender():
         
         root.create_text(
             (editButtonRect[0] + editButtonRect[2]) / 2, (editButtonRect[1] + editButtonRect[3]) / 2,
-            "编辑",
+            "编辑" if not editingUserData else "完成",
             font = f"{(editButtonRect[3] - editButtonRect[1]) * 0.7}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
@@ -2086,7 +2148,7 @@ def settingRender():
             font = f"{(w + h) / 90}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
-            fillStyle = "rgb(255, 255, 255)",
+            fillStyle = f"rgba(255, 255, 255, {1.0 if not editingUserData else 0.75})",
             wait_execute = True
         )
         
@@ -2098,7 +2160,7 @@ def settingRender():
             f"ctx.drawDiagonalRectangleNoFix(\
                 {",".join(map(str, loginButtonRect))},\
                 {Tool_Functions.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
-                'rgb(255, 255, 255)'\
+                'rgba(255, 255, 255, {1.0 if not editingUserData else 0.75}),'\
             );",
             add_code_array = True
         )
@@ -2111,7 +2173,7 @@ def settingRender():
                 {((loginButtonRect[3] - loginButtonRect[1]) - TapTapIconHeight) / 2},\
                 {TapTapIconWidth}, {TapTapIconHeight},\
                 {Tool_Functions.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
-                1.0\
+                {1.0 if not editingUserData else 0.75}\
             );",
             add_code_array = True
         )
@@ -2202,6 +2264,30 @@ def settingRender():
         _drawChartDataItem(w * 0.621875, "Cleared")
         _drawChartDataItem(w * 0.71875, "Full Combo")
         _drawChartDataItem(w * 0.8140625, "Phi")
+        
+        if editingUserData:
+            def _strokeRect(rect):
+                root.run_js_code(
+                    f"ctx.strokeRectEx(\
+                        {rect[0]}, {rect[1]},\
+                        {rect[2] - rect[0]}, {rect[3] - rect[1]},\
+                        'rgb(255, 255, 255)', {(w + h) / 711.45141919810}\
+                    );",
+                    add_code_array = True
+                )
+                
+            editUserNameRect = (
+                w * 0.2328125, h * (303 / 1080),
+                w * 0.44375, h * (376 / 1080)
+            )
+            
+            editIntroductionRect = (
+                w * 0.14375, h * (440 / 1080),
+                w * 0.45625, h * (660 / 1080)
+            )
+            
+            _strokeRect(editUserNameRect)
+            _strokeRect(editIntroductionRect)
         
         root.run_js_code(
             f"ctx.restore();",
@@ -2550,6 +2636,8 @@ def settingRender():
             add_code_array = True
         )
         
+        BarAlpha = 1.0 if not editingUserData else 0.5
+        
         LabelWidth = settingState.getLabelWidth() * w
         LabelHeight = h * (113 / 1080)
         LabelDPower = Tool_Functions.getDPower(LabelWidth, LabelHeight, 75)
@@ -2562,26 +2650,26 @@ def settingRender():
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
                 {", ".join(map(str, LabelRect))},\
-                {LabelDPower}, 'rgba(255, 255, 255, 1.0)'\
+                {LabelDPower}, '{"rgb(255, 255, 255)" if not editingUserData else "rgb(192, 192, 192)"}'\
             );",
             add_code_array = True
         )
         
-        PlayTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.PLAY)
-        AccountAndCountTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
-        OtherTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.OTHER)
+        PlayTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.PLAY) + (BarAlpha, )
+        AccountAndCountTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT) + (BarAlpha, )
+        OtherTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.OTHER) + (BarAlpha, )
         PlayTextFontScale = settingState.getTextScale(Const.PHIGROS_SETTING_STATE.PLAY)
         AccountAndCountTextFontScale = settingState.getTextScale(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
         OtherTextFontScale = settingState.getTextScale(Const.PHIGROS_SETTING_STATE.OTHER)
         settingTextY = h * 0.025 + BarHeight / 2
-        
+                
         root.create_text(
             w * 0.209375, settingTextY,
             "游玩",
             font = f"{(w + h) / 100 * PlayTextFontScale}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
-            fillStyle = f"rgb{PlayTextColor}",
+            fillStyle = f"rgba{PlayTextColor}",
             wait_execute = True
         )
         
@@ -2591,7 +2679,7 @@ def settingRender():
             font = f"{(w + h) / 100 * AccountAndCountTextFontScale}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
-            fillStyle = f"rgb{AccountAndCountTextColor}",
+            fillStyle = f"rgba{AccountAndCountTextColor}",
             wait_execute = True
         )
         
@@ -2601,7 +2689,7 @@ def settingRender():
             font = f"{(w + h) / 100 * OtherTextFontScale}px PhigrosFont",
             textAlign = "center",
             textBaseline = "middle",
-            fillStyle = f"rgb{OtherTextColor}",
+            fillStyle = f"rgba{OtherTextColor}",
             wait_execute = True
         )
         
@@ -3254,7 +3342,7 @@ def updateFontSizes():
     global userName_FontSize
     
     userName_Width1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(getUserData("userdata-userName"))}).width;") / 50
-    userName_FontSize = w * 0.209375 / userName_Width1px
+    userName_FontSize = w * 0.209375 / (userName_Width1px if userName_Width1px != 0.0 else 1.0)
     if userName_FontSize > w * 0.0234375:
         userName_FontSize = w * 0.0234375
 
