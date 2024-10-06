@@ -247,14 +247,6 @@ def TextureLine_CanRender(
         (tl <= sr <= tr and tt <= sb <= tb)
     )
     
-def judgeLine_can_render(
-    judgeLine_DrawPos: typing.Tuple[
-        typing.Tuple[float, float],
-        typing.Tuple[float, float]
-    ], w: int, h: int
-) -> bool:
-    return any(batch_is_intersect([[[judgeLine_DrawPos[0],judgeLine_DrawPos[1]],[judgeLine_DrawPos[2],judgeLine_DrawPos[3]]]],[[(0,0),(w,0)],[(0,0),(0,h)],[(w,0),(w,h)],[(0,h),(w,h)]]))
-
 @numba.jit
 def point_in_screen(point:typing.Tuple[float,float], w: int, h: int) -> bool:
     return 0 < point[0] < w and 0 < point[1] < h

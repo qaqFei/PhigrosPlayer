@@ -1,4 +1,4 @@
-from os import mkdir, chdir, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
+from os import mkdir, chdir, listdir, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
 from os.path import exists, isfile, abspath, dirname
 from sys import argv
 from ctypes import windll
@@ -132,17 +132,25 @@ with open(ChartFp, "r", encoding="utf-8") as f:
     )
 del f
 
+def putColor(color: tuple|str, im: Image.Image):
+    return Image.merge("RGBA", (
+        *Image.new("RGB", im.size, color).split(),
+        im.split()[-1]
+    ))
+    
 def Load_Resource():
     global ClickEffect_Size, Note_width
     global note_max_width, note_max_height
     global note_max_width_half, note_max_height_half
     global note_max_size_half
-    global IconSize
+    global IconSize, ClickEffectFrameCount
     
     print("Loading Resource...")
     Note_width = w * 0.1234375 / 2
     ClickEffect_Size = Note_width * 1.375
     IconSize = (w / 2 + h) / 100
+    ClickEffectFrameCount = len(listdir("./Resources/Note_Click_Effect/Frames"))
+    ClickEffectImages = [Image.open(f"./Resources/Note_Click_Effect/Frames/{i + 1}.png") for i in range(ClickEffectFrameCount)]
     Resource = {
         "Notes": {
             "Tap": Image.open("./Resources/Notes/Tap.png"),
@@ -157,13 +165,10 @@ def Load_Resource():
             "Hold_End_dub": Image.open("./Resources/Notes/Hold_End_dub.png"),
             "Hold_Body": Image.open("./Resources/Notes/Hold_Body.png"),
             "Hold_Body_dub": Image.open("./Resources/Notes/Hold_Body_dub.png"),
-            "Tap_Bad": Image.open("./Resources/Notes/Tap_Bad.png")
+            "Tap_Bad": None
         },
-        "Note_Click_Effect": {
-            "Perfect":[
-                Image.open(f"./Resources/Note_Click_Effect/Perfect/{i + 1}.png")
-                for i in range(30)
-            ]
+        "Note_Click_Effect":{
+            "Perfect": list(map(lambda im: putColor((204, 196, 138), im), ClickEffectImages)),
         },
         "Note_Click_Audio": {
             "Tap": open("./Resources/Note_Click_Audio/Tap.wav", "rb").read(),
@@ -182,6 +187,8 @@ def Load_Resource():
             "Delete": Image.open("./Resources/Edit_Delete.png")
         }
     }
+    Resource["Notes"]["Tap_Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
+    Const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     
     for k,v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
         if v.width > Note_width:
@@ -273,7 +280,6 @@ def renderChartView(nt: float): # sec
         lineColor = (254, 255, 16, lineAlpha)
         lineWebColor = f"rgba{lineColor}"
         if lineColor[-1] > 0.0:
-            Tool_Functions.judgeLine_can_render(lineDrawPos, w / 2, h / 2)
             webcv.create_line(
                 *lineDrawPos,
                 lineWidth = JUDGELINE_WIDTH,
@@ -468,7 +474,7 @@ def renderChartView(nt: float): # sec
             )
             beforedeg += 90
         webcv.create_image(
-            f"{imn}_{int(p * (30 - 1)) + 1}",
+            f"{imn}_{int(p * (ClickEffectFrameCount - 1)) + 1}",
             x - ClickEffect_Size / 2,
             y - ClickEffect_Size / 2,
             ClickEffect_Size, ClickEffect_Size,

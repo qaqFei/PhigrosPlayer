@@ -194,7 +194,17 @@ def putColor(color: tuple|str, im: Image.Image):
         *Image.new("RGB", im.size, color).split(),
         im.split()[-1]
     ))
-    
+
+def initUserAvatar():
+    udAvatar = getUserData("userdata-userAvatar")
+    if udAvatar not in assetConfig["avatars"]:
+        setUserData("userdata-userAvatar", userData_default["userdata-userAvatar"])
+        if udAvatar not in assetConfig["avatars"]:
+            udAvatar = assetConfig["avatars"][0]
+        saveUserData()
+        print("User avatar not found, reset to default.")
+    root.run_js_code(f"{root.get_img_jsvarname("userAvatar")} = {root.get_img_jsvarname(f"avatar_{assetConfig["avatars"].index(getUserData("userdata-userAvatar"))}")};")
+
 def Load_Resource():
     global note_max_width, note_max_height
     global note_max_width_half, note_max_height_half
@@ -366,7 +376,9 @@ def Load_Resource():
         root.reg_img(im, f"chapter_{chapter.chapterId}_raw")
         root.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
     
-    root.reg_img(Image.open(f"./PhigrosAssets/{getUserData("userdata-userAvatar")}"), "userAvatar")
+    for index, avatar in enumerate(assetConfig["avatars"]):
+        root.reg_img(Image.open(f"./PhigrosAssets/{avatar}"), f"avatar_{index}")
+    
     root.reg_img(Image.open(f"./PhigrosAssets/{getUserData("userdata-userBackground")}"), "userBackground")
     
     with open("./Resources/font.ttf", "rb") as f:
@@ -380,8 +392,8 @@ def Load_Resource():
     while not root.run_js_code("font_loaded;"):
         time.sleep(0.1)
     
+    initUserAvatar()
     root._regims.clear()
-    
     root.run_js_code(f"createChapterBlackGrd({h * (140 / 1080)}, {h * (1.0 - 140 / 1080)});")
     
     note_max_width = max(
@@ -1609,9 +1621,11 @@ def settingRender():
     CalibrationClickEffectLines = []
     playSettingDx, accountAndCountSettingDx, otherSettingDx = 0.0, 0.0, 0.0
     editUserNameRect, editIntroductionRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
+    editAvatarRect = (0.0, 0.0, 0.0, 0.0)
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     ShowOpenSource, ShowOpenSourceSt = False, float("nan")
     CloseOpenSource, CloseOpenSourceSt = False, float("nan")
+    showAvatars, showAvatarsSt = False, float("nan")
     settingUIOpenSourceLicenseSlideControler.maxValueY = root.run_js_code(
         f"ctx.drawRectMultilineText(\
             -{w}, -{h}, 0, 0,\
@@ -1661,6 +1675,7 @@ def settingRender():
         nonlocal ShowOpenSource, ShowOpenSourceSt
         nonlocal CloseOpenSource, CloseOpenSourceSt
         nonlocal editingUserData
+        nonlocal showAvatars, showAvatarsSt
         
         # 游玩
         if Tool_Functions.InRect(x, y, (
@@ -1708,11 +1723,11 @@ def settingRender():
         if Tool_Functions.InRect(x + accountAndCountSettingDx, y, (
             w * 0.85625, h * (181 / 1080),
             w * 0.921875, h * (220 / 1080)
-        )):
+        )) and not showAvatars:
             editingUserData = not editingUserData
         
         # 编辑用户名字
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editUserNameRect) and editingUserData:
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editUserNameRect) and editingUserData and not showAvatars:
             newName = root.run_js_code(f"prompt('请输入新名字', {root.process_code_string_syntax_tocode(getUserData("userdata-userName"))});")
             if newName is not None:
                 setUserData("userdata-userName", newName)
@@ -1720,12 +1735,16 @@ def settingRender():
                 saveUserData(userData)
         
         # 编辑用户介绍
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editIntroductionRect) and editingUserData:
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editIntroductionRect) and editingUserData and not showAvatars:
             newName = root.run_js_code(f"prompt('请输入新介绍 (输入\"\\\\n\"可换行)', {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction").replace("\n", "\\n"))});")
             if newName is not None:
                 setUserData("userdata-selfIntroduction", newName.replace("\\n", "\n"))
                 updateFontSizes()
                 saveUserData(userData)
+        
+        # 编辑用户头像
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editAvatarRect) and editingUserData and not showAvatars:
+            showAvatars, showAvatarsSt = True, time.time()
         
         # 音频问题疑难解答
         if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[0]) and inSettingUI:
@@ -1962,6 +1981,7 @@ def settingRender():
     
     def drawAccountAndCountSetting(dx: float, alpha: float):
         nonlocal editUserNameRect, editIntroductionRect
+        nonlocal editAvatarRect
         
         if alpha == 0.0: return
         
@@ -2001,6 +2021,32 @@ def settingRender():
             );",
             add_code_array = True
         )
+        
+        if editingUserData:
+            editBackgroundIconSize = (w + h) * 0.007
+            editBackgroundRect = (
+                w * 0.8796875, h * (257 / 1080),
+                w * 0.93125, h * (301 / 1080)
+            )
+            editBackgroundRectSize = Tool_Functions.getSizeByRect(editBackgroundRect)
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, editBackgroundRect))},\
+                    {Tool_Functions.getDPower(*editBackgroundRectSize, 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
+            
+            root.run_js_code(
+                f"ctx.drawImage(\
+                    {root.get_img_jsvarname("edit")},\
+                    {editBackgroundRect[0] + editBackgroundRectSize[0] / 2 - editBackgroundIconSize / 2},\
+                    {editBackgroundRect[1] + editBackgroundRectSize[1] / 2 - editBackgroundIconSize / 2},\
+                    {editBackgroundIconSize}, {editBackgroundIconSize}\
+                );",
+                add_code_array = True
+            )
         
         leftBlackDiagonalX = 0.538
         root.run_js_code(
@@ -2285,6 +2331,14 @@ def settingRender():
             
             _strokeRect(editUserNameRect)
             _strokeRect(editIntroductionRect)
+        
+        def _drawChooseDialog(p: float, text: str):
+            p = 1.0 - (1.0 - p) ** 20
+            top = h - (905 / 1080) * h * p
+        
+        if showAvatars:
+            p = Tool_Functions.fixOutofRangeP((time.time() - showAvatarsSt) / 1.25)
+            _drawChooseDialog(p, "选择头像")
         
         root.run_js_code(
             f"ctx.restore();",
