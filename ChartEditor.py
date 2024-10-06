@@ -13,8 +13,8 @@ import math
 
 from PIL import Image
 from pygame import mixer
-import webcvapis
 
+import webcv
 import Chart_Objects_Ppre
 import Tool_Functions
 import Const
@@ -1447,7 +1447,7 @@ def MorebetsChecker():
         updateMorebets()
         sleep(0.5)
 
-webcv = webcvapis.WebCanvas(
+webcv = webcv.WebCanvas(
     width = 0, height = 0,
     x = 0, y = 0,
     debug = "--debug" in argv,

@@ -275,7 +275,7 @@ def NoJoinThreadFunc(f):
 def conrpepos(x: float, y: float):
     return (x + 675) / 1350, 1.0 - (y + 450) / 900
 
-def Format_Time(t:typing.Union[int,float]) -> str:
+def Format_Time(t:int|float) -> str:
     if t < 0.0: t = 0.0
     m,s = t // 60,t % 60
     m,s = int(m), int(s)

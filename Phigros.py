@@ -18,8 +18,8 @@ import math
 from PIL import Image, ImageFilter, ImageEnhance
 from pygame import mixer
 from pydub import AudioSegment
-import webcvapis
 
+import webcv
 import Const
 import Tool_Functions
 import PhigrosGameObject
@@ -380,10 +380,7 @@ def Load_Resource():
     while not root.run_js_code("font_loaded;"):
         time.sleep(0.1)
     
-    # i donot want to update webcvapis module ...
     root._regims.clear()
-    root.shutdown_fileserver()
-    Thread(target=root._file_server.serve_forever, args=(0.1, ), daemon=True).start()
     
     root.run_js_code(f"createChapterBlackGrd({h * (140 / 1080)}, {h * (1.0 - 140 / 1080)});")
     
@@ -787,7 +784,7 @@ def drawDialog(
 ):
             
     root.run_js_code(
-        f"dialog_canvas_ctx.clear();",
+        "dialog_canvas_ctx.clear();",
         add_code_array = True
     )
             
@@ -2160,7 +2157,7 @@ def settingRender():
             f"ctx.drawDiagonalRectangleNoFix(\
                 {",".join(map(str, loginButtonRect))},\
                 {Tool_Functions.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
-                'rgba(255, 255, 255, {1.0 if not editingUserData else 0.75}),'\
+                'rgba(255, 255, 255, {1.0 if not editingUserData else 0.75})'\
             );",
             add_code_array = True
         )
@@ -3405,7 +3402,7 @@ def applyConfig():
         root.run_js_code(f"ctx.imageSmoothingEnabled = true;")
     root.run_js_code("resizeCanvas();") # update canvas
 
-root = webcvapis.WebCanvas(
+root = webcv.WebCanvas(
     width = 1, height = 1,
     x = 0, y = 0,
     title = "Phigros",

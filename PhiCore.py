@@ -4,10 +4,10 @@ import math
 from dataclasses import dataclass
 from threading import Thread
 
-import webcvapis
 from pygame import mixer
 from PIL import Image
 
+import webcv
 import Const
 import PlaySound
 import Tool_Functions
@@ -21,7 +21,7 @@ import Phigros_Tips
 class PhiCoreConfigure:
     SETTER: typing.Callable[[str, typing.Any], typing.Any]
     
-    root: webcvapis.WebCanvas
+    root: webcv.WebCanvas
     w: int
     h: int
     chart_information: dict

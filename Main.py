@@ -15,8 +15,8 @@ from PIL import Image, ImageFilter, ImageEnhance
 from pygame import mixer
 from pydub import AudioSegment
 import cv2
-import webcvapis
 
+import webcv
 import PlaySound
 import Chart_Objects_Phi
 import Chart_Functions_Phi
@@ -1046,7 +1046,7 @@ def updateCoreConfigure():
 
 if __name__ == "__main__":
     print("Loading Window...")
-    root = webcvapis.WebCanvas(
+    root = webcv.WebCanvas(
         width = 1, height = 1,
         x = 0, y = 0,
         title = "Phigros Chart Player",
