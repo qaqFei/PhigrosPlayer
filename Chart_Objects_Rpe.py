@@ -13,27 +13,23 @@ def _init_events(es: list[LineEvent]):
         if i != len(es) - 1:
             ne = es[i + 1]
             if e.endTime.value < ne.startTime.value:
-                aes.append(LineEvent(
-                    e.endTime, ne.startTime, e.end, e.end, 1
-                ))
+                aes.append(LineEvent(e.endTime, ne.startTime, e.end, e.end, 1))
     es.extend(aes)
     es.sort(key = lambda x: x.startTime.value)
-    if es: es.append(LineEvent(
-        es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, 1
-    ))
+    if es: es.append(LineEvent(es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, 1))
         
 @dataclass
 class Beat:
-    var1:int
-    var2:int
-    var3:int
+    var1: int
+    var2: int
+    var3: int
     
-    @property
-    def value(self) -> float:
-        return self.var1 + (self.var2 / self.var3)
+    def __post_init__(self):
+        self.value = self.var1 + (self.var2 / self.var3)
+        self._hash = hash(self.value)
     
     def __hash__(self) -> int:
-        return hash((self.var1, self.var2, self.var3))
+        return self._hash
     
 @dataclass
 class Note:
@@ -105,9 +101,7 @@ class Note:
     def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> tuple[float, float]:
         linePos = line.GetPos(time, master)
         lineRotate = sum([line.GetEventValue(time, layer.rotateEvents, 0.0) for layer in line.eventLayers])
-        return Tool_Functions.rotate_point(
-            *linePos, lineRotate, self.positionX2
-        )
+        return Tool_Functions.rotate_point(*linePos, lineRotate, self.positionX2)
 
 @dataclass
 class LineEvent:
@@ -352,4 +346,4 @@ class Rpe_Chart:
             return self is oth
         return False
     
-del typing,dataclass
+del typing, dataclass

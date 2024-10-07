@@ -35,6 +35,20 @@ for x in range(w):
     for y in range(h):
         rpeChart["judgeLineList"].append(getLine(*tpos(x / w, y / h), getindex(x, y)))
 
+def appendColor(line, color, st, et):
+    line["extended"]["colorEvents"].append({
+        "bezier": 0,
+        "bezierPoints": [0.0, 0.0, 0.0, 0.0],
+        "easingLeft": 0.0,
+        "easingRight": 1.0,
+        "easingType": 1,
+        "end": [*color],
+        "endTime": [et, 0, 1],
+        "linkgroup": 0,
+        "start": [*color],
+        "startTime": [st, 0, 1]
+    })
+
 fcut = 0
 while True:
     ret, frame = video.read()
@@ -47,21 +61,17 @@ while True:
             r, g, b, a = newPilFrame.getpixel((x, y))
             if a != 0:
                 line = rpeChart["judgeLineList"][getindex(x, y)]
-                line["extended"]["colorEvents"].append({
-                    "bezier": 0,
-                    "bezierPoints": [0.0, 0.0, 0.0, 0.0],
-                    "easingLeft": 0.0,
-                    "easingRight": 1.0,
-                    "easingType": 1,
-                    "end": [r, g, b],
-                    "endTime": [fcut + 1, 0, 1],
-                    "linkgroup": 0,
-                    "start": [r, g, b],
-                    "startTime": [fcut, 0, 1]
-                })
+                if not line["extended"]["colorEvents"]:
+                    appendColor(line, (r, g, b), fcut, fcut + 1)
+                else:
+                    laste = line["extended"]["colorEvents"][-1]
+                    if laste["end"] == [r, g, b]:
+                        laste["endTime"][0] = fcut + 1
+                    else:
+                        appendColor(line, (r, g, b), fcut, fcut + 1)
     fcut += 1
     print(fcut)
 
 video.release()
 with open(argv[2], "w", encoding="utf-8") as f:
-    json.dump(rpeChart, f)
+    json.dump(rpeChart, f, ensure_ascii=False)

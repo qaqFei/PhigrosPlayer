@@ -253,14 +253,14 @@ def point_in_screen(point:typing.Tuple[float,float], w: int, h: int) -> bool:
 
 def ThreadFunc(f):
     def wrapper(*args, **kwargs):
-        t = Thread(target=f, args=args, kwargs=kwargs)
+        t = Thread(target=f, args=args, kwargs=kwargs, daemon=True)
         t.start()
         t.join()
     return wrapper
 
 def NoJoinThreadFunc(f):
     def wrapper(*args, **kwargs):
-        t = Thread(target=f, args=args, kwargs=kwargs)
+        t = Thread(target=f, args=args, kwargs=kwargs, daemon=True)
         t.start()
     return wrapper
 
