@@ -1,0 +1,189 @@
+<html>
+    <body>
+        <label class="nocanvas" for="chartInput">请选择谱面文件: </label><input class="chartInput nocanvas" type="file"><br>
+        <label class="nocanvas" for="audioInput">请选择音频文件: </label><input class="audioInput nocanvas" type="file"><br>
+        <label class="nocanvas" for="imageInput">请选择背景图片: </label><input class="imageInput nocanvas" type="file"><br>
+        <button class="startButton nocanvas">开始</button>
+        <audio class="mainAudio"></audio>
+    </body>
+</html>
+
+<style>
+    body {
+        overflow-x: hidden;
+        overflow-y: hidden;
+        padding: 0;
+        border: 0;
+        margin: 0;
+    }
+
+    .mainCanvas {
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+    }
+
+    .mainAudio {
+        display: none;
+    }
+</style>
+
+<script>
+    const chartAudio = document.querySelector(".mainAudio");
+    var loaded_chart = false;
+    var loaded_image = false;
+
+    function initCanvas() {
+        cv = document.createElement("canvas");
+        cv.className = "mainCanvas";
+        document.body.appendChild(cv);
+        ctx = cv.getContext("2d", {alpha: false});
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+    }
+    
+    function resizeCanvas() {
+        cv.width = window.innerWidth * window.devicePixelRatio;
+        cv.height = window.innerHeight * window.devicePixelRatio;
+        ctx.reset();
+        ctx.scale(1 / window.devicePixelRatio, 1 / window.devicePixelRatio);
+        w = window.innerWidth;
+        h = window.innerHeight;
+    }
+
+    function linearInterpolation(sv, ev, st, et, t) {
+        return (t - st) / (et - st) * (ev - sv) + sv;
+    }
+
+    function rotatePoint(x, y, deg, r) {
+        return [
+            x + r * Math.cos(deg / 180 * Math.PI),
+            y + r * Math.sin(deg / 180 * Math.PI)
+        ];
+    }
+
+    function start() {
+        chartAudio.play();
+        initCanvas();
+        if (chartData.formatVersion) phiRender();
+        else rpeRender();
+    }
+
+    function phiRender() {
+        curTime = chartAudio.currentTime;
+        lineRotate = 0.0; lineAlpha = 0.0; lineX = 0.0; lineY = 0.0;
+
+        ctx.clear();
+        ctx.drawImage(chartImage, 0, 0, w, h);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
+        
+        for (line of chartData.judgeLineList) {
+            lineRotate = 0.0; lineAlpha = 0.0; lineX = 0.0; lineY = 0.0;
+            curBTime = curTime / (1.875 / line.bpm);
+
+            for (e of line.judgeLineRotateEvents) {
+                if (e.startTime <= curBTime && curBTime <= e.endTime) {
+                    lineRotate = - linearInterpolation(e.start, e.end, e.startTime, e.endTime, curBTime);
+                    break;
+                }
+            }
+
+            for (e of line.judgeLineDisappearEvents) {
+                if (e.startTime <= curBTime && curBTime <= e.endTime) {
+                    lineAlpha = linearInterpolation(e.start, e.end, e.startTime, e.endTime, curBTime);
+                    break;
+                }
+            }
+
+            for (e of line.judgeLineMoveEvents) {
+                if (e.startTime <= curBTime && curBTime <= e.endTime) {
+                    lineX = linearInterpolation(e.start, e.end, e.startTime, e.endTime, curBTime) * w;
+                    lineY = (1.0 - linearInterpolation(e.start2, e.end2, e.startTime, e.endTime, curBTime)) * h;
+                    break;
+                }
+            }
+
+            [lineX1, lineY1] = rotatePoint(lineX, lineY, lineRotate, h * 5.76 / 2);
+            [lineX2, lineY2] = rotatePoint(lineX, lineY, lineRotate + 180, h * 5.76 / 2);
+            ctx.drawLineEx(lineX1, lineY1, lineX2, lineY2, h * 0.0075, `rgba(254, 255, 169, ${lineAlpha})`);
+
+            lineFPosition = 0.0;
+            for (e of line.speedEvents) {
+                if (e.startTime <= curBTime && curBTime <= e.endTime) {
+                    lineFPosition += (curBTime - e.startTime) * e.value;
+                }
+            }
+            lineFPosition *= h * 0.6;
+            lineFPosition *= 1.875 / line.bpm;
+
+            _rnotes = (notes, above) => {
+                return;
+                for (note of notes) {
+                    noteFloorPosition = note.floorPosition - lineFPosition;
+                    if (noteFloorPosition < 0.0 && note.type != 3) continue;
+                    [noteAtLineX, noteAtLineY] = rotatePoint(lineX, lineY, lineRotate, note.positionX * w * 0.05625);
+                }
+            };
+
+            _rnotes(line.notesAbove, true);
+            _rnotes(line.notesBelow, false);
+        }
+
+        requestAnimationFrame(phiRender);
+    }
+
+    function rpeRender() {
+
+    }
+
+    CanvasRenderingContext2D.prototype.drawLineEx = function (x1, y1, x2, y2, width, color) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.clear = function() {
+        this.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    document.querySelector(".startButton").addEventListener("click", () => {
+        let chartFile = document.querySelector(".chartInput").files[0];
+        let audioFile = document.querySelector(".audioInput").files[0];
+        let imageFile = document.querySelector(".imageInput").files[0];
+
+        let chartReader = new FileReader();
+        chartReader.onload = (e) => {chartData = JSON.parse(chartReader.result); loaded_chart = true};
+        chartReader.readAsText(chartFile);
+
+        chartAudio.src = URL.createObjectURL(audioFile);
+
+        chartImage = new Image();
+        chartImage.onload = () => {loaded_image = true};
+        chartImage.src = URL.createObjectURL(imageFile);
+
+        let checker = () => {
+            if (loaded_chart && loaded_image) {
+                start();
+            }
+            else {
+                setTimeout(checker, 1000 / 60);
+            }
+        }
+
+        document.querySelectorAll(".nocanvas").forEach((e) => e.remove());
+        checker();
+    });
+</script>
