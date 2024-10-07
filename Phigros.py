@@ -1577,7 +1577,7 @@ def renderPhigrosWidgets(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, buttonRect))},\
                     {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(buttonRect), 75)},\
-                    'rga(255, 255, 255)'\
+                    'rgb(255, 255, 255)'\
                 );",
                 add_code_array = True
             )
