@@ -166,15 +166,12 @@ def is_intersect(
         typing.Tuple[float, float]
     ]
 ) -> bool:
-    if (
+    return not (
         max(line_1[0][0], line_1[1][0]) < min(line_2[0][0], line_2[1][0]) or
         max(line_2[0][0], line_2[1][0]) < min(line_1[0][0], line_1[1][0]) or
         max(line_1[0][1], line_1[1][1]) < min(line_2[0][1], line_2[1][1]) or
         max(line_2[0][1], line_2[1][1]) < min(line_1[0][1], line_1[1][1])
-    ):
-        return False
-    else:
-        return True
+    )
 
 def batch_is_intersect(
     lines_group_1: typing.List[typing.Tuple[
