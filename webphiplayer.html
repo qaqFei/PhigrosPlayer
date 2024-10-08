@@ -4,19 +4,19 @@
         <label class="nocanvas" for="audioInput">请选择音频文件: </label><input class="audioInput nocanvas" type="file"><br>
         <label class="nocanvas" for="imageInput">请选择背景图片: </label><input class="imageInput nocanvas" type="file"><br>
         <button class="startButton nocanvas">开始</button>
-        <audio class="mainAudio"></audio>
-        <img class="resImg tap" src="./Resources/Notes/Tap.png">
-        <img class="resImg tapDub" src="./Resources/Notes/Tap_dub.png">
-        <img class="resImg drag" src="./Resources/Notes/Drag.png">
-        <img class="resImg dragDub" src="./Resources/Notes/Drag_dub.png">
-        <img class="resImg flick" src="./Resources/Notes/Flick.png">
-        <img class="resImg flickDub" src="./Resources/Notes/Flick_dub.png">
-        <img class="resImg holdHead" src="./Resources/Notes/Hold_Head.png">
-        <img class="resImg holdHeadDub" src="./Resources/Notes/Hold_Body_dub.png">
-        <img class="resImg holdBody" src="./Resources/Notes/Hold_Body.png">
-        <img class="resImg holdBodyDub" src="./Resources/Notes/Hold_Body_dub.png">
-        <img class="resImg holdEnd" src="./Resources/Notes/Hold_End.png">
-        <img class="resImg holdEndDub" src="./Resources/Notes/Hold_End_dub.png">
+        <audio class="res mainAudio"></audio>
+        <img class="res tap" src="./Resources/Notes/Tap.png">
+        <img class="res tapDub" src="./Resources/Notes/Tap_dub.png">
+        <img class="res drag" src="./Resources/Notes/Drag.png">
+        <img class="res dragDub" src="./Resources/Notes/Drag_dub.png">
+        <img class="res flick" src="./Resources/Notes/Flick.png">
+        <img class="res flickDub" src="./Resources/Notes/Flick_dub.png">
+        <img class="res holdHead" src="./Resources/Notes/Hold_Head.png">
+        <img class="res holdHeadDub" src="./Resources/Notes/Hold_Body_dub.png">
+        <img class="res holdBody" src="./Resources/Notes/Hold_Body.png">
+        <img class="res holdBodyDub" src="./Resources/Notes/Hold_Body_dub.png">
+        <img class="res holdEnd" src="./Resources/Notes/Hold_End.png">
+        <img class="res holdEndDub" src="./Resources/Notes/Hold_End_dub.png">
     </body>
 </html>
 
@@ -38,29 +38,25 @@
         position: absolute;
     }
 
-    .mainAudio {
-        display: none;
-    }
-
-    .resImg {
+    .res {
         display: none;
     }
 </style>
 
 <script>
     const chartAudio = document.querySelector(".mainAudio");
-    const Res_Tap = document.querySelector(".resImg.tap");
-    const Res_TapDub = document.querySelector(".resImg.tapDub");
-    const Res_Drag = document.querySelector(".resImg.drag");
-    const Res_DragDub = document.querySelector(".resImg.dragDub");
-    const Res_Flick = document.querySelector(".resImg.flick");
-    const Res_FlickDub = document.querySelector(".resImg.flickDub");
-    const Res_HoldHead = document.querySelector(".resImg.holdHead");
-    const Res_HoldHeadDub = document.querySelector(".resImg.holdHeadDub");
-    const Res_HoldBody = document.querySelector(".resImg.holdBody");
-    const Res_HoldBodyDub = document.querySelector(".resImg.holdBodyDub");
-    const Res_HoldEnd = document.querySelector(".resImg.holdEnd");
-    const Res_HoldEndDub = document.querySelector(".resImg.holdEndDub");
+    const Res_Tap = document.querySelector(".res.tap");
+    const Res_TapDub = document.querySelector(".res.tapDub");
+    const Res_Drag = document.querySelector(".res.drag");
+    const Res_DragDub = document.querySelector(".res.dragDub");
+    const Res_Flick = document.querySelector(".res.flick");
+    const Res_FlickDub = document.querySelector(".res.flickDub");
+    const Res_HoldHead = document.querySelector(".res.holdHead");
+    const Res_HoldHeadDub = document.querySelector(".res.holdHeadDub");
+    const Res_HoldBody = document.querySelector(".res.holdBody");
+    const Res_HoldBodyDub = document.querySelector(".res.holdBodyDub");
+    const Res_HoldEnd = document.querySelector(".res.holdEnd");
+    const Res_HoldEndDub = document.querySelector(".res.holdEndDub");
 
     var loaded_chart = false;
     var loaded_image = false;
@@ -79,7 +75,7 @@
         cv.height = window.innerHeight * window.devicePixelRatio;
         w = cv.width;
         h = cv.height;
-        Note_width = (0.125 * w + 0.2 * h) / 2;
+        Note_width = w * 0.1234375;
         Note_MaxSize = Math.sqrt(Note_width ** 2 * 2);
     }
 
@@ -97,9 +93,16 @@
     function start() {
         chartAudio.play();
         initCanvas();
+        NOTE_DUB_FIXSCALE = Res_HoldBodyDub.width / Res_HoldBody.width;
 
-        if (chartData.formatVersion) phiRender();
-        else rpeRender();
+        if (chartData.formatVersion) {
+            phiInit();
+            phiRender();
+        }
+        else {
+            rpeInit();
+            rpeRender();
+        }
     }
 
     function getPhiFP(line, t) {
@@ -112,7 +115,7 @@
                 result += (t - e.startTime) * e.value;
             }
         }
-        return result * h * 0.6 * (1.875 / line.bpm);
+        return result * h * 0.6 * line.T;
     }
 
     function is_intersect(line_1, line_2) {
@@ -162,6 +165,27 @@
         );
     }
 
+    function phiInit() {
+        let noteTimes = {};
+        let notes = [];
+
+        _countNote = (n) => {
+            if (n.time in noteTimes) noteTimes[n.time]++;
+            else noteTimes[n.time] = 1;
+        };
+
+        for (line of chartData.judgeLineList) {
+            line.T = 1.875 / line.bpm;
+            notes = notes.concat(line.notesAbove);
+            notes = notes.concat(line.notesBelow);
+        }
+        
+        notes.forEach(_countNote);
+        for (n of notes) {
+            n.morebets = noteTimes[n.time] >= 2;
+        }
+    }
+
     function phiRender() {
         curTime = chartAudio.currentTime;
         lineRotate = 0.0; lineAlpha = 0.0; lineX = 0.0; lineY = 0.0;
@@ -176,9 +200,8 @@
         ctx.restore();
         
         for (line of chartData.judgeLineList) {
-            lineT = 1.875 / line.bpm;
             lineRotate = 0.0; lineAlpha = 0.0; lineX = 0.0; lineY = 0.0;
-            curBTime = curTime / (lineT);
+            curBTime = curTime / line.T;
 
             for (e of line.judgeLineRotateEvents) {
                 if (e.startTime <= curBTime && curBTime <= e.endTime) {
@@ -214,7 +237,7 @@
                     noteFloorPosition = note.floorPosition * h * 0.6 - (
                         (!(note.type == 3 && note.time < curBTime)) ? lineFPosition : (
                             getPhiFP(line, note.time) * h * 0.6 + linearInterpolation(
-                                note.speed * (note.holdTime * lineT) * h * 0.6, 0.0,
+                                note.speed * (note.holdTime * line.T) * h * 0.6, 0.0,
                                 0.0, note.holdTime,
                                 note.time + note.holdTime - curBTime,
                             )
@@ -228,7 +251,7 @@
                     [x, y] = rotatePoint(noteAtLineX, noteAtLineY, lineToNoteRotateDeg, noteFloorPosition);
 
                     if (note.type == 3) {
-                        holdDrawLength = noteFloorPosition + note.speed * (note.holdTime * lineT) * h * 0.6;
+                        holdDrawLength = noteFloorPosition + note.speed * (note.holdTime * line.T) * h * 0.6;
                         [holdEndX, holdEndY] = rotatePoint(noteAtLineX, noteAtLineY, lineToNoteRotateDeg, holdDrawLength);
                         if (note.time < curBTime) [holdHeadX, holdHeadY] = [noteAtLineX, noteAtLineY];
                         else [holdHeadX, holdHeadY] = [x, y];
@@ -243,17 +266,51 @@
                     if (note.type == 3 ? noteCanRender_Hold(x, y, holdBodyRange) : noteCanRender_Note(x, y)) {
                         noteRotate = lineToNoteRotateDeg + 90;
 
-                        if (note.type != 3) {
-                            noteImg = eval(`Res_${["Tap", "Drag", null, "Flick"][note.type - 1]}${"Dub"}`);
+                        noteImg = eval(`Res_${["Tap", "Drag", "HoldHead", "Flick"][note.type - 1]}${note.morebets ? "Dub" : ""}`);
+                        if (note.type == 3) {
+                            noteBodyImg = note.morebets ? Res_HoldBodyDub : Res_HoldBody;
+                            noteEndImg = note.morebets ? Res_HoldEndDub : Res_HoldEnd;
+                        }
 
-                            thisNoteWidth = Note_width * 1.0;
-                            thisNoteHeight = Note_width / noteImg.width * noteImg.height;
+                        thisNoteWidth = Note_width * 1.0 * (note.morebets ? NOTE_DUB_FIXSCALE : 1.0);
+                        thisNoteHeight = Note_width / noteImg.width * noteImg.height;
+
+                        ctx.drawRotateImage(
+                            noteImg,
+                            x, y, thisNoteWidth, thisNoteHeight,
+                            noteRotate, 1.0
+                        );
+
+                        if (note.type == 3) {
+                            noteEndHeight = Note_width / noteEndImg.width * noteEndImg.height;
+
+                            if (note.time < curBTime) {
+                                [holdBodyX, holdBodyY] = [noteAtLineX, noteAtLineY];
+                                holdBodyLength = holdDrawLength - noteEndHeight / 2;
+                            }
+                            else {
+                                [holdBodyX, holdBodyY] = rotatePoint(
+                                    holdHeadX, holdHeadY,
+                                    lineToNoteRotateDeg, thisNoteHeight / 2
+                                );
+                                holdBodyLength = note.speed * (note.holdTime * line.T) * h * 0.6 - (thisNoteHeight + noteEndHeight) / 2;
+                            }
 
                             ctx.drawRotateImage(
-                                noteImg,
-                                x, y, thisNoteWidth, thisNoteHeight,
+                                noteEndImg,
+                                holdEndX, holdEndY,
+                                thisNoteWidth, noteEndHeight,
                                 noteRotate, 1.0
                             );
+
+                            if (holdBodyLength > 0.0) {
+                                ctx.drawAnchorESRotateImage(
+                                    noteBodyImg,
+                                    holdBodyX, holdBodyY,
+                                    thisNoteWidth, holdBodyLength,
+                                    noteRotate, 1.0
+                                );
+                            }
                         }
                     }
                 }
@@ -264,6 +321,10 @@
         }
 
         requestAnimationFrame(phiRender);
+    }
+
+    function rpeInit() {
+
     }
 
     function rpeRender() {
@@ -291,6 +352,20 @@
         }
         else {
             this.drawImage(im, x - width / 2, y - height / 2, width, height);
+        }
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawAnchorESRotateImage = function(im, x, y, width, height, deg, alpha) {
+        this.save();
+        this.globalAlpha *= alpha;
+        if (!!deg){
+            this.translate(x,y);
+            this.rotate(deg * Math.PI / 180);
+            this.drawImage(im, -width / 2, -height, width, height);
+        }
+        else {
+            this.drawImage(im, x - width / 2, y - height, width, height);
         }
         this.restore();
     }
