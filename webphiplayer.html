@@ -12,11 +12,25 @@
         <img class="res flick" src="./Resources/Notes/Flick.png">
         <img class="res flickDub" src="./Resources/Notes/Flick_dub.png">
         <img class="res holdHead" src="./Resources/Notes/Hold_Head.png">
-        <img class="res holdHeadDub" src="./Resources/Notes/Hold_Body_dub.png">
+        <img class="res holdHeadDub" src="./Resources/Notes/Hold_Head_dub.png">
         <img class="res holdBody" src="./Resources/Notes/Hold_Body.png">
         <img class="res holdBodyDub" src="./Resources/Notes/Hold_Body_dub.png">
         <img class="res holdEnd" src="./Resources/Notes/Hold_End.png">
         <img class="res holdEndDub" src="./Resources/Notes/Hold_End_dub.png">
+        <audio class="res tapSound" src="./Resources/Note_Click_Audio/Tap.wav"></audio>
+        <audio class="res dragSound" src="./Resources/Note_Click_Audio/Drag.wav"></audio>
+        <audio class="res flickSound" src="./Resources/Note_Click_Audio/Flick.wav"></audio>
+        <audio class="res holdSound" src="./Resources/Note_Click_Audio/Hold.wav"></audio>
+        <svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+            <filter id="clickEffectColorFilter">
+                <feColorMatrix type="matrix" values="
+                    0.796875 0 0 0 0
+                    0 0.765625 0 0 0
+                    0 0 0.5390625 0 0
+                    0 0 0 1 0
+                "></feColorMatrix>
+            </filter>
+        </svg>
     </body>
 </html>
 
@@ -36,6 +50,8 @@
         width: 100%;
         height: 100%;
         position: absolute;
+        background-size: cover;
+        background-position: center;
     }
 
     .res {
@@ -57,15 +73,36 @@
     const Res_HoldBodyDub = document.querySelector(".res.holdBodyDub");
     const Res_HoldEnd = document.querySelector(".res.holdEnd");
     const Res_HoldEndDub = document.querySelector(".res.holdEndDub");
+    const Res_TapSound = document.querySelector(".res.tapSound");
+    const Res_DragSound = document.querySelector(".res.dragSound");
+    const Res_FlickSound = document.querySelector(".res.flickSound");
+    const Res_HoldSound = document.querySelector(".res.holdSound");
+    const ClickEffectNum = 30;
+    const ClickEffects = new Array(ClickEffectNum);
+
+    for (let i = 0; i < ClickEffectNum; i++) {
+        let img = new Image();
+        img.src = `./Resources/Note_Click_Effect/Frames/${(i + 1)}.png`;
+        img.loading = "eager";
+        img._n = i;
+        img.onload = (e) => {
+            let procsCv = document.createElement("canvas");
+            procsCv.width = e.target.width;
+            procsCv.height = e.target.height;
+            let procsCtx = procsCv.getContext("2d");
+            procsCtx.filter = "url(#clickEffectColorFilter)";
+            procsCtx.drawImage(e.target, 0, 0);
+            ClickEffects[e.target._n] = procsCv;
+        };
+    }
 
     var loaded_chart = false;
-    var loaded_image = false;
 
     function initCanvas() {
         cv = document.createElement("canvas");
         cv.className = "mainCanvas";
         document.body.appendChild(cv);
-        ctx = cv.getContext("2d", {alpha: false});
+        ctx = cv.getContext("2d");
         window.addEventListener("resize", resizeCanvas);
         resizeCanvas();
     }
@@ -92,7 +129,6 @@
 
     function start() {
         chartAudio.play();
-        initCanvas();
         NOTE_DUB_FIXSCALE = Res_HoldBodyDub.width / Res_HoldBody.width;
 
         if (chartData.formatVersion) {
@@ -107,7 +143,7 @@
 
     function getPhiFP(line, t) {
         let result = 0.0;
-        for (e of line.speedEvents) {
+        for (let e of line.speedEvents) {
             if (e.endTime <= t) {
                 result += (e.endTime - e.startTime) * e.value;
             }
@@ -129,8 +165,8 @@
 
     function batch_is_intersect(linesGroup1, linesGroup2) {
         let results = [];
-        for (i of linesGroup1) {
-            for (j of linesGroup2) {
+        for (let i of linesGroup1) {
+            for (let j of linesGroup2) {
                 results.push(is_intersect(i, j));
             }
         }
@@ -138,7 +174,7 @@
     }
 
     function noteCanRender_Hold(x, y, holdBodyRange) {
-        for (point of holdBodyRange) {
+        for (let point of holdBodyRange) {
             if (noteCanRender_Note(...point)) return true;
         }
 
@@ -165,6 +201,37 @@
         );
     }
 
+    class phiGetDataVar {
+        _findEvent(es, curBTime, skey, ekey) {
+            for (let e of es) {
+                if (e.startTime <= curBTime && curBTime <= e.endTime) {
+                    return linearInterpolation(e[skey], e[ekey], e.startTime, e.endTime, curBTime);
+                }
+            }
+            return 0.0;
+        }
+
+        getRotate(line, curBTime) {
+            return - this._findEvent(line.judgeLineRotateEvents, curBTime, "start", "end");
+        }
+        
+        getAlpha(line, curBTime) {
+            return this._findEvent(line.judgeLineDisappearEvents, curBTime, "start", "end");
+        }
+
+        getX(line, curBTime) {
+            return this._findEvent(line.judgeLineMoveEvents, curBTime, "start", "end") * w;
+        }
+
+        getY(line, curBTime) {
+            return (1.0 - this._findEvent(line.judgeLineMoveEvents, curBTime, "start2", "end2")) * h;
+        }
+    }
+
+    class rpeGetDataVar {
+
+    }
+
     function phiInit() {
         let noteTimes = {};
         let notes = [];
@@ -178,20 +245,69 @@
             line.T = 1.875 / line.bpm;
             notes = notes.concat(line.notesAbove);
             notes = notes.concat(line.notesBelow);
+            for (n of line.notesAbove.concat(line.notesBelow)) {
+                n.master = line;
+            }
         }
         
         notes.forEach(_countNote);
         for (n of notes) {
             n.morebets = noteTimes[n.time] >= 2;
+
+            n.effectRandomBlocks = [Math.random() * 90, Math.random() * 90, Math.random() * 90, Math.random() * 90];
+            n.effectTimes = [];
+            let holdStartTime = n.time * n.master.T;
+            let holdEffectBlockTime = 1 / n.master.bpm * 30;
+            while (holdStartTime < (n.time + n.holdTime) * n.master.T) {
+                holdStartTime += holdEffectBlockTime;
+                n.effectTimes.push([holdStartTime, [Math.random() * 90, Math.random() * 90, Math.random() * 90, Math.random() * 90]]);
+            }
+
+            n.clicked = false;
         }
+
+        dataGetter = new phiGetDataVar();
+    }
+
+    function phiProcsEffect(curTime, note, t, effectRandomBlocks) {
+        let p = (curTime - t * note.master.T) / (0.5 * chartAudio.playbackRate);
+        if (! (0.0 <= p <= 1.0)) return;
+        let effectLineX = dataGetter.getX(note.master, t);
+        let effectLineY = dataGetter.getY(note.master, t);
+        let effectRotate = dataGetter.getRotate(note.master, t);
+        let [effectX, effectY] = rotatePoint(effectLineX, effectLineY, effectRotate, note.positionX * w * 0.05625);
+        let effectImg = ClickEffects[parseInt(p * (ClickEffectNum - 1)) + 1];
+        let beforedeg = 0;
+        let blockAlpha = (1.0 - p) * 0.85;
+        let randomBlockR = Note_width * 1.375 * (1.0 - 2 ** (-10 * p)) / 1.35;
+        let blockSize = w * 0.1234375 / 5.5 * (0.4 * Math.sin(p * Math.PI) + 0.6)
+        for (let deg of effectRandomBlocks) {
+            let [effectRandomX, effectRandomY] = rotatePoint(effectX, effectY, beforedeg + deg, randomBlockR);
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(254, 255, 169, ${blockAlpha})`;
+            ctx.fillRect(
+                effectRandomX - blockSize / 2,
+                effectRandomY - blockSize / 2,
+                blockSize, blockSize
+            );
+            ctx.restore();
+            beforedeg += 90;
+        }
+        ctx.drawImage(
+            effectImg,
+            effectX - Note_width * 1.375 / 2,
+            effectY - Note_width * 1.375 / 2,
+            Note_width * 1.375, Note_width * 1.375
+        );
     }
 
     function phiRender() {
-        curTime = chartAudio.currentTime;
-        lineRotate = 0.0; lineAlpha = 0.0; lineX = 0.0; lineY = 0.0;
+        let curTime = chartAudio.currentTime;
+        let lineRotate, lineAlpha, lineX, lineY;
+        let curBTime = null;
 
         ctx.clear();
-        ctx.drawImage(chartImage, 0, 0, w, h);
 
         ctx.save();
         ctx.beginPath();
@@ -199,44 +315,33 @@
         ctx.fillRect(0, 0, w, h);
         ctx.restore();
         
-        for (line of chartData.judgeLineList) {
-            lineRotate = 0.0; lineAlpha = 0.0; lineX = 0.0; lineY = 0.0;
+        for (let line of chartData.judgeLineList) {
             curBTime = curTime / line.T;
 
-            for (e of line.judgeLineRotateEvents) {
-                if (e.startTime <= curBTime && curBTime <= e.endTime) {
-                    lineRotate = - linearInterpolation(e.start, e.end, e.startTime, e.endTime, curBTime);
-                    break;
-                }
-            }
+            lineRotate = dataGetter.getRotate(line, curBTime);
+            lineAlpha = dataGetter.getAlpha(line, curBTime);
+            lineX = dataGetter.getX(line, curBTime);
+            lineY = dataGetter.getY(line, curBTime);
 
-            for (e of line.judgeLineDisappearEvents) {
-                if (e.startTime <= curBTime && curBTime <= e.endTime) {
-                    lineAlpha = linearInterpolation(e.start, e.end, e.startTime, e.endTime, curBTime);
-                    break;
-                }
-            }
-
-            for (e of line.judgeLineMoveEvents) {
-                if (e.startTime <= curBTime && curBTime <= e.endTime) {
-                    lineX = linearInterpolation(e.start, e.end, e.startTime, e.endTime, curBTime) * w;
-                    lineY = (1.0 - linearInterpolation(e.start2, e.end2, e.startTime, e.endTime, curBTime)) * h;
-                    break;
-                }
-            }
-
-            [lineX1, lineY1] = rotatePoint(lineX, lineY, lineRotate, h * 5.76 / 2);
-            [lineX2, lineY2] = rotatePoint(lineX, lineY, lineRotate + 180, h * 5.76 / 2);
+            let [lineX1, lineY1] = rotatePoint(lineX, lineY, lineRotate, h * 5.76 / 2);
+            let [lineX2, lineY2] = rotatePoint(lineX, lineY, lineRotate + 180, h * 5.76 / 2);
             ctx.drawLineEx(lineX1, lineY1, lineX2, lineY2, h * 0.0075, `rgba(254, 255, 169, ${lineAlpha})`);
 
-            lineFPosition = getPhiFP(line, curBTime);
+            let lineFPosition = getPhiFP(line, curBTime);
 
             _rnotes = (notes, above) => {
-                for (note of notes) {
+                for (let note of notes) {
+
+                    if (!note.clicked && note.time < curBTime) {
+                        note.clicked = true;
+                        eval(`Res_${["Tap", "Drag", "Hold", "Flick"][note.type - 1]}Sound`).cloneNode().play();
+                    }
+
                     if ((note.time < curBTime && note.type != 3) || ((note.time + note.holdTime) < curBTime && note.type == 3)) continue;
-                    noteFloorPosition = note.floorPosition * h * 0.6 - (
+
+                    let noteFloorPosition = note.floorPosition * h * 0.6 - (
                         (!(note.type == 3 && note.time < curBTime)) ? lineFPosition : (
-                            getPhiFP(line, note.time) * h * 0.6 + linearInterpolation(
+                            getPhiFP(line, note.time) + linearInterpolation(
                                 note.speed * (note.holdTime * line.T) * h * 0.6, 0.0,
                                 0.0, note.holdTime,
                                 note.time + note.holdTime - curBTime,
@@ -246,10 +351,11 @@
 
                     if (noteFloorPosition > h * 2) continue;
 
-                    [noteAtLineX, noteAtLineY] = rotatePoint(lineX, lineY, lineRotate, note.positionX * w * 0.05625);
-                    lineToNoteRotateDeg = (above ? -90 : 90) + lineRotate;
-                    [x, y] = rotatePoint(noteAtLineX, noteAtLineY, lineToNoteRotateDeg, noteFloorPosition);
+                    let [noteAtLineX, noteAtLineY] = rotatePoint(lineX, lineY, lineRotate, note.positionX * w * 0.05625);
+                    let lineToNoteRotateDeg = (above ? -90 : 90) + lineRotate;
+                    let [x, y] = rotatePoint(noteAtLineX, noteAtLineY, lineToNoteRotateDeg, noteFloorPosition);
 
+                    let holdDrawLength, holdEndX, holdEndY, holdHeadX, holdHeadY, holdBodyRange;
                     if (note.type == 3) {
                         holdDrawLength = noteFloorPosition + note.speed * (note.holdTime * line.T) * h * 0.6;
                         [holdEndX, holdEndY] = rotatePoint(noteAtLineX, noteAtLineY, lineToNoteRotateDeg, holdDrawLength);
@@ -264,26 +370,30 @@
                     }
                     
                     if (note.type == 3 ? noteCanRender_Hold(x, y, holdBodyRange) : noteCanRender_Note(x, y)) {
-                        noteRotate = lineToNoteRotateDeg + 90;
+                        let noteRotate = lineToNoteRotateDeg + 90;
 
-                        noteImg = eval(`Res_${["Tap", "Drag", "HoldHead", "Flick"][note.type - 1]}${note.morebets ? "Dub" : ""}`);
+                        let noteImg = eval(`Res_${["Tap", "Drag", "HoldHead", "Flick"][note.type - 1]}${note.morebets ? "Dub" : ""}`);
+                        let noteBodyImg, noteEndImg;
                         if (note.type == 3) {
                             noteBodyImg = note.morebets ? Res_HoldBodyDub : Res_HoldBody;
                             noteEndImg = note.morebets ? Res_HoldEndDub : Res_HoldEnd;
                         }
 
-                        thisNoteWidth = Note_width * 1.0 * (note.morebets ? NOTE_DUB_FIXSCALE : 1.0);
-                        thisNoteHeight = Note_width / noteImg.width * noteImg.height;
+                        let thisNoteWidth = Note_width * 1.0 * (note.morebets ? NOTE_DUB_FIXSCALE : 1.0);
+                        let thisNoteHeight = Note_width / noteImg.width * noteImg.height;
 
-                        ctx.drawRotateImage(
-                            noteImg,
-                            x, y, thisNoteWidth, thisNoteHeight,
-                            noteRotate, 1.0
-                        );
+                        if (!(note.type == 3 && note.time < curBTime)) {
+                            ctx.drawRotateImage(
+                                noteImg,
+                                x, y, thisNoteWidth, thisNoteHeight,
+                                noteRotate, 1.0
+                            );
+                        }
 
                         if (note.type == 3) {
-                            noteEndHeight = Note_width / noteEndImg.width * noteEndImg.height;
+                            let noteEndHeight = Note_width / noteEndImg.width * noteEndImg.height;
 
+                            let holdBodyX, holdBodyY, holdBodyLength;
                             if (note.time < curBTime) {
                                 [holdBodyX, holdBodyY] = [noteAtLineX, noteAtLineY];
                                 holdBodyLength = holdDrawLength - noteEndHeight / 2;
@@ -318,6 +428,32 @@
 
             _rnotes(line.notesAbove, true);
             _rnotes(line.notesBelow, false);
+        }
+
+        let clickEffectTime = (0.5 * chartAudio.playbackRate);
+        for (let line of chartData.judgeLineList) {
+            for (let note of line.notesAbove.concat(line.notesBelow)) {
+                let noteTimeSec = note.time * line.T;
+                if (note.type != 3 && noteTimeSec < curTime - clickEffectTime) continue;
+
+                if (note.time < curBTime) {
+                    if (curTime - noteTimeSec < clickEffectTime) {
+                        phiProcsEffect(curTime, note, note.time, note.effectRandomBlocks);
+                    }
+                    
+                    if (note.type == 3) {
+                        let effectEndTime = (note.time + note.holdTime) * line.T + clickEffectTime;
+                        if (effectEndTime >= curTime) {
+                            for (let item of note.effectTimes) {
+                                [tempTime, effectRandomBlocks] = item;
+                                if (tempTime < curTime && curTime - tempTime <= clickEffectTime) {
+                                    phiProcsEffect(curTime, note, tempTime / line.T, effectRandomBlocks);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         requestAnimationFrame(phiRender);
@@ -385,12 +521,11 @@
 
         chartAudio.src = URL.createObjectURL(audioFile);
 
-        chartImage = new Image();
-        chartImage.onload = () => {loaded_image = true};
-        chartImage.src = URL.createObjectURL(imageFile);
+        initCanvas();
+        cv.style.backgroundImage = `url(${URL.createObjectURL(imageFile)})`;
 
         let checker = () => {
-            if (loaded_chart && loaded_image) {
+            if (loaded_chart) {
                 start();
             }
             else {

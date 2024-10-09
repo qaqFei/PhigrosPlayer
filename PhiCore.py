@@ -1220,17 +1220,15 @@ def GetFrameRenderTask_Phi(
                         note.show_effected = True
                     
                     if note_ishold:
-                        efct_et = note.hold_endtime + effect_time
-                        if efct_et >= now_t:
+                        if note.hold_endtime + effect_time >= now_t:
                             for temp_time, hold_effect_random_blocks in note.effect_times:
-                                if temp_time < now_t:
-                                    if now_t - temp_time <= effect_time:
-                                        process_effect(
-                                            note,
-                                            temp_time / judgeLine.T,
-                                            hold_effect_random_blocks,
-                                            True
-                                        )
+                                if temp_time < now_t and now_t - temp_time <= effect_time:
+                                    process_effect(
+                                        note,
+                                        temp_time / judgeLine.T,
+                                        hold_effect_random_blocks,
+                                        True
+                                    )
             else: # noautoplay
                 if note.player_holdjudged or (note.state == Const.NOTE_STATE.PERFECT or note.state == Const.NOTE_STATE.GOOD and note.player_clicked):
                     if note_time - note.player_click_offset <= now_t:
