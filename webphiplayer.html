@@ -1,4 +1,5 @@
 <html>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <body>
         <label class="nocanvas" for="chartInput">请选择谱面文件: </label><input class="chartInput nocanvas" type="file"><br>
         <label class="nocanvas" for="audioInput">请选择音频文件: </label><input class="audioInput nocanvas" type="file"><br>
@@ -80,6 +81,8 @@
     const ClickEffectNum = 30;
     const ClickEffects = new Array(ClickEffectNum);
 
+    alert("移动端设备可能打击音效会有延迟哦！");
+
     for (let i = 0; i < ClickEffectNum; i++) {
         let img = new Image();
         img.src = `./Resources/Note_Click_Effect/Frames/${(i + 1)}.png`;
@@ -128,6 +131,7 @@
     function start() {
         chartAudio.play();
         NOTE_DUB_FIXSCALE = Res_HoldBodyDub.width / Res_HoldBody.width;
+        if (cv.requestFullscreen) cv.requestFullscreen();
 
         if (chartData.formatVersion) {
             phiInit();
