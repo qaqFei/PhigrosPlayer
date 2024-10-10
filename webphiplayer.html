@@ -96,8 +96,6 @@
         };
     }
 
-    var loaded_chart = false;
-
     function initCanvas() {
         cv = document.createElement("canvas");
         cv.className = "mainCanvas";
@@ -258,8 +256,9 @@
             n.effectTimes = [];
             let holdStartTime = n.time * n.master.T;
             let holdEffectBlockTime = 1 / n.master.bpm * 30;
-            while (holdStartTime < (n.time + n.holdTime) * n.master.T) {
+            while (true) {
                 holdStartTime += holdEffectBlockTime;
+                if (!(holdStartTime < (n.time + n.holdTime) * n.master.T)) break;
                 n.effectTimes.push([holdStartTime, [Math.random() * 90, Math.random() * 90, Math.random() * 90, Math.random() * 90]]);
             }
 
@@ -307,6 +306,11 @@
         let lineRotate, lineAlpha, lineX, lineY;
         let curBTime = null;
 
+        if (curTime > 0.0 && chartAudio.paused) {
+            setTimeout(start, 0);
+            return;
+        }
+
         ctx.clear();
 
         ctx.save();
@@ -334,7 +338,7 @@
 
                     if (!note.clicked && note.time < curBTime) {
                         note.clicked = true;
-                        eval(`Res_${["Tap", "Drag", "Hold", "Flick"][note.type - 1]}Sound`).cloneNode().play();
+                        eval(`Res_${["Tap", "Drag", "Hold", "Flick"][note.type - 1]}Sound`).cloneNode(true).play();
                     }
 
                     if ((note.time < curBTime && note.type != 3) || ((note.time + note.holdTime) < curBTime && note.type == 3)) continue;
@@ -516,24 +520,13 @@
         let imageFile = document.querySelector(".imageInput").files[0];
 
         let chartReader = new FileReader();
-        chartReader.onload = (e) => {chartData = JSON.parse(chartReader.result); loaded_chart = true};
+        chartReader.onload = (e) => {chartData = JSON.parse(chartReader.result); start()};
         chartReader.readAsText(chartFile);
 
         chartAudio.src = URL.createObjectURL(audioFile);
 
         initCanvas();
         cv.style.backgroundImage = `url(${URL.createObjectURL(imageFile)})`;
-
-        let checker = () => {
-            if (loaded_chart) {
-                start();
-            }
-            else {
-                setTimeout(checker, 1000 / 60);
-            }
-        }
-
         document.querySelectorAll(".nocanvas").forEach((e) => e.remove());
-        checker();
     });
 </script>
