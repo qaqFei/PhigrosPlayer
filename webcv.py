@@ -22,7 +22,7 @@ screen_width = windll.user32.GetSystemMetrics(0)
 screen_height = windll.user32.GetSystemMetrics(1)
 
 class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
-    _canvas:WebCanvas
+    _canvas: WebCanvas
 
     def do_GET(self):
         self.send_response(200)
@@ -34,7 +34,7 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
         if self.path[1:] in self._canvas._regims:
             im:Image.Image = self._canvas._regims[self.path[1:]]
             temp_btyeio = io.BytesIO()
-            im.save(temp_btyeio,"png")
+            im.save(temp_btyeio, "png")
             self.wfile.write(temp_btyeio.getvalue())
         elif self.path[1:] in self._canvas._regres:
             data:bytes = self._canvas._regres[self.path[1:]]
@@ -47,9 +47,6 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
 class JsApi:
     def __init__(self) -> None:
         self.things:dict[str, typing.Any] = {}
-    
-    def __repr__(self):
-        return "JsApi"
     
     def get_thing(self, name: str):
         return self.things[name]

@@ -823,7 +823,7 @@ def draw_ui(
     )
     
     if animationing:
-        root.run_js_code(f"ctx.translate(0,{- h / 7 + dy});",add_code_array=True)
+        root.run_js_code(f"ctx.translate(0, {- h / 7 + dy});", add_code_array = True)
     
     lastCallDrawUI = time.time()
 
