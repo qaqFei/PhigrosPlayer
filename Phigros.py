@@ -1,11 +1,5 @@
 import errProcesser as _
 
-from threading import Thread
-from ctypes import windll
-from os import chdir, environ, mkdir, system, popen, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
-from os.path import exists, abspath, dirname
-from shutil import rmtree
-from tempfile import gettempdir
 import urllib.request
 import webbrowser
 import typing
@@ -14,6 +8,12 @@ import json
 import sys
 import time
 import math
+from threading import Thread
+from ctypes import windll
+from os import chdir, environ, mkdir, system, popen, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
+from os.path import exists, abspath, dirname
+from shutil import rmtree
+from tempfile import gettempdir
 
 from PIL import Image, ImageFilter, ImageEnhance
 from pygame import mixer

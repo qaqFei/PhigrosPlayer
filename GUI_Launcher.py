@@ -1,3 +1,4 @@
+import ctypes
 from tkinter import Tk, Label, BooleanVar, StringVar
 from tkinter.ttk import Entry, Button, Checkbutton, LabelFrame
 from tkinter.filedialog import askopenfilename
@@ -5,7 +6,6 @@ from tkinter.messagebox import showerror
 from os import chdir,popen
 from os.path import exists,isfile,dirname
 from sys import argv
-import ctypes
 
 import GUI_Const
 import ConsoleWindow

@@ -1,7 +1,8 @@
 from __future__ import annotations
+
+import typing
 from dataclasses import dataclass
 from functools import lru_cache, cache
-import typing
 
 import Tool_Functions
 import rpe_easing

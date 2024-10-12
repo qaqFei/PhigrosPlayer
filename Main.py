@@ -1,5 +1,8 @@
 import errProcesser as _
 
+import json
+import sys
+import time
 from threading import Thread
 from ctypes import windll
 from os import chdir, environ, listdir, popen; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
@@ -7,14 +10,11 @@ from os.path import exists, abspath, dirname, isfile, isdir
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
-import json
-import sys
-import time
 
+import cv2
 from PIL import Image, ImageFilter, ImageEnhance
 from pygame import mixer
 from pydub import AudioSegment
-import cv2
 
 import webcv
 import PlaySound

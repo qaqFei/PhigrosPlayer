@@ -1,17 +1,18 @@
 from __future__ import annotations
-from ctypes import windll
-from os import chdir
-from os.path import abspath, dirname
-from sys import argv
-from random import randint
+
 import threading
 import typing
 import http.server
 import io
 import time
+from ctypes import windll
+from os import chdir
+from os.path import abspath, dirname
+from sys import argv
+from random import randint
 
-from PIL import Image
 import webview
+from PIL import Image
 
 selfdir = dirname(argv[0])
 if selfdir == "": selfdir = abspath(".")

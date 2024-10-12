@@ -1,13 +1,13 @@
+import json
 from os import chdir
 from os.path import dirname, abspath
 from sys import argv
 from ctypes import windll
 from random import uniform
-import json
 
-from PIL import Image
 import cv2
 import numpy
+from PIL import Image
 
 import Chart_Functions_Phi
 import Chart_Functions_Rpe

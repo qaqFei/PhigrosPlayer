@@ -1,6 +1,6 @@
+import json
 from sys import argv
 from PIL import Image
-import json
 
 import cv2
 

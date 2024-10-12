@@ -1,5 +1,5 @@
-from os.path import exists
 import csv
+from os.path import exists
 
 class InfoLoader:
     default_info = {
