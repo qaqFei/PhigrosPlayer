@@ -1,4 +1,5 @@
 import errProcesser as _
+import initLogging as _
 
 import urllib.request
 import webbrowser
@@ -8,6 +9,7 @@ import json
 import sys
 import time
 import math
+import logging
 from threading import Thread
 from ctypes import windll
 from os import chdir, environ, mkdir, system, popen, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
@@ -36,7 +38,7 @@ if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
-    print("7z.exe or 7z.dll Not Found.")
+    logging.error("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
     
 if not exists("./PhigrosAssets") or not all([
@@ -45,8 +47,8 @@ if not exists("./PhigrosAssets") or not all([
         "chapters.json"
     ]
 ]):
-    print("PhigrosAssets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
-    print("downloading from gitmirror...")
+    logging.info("PhigrosAssets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
+    logging.info("downloading from gitmirror...")
     assetType = "development" if "--assets-type" not in sys.argv else sys.argv[sys.argv.index("--assets-type") + 1]
     assetUrl = f"https://raw.gitmirror.com/qaqFei/PhigrosPlayer_PhigrosAssets/main/assets/{assetType}"
     
@@ -61,11 +63,11 @@ if not exists("./PhigrosAssets") or not all([
         with open("./PhigrosAssets_tmp/PhigrosAssets.zip", "wb") as f:
             f.write(urllib.request.urlopen(urllib.request.Request(assetUrl, headers={"User-Agent": Const.UAS[random.randint(0, len(Const.UAS) - 1)]})).read())
         
-        print("download finished, extracting...")
+        logging.info("download finished, extracting...")
         popen(f".\\7z.exe x .\\PhigrosAssets_tmp\\ -o.\\PhigrosAssets -y >> nul").read()
-        print("extract finished.")
+        logging.info("extract finished.")
     except Exception as e:
-        print(f"download failed: {e}")
+        logging.error(f"download failed: {e}")
         system("pause")
         windll.kernel32.ExitProcess(0)
 
@@ -109,7 +111,7 @@ def saveUserData(data: dict):
         with open("./Phigros_UserData.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(data, indent=4, ensure_ascii=False))
     except Exception as e:
-        print(f"Phigros_UserData.json save failed: {e}")
+        logging.error(f"Phigros_UserData.json save failed: {e}")
 
 def loadUserData():
     global userData
@@ -117,7 +119,7 @@ def loadUserData():
     try:
         userData.update(json.loads(open("./Phigros_UserData.json", "r", encoding="utf-8").read()))
     except Exception as e:
-        print(f"Phigros_UserData.json load failed, using default data, {e}")
+        logging.error(f"Phigros_UserData.json load failed, using default data, {e}")
 
 def getUserData(key: str):
     return userData.get(key, userData_default[key])
@@ -202,7 +204,7 @@ def initUserAvatar():
         if udAvatar not in assetConfig["avatars"]:
             udAvatar = assetConfig["avatars"][0]
         saveUserData()
-        print("User avatar not found, reset to default.")
+        logging.warning("User avatar not found, reset to default.")
     root.run_js_code(f"{root.get_img_jsvarname("userAvatar")} = {root.get_img_jsvarname(f"avatar_{assetConfig["avatars"].index(getUserData("userdata-userAvatar"))}")};")
 
 def Load_Resource():
@@ -222,6 +224,7 @@ def Load_Resource():
     global CheckedIconWidth, CheckedIconHeight
     global LoadSuccess
     
+    logging.info("Loading Resource...")
     LoadSuccess = mixer.Sound(("./Resources/LoadSuccess.wav"))
     ClickEffectFrameCount = len(listdir("./Resources/Note_Click_Effect/Frames"))
     ClickEffectImages = [Image.open(f"./Resources/Note_Click_Effect/Frames/{i + 1}.png") for i in range(ClickEffectFrameCount)]
@@ -425,6 +428,8 @@ def Load_Resource():
     note_max_width_half = note_max_width / 2
     note_max_height_half = note_max_height / 2
     note_max_size_half = (note_max_width ** 2 + note_max_height ** 2) ** 0.5
+    
+    logging.info("Load Resource Successfully.")
     return Resource
 
 def bindEvents():

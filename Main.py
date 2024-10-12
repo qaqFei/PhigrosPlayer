@@ -1,8 +1,10 @@
 import errProcesser as _
+import initLogging as _
 
 import json
 import sys
 import time
+import logging
 from threading import Thread
 from ctypes import windll
 from os import chdir, environ, listdir, popen; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
@@ -36,7 +38,7 @@ if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
-    print("7z.exe or 7z.dll Not Found.")
+    logging.error("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
 
 if len(sys.argv) == 1:
@@ -50,12 +52,12 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_
     item = f"{gettempdir()}\\{item}"
     try:
         rmtree(item)
-        print(f"Remove Temp Dir: {item}")
+        logging.info(f"Remove Temp Dir: {item}")
     except Exception as e:
-        print(f"Warning: {e}")
+        logging.warning(e)
         
 temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time.time()}"
-print(f"Temp Dir: {temp_dir}")
+logging.info(f"Temp Dir: {temp_dir}")
 
 enable_clicksound = "--noclicksound" not in sys.argv
 debug = "--debug" in sys.argv
@@ -89,24 +91,24 @@ if "--res" in sys.argv:
 
 if lfdaot and noautoplay:
     noautoplay = False
-    print("Warning: if use --lfdaot, you cannot use --noautoplay.")
+    logging.warning("if use --lfdaot, you cannot use --noautoplay.")
 
 if showfps and lfdaot and lfdaot_render_video:
     showfps = False
-    print("Warning: if use --lfdaot-render-video, you cannot use --showfps.")
+    logging.warning("if use --lfdaot-render-video, you cannot use --showfps.")
 
 if lfdaot and speed != 1.0:
     speed = 1.0
-    print("Warning: if use --lfdaot, you cannot use --speed.")
+    logging.warning("if use --lfdaot, you cannot use --speed.")
 
-print("Init Pygame Mixer...")
+logging.info("Init Pygame Mixer...")
 mixer.init()
 mixer.music.set_volume(0.85)
 
-print("Unpack Chart...")
+logging.info("Unpack Chart...")
 popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y >> nul").read()
 
-print("Loading All Files of Chart...")
+logging.info("Loading All Files of Chart...")
 chart_files = Tool_Functions.Get_All_Files(temp_dir)
 chart_files_dict = {
     "charts": [],
@@ -118,19 +120,19 @@ for item in chart_files:
         continue
     
     try:
-        chart_files_dict["images"].append([item,Image.open(item).convert("RGB")])
-        print(f"Add Resource (image): {item.replace(f"{temp_dir}\\", "")}")
+        chart_files_dict["images"].append([item, Image.open(item).convert("RGB")])
+        logging.info(f"Add Resource (image): {item.replace(f"{temp_dir}\\", "")}")
     except Exception:
         try:
             mixer.music.load(item)
             chart_files_dict["audio"].append(item)
-            print(f"Add Resource (audio): {item.replace(f"{temp_dir}\\", "")}")
+            logging.info(f"Add Resource (audio): {item.replace(f"{temp_dir}\\", "")}")
         except Exception:
             try:
                 with open(item, "r", encoding="utf-8") as f:
                     chart_text = f.read()
                     chart_files_dict["charts"].append([item, json.loads(chart_text)])
-                    print(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
+                    logging.info(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
             except Exception as e:
                 if isinstance(e, json.decoder.JSONDecodeError) and (chart_text.startswith("175") or chart_text.startswith("0")): # pec chart
                     rpeJson = { # if some key and value is not exists, in loading rpe chart, it will be set to default value.
@@ -274,7 +276,7 @@ for item in chart_files:
                                         "size": float(ntl2.replace(" ", "").replace("&", ""))
                                     })
                         except Exception as e:
-                            print(f"Warning in pec2rpe: {repr(e)}")
+                            logging.warning(f"In pec2rpe: {repr(e)}")
                     for line in rpeJson["judgeLineList"]:
                         for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):
                             if i != len(line["eventLayers"][0]["speedEvents"]) - 1:
@@ -283,14 +285,13 @@ for item in chart_files:
                                 e["endTime"] = [e["startTime"][0] + 31250000, 0, 1]
                     chart_files_dict["charts"].append([item, rpeJson])
                 else:
-                    name = item.replace(f"{temp_dir}\\", "")
-                    print(f"Warning: Unknown Resource Type. Path = {name}")
+                    logging.warning(f"Unknown Resource Type. Path = {item.replace(f"{temp_dir}\\", "")}, Error = {e}")
                     
 if len(chart_files_dict["charts"]) == 0:
-    print("No Chart File Found.")
+    logging.error("No Chart File Found.")
     windll.kernel32.ExitProcess(1)
 if len(chart_files_dict["audio"]) == 0:
-    print("No Audio File Found.")
+    logging.error("No Audio File Found.")
     windll.kernel32.ExitProcess(1)
 if len(chart_files_dict["images"]) == 0:
     chart_files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
@@ -315,7 +316,7 @@ elif "META" in chart_json:
     CHART_TYPE = Const.CHART_TYPE.RPE
     render_range_more = False
 else:
-    print("This is what format chart???")
+    logging.error("This is what format chart???")
     windll.kernel32.ExitProcess(1)
 
 def LoadChartObject(first: bool = False):
@@ -358,7 +359,7 @@ else:
 
 raw_audio_file = audio_file
 if speed != 1.0:
-    print("Processing audio...")
+    logging.info(f"Processing audio, rate = {speed}")
     seg: AudioSegment = AudioSegment.from_file(audio_file)
     seg = seg._spawn(seg.raw_data, overrides = {
         "frame_rate": int(seg.frame_rate * speed)
@@ -370,16 +371,16 @@ mixer.music.load(audio_file)
 raw_audio_length = mixer.Sound(audio_file).get_length()
 audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == Const.CHART_TYPE.RPE else 0.0)
 all_inforamtion = {}
-print("Loading Chart Information...")
+logging.info("Loading Chart Information...")
 
 ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
 chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(raw_audio_file), basename(chart_image_filepath))
     
-print("Loading Chart Information Successfully.")
-print("Inforamtions: ")
+logging.info("Loading Chart Information Successfully.")
+logging.info("Inforamtions: ")
 for k,v in chart_information.items():
-    print(f"              {k}: {v}")
-del chart_files,chart_files_dict
+    logging.info(f"              {k}: {v}")
+del chart_files, chart_files_dict
 
 extraPath = f"{temp_dir}/extra.json"
 extra = {
@@ -391,7 +392,7 @@ if exists(extraPath) and isfile(extraPath):
         with open(extraPath, "r", encoding="utf-8") as f:
             extra.update(json.load(f))
     except Exception as e:
-        print("Warning: extra.json is not valid.", repr(e))
+        logging.warning(f"extra.json is not valid, {repr(e)}")
 
 def getResPath(path:str, file: bool = True):
     for rp in reversed(respaths):
@@ -429,7 +430,7 @@ def Load_Resource():
     global ClickEffectFrameCount
     global shaders
     
-    print("Loading Resource...")
+    logging.info("Loading Resource...")
     WaitLoading = mixer.Sound(getResPath("/WaitLoading.mp3"))
     LoadSuccess = mixer.Sound(getResPath("/LoadSuccess.wav"))
     Thread(target=WaitLoading_FadeIn, daemon = True).start()
@@ -562,11 +563,11 @@ def Load_Resource():
                                     texture = texture.resize((textureWidth, textureHeight))
                             chart_res[line.Texture] = (texture, size)
                         except Exception as e:
-                            print(f"Can't open texture {p} : {e}")
+                            logging.error(f"Can't open texture {p} : {e}")
                             continue
                         break
                 else:
-                    print(f"Can't find texture {line.Texture}")
+                    logging.error(f"Can't find texture {line.Texture}")
                     texture = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
                     chart_res[line.Texture] = (texture, texture.size)
                 root.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
@@ -584,7 +585,6 @@ def Load_Resource():
         time.sleep(0.1)
     
     root.shutdown_fileserver()
-    print("Load Resource Successfully.")
     note_max_width = max(
         [
             Resource["Notes"]["Tap"].width,
@@ -613,7 +613,7 @@ def Load_Resource():
     )
     note_max_size_half = (note_max_width ** 2 + note_max_height ** 2) ** 0.5
     
-    print("Loading Shaders...")
+    logging.info("Loading Shaders...")
     
     shaders = {
         "chromatic": open("./shaders/chromatic.glsl", "r", encoding="utf-8").read(),
@@ -639,17 +639,18 @@ def Load_Resource():
                 else:
                     raise Exception(f"Shader {shaderName} not found.")
             except Exception as e:
-                print(f"Load Shader {shaderName} Failed.")
+                logging.error(f"Load Shader {shaderName} Failed.")
     except Exception as e:
-        print("Load Other Shaders Failed.")
+        logging.error("Load Other Shaders Failed.")
     
     extra["effects"] = list(filter(lambda x: x.get("shader", "") in shaders, extra["effects"]))
     
     # how to load shaders to webgl and use them???
     ... # TODO
     
-    print("Load Shaders Successfully.")
+    logging.info("Load Shaders Successfully.")
     
+    logging.info("Load Resource Successfully.")
     return Resource
 
 def WaitLoading_FadeIn():
@@ -662,17 +663,15 @@ def Show_Start():
     root.run_js_code("show_in_animation();")
     time.sleep(1.25)
     draw_background()
-    draw_ui(animationing = True)
+    draw_ui(animationing=True)
     root.run_js_wait_code()
     time.sleep(0.5)
     root.run_js_code("show_out_animation();")
     time.sleep(1.25)
-    Thread(target = PlayerStart,daemon = True).start()
+    Thread(target=PlayerStart, daemon=True).start()
 
 def PlayerStart():
     global show_start_time
-    print("Player Start")
-    root.title("Phigros Chart Player")
     Resource["Over"].stop()
     
     Begin_Animation()
@@ -799,7 +798,7 @@ def PlayerStart():
                 
                 frame_count += 1
                 
-                print(f"\rLoadFrameData: {frame_count} / {allframe_num}",end="")
+                print(f"\rLoadFrameData: {frame_count} / {allframe_num}", end="")
             
             if "--lfdaot-file-savefp" in sys.argv:
                 lfdaot_fp = sys.argv[sys.argv.index("--lfdaot-file-savefp") + 1]
@@ -857,7 +856,7 @@ def PlayerStart():
                     )
                 })
             if data["meta"]["size"] != [w,h]:
-                print("Warning: The size of the lfdaot file is not the same as the size of the window.")
+                logging.warning("The size of the lfdaot file is not the same as the size of the window.")
         
         if not lfdaot_render_video:
             mixer.music.play()
@@ -1038,67 +1037,66 @@ def updateCoreConfigure():
     )
     CoreConfig(PhiCoreConfigureObject)
 
-if __name__ == "__main__":
-    print("Loading Window...")
-    root = webcv.WebCanvas(
-        width = 1, height = 1,
-        x = 0, y = 0,
-        title = "Phigros Chart Player",
-        debug = "--debug" in sys.argv,
-        resizable = False,
-        frameless = "--frameless" in sys.argv
-    )
+logging.info("Loading Window...")
+root = webcv.WebCanvas(
+    width = 1, height = 1,
+    x = 0, y = 0,
+    title = "Phigros Chart Player",
+    debug = "--debug" in sys.argv,
+    resizable = False,
+    frameless = "--frameless" in sys.argv
+)
         
-    webdpr = root.run_js_code("window.devicePixelRatio;")
-    if webdpr != 1.0:
-        lowquality = True
-        lowquality_scale *= 1.0 / webdpr # ...?
+webdpr = root.run_js_code("window.devicePixelRatio;")
+if webdpr != 1.0:
+    lowquality = True
+    lowquality_scale *= 1.0 / webdpr # ...?
 
-    if lowquality:
-        root.run_js_code(f"lowquality_scale = {lowquality_scale};")
+if lowquality:
+    root.run_js_code(f"lowquality_scale = {lowquality_scale};")
 
-    if "--window-host" in sys.argv:
-        windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
-    if "--fullscreen" in sys.argv:
-        w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-        root._web.toggle_fullscreen()
+if "--window-host" in sys.argv:
+    windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
+if "--fullscreen" in sys.argv:
+    w, h = root.winfo_screenwidth(), root.winfo_screenheight()
+    root._web.toggle_fullscreen()
+else:
+    if "--size" not in sys.argv:
+        w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
     else:
-        if "--size" not in sys.argv:
-            w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
-        else:
-            w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
-        root.resize(w, h)
-        w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
-        dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
-        dw_legacy *= webdpr; dh_legacy *= webdpr
-        dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
-        del w_legacy, h_legacy
-        root.resize(w + dw_legacy, h + dh_legacy)
-        root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
+        w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
+    root.resize(w, h)
+    w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
+    dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
+    dw_legacy *= webdpr; dh_legacy *= webdpr
+    dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
+    del w_legacy, h_legacy
+    root.resize(w + dw_legacy, h + dh_legacy)
+    root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
 
-    if render_range_more:
-        root.run_js_code("render_range_more = true;")
-        root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
-
-    background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
-    background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
-    root.reg_img(background_image,"background")
-    PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
-    JUDGELINE_WIDTH = h * 0.0075
-    Resource = Load_Resource()
-    EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
+if render_range_more:
+    root.run_js_code("render_range_more = true;")
+    root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
     
-    updateCoreConfigure()
-    
-    Thread(target=Show_Start, daemon=True).start()
-    root.loop_to_close()
+background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
+background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
+root.reg_img(background_image,"background")
+PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
+JUDGELINE_WIDTH = h * 0.0075
+Resource = Load_Resource()
+EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
 
-    for item in [item for item in listdir(gettempdir()) if item.startswith("qfppr_cctemp_")]:
-        item = f"{gettempdir()}\\{item}"
-        try:
-            rmtree(item)
-            print(f"Remove Temp Dir: {item}")
-        except Exception as e:
-            print(f"Warning: {e}")
+updateCoreConfigure()
 
-    windll.kernel32.ExitProcess(0)
+Thread(target=Show_Start, daemon=True).start()
+root.loop_to_close()
+
+for item in [item for item in listdir(gettempdir()) if item.startswith("qfppr_cctemp_")]:
+    item = f"{gettempdir()}\\{item}"
+    try:
+        rmtree(item)
+        logging.info(f"Remove Temp Dir: {item}")
+    except Exception as e:
+        logging.warning(e)
+
+windll.kernel32.ExitProcess(0)

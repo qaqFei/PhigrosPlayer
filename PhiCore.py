@@ -1,6 +1,7 @@
 import time
 import typing
 import math
+import logging
 from dataclasses import dataclass
 from threading import Thread
 
@@ -840,7 +841,7 @@ def CheckMusicOffsetAndEnd(now_t: float, Task: Chart_Objects_Phi.FrameRenderTask
             if abs(music_offset) < raw_audio_length * 1000 * 0.75:
                 show_start_time -= music_offset / 1000
                 SETTER("show_start_time", show_start_time)
-                print(f"Warning: mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
+                logging.warning(f"mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
              
 def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
     return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}   

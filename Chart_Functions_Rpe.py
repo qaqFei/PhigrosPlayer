@@ -1,6 +1,9 @@
+import logging
+
 import Chart_Objects_Rpe
 
 def Load_Chart_Object(chart: dict):
+    logging.info("Loading Chart Object, fmt = rpe")
     meta = chart.get("META", {})
     rpe_chart_obj = Chart_Objects_Rpe.Rpe_Chart(
         META = Chart_Objects_Rpe.MetaData(
@@ -180,7 +183,8 @@ def Load_Chart_Object(chart: dict):
         ]
     )
     
-    print("Finding Chart More Bets...")
+    logging.info("Finding Chart More Bets, fmt = rpe")
+
     def prcmorebets(notes):
         note_times = {}
         for note in notes:
@@ -199,5 +203,7 @@ def Load_Chart_Object(chart: dict):
             note.floorPosition = line.GetNoteFloorPosition(0.0, note, rpe_chart_obj)
             if note.ishold:
                 note.holdLength = line.GetFloorPosition(0.0, rpe_chart_obj.beat2sec(note.endTime.value), rpe_chart_obj) - note.floorPosition
+                
+    logging.info("Load Chart Object Successfully, fmt = rpe")
     
     return rpe_chart_obj

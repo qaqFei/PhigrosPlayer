@@ -1,3 +1,4 @@
+import logging
 from threading import Thread
 
 import Chart_Objects_Phi
@@ -38,7 +39,7 @@ def FrameData_ProcessExTask(ExTask, eval_func):
     return break_flag
 
 def Load_Chart_Object(phigros_chart: dict):
-    print("Loading Chart Object...")
+    logging.info("Loading Chart Object, fmt = phi")
     phigros_chart_obj = Chart_Objects_Phi.Phigros_Chart(
         formatVersion = phigros_chart.get("formatVersion", 3),
         offset = phigros_chart.get("offset", 0.0),
@@ -128,7 +129,7 @@ def Load_Chart_Object(phigros_chart: dict):
         ]
     )
     
-    print("Finding Chart More Bets...")
+    logging.info("Finding Chart More Bets, fmt = phi")
     note_times = {}
     for note, judgeLine in [(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow]:
         t = note.time * (1.875 / judgeLine.bpm)
@@ -140,5 +141,5 @@ def Load_Chart_Object(phigros_chart: dict):
                 note_times[t] = (True, note)
             note.morebets = True
     
-    print("Load Chart Object Successfully.")
+    logging.info("Load Chart Object Successfully, fmt = phi")
     return phigros_chart_obj
