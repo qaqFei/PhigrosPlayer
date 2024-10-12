@@ -38,7 +38,7 @@ if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
-    logging.error("7z.exe or 7z.dll Not Found.")
+    logging.fatal("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
     
 if not exists("./PhigrosAssets") or not all([

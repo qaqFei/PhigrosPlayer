@@ -38,7 +38,7 @@ if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
-    logging.error("7z.exe or 7z.dll Not Found.")
+    logging.fatal("7z.exe or 7z.dll Not Found.")
     windll.kernel32.ExitProcess(1)
 
 if len(sys.argv) == 1:
@@ -288,10 +288,10 @@ for item in chart_files:
                     logging.warning(f"Unknown Resource Type. Path = {item.replace(f"{temp_dir}\\", "")}, Error = {e}")
                     
 if len(chart_files_dict["charts"]) == 0:
-    logging.error("No Chart File Found.")
+    logging.fatal("No Chart File Found.")
     windll.kernel32.ExitProcess(1)
 if len(chart_files_dict["audio"]) == 0:
-    logging.error("No Audio File Found.")
+    logging.fatal("No Audio File Found.")
     windll.kernel32.ExitProcess(1)
 if len(chart_files_dict["images"]) == 0:
     chart_files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
@@ -316,7 +316,7 @@ elif "META" in chart_json:
     CHART_TYPE = Const.CHART_TYPE.RPE
     render_range_more = False
 else:
-    logging.error("This is what format chart???")
+    logging.fatal("This is what format chart???")
     windll.kernel32.ExitProcess(1)
 
 def LoadChartObject(first: bool = False):
