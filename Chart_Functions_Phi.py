@@ -1,4 +1,3 @@
-import typing
 from threading import Thread
 
 import Chart_Objects_Phi
@@ -34,17 +33,11 @@ def FrameData_ProcessExTask(ExTask, eval_func):
         if ext[0] == "break":
             break_flag = True
         elif ext[0] == "thread-call":
-            Thread(
-                target = eval_func(ext[1]),
-                args = eval_func(ext[2]),
-                daemon = True
-            ).start()
+            Thread(target = eval_func(ext[1]), args = eval_func(ext[2]), daemon = True).start()
         
     return break_flag
 
-def Load_Chart_Object(
-    phigros_chart:dict
-):
+def Load_Chart_Object(phigros_chart: dict):
     print("Loading Chart Object...")
     phigros_chart_obj = Chart_Objects_Phi.Phigros_Chart(
         formatVersion = phigros_chart.get("formatVersion", 3),

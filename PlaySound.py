@@ -1,4 +1,4 @@
-from win32comext.directsound.directsound import DirectSoundCreate,DSBUFFERDESC,IID_IDirectSoundNotify
+from win32comext.directsound.directsound import DirectSoundCreate, DSBUFFERDESC, IID_IDirectSoundNotify
 from struct import unpack
 from pywintypes import WAVEFORMATEX
 from win32event import CreateEvent,WaitForSingleObject
@@ -27,7 +27,6 @@ def _wav_header_unpack(data):
     return datalength, wfx
 
 def Play(data:bytes):
-    "Play a wav file."
     hdr = data[0:44]
 
     sdesc = DSBUFFERDESC()

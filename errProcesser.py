@@ -1,4 +1,5 @@
 import sys
+import threading
 
 def excepthook(etype, value, tb):
     # will be fast to load this module
@@ -27,3 +28,4 @@ def excepthook(etype, value, tb):
         windll.kernel32.ExitProcess(0)
 
 sys.excepthook = excepthook
+threading.excepthook = excepthook

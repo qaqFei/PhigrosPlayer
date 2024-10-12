@@ -4,6 +4,8 @@ import base64
 from random import randint
 from sys import argv
 from threading import Thread
+from os import listdir
+from os.path import isfile
 
 import numba
 import numpy
@@ -368,6 +370,18 @@ def cutAnimationIllImage(im: Image.Image):
         ],
         fill = "#00000000"
     )
+    
+def Get_All_Files(path:str) -> list[str]:
+    if path[-1] == "/" or path[:-1] == "\\":
+        path = path[:-1]
+    path = path.replace("/", "\\")
+    files = []
+    for item in listdir(path):
+        if isfile(f"{path}\\{item}"):
+            files.append(f"{path}\\{item}")
+        else:
+            files += Get_All_Files(f"{path}\\{item}")
+    return files
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))

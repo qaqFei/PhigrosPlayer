@@ -7,13 +7,11 @@ import Const
 import Tool_Functions
 import rpe_easing
 
-def getFloorPosition(line:judgeLine, t:float) -> float:
+def getFloorPosition(line: judgeLine, t: float) -> float:
     if not line.speedEvents: return 0.0
     for speed_event in line.speedEvents:
         if speed_event.startTime <= t <= speed_event.endTime:
-            return speed_event.floorPosition + (
-                t - speed_event.startTime
-            ) * line.T * speed_event.value
+            return speed_event.floorPosition + (t - speed_event.startTime) * line.T * speed_event.value
     last_speed_event = line.speedEvents[-1]
     return last_speed_event.floorPosition + (t - last_speed_event.endTime) * line.T * last_speed_event.value
 
@@ -276,16 +274,13 @@ class Phigros_Chart:
             
         self.note_num = 0
         for judgeLine in self.judgeLineList:
-            #set_master_to_notes
             judgeLine.set_master_to_notes()
             
-            #init_speed_floorposition
             last_speedEvent_floorPosition = 0.0
             for speedEvent in judgeLine.speedEvents:
                 speedEvent.floorPosition = last_speedEvent_floorPosition
                 last_speedEvent_floorPosition += (speedEvent.endTime - speedEvent.startTime) * speedEvent.value * judgeLine.T
 
-            #count
             for note in judgeLine.notesAbove + judgeLine.notesBelow:
                 self.note_num += 1
     
@@ -308,17 +303,10 @@ class FrameRenderTask:
     RenderTasks: list[RenderTask]
     ExTask: list[tuple]
     
-    def __call__(
-        self,
-        func: typing.Callable,
-        *args: typing.Iterable,
-        **kwargs: typing.Mapping[str, typing.Any]
-    ):
+    def __call__(self, func: typing.Callable, *args: typing.Iterable, **kwargs: typing.Mapping[str, typing.Any]):
         self.RenderTasks.append(RenderTask(func, args, kwargs))
     
-    def ExecTask(
-        self
-    ):
+    def ExecTask(self):
         for t in self.RenderTasks:
             t.func(*t.args, **t.kwargs)
         self.RenderTasks.clear()

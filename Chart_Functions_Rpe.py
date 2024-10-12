@@ -1,6 +1,6 @@
 import Chart_Objects_Rpe
 
-def Load_Chart_Object(chart:dict):
+def Load_Chart_Object(chart: dict):
     meta = chart.get("META", {})
     rpe_chart_obj = Chart_Objects_Rpe.Rpe_Chart(
         META = Chart_Objects_Rpe.MetaData(

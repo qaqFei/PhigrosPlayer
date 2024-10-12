@@ -22,12 +22,10 @@ import Chart_Objects_Phi
 import Chart_Functions_Phi
 import Chart_Functions_Rpe
 import Const
-import Find_Files
 import ConsoleWindow
 import Tool_Functions
 import dialog
 import info_loader
-import version
 import ppr_help
 from PhiCore import *
 
@@ -46,11 +44,7 @@ if len(sys.argv) == 1:
     print(HELP)
     windll.kernel32.ExitProcess(0)
     
-version.print_hello()
-Thread(target=version.check_new_version, daemon=True).start()
-
-if "--hideconsole" in sys.argv:
-    ConsoleWindow.Hide()
+ConsoleWindow.Hide() if "--hideconsole" in sys.argv else None
 
 for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_chart_temp_")]:
     item = f"{gettempdir()}\\{item}"
@@ -113,7 +107,7 @@ print("Unpack Chart...")
 popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y >> nul").read()
 
 print("Loading All Files of Chart...")
-chart_files = Find_Files.Get_All_Files(temp_dir)
+chart_files = Tool_Functions.Get_All_Files(temp_dir)
 chart_files_dict = {
     "charts": [],
     "images": [],
