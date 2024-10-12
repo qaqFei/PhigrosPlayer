@@ -235,7 +235,7 @@ class JudgeLine:
         lineText = None
         
         for layer in self.eventLayers:
-            lineAlpha += self.GetEventValue(t, layer.alphaEvents, 0.0 if t >= 0.0 and self.attachUI is not None else -255.0)
+            lineAlpha += self.GetEventValue(t, layer.alphaEvents, 0.0 if (t >= 0.0 or self.attachUI is not None) else -255.0)
             lineRotate += self.GetEventValue(t, layer.rotateEvents, 0.0)
         
         if self.extended:
