@@ -720,8 +720,8 @@ def draw_ui(
         root.run_js_code(
             f"ctx.drawUIText(\
                 '{root.process_code_string_syntax_tostring(acc)}',\
-                {w * 0.9796875 + scoreUI_dx},\
-                {h * 0.0875 + scoreUI_dy},\
+                {w * 0.988 + scoreUI_dx},\
+                {h * (58 / 1080) + (w + h) / 145 / 0.75 * 1.5 + scoreUI_dy},\
                 {scoreUI_rotate},\
                 {scoreUI_scaleX},\
                 {scoreUI_scaleY},\
