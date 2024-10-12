@@ -3,5 +3,7 @@ pywin32
 pygame
 pydub
 numba
-opencv-python
+opencv-python-headless
 numpy
+pywebview
+rjsmin

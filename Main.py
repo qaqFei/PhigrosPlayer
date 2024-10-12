@@ -787,12 +787,12 @@ def PlayerStart():
                     break
                 
                 if CHART_TYPE == Const.CHART_TYPE.PHI:
-                    lfdaot_tasks.update({frame_count:GetFrameRenderTask_Phi(
+                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Phi(
                         frame_count * frame_time,
                         judgeLine_Configs
                     )})
                 elif CHART_TYPE == Const.CHART_TYPE.RPE:
-                    lfdaot_tasks.update({frame_count:GetFrameRenderTask_Rpe(
+                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Rpe(
                         frame_count * frame_time
                     )})
                 
@@ -838,8 +838,8 @@ def PlayerStart():
                 for func_name in dir(root)
             }
             Task_function_mapping.update({
-                "draw_background":draw_background,
-                "draw_ui":draw_ui
+                "draw_background": draw_background,
+                "draw_ui": draw_ui
             })
             for index,Task_data in enumerate(data["data"]):
                 lfdaot_tasks.update({

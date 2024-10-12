@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import rjsmin
 import typing
 import json
 from dataclasses import dataclass
@@ -356,10 +357,14 @@ class FrameTaskRecorder:
             }
             
             for rendertask in task.RenderTasks:
+                args = list(rendertask.args)
+                if rendertask.func.__code__.co_name == "run_js_code":
+                    args[0] = rjsmin.jsmin(args[0])
+                    
                 task_data["render"].append({
-                    "func_name":rendertask.func.__code__.co_name,
-                    "args":list(rendertask.args),
-                    "kwargs":rendertask.kwargs
+                    "func_name": rendertask.func.__code__.co_name,
+                    "args": args,
+                    "kwargs": rendertask.kwargs
                 })
             
             data["data"].append(task_data)
