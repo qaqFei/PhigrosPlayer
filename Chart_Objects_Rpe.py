@@ -235,7 +235,7 @@ class JudgeLine:
         lineText = None
         
         for layer in self.eventLayers:
-            lineAlpha += self.GetEventValue(t, layer.alphaEvents, 0.0)
+            lineAlpha += self.GetEventValue(t, layer.alphaEvents, 0.0 if t >= 0.0 and self.attachUI is not None else -255.0)
             lineRotate += self.GetEventValue(t, layer.rotateEvents, 0.0)
         
         if self.extended:
@@ -243,7 +243,7 @@ class JudgeLine:
             lineScaleY = self.GetEventValue(t, self.extended.scaleYEvents, lineScaleY)
             lineColor = self.GetEventValue(t, self.extended.colorEvents, lineColor)
             lineText = self.GetEventValue(t, self.extended.textEvents, lineText)
-            
+        
         return Tool_Functions.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
     def GetNoteFloorPosition(self, t: float, n: Note, master: Rpe_Chart):
