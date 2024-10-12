@@ -7,7 +7,7 @@ import cv2
 if len(argv) < 3:
     print("video2rpe.py <input video> <output rpe chart>")
     raise SystemExit
-
+json.dumps(ensure_ascii=False, separators=False,sort_keys=True)
 
 w, h = 64, 36
 video = cv2.VideoCapture(argv[1])
