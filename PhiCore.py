@@ -2,7 +2,7 @@ import time
 import typing
 import math
 import logging
-from os import environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = None
+from os import environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
 from dataclasses import dataclass
 from threading import Thread
 
