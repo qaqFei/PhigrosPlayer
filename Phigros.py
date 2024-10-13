@@ -30,7 +30,6 @@ import ConsoleWindow
 import PhiCore
 import Chart_Functions_Phi
 import Chart_Functions_Rpe
-import Chart_Objects_Phi
 import PlaySound
 
 selfdir = dirname(sys.argv[0])
