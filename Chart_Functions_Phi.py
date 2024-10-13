@@ -19,14 +19,6 @@ def Cal_Combo(now_time:float, chart_obj: Chart_Objects_Phi.Phigros_Chart) -> int
                     combo += 1
     return combo
 
-def Update_JudgeLine_Configs(judgeLine_Configs: Chart_Objects_Phi.judgeLine_Configs, now_t: float, w: int, h: int):
-    for judgeLine_cfg in judgeLine_Configs.Configs:
-        judgeLine = judgeLine_cfg.line
-        judgeLine_cfg.time = now_t / judgeLine.T
-        judgeLine_cfg.rotate = judgeLine.get_datavar_rotate(judgeLine_cfg.time)
-        judgeLine_cfg.disappear = judgeLine.get_datavar_disappear(judgeLine_cfg.time)
-        judgeLine_cfg.pos = judgeLine.get_datavar_move(judgeLine_cfg.time, w, h)
-
 def FrameData_ProcessExTask(ExTask, eval_func):
     break_flag = False
     

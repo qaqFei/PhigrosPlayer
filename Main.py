@@ -31,14 +31,12 @@ import info_loader
 import ppr_help
 from PhiCore import *
 
-Kill_PlayThread_Flag = False
-
 selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
-    logging.fatal("7z.exe or 7z.dll Not Found.")
+    logging.fatal("7z.exe or 7z.dll Not Found")
     windll.kernel32.ExitProcess(1)
 
 if len(sys.argv) == 1:
@@ -91,15 +89,15 @@ if "--res" in sys.argv:
 
 if lfdaot and noautoplay:
     noautoplay = False
-    logging.warning("if use --lfdaot, you cannot use --noautoplay.")
+    logging.warning("if use --lfdaot, you cannot use --noautoplay")
 
 if showfps and lfdaot and lfdaot_render_video:
     showfps = False
-    logging.warning("if use --lfdaot-render-video, you cannot use --showfps.")
+    logging.warning("if use --lfdaot-render-video, you cannot use --showfps")
 
 if lfdaot and speed != 1.0:
     speed = 1.0
-    logging.warning("if use --lfdaot, you cannot use --speed.")
+    logging.warning("if use --lfdaot, you cannot use --speed")
 
 logging.info("Init Pygame Mixer...")
 mixer.init()
@@ -288,10 +286,10 @@ for item in chart_files:
                     logging.warning(f"Unknown Resource Type. Path = {item.replace(f"{temp_dir}\\", "")}, Error = {e}")
                     
 if len(chart_files_dict["charts"]) == 0:
-    logging.fatal("No Chart File Found.")
+    logging.fatal("No Chart File Found")
     windll.kernel32.ExitProcess(1)
 if len(chart_files_dict["audio"]) == 0:
-    logging.fatal("No Audio File Found.")
+    logging.fatal("No Audio File Found")
     windll.kernel32.ExitProcess(1)
 if len(chart_files_dict["images"]) == 0:
     chart_files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
@@ -376,7 +374,7 @@ logging.info("Loading Chart Information...")
 ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
 chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(raw_audio_file), basename(chart_image_filepath))
     
-logging.info("Loading Chart Information Successfully.")
+logging.info("Loading Chart Information Successfully")
 logging.info("Inforamtions: ")
 for k,v in chart_information.items():
     logging.info(f"              {k}: {v}")
@@ -637,20 +635,20 @@ def Load_Resource():
                 if exists(shaderPath) and isfile(shaderPath):
                     shaders[shaderName] = open(shaderPath, "r", encoding="utf-8").read()
                 else:
-                    raise Exception(f"Shader {shaderName} not found.")
+                    raise Exception(f"Shader {shaderName} not found")
             except Exception as e:
-                logging.error(f"Load Shader {shaderName} Failed.")
+                logging.error(f"Load Shader {shaderName} Failed")
     except Exception as e:
-        logging.error("Load Other Shaders Failed.")
+        logging.error("Load Other Shaders Failed")
     
     extra["effects"] = list(filter(lambda x: x.get("shader", "") in shaders, extra["effects"]))
     
     # how to load shaders to webgl and use them???
     ... # TODO
     
-    logging.info("Load Shaders Successfully.")
+    logging.info("Load Shaders Successfully")
     
-    logging.info("Load Resource Successfully.")
+    logging.info("Load Resource Successfully")
     return Resource
 
 def WaitLoading_FadeIn():
@@ -684,15 +682,6 @@ def PlayerStart():
     PhiCoreConfigureObject.show_start_time = show_start_time
     updateCoreConfigure()
     now_t = 0
-    if CHART_TYPE == Const.CHART_TYPE.PHI:
-        judgeLine_Configs = Chart_Objects_Phi.judgeLine_Configs(
-            [
-                Chart_Objects_Phi.judgeLine_Config_Item(
-                    line = judgeLine
-                )
-                for judgeLine in chart_obj.judgeLineList
-            ]
-        )
     
     if not lfdaot:
         mixer.music.play()
@@ -700,8 +689,9 @@ def PlayerStart():
     
     if not lfdaot:
         if noautoplay:
-            Thread(target=PlayChart_ThreadFunction, daemon=True).start()
-            while "PhigrosPlayManagerObject" not in globals(): pass # Waiting to load PhigrosPlayManagerObject.
+            playChartThreadEvent, playChartThreadStopEvent = PlayChart_ThreadFunction()
+            playChartThreadEvent.wait()
+            playChartThreadEvent.clear()
             
         play_restart_flag = False
         pause_flag = False
@@ -736,14 +726,9 @@ def PlayerStart():
             
             now_t = time.time() - show_start_time
             if CHART_TYPE == Const.CHART_TYPE.PHI:
-                Task = GetFrameRenderTask_Phi(
-                    now_t,
-                    judgeLine_Configs
-                )
+                Task = GetFrameRenderTask_Phi(now_t)
             elif CHART_TYPE == Const.CHART_TYPE.RPE:
-                Task = GetFrameRenderTask_Rpe(
-                    now_t
-                )
+                Task = GetFrameRenderTask_Rpe(now_t)
                 
             Task.ExecTask()
             
@@ -759,10 +744,8 @@ def PlayerStart():
                 break
             
         if noautoplay:
-            global Kill_PlayThread_Flag
-            Kill_PlayThread_Flag = True
-            updateCoreConfigure()
-            while Kill_PlayThread_Flag: pass
+            playChartThreadStopEvent.set()
+            playChartThreadEvent.wait()
             
         root.run_js_code("window.removeEventListener('keydown', _Noautoplay_Restart);")
         root.run_js_code("window.removeEventListener('keydown', _SpaceClicked);")
@@ -787,14 +770,9 @@ def PlayerStart():
                     break
                 
                 if CHART_TYPE == Const.CHART_TYPE.PHI:
-                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Phi(
-                        frame_count * frame_time,
-                        judgeLine_Configs
-                    )})
+                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Phi(frame_count * frame_time)})
                 elif CHART_TYPE == Const.CHART_TYPE.RPE:
-                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Rpe(
-                        frame_count * frame_time
-                    )})
+                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Rpe(frame_count * frame_time)})
                 
                 frame_count += 1
                 
@@ -856,7 +834,7 @@ def PlayerStart():
                     )
                 })
             if data["meta"]["size"] != [w,h]:
-                logging.warning("The size of the lfdaot file is not the same as the size of the window.")
+                logging.warning("The size of the lfdaot file is not the same as the size of the window")
         
         if not lfdaot_render_video:
             mixer.music.play()
@@ -1025,7 +1003,6 @@ def updateCoreConfigure():
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),
         chart_res = chart_res, clickeffect_randomblock = clickeffect_randomblock,
         clickeffect_randomblock_roundn = clickeffect_randomblock_roundn,
-        Kill_PlayThread_Flag = Kill_PlayThread_Flag,
         LoadSuccess = LoadSuccess,
         enable_clicksound = enable_clicksound, rtacc = rtacc,
         noautoplay = noautoplay, showfps = showfps, lfdaot = lfdaot,

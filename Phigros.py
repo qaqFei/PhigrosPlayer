@@ -38,7 +38,7 @@ if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
-    logging.fatal("7z.exe or 7z.dll Not Found.")
+    logging.fatal("7z.exe or 7z.dll Not Found")
     windll.kernel32.ExitProcess(1)
     
 if not exists("./PhigrosAssets") or not all([
@@ -63,9 +63,9 @@ if not exists("./PhigrosAssets") or not all([
         with open("./PhigrosAssets_tmp/PhigrosAssets.zip", "wb") as f:
             f.write(urllib.request.urlopen(urllib.request.Request(assetUrl, headers={"User-Agent": Const.UAS[random.randint(0, len(Const.UAS) - 1)]})).read())
         
-        logging.info("download finished, extracting...")
+        logging.info("PhigrosAssets download finished, extracting...")
         popen(f".\\7z.exe x .\\PhigrosAssets_tmp\\ -o.\\PhigrosAssets -y >> nul").read()
-        logging.info("extract finished.")
+        logging.info("PhigrosAssets extract finished")
     except Exception as e:
         logging.error(f"download failed: {e}")
         system("pause")
@@ -204,7 +204,7 @@ def initUserAvatar():
         if udAvatar not in assetConfig["avatars"]:
             udAvatar = assetConfig["avatars"][0]
         saveUserData()
-        logging.warning("User avatar not found, reset to default.")
+        logging.warning("User avatar not found, reset to default")
     root.run_js_code(f"{root.get_img_jsvarname("userAvatar")} = {root.get_img_jsvarname(f"avatar_{assetConfig["avatars"].index(getUserData("userdata-userAvatar"))}")};")
 
 def Load_Resource():
@@ -429,7 +429,7 @@ def Load_Resource():
     note_max_height_half = note_max_height / 2
     note_max_size_half = (note_max_width ** 2 + note_max_height ** 2) ** 0.5
     
-    logging.info("Load Resource Successfully.")
+    logging.info("Load Resource Successfully")
     return Resource
 
 def bindEvents():
@@ -3079,7 +3079,7 @@ def chartPlayerRender(
     foregroundFrameRender: typing.Callable[[], typing.Any],
     nextUI: typing.Callable[[], typing.Any]
 ):
-    global show_start_time, Kill_PlayThread_Flag
+    global show_start_time
     
     chart_information["BackgroundDim"] = getUserData("setting-backgroundDim")
     chartJsonData: dict = json.loads(open(chartFile, "r", encoding="utf-8").read())
@@ -3115,17 +3115,6 @@ def chartPlayerRender(
     
     root.load_allimg()
     
-    if CHART_TYPE == Const.CHART_TYPE.PHI:
-        judgeLine_Configs = Chart_Objects_Phi.judgeLine_Configs(
-            [
-                Chart_Objects_Phi.judgeLine_Config_Item(
-                    line = judgeLine
-                )
-                for judgeLine in chart_obj.judgeLineList
-            ]
-        )
-    
-    Kill_PlayThread_Flag = False
     coreConfig = PhiCore.PhiCoreConfigure(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
         root = root, w = w, h = h,
@@ -3142,7 +3131,6 @@ def chartPlayerRender(
         show_start_time = float("nan"), chart_res = {},
         clickeffect_randomblock = True,
         clickeffect_randomblock_roundn = 0.0,
-        Kill_PlayThread_Flag = Kill_PlayThread_Flag,
         LoadSuccess = LoadSuccess,
         enable_clicksound = getUserData("setting-enableClickSound"),
         rtacc = False, noautoplay = True, showfps = "--debug" in sys.argv,
@@ -3159,8 +3147,9 @@ def chartPlayerRender(
     if startAnimation:
         PhiCore.Begin_Animation(False, foregroundFrameRender)
         
-    Thread(target=PhiCore.PlayChart_ThreadFunction, daemon=True).start()
-    while "PhigrosPlayManagerObject" not in globals(): pass
+    playChartThreadEvent, playChartThreadStopEvent = PhiCore.PlayChart_ThreadFunction()
+    playChartThreadEvent.wait()
+    playChartThreadEvent.clear()
         
     show_start_time = time.time()
     coreConfig.show_start_time = show_start_time
@@ -3321,16 +3310,9 @@ def chartPlayerRender(
             if not stoped:
                 now_t = time.time() - show_start_time
                 if CHART_TYPE == Const.CHART_TYPE.PHI:
-                    Task = PhiCore.GetFrameRenderTask_Phi(
-                        now_t,
-                        judgeLine_Configs,
-                        False, False
-                    )
+                    Task = PhiCore.GetFrameRenderTask_Phi(now_t, False, False)
                 elif CHART_TYPE == Const.CHART_TYPE.RPE:
-                    Task = PhiCore.GetFrameRenderTask_Rpe(
-                        now_t,
-                        False, False
-                    )
+                    Task = PhiCore.GetFrameRenderTask_Rpe(now_t, False, False)
                     
                 Task.ExecTask()
                 
@@ -3389,10 +3371,8 @@ def chartPlayerRender(
         
         root.run_js_wait_code()
     
-    Kill_PlayThread_Flag = True
-    coreConfig.Kill_PlayThread_Flag = Kill_PlayThread_Flag
-    PhiCore.CoreConfig(coreConfig)
-    while Kill_PlayThread_Flag: pass
+    playChartThreadStopEvent.set()
+    playChartThreadEvent.wait()
     
 def updateFontSizes():
     global userName_FontSize

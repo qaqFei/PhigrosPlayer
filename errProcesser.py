@@ -28,4 +28,4 @@ def excepthook(etype, value, tb):
         windll.kernel32.ExitProcess(0)
 
 sys.excepthook = excepthook
-threading.excepthook = excepthook
+threading.excepthook = lambda x: excepthook(x.exc_type, x.exc_value, x.exc_traceback)

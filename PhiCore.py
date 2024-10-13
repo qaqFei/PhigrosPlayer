@@ -4,7 +4,7 @@ import math
 import logging
 from os import environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
 from dataclasses import dataclass
-from threading import Thread
+from threading import Thread, Event as TEvent
 
 from pygame import mixer
 from PIL import Image
@@ -44,7 +44,6 @@ class PhiCoreConfigure:
     chart_res: dict[str, tuple[Image.Image,tuple[int, int]]]
     clickeffect_randomblock: bool
     clickeffect_randomblock_roundn: int
-    Kill_PlayThread_Flag: bool
     LoadSuccess: mixer.Sound
     enable_clicksound: bool
     rtacc: bool
@@ -94,8 +93,7 @@ def CoreConfig(config: PhiCoreConfigure):
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
     global chart_res, clickeffect_randomblock
-    global clickeffect_randomblock_roundn
-    global Kill_PlayThread_Flag, LoadSuccess
+    global clickeffect_randomblock_roundn, LoadSuccess
     global enable_clicksound, rtacc, noautoplay
     global showfps, lfdaot, no_mixer_reset_chart_time
     global speed, render_range_more
@@ -123,7 +121,6 @@ def CoreConfig(config: PhiCoreConfigure):
     chart_res = config.chart_res
     clickeffect_randomblock = config.clickeffect_randomblock
     clickeffect_randomblock_roundn = config.clickeffect_randomblock_roundn
-    Kill_PlayThread_Flag = config.Kill_PlayThread_Flag
     LoadSuccess = config.LoadSuccess
     enable_clicksound = config.enable_clicksound
     rtacc = config.rtacc
@@ -138,6 +135,8 @@ def CoreConfig(config: PhiCoreConfigure):
     debug = config.debug
     combotips = config.combotips
     noplaychart = config.noplaychart
+    
+    logging.info("CoreConfig Done")
 
 def CoreConfigEx(config: PhiCoreConfigureEx):
     global infoframe_x, infoframe_y
@@ -169,6 +168,8 @@ def CoreConfigEx(config: PhiCoreConfigureEx):
     chart_charter_text_font_size = config.chart_charter_text_font_size
     chart_illustrator_text = config.chart_illustrator_text
     chart_illustrator_text_font_size = config.chart_illustrator_text_font_size
+    
+    logging.info("CoreConfigEx Done")
 
 drawUI_Default_Kwargs = {
     f"{k}_{k2}": v
@@ -312,8 +313,16 @@ def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perf
         add_code_array = True
     )
         
-def PlayChart_ThreadFunction():
-    global PhigrosPlayManagerObject, Kill_PlayThread_Flag, PlayChart_NowTime
+def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: TEvent|None = None):
+    if not _t:
+        _e, _stope = TEvent(), TEvent()
+        Thread(target=PlayChart_ThreadFunction, args=(True, _e, _stope), daemon=True).start()
+        return _e, _stope
+    
+    _e.set()
+    logging.info("PlayChart Thread Started")
+    
+    global PhigrosPlayManagerObject, PlayChart_NowTime
     PlayChart_NowTime = - float("inf")
     PhigrosPlayManagerObject = PhigrosPlayManager(chart_obj.note_num)
     SETTER("PhigrosPlayManagerObject", PhigrosPlayManagerObject)
@@ -603,13 +612,14 @@ def PlayChart_ThreadFunction():
                     elif note.state == Const.NOTE_STATE.GOOD: PhigrosPlayManagerObject.addEvent("G", note.player_click_offset)
                     else: pass # note state is miss at clicking
             
-        if Kill_PlayThread_Flag:
+        if _stope.is_set():
             root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
             root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
-            Kill_PlayThread_Flag = False
-            SETTER("Kill_PlayThread_Flag", Kill_PlayThread_Flag)
-            return
+            break
         time.sleep(1 / 480)
+       
+    _e.set()
+    logging.info("PlayChartThread End")
         
 def get_stringscore(score:float) -> str:
     score_integer = int(score + 0.5)
@@ -847,21 +857,12 @@ def CheckMusicOffsetAndEnd(now_t: float, Task: Chart_Objects_Phi.FrameRenderTask
 def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
     return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}   
 
-def GetFrameRenderTask_Phi(
-    now_t:float,
-    judgeLine_Configs:Chart_Objects_Phi.judgeLine_Configs,
-    clear: bool = True,
-    rjc: bool = True
-):
-    
-    # Important!!! note 和 note_item 不是同一个东西!!!!!
-    
+def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
     global PlayChart_NowTime
     
     now_t *= speed
     PlayChart_NowTime = now_t
     Task = Chart_Objects_Phi.FrameRenderTask([], [])
-    Chart_Functions_Phi.Update_JudgeLine_Configs(judgeLine_Configs, now_t, w, h)
     if clear: Task(root.clear_canvas, wait_execute = True)
     Task(draw_background)
     if noplaychart: Task.ExTask.append(("break", ))
@@ -877,15 +878,19 @@ def GetFrameRenderTask_Phi(
             add_code_array = True
         )
     
-    for judgeLine_cfg in judgeLine_Configs.Configs:
-        judgeLine:Chart_Objects_Phi.judgeLine = judgeLine_cfg.line
-        this_judgeLine_T = judgeLine.T
-        judgeLine_note_dy = Chart_Objects_Phi.getFloorPosition(judgeLine, judgeLine_cfg.time) * PHIGROS_Y
+    for line in chart_obj.judgeLineList:
+        lineBTime = now_t / line.T
+        
+        lineFloorPosition = Chart_Objects_Phi.getFloorPosition(line, lineBTime) * PHIGROS_Y
+        linePos = line.get_datavar_move(lineBTime, w, h)
+        lineRotate = line.get_datavar_rotate(lineBTime)
+        lineAlpha = line.get_datavar_disappear(lineBTime)
+        
         judgeLine_DrawPos = (
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate, 5.76 * h / 2),
-            *Tool_Functions.rotate_point(*judgeLine_cfg.pos, -judgeLine_cfg.rotate + 180, 5.76 * h / 2)
+            *Tool_Functions.rotate_point(*linePos, -lineRotate, 5.76 * h / 2),
+            *Tool_Functions.rotate_point(*linePos, -lineRotate + 180, 5.76 * h / 2)
         )
-        judgeLine_color = (*((254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), judgeLine_cfg.disappear if not judgeline_notransparent else 1.0)
+        judgeLine_color = (*((254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), lineAlpha if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
         if judgeLine_color[-1] > 0.0:
             if render_range_more:
@@ -908,8 +913,8 @@ def GetFrameRenderTask_Phi(
             if debug:
                 Task(
                     root.create_text,
-                    *Tool_Functions.rotate_point(*judgeLine_cfg.pos, 90 - judgeLine_cfg.rotate - 180, (w + h) / 75),
-                    text = f"{judgeLine.id}",
+                    *Tool_Functions.rotate_point(*linePos, 90 - lineRotate - 180, (w + h) / 75),
+                    text = f"{line.id}",
                     font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
                     textAlign = "center",
                     textBaseline = "middle",
@@ -920,10 +925,10 @@ def GetFrameRenderTask_Phi(
                 
                 Task(
                     root.create_rectangle,
-                    judgeLine_cfg.pos[0] - (w + h) / 250,
-                    judgeLine_cfg.pos[1] - (w + h) / 250,
-                    judgeLine_cfg.pos[0] + (w + h) / 250,
-                    judgeLine_cfg.pos[1] + (w + h) / 250,
+                    linePos[0] - (w + h) / 250,
+                    linePos[1] - (w + h) / 250,
+                    linePos[0] + (w + h) / 250,
+                    linePos[1] + (w + h) / 250,
                     fillStyle = "rgb(238, 130, 238)",
                     wait_execute = True
                 )
@@ -935,9 +940,9 @@ def GetFrameRenderTask_Phi(
                     add_code_array = True
                 )
         
-        def process(notes_list:typing.List[Chart_Objects_Phi.note], t:typing.Literal[1, -1]): # above => t = 1, below => t = -1
+        def process(notes_list: typing.List[Chart_Objects_Phi.note], t: typing.Literal[1, -1]): # above => t = 1, below => t = -1
             for note_item in notes_list:
-                this_note_sectime = note_item.time * this_judgeLine_T
+                this_note_sectime = note_item.time * line.T
                 this_noteitem_clicked = this_note_sectime < now_t
                 this_note_ishold = note_item.type == Const.Note.HOLD
                 
@@ -958,14 +963,14 @@ def GetFrameRenderTask_Phi(
                     continue
                 elif noautoplay and not this_note_ishold and note_item.player_clicked:
                     continue
-                elif not note_item.clicked and (note_item.floorPosition - judgeLine_note_dy / PHIGROS_Y) < -0.001 and note_item.type != Const.Note.HOLD:
+                elif not note_item.clicked and (note_item.floorPosition - lineFloorPosition / PHIGROS_Y) < -0.001 and note_item.type != Const.Note.HOLD:
                     continue
                 
                 note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (
-                        judgeLine_note_dy
+                        lineFloorPosition
                         if not (this_note_ishold and note_item.clicked) else (
                         Chart_Objects_Phi.getFloorPosition(
-                            judgeLine,note_item.time
+                            line, note_item.time
                         ) * PHIGROS_Y + Tool_Functions.linear_interpolation(note_item.hold_endtime - now_t, 0, note_item.hold_length_sec, note_item.hold_length_px, 0)
                     )
                 )
@@ -973,28 +978,24 @@ def GetFrameRenderTask_Phi(
                 if note_now_floorPosition > h * 2 and not render_range_more:
                     continue
                 
-                rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(
-                    *judgeLine_cfg.pos,-judgeLine_cfg.rotate,note_item.positionX * PHIGROS_X
-                )
-                judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) - judgeLine_cfg.rotate
-                x, y = Tool_Functions.rotate_point(
-                    *rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_now_floorPosition
-                )
+                rotatenote_at_judgeLine_pos = Tool_Functions.rotate_point(*linePos, -lineRotate, note_item.positionX * PHIGROS_X)
+                judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) - lineRotate
+                x, y = Tool_Functions.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_now_floorPosition)
                 
                 if this_note_ishold:
                     note_hold_draw_length = note_now_floorPosition + note_item.hold_length_px
-                    holdend_x, holdend_y = Tool_Functions.rotate_point(
-                        *rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_hold_draw_length
-                    )
+                    holdend_x, holdend_y = Tool_Functions.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_hold_draw_length)
+                    
                     if note_item.clicked:
                         holdhead_pos = rotatenote_at_judgeLine_pos
                     else:
                         holdhead_pos = x, y
+                        
                     holdbody_range = (
-                        Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg - 90, Note_width / 2),
-                        Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg - 90, Note_width / 2),
-                        Tool_Functions.rotate_point(holdend_x,holdend_y,judgeLine_to_note_rotate_deg + 90, Note_width / 2),
-                        Tool_Functions.rotate_point(*holdhead_pos,judgeLine_to_note_rotate_deg + 90, Note_width / 2),
+                        Tool_Functions.rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg - 90, Note_width / 2),
+                        Tool_Functions.rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg - 90, Note_width / 2),
+                        Tool_Functions.rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
+                        Tool_Functions.rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
                     )
                     
                 if not render_range_more:
@@ -1102,29 +1103,25 @@ def GetFrameRenderTask_Phi(
                             );",
                             add_code_array = True
                         )
-        process(judgeLine.notesAbove,1)
-        process(judgeLine.notesBelow,-1)
-
+        
+        process(line.notesAbove, 1)
+        process(line.notesBelow, -1)
     
     effect_time = 0.5
     miss_effect_time = 0.2
     bad_effect_time = 0.5
         
     def process_effect(
-        note:Chart_Objects_Phi.note,
-        t:float,
+        note: Chart_Objects_Phi.note,
+        t: float,
         effect_random_blocks,
-        perfect:bool
+        perfect: bool
     ):
         p = (now_t - t * note.master.T) / effect_time
         if not (0.0 <= p <= 1.0): return
-        will_show_effect_pos = judgeLine.get_datavar_move(t, w, h)
-        will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
-        pos = Tool_Functions.rotate_point(
-            *will_show_effect_pos,
-            -will_show_effect_rotate,
-            note.positionX * PHIGROS_X
-        )
+        will_show_effect_pos = line.get_datavar_move(t, w, h)
+        will_show_effect_rotate = line.get_datavar_rotate(t)
+        pos = Tool_Functions.rotate_point(*will_show_effect_pos, -will_show_effect_rotate, note.positionX * PHIGROS_X)
         process_effect_base(*pos, p, effect_random_blocks, perfect, Task)
     
     def process_miss(
@@ -1132,8 +1129,8 @@ def GetFrameRenderTask_Phi(
     ):
         t = now_t / note.master.T
         p = (now_t - note.time * note.master.T) / miss_effect_time
-        will_show_effect_pos = judgeLine.get_datavar_move(t, w, h)
-        will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
+        will_show_effect_pos = line.get_datavar_move(t, w, h)
+        will_show_effect_rotate = line.get_datavar_rotate(t)
         pos = Tool_Functions.rotate_point(
             *will_show_effect_pos,
             -will_show_effect_rotate,
@@ -1167,8 +1164,8 @@ def GetFrameRenderTask_Phi(
     ):
         t = note.player_badtime / note.master.T
         p = (now_t - note.player_badtime) / bad_effect_time
-        will_show_effect_pos = judgeLine.get_datavar_move(t, w, h)
-        will_show_effect_rotate = judgeLine.get_datavar_rotate(t)
+        will_show_effect_pos = line.get_datavar_move(t, w, h)
+        will_show_effect_rotate = line.get_datavar_rotate(t)
         pos = Tool_Functions.rotate_point(
             *will_show_effect_pos,
             -will_show_effect_rotate,
@@ -1202,9 +1199,9 @@ def GetFrameRenderTask_Phi(
             add_code_array = True
         )
         
-    for judgeLine in chart_obj.judgeLineList:
-        for note in judgeLine.notesAbove + judgeLine.notesBelow:
-            note_time = note.time * judgeLine.T
+    for line in chart_obj.judgeLineList:
+        for note in line.notesAbove + line.notesBelow:
+            note_time = note.time * line.T
             note_ishold = note.type == Const.Note.HOLD
             if not note_ishold and note.show_effected:
                 continue
@@ -1227,7 +1224,7 @@ def GetFrameRenderTask_Phi(
                                 if temp_time < now_t and now_t - temp_time <= effect_time:
                                     process_effect(
                                         note,
-                                        temp_time / judgeLine.T,
+                                        temp_time / line.T,
                                         hold_effect_random_blocks,
                                         True
                                     )
@@ -1259,7 +1256,7 @@ def GetFrameRenderTask_Phi(
                                     if temp_time + effect_time <= efct_et:
                                         process_effect(
                                             note,
-                                            temp_time / judgeLine.T,
+                                            temp_time / line.T,
                                             hold_effect_random_blocks,
                                             note.player_holdclickstate == Const.NOTE_STATE.PERFECT
                                         )
@@ -1320,11 +1317,7 @@ def GetFrameRenderTask_Phi(
     if rjc: Task(root.run_js_wait_code)
     return Task
 
-def GetFrameRenderTask_Rpe(
-    now_t:float,
-    clear: bool = True,
-    rjc: bool = True
-):
+def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
     global PlayChart_NowTime
     
     now_t *= speed
