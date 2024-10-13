@@ -12,7 +12,7 @@ import math
 import logging
 from threading import Thread
 from ctypes import windll
-from os import chdir, environ, mkdir, system, popen, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str()
+from os import chdir, environ, mkdir, system, popen, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
 from os.path import exists, abspath, dirname
 from shutil import rmtree
 from tempfile import gettempdir
