@@ -26,7 +26,7 @@
 - [ ] rpe
   - [x] BPMList
   - [ ] META (大部分信息以info文件为准, 不进行读取)
-    - [ ] RPEVersion
+    - [ ] RPEVersion (???, 有影响吗?)
     - [x] background
     - [ ] charter
     - [ ] composer
@@ -42,7 +42,7 @@
     - [x] Texture
     - [ ] bpmfactor (???)
     - [x] father
-    - [ ] isCover
+    - [ ] isCover (???)
     - [x] eventLayers
       - [x] alphaEvents
       - [x] moveXEvents
@@ -51,10 +51,10 @@
       - [x] speedEvents
     - [ ] extended
       - [x] colorEvents
-      - [ ] inclineEvents
+      - [ ] inclineEvents (???)
       - [x] scaleXEvents
       - [x] scaleYEvents
-      - [ ] paintEvents
+      - [ ] paintEvents (???)
       - [x] textEvents
     - [x] notes
       - [x] startTime
@@ -82,9 +82,9 @@
 - 补充
   - [ ] rpe格式中的事件
     - [ ] bezier
-    - [ ] bezierPoints
-    - [ ] easingLeft
-    - [ ] easingRight
+    - [ ] bezierPoints (???)
+    - [ ] easingLeft (???)
+    - [ ] easingRight (???)
     - [x] easingType
     - [x] start
     - [x] end
