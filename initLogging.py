@@ -1,8 +1,6 @@
 import logging
 
 import webview.http
-import webview.http
-import webview.http
 
 logging.basicConfig(
     level = logging.INFO,

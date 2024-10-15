@@ -878,7 +878,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
             add_code_array = True
         )
     
-    for line in chart_obj.judgeLineList:
+    for lineIndex, line in enumerate(chart_obj.judgeLineList):
         lineBTime = now_t / line.T
         
         lineFloorPosition = Chart_Objects_Phi.getFloorPosition(line, lineBTime) * PHIGROS_Y
@@ -914,7 +914,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                 Task(
                     root.create_text,
                     *Tool_Functions.rotate_point(*linePos, 90 - lineRotate - 180, (w + h) / 75),
-                    text = f"{line.id}",
+                    text = f"{lineIndex}",
                     font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
                     textAlign = "center",
                     textBaseline = "middle",

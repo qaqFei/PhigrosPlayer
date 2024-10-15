@@ -32,92 +32,82 @@ def FrameData_ProcessExTask(ExTask, eval_func):
 
 def Load_Chart_Object(phigros_chart: dict):
     logging.info("Loading Chart Object, fmt = phi")
+    
+    fmtVersion = phigros_chart.get("formatVersion", 3)
+    
+    def _loadMoveEvents(es: list[dict]):
+        match fmtVersion:
+            case 1:
+                return [
+                    Chart_Objects_Phi.judgeLineMoveEvent(
+                        startTime = e.get("startTime", -1.0),
+                        endTime = e.get("endTime", -1.0),
+                        start = Tool_Functions.unpack_pos(e.get("start", 0.0))[0] / 880,
+                        end = Tool_Functions.unpack_pos(e.get("end", 0.0))[0] / 880,
+                        start2 = Tool_Functions.unpack_pos(e.get("start", 0.0))[1] / 520,
+                        end2 = Tool_Functions.unpack_pos(e.get("end", 0.0))[1] / 520
+                    ) for e in es
+                ]
+            case 3:
+                return [
+                    Chart_Objects_Phi.judgeLineMoveEvent(
+                        startTime = e.get("startTime", -1.0), endTime = e.get("endTime", -1.0),
+                        start = e.get("start", 0.5), end = e.get("end", 0.5),
+                        start2 = e.get("start2", 0.5), end2 = e.get("end2", 0.5)
+                    ) for e in es
+                ]
+            case _:
+                return [
+                    Chart_Objects_Phi.judgeLineMoveEvent(
+                        startTime = e.get("startTime", -1.0), endTime = e.get("endTime", -1.0),
+                        start = e.get("start", 0.0) + 0.5, end = e.get("end", 0.0) + 0.5,
+                        start2 = e.get("start2", 0.0) + 0.5, end2 = e.get("end2", 0.0) + 0.5
+                    ) for e in es
+                ]
+    
     phigros_chart_obj = Chart_Objects_Phi.Phigros_Chart(
-        formatVersion = phigros_chart.get("formatVersion", 3),
+        formatVersion = fmtVersion,
         offset = phigros_chart.get("offset", 0.0),
         judgeLineList = [
             Chart_Objects_Phi.judgeLine(
-                id = index,
-                bpm = judgeLine_item.get("bpm", float("inf")),
+                bpm = line.get("bpm", -1.0),
                 notesAbove = [
                     Chart_Objects_Phi.note(
-                        type = notesAbove_item.get("type", 1),
-                        time = notesAbove_item.get("time", -1.0),
-                        positionX = notesAbove_item.get("positionX", 0.0),
-                        holdTime = notesAbove_item.get("holdTime", 0.0),
-                        speed = notesAbove_item.get("speed", -1.0),
-                        floorPosition = notesAbove_item.get("floorPosition", -1.0),
-                        id = Tool_Functions.Get_A_New_NoteId(),
-                        by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
-                        effect_random_blocks = Tool_Functions.get_effect_random_blocks(),
+                        type = n.get("type", 1), time = n.get("time", -1.0),
+                        positionX = n.get("positionX", 0.0), holdTime = n.get("holdTime", 0.0),
+                        speed = n.get("speed", -1.0), floorPosition = n.get("floorPosition", -1.0),
                         above = True
-                    )
-                    for notesAbove_item in judgeLine_item.get("notesAbove", [])
+                    ) for n in line.get("notesAbove", [])
                 ],
                 notesBelow = [
                     Chart_Objects_Phi.note(
-                        type = notesBelow_item.get("type", 1),
-                        time = notesBelow_item.get("time", -1.0),
-                        positionX = notesBelow_item.get("positionX", 0.0),
-                        holdTime = notesBelow_item.get("holdTime", 0.0),
-                        speed = notesBelow_item.get("speed", -1.0),
-                        floorPosition = notesBelow_item.get("floorPosition", -1.0),
-                        id = Tool_Functions.Get_A_New_NoteId(),
-                        by_judgeLine_id = Tool_Functions.Get_A_New_NoteId_By_judgeLine(judgeLine_item),
-                        effect_random_blocks = Tool_Functions.get_effect_random_blocks(),
+                        type = n.get("type", 1), time = n.get("time", -1.0),
+                        positionX = n.get("positionX", 0.0), holdTime = n.get("holdTime", 0.0),
+                        speed = n.get("speed", -1.0), floorPosition = n.get("floorPosition", -1.0),
                         above = False
-                    )
-                    for notesBelow_item in judgeLine_item.get("notesBelow", [])
+                    ) for n in line.get("notesBelow", [])
                 ],
                 speedEvents = [
                     Chart_Objects_Phi.speedEvent(
-                        startTime = speedEvent_item.get("startTime", -1.0),
-                        endTime = speedEvent_item.get("endTime", -1.0),
-                        value = speedEvent_item.get("value", 0.0)
-                    )
-                    for speedEvent_item in judgeLine_item.get("speedEvents", [])
+                        startTime = e.get("startTime", -1.0),
+                        endTime = e.get("endTime", -1.0), value = e.get("value", 0.0)
+                    ) for e in line.get("speedEvents", [])
                 ],
-                judgeLineMoveEvents = [
-                    Chart_Objects_Phi.judgeLineMoveEvent(
-                        startTime = judgeLineMoveEvent_item.get("startTime", -1.0),
-                        endTime = judgeLineMoveEvent_item.get("endTime", -1.0),
-                        start = judgeLineMoveEvent_item.get("start", 0.5),
-                        end = judgeLineMoveEvent_item.get("end", 0.5),
-                        start2 = judgeLineMoveEvent_item.get("start2", 0.5),
-                        end2 = judgeLineMoveEvent_item.get("end2", 0.5)
-                    )
-                    for judgeLineMoveEvent_item in judgeLine_item.get("judgeLineMoveEvents", [])
-                ] if len(judgeLine_item_MoveE := judgeLine_item.get("judgeLineMoveEvents", [])) > 0 and "start2" in judgeLine_item_MoveE[0] and "end2" in judgeLine_item_MoveE[0] else [
-                    Chart_Objects_Phi.judgeLineMoveEvent(
-                        startTime = judgeLineMoveEvent_item.get("startTime", -1.0),
-                        endTime = judgeLineMoveEvent_item.get("endTime", -1.0),
-                        start = Tool_Functions.unpack_pos(judgeLineMoveEvent_item.get("start", 0.0))[0] / 880,
-                        end = Tool_Functions.unpack_pos(judgeLineMoveEvent_item.get("end", 0.0))[0] / 880,
-                        start2 = Tool_Functions.unpack_pos(judgeLineMoveEvent_item.get("start", 0.0))[1] / 520,
-                        end2 = Tool_Functions.unpack_pos(judgeLineMoveEvent_item.get("end", 0.0))[1] / 520
-                    )
-                    for judgeLineMoveEvent_item in judgeLine_item.get("judgeLineMoveEvents", [])
-                ],
+                judgeLineMoveEvents = _loadMoveEvents(line.get("judgeLineMoveEvents", [])),
                 judgeLineRotateEvents = [
                     Chart_Objects_Phi.judgeLineRotateEvent(
-                        startTime = judgeLineRotateEvent_item.get("startTime", -1.0),
-                        endTime = judgeLineRotateEvent_item.get("endTime", -1.0),
-                        start = judgeLineRotateEvent_item.get("start", 0.0),
-                        end = judgeLineRotateEvent_item.get("end", 0.0)
-                    )
-                    for judgeLineRotateEvent_item in judgeLine_item.get("judgeLineRotateEvents", [])
+                        startTime = e.get("startTime", -1.0), endTime = e.get("endTime", -1.0),
+                        start = e.get("start", 0.0), end = e.get("end", 0.0)
+                    ) for e in line.get("judgeLineRotateEvents", [])
                 ],
                 judgeLineDisappearEvents = [
                     Chart_Objects_Phi.judgeLineDisappearEvent(
-                        startTime = judgeLineDisappearEvent_item.get("startTime", -1.0),
-                        endTime = judgeLineDisappearEvent_item.get("endTime", -1.0),
-                        start = judgeLineDisappearEvent_item.get("start", 0.0),
-                        end = judgeLineDisappearEvent_item.get("end", 0.0)
-                    )
-                    for judgeLineDisappearEvent_item in judgeLine_item.get("judgeLineDisappearEvents", [])
+                        startTime = e.get("startTime", -1.0), endTime = e.get("endTime", -1.0),
+                        start = e.get("start", 0.0), end = e.get("end", 0.0)
+                    ) for e in line.get("judgeLineDisappearEvents", [])
                 ]
             )
-            for index,judgeLine_item in enumerate(phigros_chart.get("judgeLineList", []))
+            for line in phigros_chart.get("judgeLineList", [])
         ]
     )
     

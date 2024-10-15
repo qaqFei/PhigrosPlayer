@@ -25,10 +25,9 @@ class note:
     holdTime: float
     speed: float
     floorPosition: float
-    effect_random_blocks: tuple[int]
     above: bool
+    effect_random_blocks: tuple[int]|None = None
     id: int|None = None
-    by_judgeLine_id: int|None = None
     clicked: bool = False # this attr mean is "this note click time is <= now time", so if disable autoplay and click time <= now time but user is not click this attr still is true.
     morebets: bool = False
     master: judgeLine|None = None
@@ -49,6 +48,10 @@ class note:
     player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
     player_drag_judge_safe_used: bool = False
     
+    def __post_init__(self):
+        self.id = Tool_Functions.Get_A_New_NoteId()
+        self.effect_random_blocks = Tool_Functions.get_effect_random_blocks()
+    
     def __eq__(self, oth:object):
         if not isinstance(oth, note):
             return NotImplemented
@@ -56,15 +59,6 @@ class note:
 
     def __hash__(self) -> int:
         return self.id
-    
-    def __repr__(self) -> str:
-        note_t = {
-            Const.Note.TAP:"t",
-            Const.Note.DRAG:"d",
-            Const.Note.HOLD:"h",
-            Const.Note.FLICK:"f"
-        }[self.type]
-        return f"{self.master.id}+{self.by_judgeLine_id}{note_t}"
     
     def _init(self, PHIGROS_Y) -> None:
         self.hold_length_sec = self.holdTime * self.master.T
@@ -93,9 +87,7 @@ class note:
     def getNoteClickPos(self, time: float) -> tuple[float, float]:
         linePos = self.master.get_datavar_move(time, 1.0, 1.0)
         lineRotate = self.master.get_datavar_rotate(time)
-        return Tool_Functions.rotate_point(
-            *linePos, - lineRotate, self.positionX * 0.05625
-        )
+        return Tool_Functions.rotate_point(*linePos, - lineRotate, self.positionX * 0.05625)
     
 @dataclass
 class speedEvent:
@@ -151,7 +143,6 @@ class ColorEvent:
 
 @dataclass
 class judgeLine:
-    id: int
     bpm: float
     notesAbove: list[note]
     notesBelow: list[note]
@@ -184,12 +175,6 @@ class judgeLine:
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
         self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)
 
-    def __hash__(self):
-        return self.id
-    
-    def __repr__(self):
-        return f"JudgeLine-{self.id}"
-    
     def set_master_to_notes(self):
         for note in self.notesAbove:
             note.master = self
