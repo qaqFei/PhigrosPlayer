@@ -6,7 +6,9 @@
 - 第三方库: [requirements.txt](./requirements.txt)
 
 ## 谱面兼容
-- [x] `phi`
+<details>
+<summary>展开</summary>
+- [x] phi
   - [x] formatVersion
     - [x] 1
     - [x] 3
@@ -20,7 +22,7 @@
     - [x] judgeLineMoveEvents
     - [x] judgeLineRotateEvents
     - [x] judgeLineDisappearEvents
-- [ ] `rpe`
+- [ ] rpe
   - [x] BPMList
   - [ ] META (大部分信息以info文件为准, 不进行读取)
     - [ ] RPEVersion
@@ -74,10 +76,10 @@
     - [x] zOrder
   - [ ] multiLineString (???)
   - [ ] multiScale (???)
-- [ ] `pec`
+- [ ] pec
   - 读取转化为`rpe`格式, 实测移动事件存在bug
 - 补充
-  - [ ] `rpe`格式中的事件
+  - [ ] rpe格式中的事件
     - [ ] bezier
     - [ ] bezierPoints
     - [ ] easingLeft
@@ -88,6 +90,7 @@
     - [x] startTime
     - [x] endTime
     - [ ] linkgroup (???)
+</details>
 
 ### 声明
 - 此项目仅用于学习交流，请勿用于商业用途
