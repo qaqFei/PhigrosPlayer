@@ -8,6 +8,7 @@
 ## 谱面兼容
 <details>
 <summary>展开</summary>
+
 - [x] phi
   - [x] formatVersion
     - [x] 1
