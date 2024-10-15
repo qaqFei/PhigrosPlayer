@@ -86,18 +86,18 @@ class Note:
     
     def _init(self, master: Rpe_Chart, avgBpm: float):
         self.effect_times = []
-        hold_starttime = master.beat2sec(self.startTime.value)
+        hold_starttime = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
         hold_effect_blocktime = 1 / avgBpm * 30
-        hold_endtime = master.beat2sec(self.endTime.value)
-        self.player_holdjudge_tomanager_time = max(0, master.beat2sec(self.endTime.value) - 0.2)
+        hold_endtime = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
+        self.player_holdjudge_tomanager_time = max(0, master.beat2sec(self.endTime.value, self.masterLine.bpmfactor) - 0.2)
         while True:
             hold_starttime += hold_effect_blocktime
             if hold_starttime >= hold_endtime:
                 break
             self.effect_times.append((hold_starttime, Tool_Functions.get_effect_random_blocks()))
         
-        self.secst = master.beat2sec(self.startTime.value)
-        self.secet = master.beat2sec(self.endTime.value)
+        self.secst = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
+        self.secet = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
         
     def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> tuple[float, float]:
         linePos = line.GetPos(time, master)
@@ -182,6 +182,7 @@ class JudgeLine:
     eventLayers: list[EventLayer]
     extended: Extended|None
     notes: list[Note]
+    bpmfactor: float
     father: int
     zOrder: int
     
@@ -247,14 +248,14 @@ class JudgeLine:
         return Tool_Functions.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
     def GetNoteFloorPosition(self, t: float, n: Note, master: Rpe_Chart):
-        l, r = master.beat2sec(t), master.beat2sec(n.startTime.value)
+        l, r = master.beat2sec(t, self.bpmfactor), master.beat2sec(n.startTime.value, self.bpmfactor)
         return self.GetFloorPosition(*sorted((l, r)), master) * (-1.0 if l > r else 1.0)
     
     def GetFloorPosition(self, l: float, r: float, master: Rpe_Chart):
         fp = 0.0
         for layer in self.eventLayers:
             for e in layer.speedEvents:
-                st, et = master.beat2sec(e.startTime.value), master.beat2sec(e.endTime.value)
+                st, et = master.beat2sec(e.startTime.value, self.bpmfactor), master.beat2sec(e.endTime.value, self.bpmfactor)
                 if l <= st <= r <= et:
                     v1, v2 = st, r
                 elif st <= l <= et <= r:
@@ -274,7 +275,7 @@ class JudgeLine:
         return fp * 120 / 900
 
     def GetHoldLength(self, t: float, n: Note, master: Rpe_Chart):
-        sect = master.beat2sec(n.endTime.value) - master.beat2sec(n.startTime.value)
+        sect = master.beat2sec(n.endTime.value, self.bpmfactor) - master.beat2sec(n.startTime.value, self.bpmfactor)
         speed = self.GetSpeed(t)
         return sect * speed * 120 / 900
 
@@ -299,44 +300,46 @@ class Rpe_Chart:
         except ZeroDivisionError: avgBpm = 140.0
         for line in self.JudgeLineList:
             for note in line.notes:
-                note._init(self, avgBpm)
                 note.masterLine = line
+                note._init(self, avgBpm)
         
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
     
     @cache
-    def sec2beat(self, t: float):
+    def sec2beat(self, t: float, bpmfactor: float):
         beat = 0.0
         for i, e in enumerate(self.BPMList):
+            bpmv = e.bpm * bpmfactor
             if i != len(self.BPMList) - 1:
                 et_beat = self.BPMList[i + 1].startTime.value - e.startTime.value
-                et_sec = et_beat * (60 / e.bpm)
+                et_sec = et_beat * (60 / bpmv)
                 
                 if t >= et_sec:
                     beat += et_beat
                     t -= et_sec
                 else:
-                    beat += t / (60 / e.bpm)
+                    beat += t / (60 / bpmv)
                     break
             else:
-                beat += t / (60 / e.bpm)
+                beat += t / (60 / bpmv)
         return beat
     
     @cache
-    def beat2sec(self, t: float):
+    def beat2sec(self, t: float, bpmfactor: float):
         sec = 0.0
         for i, e in enumerate(self.BPMList):
+            bpmv = e.bpm * bpmfactor
             if i != len(self.BPMList) - 1:
                 et_beat = self.BPMList[i + 1].startTime.value - e.startTime.value
                 
                 if t >= et_beat:
-                    sec += et_beat * (60 / e.bpm)
+                    sec += et_beat * (60 / bpmv)
                     t -= et_beat
                 else:
-                    sec += t * (60 / e.bpm)
+                    sec += t * (60 / bpmv)
                     break
             else:
-                sec += t * (60 / e.bpm)
+                sec += t * (60 / bpmv)
         return sec
 
     def __hash__(self) -> int:

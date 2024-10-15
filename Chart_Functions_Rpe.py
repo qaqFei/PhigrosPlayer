@@ -31,6 +31,7 @@ def Load_Chart_Object(chart: dict):
                 isCover = judgeLine_item.get("isCover", 1),
                 Texture = judgeLine_item.get("Texture", "line.png"),
                 attachUI = judgeLine_item.get("attachUI", None),
+                bpmfactor = judgeLine_item.get("bpmfactor", 1.0),
                 father = judgeLine_item.get("father", -1),
                 zOrder = judgeLine_item.get("zOrder", 0),
                 eventLayers = [
@@ -202,7 +203,7 @@ def Load_Chart_Object(chart: dict):
         for note in line.notes:
             note.floorPosition = line.GetNoteFloorPosition(0.0, note, rpe_chart_obj)
             if note.ishold:
-                note.holdLength = line.GetFloorPosition(0.0, rpe_chart_obj.beat2sec(note.endTime.value), rpe_chart_obj) - note.floorPosition
+                note.holdLength = line.GetFloorPosition(0.0, rpe_chart_obj.beat2sec(note.endTime.value, line.bpmfactor), rpe_chart_obj) - note.floorPosition
                 
     logging.info("Load Chart Object Successfully, fmt = rpe")
     

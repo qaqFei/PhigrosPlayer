@@ -40,7 +40,7 @@
     - [x] Group (谱面播放没用)
     - [x] Name (谱面播放没用)
     - [x] Texture
-    - [ ] bpmfactor (???)
+    - [x] bpmfactor (?, 按照字母意思: bpm速率进行处理)
     - [x] father
     - [ ] isCover (???)
     - [x] eventLayers

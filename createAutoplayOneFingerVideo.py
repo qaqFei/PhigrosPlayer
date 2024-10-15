@@ -59,17 +59,17 @@ elif isinstance(chartObj, Chart_Objects_Rpe.Rpe_Chart): # eq else
     for line in chartObj.JudgeLineList:
         for note in line.notes:
             moveDatas.append({
-                "time": chartObj.beat2sec(note.startTime.value),
+                "time": chartObj.beat2sec(note.startTime.value, line.bpmfactor),
                 "pos": note.getNoteClickPos(note.startTime.value, chartObj, line)
             })
             
             if note.phitype == Const.Note.HOLD:
-                dw = chartObj.sec2beat(1 / 12.5)
+                dw = chartObj.sec2beat(1 / 12.5, line.bpmfactor)
                 ht = note.startTime.value
                 while ht < note.endTime.value:
                     ht += dw
                     moveDatas.append({
-                        "time": chartObj.beat2sec(ht),
+                        "time": chartObj.beat2sec(ht, line.bpmfactor),
                         "pos": note.getNoteClickPos(ht, chartObj, line)
                     })
             

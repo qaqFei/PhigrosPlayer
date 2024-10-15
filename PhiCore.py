@@ -439,7 +439,7 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
                         return
                     
                     n.player_badtime = PlayChart_NowTime
-                    n.player_badtime_beat = chart_obj.sec2beat(n.player_badtime)
+                    n.player_badtime_beat = chart_obj.sec2beat(n.player_badtime, n.masterLine.bpmfactor)
                     n.player_badjudge_floorp = n.floorPosition - n.masterLine.playingFloorPosition
                     n.state = Const.NOTE_STATE.BAD
                     PhigrosPlayManagerObject.addEvent("B")
@@ -1328,11 +1328,11 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
     if noplaychart: Task.ExTask.append(("break", ))
     
     now_t -= chart_obj.META.offset / 1000
-    beatTime = chart_obj.sec2beat(now_t)
     attachUIData = {}
     
     for line_index, line in sorted(enumerate(chart_obj.JudgeLineList), key = lambda x: x[1].zOrder):
-        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t), (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
+        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t, line.bpmfactor), (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
+        beatTime = chart_obj.sec2beat(now_t, line.bpmfactor)
         if judgeline_notransparent: lineAlpha = 1.0
         linePos = (linePos[0] * w, linePos[1] * h)
         judgeLine_DrawPos = (
@@ -1569,7 +1569,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
         effect_random_blocks,
         perfect: bool
     ):
-        p = (now_t - chart_obj.beat2sec(t)) / effect_time
+        p = (now_t - chart_obj.beat2sec(t, note.masterLine.bpmfactor)) / effect_time
         if not (0.0 <= p <= 1.0): return
         linePos = Tool_Functions.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
         lineRotate = sum([line.GetEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
@@ -1583,7 +1583,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
     def process_miss(
         note:Chart_Objects_Rpe.Note
     ):
-        t = chart_obj.sec2beat(now_t)
+        t = chart_obj.sec2beat(now_t, note.masterLine.bpmfactor)
         p = (now_t - note.secst) / miss_effect_time
         linePos = Tool_Functions.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
         lineRotate = sum([line.GetEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
@@ -1667,14 +1667,14 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                         note.show_effected = True
                     
                     if note.ishold:
-                        efct_et = chart_obj.beat2sec(note.endTime.value) + effect_time
+                        efct_et = chart_obj.beat2sec(note.endTime.value, line.bpmfactor) + effect_time
                         if efct_et >= now_t:
                             for temp_time, hold_effect_random_blocks in note.effect_times:
                                 if temp_time < now_t:
                                     if now_t - temp_time <= effect_time:
                                         process_effect(
                                             note,
-                                            chart_obj.sec2beat(temp_time),
+                                            chart_obj.sec2beat(temp_time, note.masterLine.bpmfactor),
                                             hold_effect_random_blocks,
                                             True
                                         )
@@ -1684,7 +1684,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                         if now_t - (note.secst - note.player_click_offset) <= effect_time:
                             process_effect(
                                 note,
-                                chart_obj.sec2beat(note.secst - note.player_click_offset),
+                                chart_obj.sec2beat(note.secst - note.player_click_offset, note.masterLine.bpmfactor),
                                 note.effect_random_blocks,
                                 note.state == Const.NOTE_STATE.PERFECT if not note.ishold else note.player_holdclickstate == Const.NOTE_STATE.PERFECT
                             )
@@ -1706,7 +1706,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                                     if temp_time + effect_time <= efct_et:
                                         process_effect(
                                             note,
-                                            chart_obj.sec2beat(temp_time),
+                                            chart_obj.sec2beat(temp_time, note.masterLine.bpmfactor),
                                             hold_effect_random_blocks,
                                             note.player_holdclickstate == Const.NOTE_STATE.PERFECT
                                         )
