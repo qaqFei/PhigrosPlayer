@@ -296,6 +296,7 @@ def Load_Resource():
         "PUIRetry": Image.open("./Resources/PUIRetry.png"),
         "PUIResume": Image.open("./Resources/PUIResume.png"),
         "edit": Image.open("./Resources/edit.png"),
+        "close": Image.open("./Resources/close.png"),
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -341,6 +342,7 @@ def Load_Resource():
     root.reg_img(Resource["PUIRetry"], "PUIRetry")
     root.reg_img(Resource["PUIResume"], "PUIResume")
     root.reg_img(Resource["edit"], "edit")
+    root.reg_img(Resource["close"], "close")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -1749,6 +1751,13 @@ def settingRender():
         # 编辑用户头像
         if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editAvatarRect) and editingUserData and not showAvatars:
             showAvatars, showAvatarsSt = True, time.time()
+
+        # 编辑用户头像 - 关闭
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, (
+            w * 0.9078125 - (w + h) * 0.014 / 2, h * (225 / 1080) - (w + h) * 0.014 / 2,
+            w * 0.9078125 + (w + h) * 0.014 / 2, h * (225 / 1080) + (w + h) * 0.014 / 2
+        )) and showAvatars:
+            showAvatars, showAvatarsSt = False, time.time()
         
         # 音频问题疑难解答
         if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[0]) and inSettingUI:
@@ -2337,12 +2346,69 @@ def settingRender():
             _strokeRect(editIntroductionRect)
         
         def _drawChooseDialog(p: float, text: str):
-            p = 1.0 - (1.0 - p) ** 20
             top = h - (905 / 1080) * h * p
+            
+            settingShadowRect = Const.PHIGROS_SETTING_SHADOW_XRECT_MAP[Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT]
+            settingShadowDPower = Tool_Functions.getDPower((settingShadowRect[1] - settingShadowRect[0]) * w, h, 75)
+            settingShadowDWidth = (settingShadowRect[1] - settingShadowRect[0]) * w * settingShadowDPower
+            chooseDialogLeftX = settingShadowRect[0] * w
+            chooseDialogRightX = settingShadowRect[1] * w - settingShadowDWidth + settingShadowDWidth * (h - top) / h
+            chooseDialogRect = tuple(map(int, (
+                chooseDialogLeftX, top,
+                chooseDialogRightX, h,
+            )))
+            
+            root.run_js_code(
+                f"ctx.save(); ctx.clipDiagonalRectangle(\
+                    {",".join(map(str, chooseDialogRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(chooseDialogRect), 75)},\
+                );",
+                add_code_array = True
+            )
+            drawBackground()
+            root.run_js_code("ctx.restore();", add_code_array=True)
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleNoFix(\
+                    {",".join(map(str, chooseDialogRect))},\
+                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(chooseDialogRect), 75)},\
+                    'rgba(0, 0, 0, 0.65)'\
+                );",
+                add_code_array = True
+            )
+            
+            textX = settingShadowRect[0] * w + w * 0.15625
+            textY = top + h * (53 / 1080)
+            root.create_text(
+                textX, textY,
+                text,
+                font = f"{(w + h) / 75}px PhigrosFont",
+                textAlign = "left",
+                textBaseline = "middle",
+                fillStyle = "rgb(255, 255, 255)",
+                wait_execute = True
+            )
+            
+            closeButtonCenterPoint = (
+                chooseDialogRightX - w * 0.0421875,
+                top + h * (50 / 1080)
+            )
+            closeButtonSize = (w + h) * 0.014
+            root.run_js_code(
+                f"ctx.drawImage(\
+                    {root.get_img_jsvarname("close")},\
+                    {closeButtonCenterPoint[0] - closeButtonSize / 2}, {closeButtonCenterPoint[1] - closeButtonSize / 2},\
+                    {closeButtonSize}, {closeButtonSize}\
+                );",
+                add_code_array = True
+            )
         
         if showAvatars:
             p = Tool_Functions.fixOutofRangeP((time.time() - showAvatarsSt) / 1.25)
-            _drawChooseDialog(p, "选择头像")
+            _drawChooseDialog(1.0 - (1.0 - p) ** 12, "选择头像")
+        elif not showAvatars and time.time() - showAvatarsSt <= 1.25:
+            p = (time.time() - showAvatarsSt) / 1.25
+            _drawChooseDialog((p - 1.0) ** 12, "选择头像")
         
         root.run_js_code(
             f"ctx.restore();",

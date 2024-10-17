@@ -402,6 +402,12 @@
         this.lineTo(x0 + (x1 - x0) * power, y0);
     }
 
+    CanvasRenderingContext2D.prototype.clipDiagonalRectangle = function(x0, y0, x1, y1, power) {
+        this.beginPath();
+        this._diagonalRectangle(x0, y0, x1, y1, power);
+        this.clip();
+    }
+
     CanvasRenderingContext2D.prototype.clipRect = function(x0, y0, x1, y1) {
         this.beginPath();
         this.rect(x0, y0, x1 - x0, y1 - y0);
