@@ -2377,7 +2377,7 @@ def settingRender():
                 add_code_array = True
             )
             
-            textX = settingShadowRect[0] * w + w * 0.15625
+            textX = chooseDialogLeftX + settingShadowDWidth * (h - top) / h + w * 0.015625
             textY = top + h * (53 / 1080)
             root.create_text(
                 textX, textY,
