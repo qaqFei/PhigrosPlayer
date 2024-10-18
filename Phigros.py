@@ -1603,11 +1603,12 @@ def settingRender():
     CalibrationClickEffectLines = []
     playSettingDx, accountAndCountSettingDx, otherSettingDx = 0.0, 0.0, 0.0
     editUserNameRect, editIntroductionRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
-    editAvatarRect = (0.0, 0.0, 0.0, 0.0)
+    editAvatarRect, editBackgroundRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     ShowOpenSource, ShowOpenSourceSt = False, float("nan")
     CloseOpenSource, CloseOpenSourceSt = False, float("nan")
     showAvatars, showAvatarsSt = False, float("nan")
+    showBackgrounds, showBackgroundsSt = False, float("nan")
     settingUIOpenSourceLicenseSlideControler.maxValueY = root.run_js_code(
         f"ctx.drawRectMultilineText(\
             -{w}, -{h}, 0, 0,\
@@ -1658,6 +1659,7 @@ def settingRender():
         nonlocal CloseOpenSource, CloseOpenSourceSt
         nonlocal editingUserData
         nonlocal showAvatars, showAvatarsSt
+        nonlocal showBackgrounds, showBackgroundsSt
         
         # 游玩
         if Tool_Functions.InRect(x, y, (
@@ -1705,11 +1707,11 @@ def settingRender():
         if Tool_Functions.InRect(x + accountAndCountSettingDx, y, (
             w * 0.85625, h * (181 / 1080),
             w * 0.921875, h * (220 / 1080)
-        )) and not showAvatars:
+        )) and not (showAvatars or showBackgrounds):
             editingUserData = not editingUserData
         
         # 编辑用户名字
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editUserNameRect) and editingUserData and not showAvatars:
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editUserNameRect) and editingUserData and not (showAvatars or showBackgrounds):
             newName = root.run_js_code(f"prompt('请输入新名字', {root.process_code_string_syntax_tocode(getUserData("userdata-userName"))});")
             if newName is not None:
                 setUserData("userdata-userName", newName)
@@ -1717,7 +1719,7 @@ def settingRender():
                 saveUserData(userData)
         
         # 编辑用户介绍
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editIntroductionRect) and editingUserData and not showAvatars:
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editIntroductionRect) and editingUserData and not (showAvatars or showBackgrounds):
             newName = root.run_js_code(f"prompt('请输入新介绍 (输入\"\\\\n\"可换行)', {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction").replace("\n", "\\n"))});")
             if newName is not None:
                 setUserData("userdata-selfIntroduction", newName.replace("\\n", "\n"))
@@ -1725,15 +1727,20 @@ def settingRender():
                 saveUserData(userData)
         
         # 编辑用户头像
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editAvatarRect) and editingUserData and not showAvatars:
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editAvatarRect) and editingUserData and not (showAvatars or showBackgrounds):
             showAvatars, showAvatarsSt = True, time.time()
+        
+        # 编辑用户背景
+        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editBackgroundRect) and editingUserData and not (showAvatars or showBackgrounds):
+            showBackgrounds, showBackgroundsSt = True, time.time()
 
-        # 编辑用户头像 - 关闭
+        # 编辑用户头像/背景 - 关闭
         if Tool_Functions.InRect(x + accountAndCountSettingDx, y, (
             w * 0.9078125 - (w + h) * 0.014 / 2, h * (225 / 1080) - (w + h) * 0.014 / 2,
             w * 0.9078125 + (w + h) * 0.014 / 2, h * (225 / 1080) + (w + h) * 0.014 / 2
-        )) and showAvatars:
-            showAvatars, showAvatarsSt = False, time.time()
+        )) and (showAvatars or showBackgrounds):
+            if showAvatars: showAvatars, showAvatarsSt = False, time.time()
+            if showBackgrounds: showBackgrounds, showBackgroundsSt = False, time.time()
         
         # 音频问题疑难解答
         if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[0]) and inSettingUI:
@@ -1970,7 +1977,7 @@ def settingRender():
     
     def drawAccountAndCountSetting(dx: float, alpha: float):
         nonlocal editUserNameRect, editIntroductionRect
-        nonlocal editAvatarRect
+        nonlocal editAvatarRect, editBackgroundRect
         
         if alpha == 0.0: return
         
@@ -2385,6 +2392,13 @@ def settingRender():
         elif not showAvatars and time.time() - showAvatarsSt <= 1.25:
             p = (time.time() - showAvatarsSt) / 1.25
             _drawChooseDialog((p - 1.0) ** 12, "选择头像")
+        
+        if showBackgrounds:
+            p = Tool_Functions.fixOutofRangeP((time.time() - showBackgroundsSt) / 1.25)
+            _drawChooseDialog(1.0 - (1.0 - p) ** 12, "选择背景")
+        elif not showBackgrounds and time.time() - showBackgroundsSt <= 1.25:
+            p = (time.time() - showBackgroundsSt) / 1.25
+            _drawChooseDialog((p - 1.0) ** 12, "选择背景")
         
         root.run_js_code(
             f"ctx.restore();",
