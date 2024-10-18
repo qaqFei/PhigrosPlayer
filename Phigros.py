@@ -1,7 +1,6 @@
 import errProcesser as _
 import initLogging as _
 
-import urllib.request
 import webbrowser
 import typing
 import random
@@ -46,32 +45,9 @@ if not exists("./PhigrosAssets") or not all([
         "chapters.json"
     ]
 ]):
-    logging.info("PhigrosAssets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
-    logging.info("downloading from gitmirror...")
-    assetType = "development" if "--assets-type" not in sys.argv else sys.argv[sys.argv.index("--assets-type") + 1]
-    assetUrl = f"https://raw.gitmirror.com/qaqFei/PhigrosPlayer_PhigrosAssets/main/assets/{assetType}"
-    
-    try: rmtree("./PhigrosAssets_tmp")
-    except FileNotFoundError: pass
-    try: mkdir("./PhigrosAssets_tmp")
-    except FileExistsError: pass
-    try: mkdir("./PhigrosAssets")
-    except FileExistsError: pass
-    
-    try:
-        with open("./PhigrosAssets_tmp/PhigrosAssets.zip", "wb") as f:
-            f.write(urllib.request.urlopen(urllib.request.Request(assetUrl, headers={"User-Agent": Const.UAS[random.randint(0, len(Const.UAS) - 1)]})).read())
-        
-        logging.info("PhigrosAssets download finished, extracting...")
-        popen(f".\\7z.exe x .\\PhigrosAssets_tmp\\ -o.\\PhigrosAssets -y >> nul").read()
-        logging.info("PhigrosAssets extract finished")
-    except Exception as e:
-        logging.error(f"download failed: {e}")
-        system("pause")
-        windll.kernel32.ExitProcess(0)
-
-try: rmtree("./PhigrosAssets_tmp")
-except Exception: pass
+    logging.error("PhigrosAssets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
+    system("pause")
+    windll.kernel32.ExitProcess(0)
 
 if sys.argv[0].endswith(".exe"):
     ConsoleWindow.Hide()
