@@ -5,5 +5,5 @@ pydub
 numba
 opencv-python-headless
 numpy
-pywebview
+pywebview==5.2
 rjsmin
