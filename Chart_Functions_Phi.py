@@ -23,10 +23,11 @@ def FrameData_ProcessExTask(ExTask, eval_func):
     break_flag = False
     
     for ext in ExTask:
-        if ext[0] == "break":
-            break_flag = True
-        elif ext[0] == "thread-call":
-            Thread(target = eval_func(ext[1]), args = eval_func(ext[2]), daemon = True).start()
+        match ext[0]:
+            case "break":
+                break_flag = True
+            case "call":
+                eval_func(ext[1])(*eval_func(ext[2]))
         
     return break_flag
 

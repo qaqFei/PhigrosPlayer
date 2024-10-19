@@ -1,11 +1,11 @@
-from win32comext.directsound.directsound import DirectSoundCreate, DSBUFFERDESC, IID_IDirectSoundNotify
+import math
+from threading import Thread
 from struct import unpack
+
+import win32comext.directsound.directsound as ds
+import win32event as w32e
 from pywintypes import WAVEFORMATEX
-from win32event import CreateEvent,WaitForSingleObject
 
-from functools import cache
-
-@cache
 def _wav_header_unpack(data):
     (
         format,
@@ -26,19 +26,39 @@ def _wav_header_unpack(data):
     wfx.wBitsPerSample = bitspersample
     return datalength, wfx
 
-def Play(data:bytes):
-    hdr = data[0:44]
+class directSound:
+    def __init__(self, data: bytes):
+        self._hdr = data[0:44]
+        self._bufdata = data[44:]
+        self._sdesc = ds.DSBUFFERDESC()
+        self._sdesc.dwBufferBytes, self._sdesc.lpwfxFormat = _wav_header_unpack(self._hdr)
+        self._sdesc.dwFlags = ds.DSBCAPS_CTRLVOLUME | ds.DSBCAPS_CTRLPOSITIONNOTIFY | ds.DSBCAPS_GLOBALFOCUS
+        self._volume = 0 # -10000 ~ 0
+        
+        self.set_volume(0.5)
+        
+    def _play(self):
+        event = w32e.CreateEvent(None, 0, 0, None)
+        dxs = ds.DirectSoundCreate(None, None)
+        dxs.SetCooperativeLevel(None, ds.DSSCL_PRIORITY)
+        
+        buffer = dxs.CreateSoundBuffer(self._sdesc, None)
+        buffer.QueryInterface(ds.IID_IDirectSoundNotify).SetNotificationPositions((-1, event))
+        buffer.Update(0, self._bufdata)
+        buffer.SetVolume(self._volume)
+        buffer.Play(0)
+        return event, buffer
 
-    sdesc = DSBUFFERDESC()
-    sdesc.dwBufferBytes,sdesc.lpwfxFormat = _wav_header_unpack(hdr)
-    sdesc.dwFlags=16640
-
-    DirectSound = DirectSoundCreate(None, None)
-    DirectSound.SetCooperativeLevel(None, 2)
-    event = CreateEvent(None, 0, 0, None)
-
-    buffer = DirectSound.CreateSoundBuffer(sdesc, None)
-    buffer.QueryInterface(IID_IDirectSoundNotify).SetNotificationPositions((-1, event))
-    buffer.Update(0, data[44:])
-    buffer.Play(0)
-    WaitForSingleObject(event, -1)
+    def _wait_event(self, e: int):
+        w32e.WaitForSingleObject(e, -1)
+    
+    def set_volume(self, v: float):
+        self._volume = int(-10000 if v <= 1e-5 else (0 if v >= 1.0 else 2000 * math.log10(v)))
+    
+    def play(self, wait: bool = False):
+        event, buffer = self._play()
+        waitt = Thread(target=lambda: (self._wait_event(event), buffer), daemon=True) # keep buffer alive
+        waitt.start()
+        
+        if wait:
+            waitt.join()

@@ -234,10 +234,10 @@ def Load_Resource():
             "F": Image.open("./Resources/Levels/F.png")
         },
         "Note_Click_Audio":{
-            "Tap": loadAudio("./Resources/Note_Click_Audio/Tap.wav"),
-            "Drag": loadAudio("./Resources/Note_Click_Audio/Drag.wav"),
-            "Hold": loadAudio("./Resources/Note_Click_Audio/Hold.wav"),
-            "Flick": loadAudio("./Resources/Note_Click_Audio/Flick.wav")
+            "Tap": PlaySound.directSound(loadAudio("./Resources/Note_Click_Audio/Tap.wav")),
+            "Drag": PlaySound.directSound(loadAudio("./Resources/Note_Click_Audio/Drag.wav")),
+            "Hold": PlaySound.directSound(loadAudio("./Resources/Note_Click_Audio/Hold.wav")),
+            "Flick": PlaySound.directSound(loadAudio("./Resources/Note_Click_Audio/Flick.wav"))
         },
         "logoipt": Image.open("./Resources/logoipt.png"),
         "warning": Image.open("./Resources/Start.png"),
@@ -263,7 +263,7 @@ def Load_Resource():
         "bilibili": Image.open("./Resources/bilibili.png"),
         "taptap": Image.open("./Resources/taptap.png"),
         "checked": Image.open("./Resources/checked.png"),
-        "CalibrationHit": mixer.Sound("./Resources/CalibrationHit.wav"),
+        "CalibrationHit": PlaySound.directSound(loadAudio("./Resources/CalibrationHit.wav")),
         "Button_Left": Image.open("./Resources/Button_Left.png"),
         "Retry": Image.open("./Resources/Retry.png"),
         "Pause": mixer.Sound("./Resources/Pause.wav"),
@@ -1695,7 +1695,7 @@ def settingRender():
             _setSettingState(Const.PHIGROS_SETTING_STATE.OTHER)
         
         # 校准延迟点击扩散的线条
-        if Tool_Functions.InRect(x + playSettingDx, y, (
+        if settingState.atis_p and Tool_Functions.InRect(x, y, (
             w * 0.6015625, 0.0,
             w, h
         )) and inSettingUI:
@@ -1704,14 +1704,14 @@ def settingRender():
                 CalibrationClickEffectLines.append((time.time(), mixer_pos))
         
         # 账号与统计 - 编辑
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, (
+        if settingState.atis_a and Tool_Functions.InRect(x, y, (
             w * 0.85625, h * (181 / 1080),
             w * 0.921875, h * (220 / 1080)
         )) and not (showAvatars or showBackgrounds):
             editingUserData = not editingUserData
         
         # 编辑用户名字
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editUserNameRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and Tool_Functions.InRect(x, y, editUserNameRect) and editingUserData and not (showAvatars or showBackgrounds):
             newName = root.run_js_code(f"prompt('请输入新名字', {root.process_code_string_syntax_tocode(getUserData("userdata-userName"))});")
             if newName is not None:
                 setUserData("userdata-userName", newName)
@@ -1719,7 +1719,7 @@ def settingRender():
                 saveUserData(userData)
         
         # 编辑用户介绍
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editIntroductionRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and Tool_Functions.InRect(x, y, editIntroductionRect) and editingUserData and not (showAvatars or showBackgrounds):
             newName = root.run_js_code(f"prompt('请输入新介绍 (输入\"\\\\n\"可换行)', {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction").replace("\n", "\\n"))});")
             if newName is not None:
                 setUserData("userdata-selfIntroduction", newName.replace("\\n", "\n"))
@@ -1727,15 +1727,15 @@ def settingRender():
                 saveUserData(userData)
         
         # 编辑用户头像
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editAvatarRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and Tool_Functions.InRect(x, y, editAvatarRect) and editingUserData and not (showAvatars or showBackgrounds):
             showAvatars, showAvatarsSt = True, time.time()
         
         # 编辑用户背景
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, editBackgroundRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and Tool_Functions.InRect(x, y, editBackgroundRect) and editingUserData and not (showAvatars or showBackgrounds):
             showBackgrounds, showBackgroundsSt = True, time.time()
 
         # 编辑用户头像/背景 - 关闭
-        if Tool_Functions.InRect(x + accountAndCountSettingDx, y, (
+        if settingState.atis_a and Tool_Functions.InRect(x, y, (
             w * 0.9078125 - (w + h) * 0.014 / 2, h * (225 / 1080) - (w + h) * 0.014 / 2,
             w * 0.9078125 + (w + h) * 0.014 / 2, h * (225 / 1080) + (w + h) * 0.014 / 2
         )) and (showAvatars or showBackgrounds):
@@ -1743,13 +1743,13 @@ def settingRender():
             if showBackgrounds: showBackgrounds, showBackgroundsSt = False, time.time()
         
         # 音频问题疑难解答
-        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[0]) and inSettingUI:
+        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[0]) and inSettingUI:
             Resource["UISound_4"].play()
             unregEvents()
             nextUI, tonextUI, tonextUISt = audioQARender, True, time.time()
         
         # 观看教学
-        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[1]) and inSettingUI:
+        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[1]) and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
                 chartAudio = "./Resources/Introduction/audio.mp3",
@@ -1770,36 +1770,36 @@ def settingRender():
             ), True, time.time()
         
         # 关于我们
-        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[2]) and inSettingUI:
+        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[2]) and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = aboutUsRender, True, time.time()
         
         # 开源许可证
-        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[3]) and inSettingUI:
+        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[3]) and inSettingUI:
             inSettingUI = False
             ShowOpenSource, ShowOpenSourceSt = True, time.time()
             settingUIOpenSourceLicenseSlideControler.setDy(settingUIOpenSourceLicenseSlideControler.minValueY)
         
         # 隐私政策
-        if Tool_Functions.InRect(x + otherSettingDx, y, otherSettingButtonRects[4]) and inSettingUI:
+        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[4]) and inSettingUI:
             webbrowser.open(Const.PHIGROS_LINKS.PRIVACYPOLIC)
         
         # 推特链接
-        if Tool_Functions.InRect(x + otherSettingDx, y, (
+        if settingState.atis_o and Tool_Functions.InRect(x, y, (
             w * 128 / 1920, h * 1015 / 1080,
             w * 315 / 1920, h * 1042 / 1080
         )) and inSettingUI:
             webbrowser.open(Const.PHIGROS_LINKS.TWITTER)
         
         # B站链接
-        if Tool_Functions.InRect(x + otherSettingDx, y, (
+        if settingState.atis_o and Tool_Functions.InRect(x, y, (
             w * 376 / 1920, h * 1015 / 1080,
             w * 561 / 1920, h * 1042 / 1080
         )) and inSettingUI:
             webbrowser.open(Const.PHIGROS_LINKS.BILIBILI)
         
         # QQ链接
-        if Tool_Functions.InRect(x + otherSettingDx, y, (
+        if settingState.atis_o and Tool_Functions.InRect(x, y, (
             w * 626 / 1920, h * 1015 / 1080,
             w * 856 / 1920, h * 1042 / 1080
         )) and inSettingUI:
@@ -3194,8 +3194,8 @@ def chartPlayerRender(
         render_range_more_scale = 1.0,
         judgeline_notransparent = False,
         debug = "--debug" in sys.argv,
-        combotips = "Combo",
-        noplaychart = False
+        combotips = "Combo", noplaychart = False,
+        clicksound_volume = getUserData("setting-clickSoundVolume"),
     )
     PhiCore.CoreConfig(coreConfig)
     
@@ -3455,6 +3455,8 @@ def updateSettingConfig():
         "setting-enableFCAPIndicator": PlaySettingWidgets["FCAPIndicatorCheckbox"].checked,
         "setting-enableLowQuality": PlaySettingWidgets["LowQualityCheckbox"].checked
     })
+    
+    Resource["CalibrationHit"].set_volume(getUserData("setting-clickSoundVolume"))
 
 def updateDSPConfig():
     userData.update({

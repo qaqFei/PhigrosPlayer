@@ -58,6 +58,7 @@ class PhiCoreConfigure:
     debug: bool
     combotips: bool
     noplaychart: bool
+    clicksound_volume: float
 
 @dataclass
 class PhiCoreConfigureEx:
@@ -135,6 +136,9 @@ def CoreConfig(config: PhiCoreConfigure):
     debug = config.debug
     combotips = config.combotips
     noplaychart = config.noplaychart
+    
+    for i in Resource["Note_Click_Audio"].values():
+        i.set_volume(config.clicksound_volume)
     
     logging.info("CoreConfig Done")
 
@@ -496,7 +500,7 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
                     note.state in (Const.NOTE_STATE.PERFECT, Const.NOTE_STATE.GOOD)
                 ):
                     if enable_clicksound:
-                        Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
+                        Resource["Note_Click_Audio"][note.type_string].play()
                     note.player_click_sound_played = True
                 
                 if ( # miss judge
@@ -567,7 +571,7 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
                     note.state in (Const.NOTE_STATE.PERFECT, Const.NOTE_STATE.GOOD)
                 ):
                     if enable_clicksound:
-                        Thread(target=PlaySound.Play, args=(Resource["Note_Click_Audio"][note.type_string],)).start()
+                        Resource["Note_Click_Audio"][note.type_string].play()
                     note.player_click_sound_played = True
                 
                 if ( # miss judge
@@ -950,9 +954,9 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                     note_item.clicked = True
                     if enable_clicksound and not noautoplay:
                         Task.ExTask.append((
-                            "thread-call",
-                            "PlaySound.Play",
-                            f'(Resource["Note_Click_Audio"]["{note_item.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
+                            "call",
+                            f"Resource[\"Note_Click_Audio\"][\"{note_item.type_string}\"].play",
+                            "()"
                         ))
                     
                 if not this_note_ishold and note_item.clicked:
@@ -1426,9 +1430,9 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                 note.clicked = True
                 if enable_clicksound and not note.isFake and not noautoplay:
                     Task.ExTask.append((
-                        "thread-call",
-                        "PlaySound.Play",
-                        f'(Resource["Note_Click_Audio"]["{note.type_string}"],)' #use eval to get data tip:this string -> eval(string):tpule (arg to run thread-call)
+                        "call",
+                        f"Resource[\"Note_Click_Audio\"][\"{note.type_string}\"].play",
+                        "()"
                     ))
             
             if not note.ishold and note.clicked:

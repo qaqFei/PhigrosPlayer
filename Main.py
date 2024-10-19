@@ -82,6 +82,7 @@ speed = float(sys.argv[sys.argv.index("--speed") + 1]) if "--speed" in sys.argv 
 clickeffect_randomblock_roundn = float(eval(sys.argv[sys.argv.index("--clickeffect-randomblock-roundn") + 1])) if "--clickeffect-randomblock-roundn" in sys.argv else 0.0
 combotips = ("Autoplay" if not noautoplay else "Combo") if "--combotips" not in sys.argv else sys.argv[sys.argv.index("--combotips") + 1]
 noplaychart = "--noplaychart" in sys.argv
+clicksound_volume = float(sys.argv[sys.argv.index("--clicksound-volume") + 1]) if "--clicksound-volume" in sys.argv else 1.0
 respaths = ["./Resources"]
 
 if "--res" in sys.argv:
@@ -470,10 +471,10 @@ def Load_Resource():
             "F": Image.open(getResPath("/Levels/F.png"))
         },
         "Note_Click_Audio":{
-            "Tap": loadAudio(getResPath("/Note_Click_Audio/Tap.wav")),
-            "Drag": loadAudio(getResPath("/Note_Click_Audio/Drag.wav")),
-            "Hold": loadAudio(getResPath("/Note_Click_Audio/Hold.wav")),
-            "Flick": loadAudio(getResPath("/Note_Click_Audio/Flick.wav"))
+            "Tap": PlaySound.directSound(loadAudio(getResPath("/Note_Click_Audio/Tap.wav"))),
+            "Drag": PlaySound.directSound(loadAudio(getResPath("/Note_Click_Audio/Drag.wav"))),
+            "Hold": PlaySound.directSound(loadAudio(getResPath("/Note_Click_Audio/Hold.wav"))),
+            "Flick": PlaySound.directSound(loadAudio(getResPath("/Note_Click_Audio/Flick.wav")))
         },
         "Start": Image.open(getResPath("/Start.png")),
         "Button_Left": Image.open(getResPath("/Button_Left.png")),
@@ -481,7 +482,7 @@ def Load_Resource():
         "Retry": Image.open(getResPath("/Retry.png")),
         "Arrow_Right": Image.open(getResPath("/Arrow_Right.png")),
         "Over": mixer.Sound(getResPath("/Over.mp3")),
-        "Pause": loadAudio(getResPath("/Pause.wav")),
+        "Pause": mixer.Sound(getResPath("/Pause.wav")),
         "PauseImg": Image.open(getResPath("/Pause.png"))
     }
     
@@ -704,7 +705,7 @@ def PlayerStart():
             if not pause_flag:
                 pause_flag = True
                 mixer.music.pause()
-                Thread(target=PlaySound.Play, args=(Resource["Pause"],), daemon=True).start()
+                Resource["Pause"].play()
                 pause_st = time.time()
             else:
                 mixer.music.unpause()
@@ -1007,7 +1008,8 @@ def updateCoreConfigure():
         speed = speed, render_range_more = render_range_more,
         render_range_more_scale = render_range_more_scale,
         judgeline_notransparent = judgeline_notransparent,
-        debug = debug, combotips = combotips, noplaychart = noplaychart
+        debug = debug, combotips = combotips, noplaychart = noplaychart,
+        clicksound_volume = clicksound_volume
     )
     CoreConfig(PhiCoreConfigureObject)
 

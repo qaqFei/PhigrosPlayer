@@ -331,6 +331,13 @@ class SettingState:
         
         return drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx
 
+    @property
+    def atis_p(self): return self.aTo == Const.PHIGROS_SETTING_STATE.PLAY
+    @property
+    def atis_a(self): return self.aTo == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT
+    @property
+    def atis_o(self): return self.aTo == Const.PHIGROS_SETTING_STATE.OTHER
+
 @dataclass
 class PhiBaseWidget:
     tonext: float = 0.0
