@@ -674,9 +674,6 @@ def PlayerStart():
     
     Begin_Animation()
     ChartStart_Animation()
-    
-    if CHART_TYPE == Const.CHART_TYPE.PHI:
-        chart_obj.init_notes(PHIGROS_Y)
 
     show_start_time = time.time()
     PhiCoreConfigureObject.show_start_time = show_start_time

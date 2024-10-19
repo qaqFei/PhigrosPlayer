@@ -971,7 +971,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                         if not (this_note_ishold and note_item.clicked) else (
                         Chart_Objects_Phi.getFloorPosition(
                             line, note_item.time
-                        ) * PHIGROS_Y + Tool_Functions.linear_interpolation(note_item.hold_endtime - now_t, 0, note_item.hold_length_sec, note_item.hold_length_px, 0)
+                        ) * PHIGROS_Y + Tool_Functions.linear_interpolation(note_item.hold_endtime - now_t, 0, note_item.hold_length_sec, note_item.hold_length_pgry * PHIGROS_Y, 0)
                     )
                 )
                 
@@ -983,7 +983,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                 x, y = Tool_Functions.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_now_floorPosition)
                 
                 if this_note_ishold:
-                    note_hold_draw_length = note_now_floorPosition + note_item.hold_length_px
+                    note_hold_draw_length = note_now_floorPosition + note_item.hold_length_pgry * PHIGROS_Y
                     holdend_x, holdend_y = Tool_Functions.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_hold_draw_length)
                     
                     if note_item.clicked:
@@ -1056,7 +1056,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                             holdbody_x,holdbody_y = Tool_Functions.rotate_point(
                                 *holdhead_pos, judgeLine_to_note_rotate_deg, this_note_height / 2
                             )
-                            holdbody_length = note_item.hold_length_px - (this_note_height + this_noteend_height) / 2
+                            holdbody_length = note_item.hold_length_pgry * PHIGROS_Y - (this_note_height + this_noteend_height) / 2
                         
                         miss_alpha_change = 0.5 if noautoplay and note_item.player_missed else 1.0
                         

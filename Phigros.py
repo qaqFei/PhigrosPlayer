@@ -3179,7 +3179,7 @@ def chartPlayerRender(
         ClickEffect_Size = w * 0.1234375 * getUserData("setting-noteScale") * 1.375,
         EFFECT_RANDOM_BLOCK_SIZE = w * 0.1234375 * getUserData("setting-noteScale") / 5.5,
         ClickEffectFrameCount = ClickEffectFrameCount,
-        PHIGROS_X = 0.05625 * w, PHIGROS_Y = 0.6 * h,
+        PHIGROS_X = w * 0.05625, PHIGROS_Y = h * 0.6,
         Note_width = w * 0.1234375 * getUserData("setting-noteScale"),
         JUDGELINE_WIDTH = h * 0.0075, note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,

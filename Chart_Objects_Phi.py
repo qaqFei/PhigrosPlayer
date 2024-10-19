@@ -60,9 +60,9 @@ class note:
     def __hash__(self) -> int:
         return self.id
     
-    def _init(self, PHIGROS_Y) -> None:
+    def init(self) -> None:
         self.hold_length_sec = self.holdTime * self.master.T
-        self.hold_length_px = (self.speed * self.hold_length_sec) * PHIGROS_Y
+        self.hold_length_pgry = self.speed * self.hold_length_sec
         self.hold_endtime = self.time * self.master.T + self.hold_length_sec
         self.player_holdjudge_tomanager_time = self.hold_endtime - 0.2 if self.hold_length_sec >= 0.2 else self.time * self.master.T
         
@@ -270,11 +270,7 @@ class Phigros_Chart:
 
             for note in judgeLine.notesAbove + judgeLine.notesBelow:
                 self.note_num += 1
-    
-    def init_notes(self, PHIGROS_Y:float):
-        for judgeLine in self.judgeLineList:
-            for note in judgeLine.notesAbove + judgeLine.notesBelow:
-                note._init(PHIGROS_Y)
+                note.init()
     
     def get_all_note(self) -> list[note]:
        return [j for i in self.judgeLineList for j in i.notesAbove + i.notesBelow]
