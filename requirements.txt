@@ -1,9 +1,9 @@
-Pillow
-pywin32
-pygame
-pydub
-numba
-opencv-python-headless
-numpy
+Pillow==11.0.0
+pywin32==308
+pygame==2.6.1
+pydub==0.25.1
+numba==0.60.0
+opencv-python-headless==4.10.0.84
+numpy==2.0.2
 pywebview==5.2
-rjsmin
+rjsmin==1.2.3
