@@ -20,9 +20,10 @@ def compile(file:str, hideconsole:bool):
 debug = "--debug" in argv
 compile_files = [
     ("Main.py", False),
-    ("GUI_Launcher.py", True),
+    ("GUI_Launcher.py", False),
     ("ProcessChartAudio.py", False),
-    ("OutputVideo.py", False)
+    ("createAutoplayOneFingerVideo.py", False),
+    ("Phigros.py", False)
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 
