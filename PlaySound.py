@@ -34,8 +34,7 @@ class directSound:
         self._sdesc.dwBufferBytes, self._sdesc.lpwfxFormat = _wav_header_unpack(self._hdr)
         self._sdesc.dwFlags = ds.DSBCAPS_CTRLVOLUME | ds.DSBCAPS_CTRLPOSITIONNOTIFY | ds.DSBCAPS_GLOBALFOCUS
         self._volume = 0 # -10000 ~ 0
-        
-        self.set_volume(0.5)
+        self._buffers = []
         
     def _play(self):
         event = w32e.CreateEvent(None, 0, 0, None)
@@ -48,17 +47,17 @@ class directSound:
         buffer.SetVolume(self._volume)
         buffer.Play(0)
         return event, buffer
-
-    def _wait_event(self, e: int):
-        w32e.WaitForSingleObject(e, -1)
     
     def set_volume(self, v: float):
         self._volume = int(-10000 if v <= 1e-5 else (0 if v >= 1.0 else 2000 * math.log10(v)))
     
     def play(self, wait: bool = False):
         event, buffer = self._play()
-        waitt = Thread(target=lambda: (self._wait_event(event), buffer), daemon=True) # keep buffer alive
-        waitt.start()
+        self._buffers.append(buffer)
+        
+        for buffer in self._buffers:
+            if buffer.GetStatus() == 0:
+                self._buffers.remove(buffer)
         
         if wait:
-            waitt.join()
+            w32e.WaitForSingleObject(event, -1)

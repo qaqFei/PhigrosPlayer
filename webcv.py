@@ -96,7 +96,7 @@ class WebCanvas:
             "x": x,
             "y": y
         }
-        self._destroyed = False
+        self._destroyed = threading.Event()
         self.debug = debug
         self._regims: dict[str, Image.Image] = {}
         self._regres: dict[str, bytes] = {}
@@ -242,9 +242,8 @@ class WebCanvas:
     def reg_event(self, name: str, callback: typing.Callable) -> None:
         setattr(self._web.events, name, getattr(self._web.events, name) + callback)
     
-    def loop_to_close(self) -> None:
-        while not self._destroyed:
-            time.sleep(0.05)
+    def wait_for_close(self) -> None:
+        self._destroyed.wait()
     
     def shutdown_fileserver(self) -> None:
         self._file_server.shutdown()
@@ -253,7 +252,7 @@ class WebCanvas:
         return f"http://127.0.0.1:{self._web_port + 1}/{name}"
     
     def _closed_callback(self) -> None:
-        self._destroyed = True
+        self._destroyed.set()
     
     def _load_img(self, imgname:str) -> None:
         jsvarname = self.get_img_jsvarname(imgname)

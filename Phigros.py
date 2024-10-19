@@ -3537,5 +3537,5 @@ updateFontSizes()
 applyConfig()
 Thread(target=showStartAnimation, daemon=True).start()
     
-root.loop_to_close()
+root.wait_for_close()
 windll.kernel32.ExitProcess(0)

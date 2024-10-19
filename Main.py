@@ -1065,7 +1065,7 @@ EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
 updateCoreConfigure()
 
 Thread(target=Show_Start, daemon=True).start()
-root.loop_to_close()
+root.wait_for_close()
 
 for item in [item for item in listdir(gettempdir()) if item.startswith("qfppr_cctemp_")]:
     item = f"{gettempdir()}\\{item}"
