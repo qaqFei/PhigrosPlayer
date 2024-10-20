@@ -348,12 +348,12 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
             can_judge_notes = [(i, offset) for i in notes if (
                 not i.player_clicked and
                 i.type in (Const.Note.TAP, Const.Note.HOLD) and
-                abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= (0.2 if i.type == Const.Note.TAP else 0.16)
+                (offset := (i.time * i.master.T - PlayChart_NowTime)) <= (0.2 if i.type == Const.Note.TAP else 0.16)
             )]
             can_use_safedrag = [(i, offset) for i in notes if (
                 i.type == Const.Note.DRAG and
                 not i.player_drag_judge_safe_used and
-                abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= 0.16
+                (offset := (i.time * i.master.T - PlayChart_NowTime)) <= 0.16
             )]
             
             can_judge_notes.sort(key = lambda x: x[1])
@@ -405,12 +405,12 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
             can_judge_notes = [(i, offset) for i in notes if (
                 not i.player_clicked and
                 i.phitype in (Const.Note.TAP, Const.Note.HOLD) and
-                abs((offset := (i.secst - PlayChart_NowTime))) <= (0.2 if i.phitype == Const.Note.TAP else 0.16)
+                (offset := (i.secst - PlayChart_NowTime)) <= (0.2 if i.phitype == Const.Note.TAP else 0.16)
             )]
             can_use_safedrag = [(i, offset) for i in notes if (
                 i.phitype == Const.Note.DRAG and
                 not i.player_drag_judge_safe_used and
-                abs((offset := (i.secst - PlayChart_NowTime))) <= 0.16
+                (offset := (i.secst - PlayChart_NowTime)) <= 0.16
             )]
             
             can_judge_notes.sort(key = lambda x: x[1])
