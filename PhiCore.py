@@ -348,15 +348,15 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
             can_judge_notes = [(i, offset) for i in notes if (
                 not i.player_clicked and
                 i.type in (Const.Note.TAP, Const.Note.HOLD) and
-                (offset := (i.time * i.master.T - PlayChart_NowTime)) <= (0.2 if i.type == Const.Note.TAP else 0.16)
+                abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= (0.2 if i.type == Const.Note.TAP else 0.16)
             )]
             can_use_safedrag = [(i, offset) for i in notes if (
                 i.type == Const.Note.DRAG and
                 not i.player_drag_judge_safe_used and
-                (offset := (i.time * i.master.T - PlayChart_NowTime)) <= 0.16
+                abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= 0.16
             )]
             
-            can_judge_notes.sort(key = lambda x: x[1])
+            can_judge_notes.sort(key = lambda x: abs(x[1]))
             can_use_safedrag.sort(key = lambda x: x[1])
             
             if can_judge_notes:
@@ -405,15 +405,15 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
             can_judge_notes = [(i, offset) for i in notes if (
                 not i.player_clicked and
                 i.phitype in (Const.Note.TAP, Const.Note.HOLD) and
-                (offset := (i.secst - PlayChart_NowTime)) <= (0.2 if i.phitype == Const.Note.TAP else 0.16)
+                abs((offset := (i.secst - PlayChart_NowTime))) <= (0.2 if i.phitype == Const.Note.TAP else 0.16)
             )]
             can_use_safedrag = [(i, offset) for i in notes if (
                 i.phitype == Const.Note.DRAG and
                 not i.player_drag_judge_safe_used and
-                (offset := (i.secst - PlayChart_NowTime)) <= 0.16
+                abs((offset := (i.secst - PlayChart_NowTime))) <= 0.16
             )]
             
-            can_judge_notes.sort(key = lambda x: x[1])
+            can_judge_notes.sort(key = lambda x: abs(x[1]))
             can_use_safedrag.sort(key = lambda x: x[1])
             
             if can_judge_notes:
