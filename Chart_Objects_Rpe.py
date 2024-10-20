@@ -188,7 +188,7 @@ class JudgeLine:
     
     playingFloorPosition: float = 0.0
     
-    def GetEventValue(self, t:float, es: list[LineEvent], default):
+    def GetEventValue(self, t: float, es: list[LineEvent], default):
         for e in es:
             if e.startTime.value <= t <= e.endTime.value:
                 if isinstance(e.start, float|int):

@@ -62,12 +62,9 @@ def linear_interpolation(
     return (t - st) / (et - st) * (ev - sv) + sv
 
 def easing_interpolation(
-    t:float,
-    st:float,
-    et:float,
-    sv:float,
-    ev:float,
-    f:typing.Callable
+    t: float, st: float,
+    et: float, sv: float,
+    ev: float, f: typing.Callable[[float], float]
 ):
     if t == st: return sv
     return f((t - st) / (et - st)) * (ev - sv) + sv
