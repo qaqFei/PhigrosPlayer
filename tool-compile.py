@@ -21,8 +21,6 @@ debug = "--debug" in argv
 compile_files = [
     ("Main.py", False),
     ("GUI_Launcher.py", False),
-    ("ProcessChartAudio.py", False),
-    ("createAutoplayOneFingerVideo.py", False),
     ("Phigros.py", False)
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()

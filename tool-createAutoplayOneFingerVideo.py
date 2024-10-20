@@ -2,7 +2,6 @@ import json
 from os import chdir
 from os.path import dirname, abspath
 from sys import argv
-from ctypes import windll
 from random import uniform
 
 import cv2
@@ -19,7 +18,7 @@ from rpe_easing import ease_funcs
 
 if len(argv) < 4:
     print("Usage: createAutoplayOneFingerVideo <videoFile> <chartFile> <outputVideoFilePath>")
-    windll.kernel32.ExitProcess(0)
+    raise SystemExit
 
 videoFile = argv[1]
 chartFile = argv[2]
