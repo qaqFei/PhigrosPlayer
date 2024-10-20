@@ -1,5 +1,4 @@
 import logging
-from threading import Thread
 
 import Chart_Objects_Phi
 import Const
