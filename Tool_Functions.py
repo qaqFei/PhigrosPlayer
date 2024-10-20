@@ -42,7 +42,7 @@ def Get_A_New_NoteId():
     return note_id
 
 def unpack_pos(number:int) -> tuple[int, int]:
-    return (number - number % 1000) // 1000,number % 1000
+    return (number - number % 1000) // 1000, number % 1000
 
 def ease_out(x:float) -> float:
     return math.sqrt(1.0 - (1.0 - x) ** 2)

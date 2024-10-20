@@ -58,11 +58,12 @@ def Load_Chart_Object(phigros_chart: dict):
                     ) for e in es
                 ]
             case _:
+                logging.warning(f"Unsupported format version: {fmtVersion}")
                 return [
                     Chart_Objects_Phi.judgeLineMoveEvent(
                         startTime = e.get("startTime", -1.0), endTime = e.get("endTime", -1.0),
-                        start = e.get("start", 0.0) + 0.5, end = e.get("end", 0.0) + 0.5,
-                        start2 = e.get("start2", 0.0) + 0.5, end2 = e.get("end2", 0.0) + 0.5
+                        start = e.get("start", 0.0), end = e.get("end", 0.0),
+                        start2 = e.get("start2", 0.0), end2 = e.get("end2", 0.0)
                     ) for e in es
                 ]
     
