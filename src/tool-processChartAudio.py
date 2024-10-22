@@ -3,21 +3,21 @@ from json import load
 
 from pydub import AudioSegment
 
-import Const
-import Chart_Functions_Rpe
+import const
+import chartfuncs_rpe
 
 NoteClickAudios = {
-    Const.Note.TAP: AudioSegment.from_file("./Resources/Note_Click_Audio/Tap.wav"),
-    Const.Note.DRAG: AudioSegment.from_file("./Resources/Note_Click_Audio/Drag.wav"),
-    Const.Note.HOLD: AudioSegment.from_file("./Resources/Note_Click_Audio/Hold.wav"),
-    Const.Note.FLICK: AudioSegment.from_file("./Resources/Note_Click_Audio/Flick.wav")
+    const.Note.TAP: AudioSegment.from_file("./resources/Note_Click_Audio/Tap.wav"),
+    const.Note.DRAG: AudioSegment.from_file("./resources/Note_Click_Audio/Drag.wav"),
+    const.Note.HOLD: AudioSegment.from_file("./resources/Note_Click_Audio/Hold.wav"),
+    const.Note.FLICK: AudioSegment.from_file("./resources/Note_Click_Audio/Flick.wav")
 }
 
 with open(argv[1], "r", encoding="utf-8") as f:
     Chart = load(f)
 
 if "META" in Chart and "formatVersion" not in Chart:
-    rpeobj = Chart_Functions_Rpe.Load_Chart_Object(Chart)
+    rpeobj = chartfuncs_rpe.Load_Chart_Object(Chart)
     Chart = {
         "formatVersion": 3,
         "offset": rpeobj.META.offset / 1000,

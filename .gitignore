@@ -1,5 +1,4 @@
 __pycache__
-PhigrosAssets
-PhigrosAssets_tmp
-Phigros_UserData.json
+phigros_assets
+phigros_userdata.json
 error_*.txt

@@ -1,5 +1,5 @@
-import errProcesser as _
-import initLogging as _
+import err_processer as _
+import init_logging as _
 
 import webbrowser
 import typing
@@ -21,15 +21,15 @@ from pygame import mixer
 from pydub import AudioSegment
 
 import webcv
-import Const
-import Tool_Functions
-import PhigrosGameObject
+import const
+import tool_funcs
+import phigame_obj
 import rpe_easing
-import ConsoleWindow
-import PhiCore
-import Chart_Functions_Phi
-import Chart_Functions_Rpe
-import PlaySound
+import console_window
+import phicore
+import chartfuncs_phi
+import chartfuncs_rpe
+import playsound
 
 selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
@@ -39,18 +39,18 @@ if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")
     windll.kernel32.ExitProcess(1)
     
-if not exists("./PhigrosAssets") or not all([
-    exists(f"./PhigrosAssets/{i}") for i in [
+if not exists("./phigros_assets") or not all([
+    exists(f"./phigros_assets/{i}") for i in [
         "config.json",
         "chapters.json"
     ]
 ]):
-    logging.error("PhigrosAssets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
+    logging.error("phigros_assets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_phigros_assets")
     system("pause")
     windll.kernel32.ExitProcess(0)
 
 if sys.argv[0].endswith(".exe"):
-    ConsoleWindow.Hide()
+    console_window.Hide()
 
 for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_temp_")]:
     try: rmtree(f"{gettempdir()}\\{item}")
@@ -60,7 +60,7 @@ temp_dir = f"{gettempdir()}\\phigros_temp_{time.time()}"
 try: mkdir(temp_dir)
 except FileExistsError: pass
 
-assetConfig = json.loads(open("./PhigrosAssets/config.json", "r", encoding="utf-8").read())
+assetConfig = json.loads(open("./phigros_assets/config.json", "r", encoding="utf-8").read())
 userData_default = {
     "userdata-userName": "GUEST",
     "userdata-userAvatar": assetConfig["default-avatar"],
@@ -83,18 +83,18 @@ userData_default = {
 
 def saveUserData(data: dict):
     try:
-        with open("./Phigros_UserData.json", "w", encoding="utf-8") as f:
+        with open("./phigros_userdata.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(data, indent=4, ensure_ascii=False))
     except Exception as e:
-        logging.error(f"Phigros_UserData.json save failed: {e}")
+        logging.error(f"phigros_userdata.json save failed: {e}")
 
 def loadUserData():
     global userData
     userData = userData_default.copy()
     try:
-        userData.update(json.loads(open("./Phigros_UserData.json", "r", encoding="utf-8").read()))
+        userData.update(json.loads(open("./phigros_userdata.json", "r", encoding="utf-8").read()))
     except Exception as e:
-        logging.error(f"Phigros_UserData.json load failed, using default data, {e}")
+        logging.error(f"phigros_userdata.json load failed, using default data, {e}")
 
 def getUserData(key: str):
     return userData.get(key, userData_default[key])
@@ -102,7 +102,7 @@ def getUserData(key: str):
 def setUserData(key: str, value: typing.Any):
     userData[key] = value
 
-if not exists("./Phigros_UserData.json"):
+if not exists("./phigros_userdata.json"):
     saveUserData(userData_default)
     loadUserData()
 
@@ -120,28 +120,28 @@ settingPlayWidgetsDy = 0.0
 mainUI_ChaptersMouseDown = False
 changeChapterMouseDownX = float("nan")
 lastChangeChapterTime = float("-inf")
-setting = PhigrosGameObject.Setting()
-PlaySettingWidgets: dict[str, PhigrosGameObject.PhiBaseWidget] = {}
-dspSettingWidgets: dict[str, PhigrosGameObject.PhiBaseWidget] = {}
+setting = phigame_obj.Setting()
+PlaySettingWidgets: dict[str, phigame_obj.PhiBaseWidget] = {}
+dspSettingWidgets: dict[str, phigame_obj.PhiBaseWidget] = {}
 
 def Load_Chapters():
     global Chapters, ChaptersMaxDx
-    jsonData = json.loads(open("./PhigrosAssets/chapters.json", "r", encoding="utf-8").read())
-    Chapters = PhigrosGameObject.Chapters(
+    jsonData = json.loads(open("./phigros_assets/chapters.json", "r", encoding="utf-8").read())
+    Chapters = phigame_obj.Chapters(
         [
-            PhigrosGameObject.Chapter(
+            phigame_obj.Chapter(
                 name = chapter["name"],
                 cn_name = chapter["cn-name"],
                 o_name = chapter["o-name"],
                 image = chapter["image"],
                 songs = [
-                    PhigrosGameObject.Song(
+                    phigame_obj.Song(
                         name = song["name"],
                         composer = song["composer"],
                         image = song["image"],
                         preview = song["preview"],
                         difficlty = [
-                            PhigrosGameObject.SongDifficlty(
+                            phigame_obj.SongDifficlty(
                                 name = diff["name"],
                                 level = diff["level"],
                                 chart_audio = diff["chart_audio"],
@@ -200,23 +200,23 @@ def Load_Resource():
     global LoadSuccess
     
     logging.info("Loading Resource...")
-    LoadSuccess = mixer.Sound(("./Resources/LoadSuccess.wav"))
-    ClickEffectFrameCount = len(listdir("./Resources/Note_Click_Effect/Frames"))
-    ClickEffectImages = [Image.open(f"./Resources/Note_Click_Effect/Frames/{i + 1}.png") for i in range(ClickEffectFrameCount)]
+    LoadSuccess = mixer.Sound(("./resources/LoadSuccess.wav"))
+    ClickEffectFrameCount = len(listdir("./resources/Note_Click_Effect/Frames"))
+    ClickEffectImages = [Image.open(f"./resources/Note_Click_Effect/Frames/{i + 1}.png") for i in range(ClickEffectFrameCount)]
     Resource = {
         "Notes":{
-            "Tap": Image.open("./Resources/Notes/Tap.png"),
-            "Tap_dub": Image.open("./Resources/Notes/Tap_dub.png"),
-            "Drag": Image.open("./Resources/Notes/Drag.png"),
-            "Drag_dub": Image.open("./Resources/Notes/Drag_dub.png"),
-            "Flick": Image.open("./Resources/Notes/Flick.png"),
-            "Flick_dub": Image.open("./Resources/Notes/Flick_dub.png"),
-            "Hold_Head": Image.open("./Resources/Notes/Hold_Head.png"),
-            "Hold_Head_dub": Image.open("./Resources/Notes/Hold_Head_dub.png"),
-            "Hold_End": Image.open("./Resources/Notes/Hold_End.png"),
-            "Hold_End_dub": Image.open("./Resources/Notes/Hold_End_dub.png"),
-            "Hold_Body": Image.open("./Resources/Notes/Hold_Body.png"),
-            "Hold_Body_dub": Image.open("./Resources/Notes/Hold_Body_dub.png"),
+            "Tap": Image.open("./resources/Notes/Tap.png"),
+            "Tap_dub": Image.open("./resources/Notes/Tap_dub.png"),
+            "Drag": Image.open("./resources/Notes/Drag.png"),
+            "Drag_dub": Image.open("./resources/Notes/Drag_dub.png"),
+            "Flick": Image.open("./resources/Notes/Flick.png"),
+            "Flick_dub": Image.open("./resources/Notes/Flick_dub.png"),
+            "Hold_Head": Image.open("./resources/Notes/Hold_Head.png"),
+            "Hold_Head_dub": Image.open("./resources/Notes/Hold_Head_dub.png"),
+            "Hold_End": Image.open("./resources/Notes/Hold_End.png"),
+            "Hold_End_dub": Image.open("./resources/Notes/Hold_End_dub.png"),
+            "Hold_Body": Image.open("./resources/Notes/Hold_Body.png"),
+            "Hold_Body_dub": Image.open("./resources/Notes/Hold_Body_dub.png"),
             "Bad": None
         },
         "Note_Click_Effect":{
@@ -224,61 +224,61 @@ def Load_Resource():
             "Good": list(map(lambda im: putColor((180, 225, 255), im), ClickEffectImages)),
         },
         "Levels":{
-            "AP": Image.open("./Resources/Levels/AP.png"),
-            "FC": Image.open("./Resources/Levels/FC.png"),
-            "V": Image.open("./Resources/Levels/V.png"),
-            "S": Image.open("./Resources/Levels/S.png"),
-            "A": Image.open("./Resources/Levels/A.png"),
-            "B": Image.open("./Resources/Levels/B.png"),
-            "C": Image.open("./Resources/Levels/C.png"),
-            "F": Image.open("./Resources/Levels/F.png")
+            "AP": Image.open("./resources/Levels/AP.png"),
+            "FC": Image.open("./resources/Levels/FC.png"),
+            "V": Image.open("./resources/Levels/V.png"),
+            "S": Image.open("./resources/Levels/S.png"),
+            "A": Image.open("./resources/Levels/A.png"),
+            "B": Image.open("./resources/Levels/B.png"),
+            "C": Image.open("./resources/Levels/C.png"),
+            "F": Image.open("./resources/Levels/F.png")
         },
         "Note_Click_Audio":{
-            "Tap": PlaySound.directSound(loadAudio("./Resources/Note_Click_Audio/Tap.wav")),
-            "Drag": PlaySound.directSound(loadAudio("./Resources/Note_Click_Audio/Drag.wav")),
-            "Hold": PlaySound.directSound(loadAudio("./Resources/Note_Click_Audio/Hold.wav")),
-            "Flick": PlaySound.directSound(loadAudio("./Resources/Note_Click_Audio/Flick.wav"))
+            "Tap": playsound.directSound(loadAudio("./resources/Note_Click_Audio/Tap.wav")),
+            "Drag": playsound.directSound(loadAudio("./resources/Note_Click_Audio/Drag.wav")),
+            "Hold": playsound.directSound(loadAudio("./resources/Note_Click_Audio/Hold.wav")),
+            "Flick": playsound.directSound(loadAudio("./resources/Note_Click_Audio/Flick.wav"))
         },
-        "logoipt": Image.open("./Resources/logoipt.png"),
-        "warning": Image.open("./Resources/Start.png"),
-        "phigros": Image.open("./Resources/phigros.png"),
-        "AllSongBlur": Image.open("./Resources/AllSongBlur.png"),
-        "facula": Image.open("./Resources/facula.png"),
-        "collectibles": Image.open("./Resources/collectibles.png"),
-        "setting": Image.open("./Resources/setting.png"),
-        "ButtonLeftBlack": Image.open("./Resources/Button_Left_Black.png"),
+        "logoipt": Image.open("./resources/logoipt.png"),
+        "warning": Image.open("./resources/Start.png"),
+        "phigros": Image.open("./resources/phigros.png"),
+        "AllSongBlur": Image.open("./resources/AllSongBlur.png"),
+        "facula": Image.open("./resources/facula.png"),
+        "collectibles": Image.open("./resources/collectibles.png"),
+        "setting": Image.open("./resources/setting.png"),
+        "ButtonLeftBlack": Image.open("./resources/Button_Left_Black.png"),
         "ButtonRightBlack": None,
-        "message": Image.open("./Resources/message.png"),
-        "JoinQQGuildBanner": Image.open("./Resources/JoinQQGuildBanner.png"),
-        "UISound_1": mixer.Sound("./Resources/UISound_1.wav"),
-        "UISound_2": mixer.Sound("./Resources/UISound_2.wav"),
-        "UISound_3": mixer.Sound("./Resources/UISound_3.wav"),
-        "UISound_4": mixer.Sound("./Resources/UISound_4.wav"),
-        "JoinQQGuildPromo": Image.open("./Resources/JoinQQGuildPromo.png"),
-        "Arrow_Left": Image.open("./Resources/Arrow_Left.png"),
-        "Arrow_Right": Image.open("./Resources/Arrow_Right.png"),
-        "Arrow_Right_Black": Image.open("./Resources/Arrow_Right_Black.png"),
-        "twitter": Image.open("./Resources/twitter.png"),
-        "qq": Image.open("./Resources/qq.png"),
-        "bilibili": Image.open("./Resources/bilibili.png"),
-        "taptap": Image.open("./Resources/taptap.png"),
-        "checked": Image.open("./Resources/checked.png"),
-        "CalibrationHit": PlaySound.directSound(loadAudio("./Resources/CalibrationHit.wav")),
-        "Button_Left": Image.open("./Resources/Button_Left.png"),
-        "Retry": Image.open("./Resources/Retry.png"),
-        "Pause": mixer.Sound("./Resources/Pause.wav"),
-        "PauseImg": Image.open("./Resources/Pause.png"),
-        "PUIBack": Image.open("./Resources/PUIBack.png"),
-        "PUIRetry": Image.open("./Resources/PUIRetry.png"),
-        "PUIResume": Image.open("./Resources/PUIResume.png"),
-        "edit": Image.open("./Resources/edit.png"),
-        "close": Image.open("./Resources/close.png"),
+        "message": Image.open("./resources/message.png"),
+        "JoinQQGuildBanner": Image.open("./resources/JoinQQGuildBanner.png"),
+        "UISound_1": mixer.Sound("./resources/UISound_1.wav"),
+        "UISound_2": mixer.Sound("./resources/UISound_2.wav"),
+        "UISound_3": mixer.Sound("./resources/UISound_3.wav"),
+        "UISound_4": mixer.Sound("./resources/UISound_4.wav"),
+        "JoinQQGuildPromo": Image.open("./resources/JoinQQGuildPromo.png"),
+        "Arrow_Left": Image.open("./resources/Arrow_Left.png"),
+        "Arrow_Right": Image.open("./resources/Arrow_Right.png"),
+        "Arrow_Right_Black": Image.open("./resources/Arrow_Right_Black.png"),
+        "twitter": Image.open("./resources/twitter.png"),
+        "qq": Image.open("./resources/qq.png"),
+        "bilibili": Image.open("./resources/bilibili.png"),
+        "taptap": Image.open("./resources/taptap.png"),
+        "checked": Image.open("./resources/checked.png"),
+        "CalibrationHit": playsound.directSound(loadAudio("./resources/CalibrationHit.wav")),
+        "Button_Left": Image.open("./resources/Button_Left.png"),
+        "Retry": Image.open("./resources/Retry.png"),
+        "Pause": mixer.Sound("./resources/Pause.wav"),
+        "PauseImg": Image.open("./resources/Pause.png"),
+        "PUIBack": Image.open("./resources/PUIBack.png"),
+        "PUIRetry": Image.open("./resources/PUIRetry.png"),
+        "PUIResume": Image.open("./resources/PUIResume.png"),
+        "edit": Image.open("./resources/edit.png"),
+        "close": Image.open("./resources/close.png"),
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["Notes"]["Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
-    Const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
+    const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     
     imageBlackMaskHeight = 12
     imageBlackMask = Image.new("RGBA", (1, imageBlackMaskHeight), (0, 0, 0, 0))
@@ -351,17 +351,17 @@ def Load_Resource():
         root.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
 
     for chapter in Chapters.items:
-        im = Image.open(f"./PhigrosAssets/{chapter.image}")
+        im = Image.open(f"./phigros_assets/{chapter.image}")
         chapter.im = im
         root.reg_img(im, f"chapter_{chapter.chapterId}_raw")
         root.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
     
     for index, avatar in enumerate(assetConfig["avatars"]):
-        root.reg_img(Image.open(f"./PhigrosAssets/{avatar}"), f"avatar_{index}")
+        root.reg_img(Image.open(f"./phigros_assets/{avatar}"), f"avatar_{index}")
     
-    root.reg_img(Image.open(f"./PhigrosAssets/{getUserData("userdata-userBackground")}"), "userBackground")
+    root.reg_img(Image.open(f"./phigros_assets/{getUserData("userdata-userBackground")}"), "userBackground")
     
-    with open("./Resources/font.ttf", "rb") as f:
+    with open("./resources/font.ttf", "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
     root.load_allimg()
     for im in root._is_loadimg.keys(): # ...  create image draw cache
@@ -426,48 +426,48 @@ def bindEvents():
     root.run_js_code("_mouseup = (e) => pywebview.api.call_attr('mouseup', e.x, e.y);")
     root.run_js_code("document.addEventListener('mouseup', _mouseup);")
     
-    mainUISlideControler = PhigrosGameObject.SlideControler(
+    mainUISlideControler = phigame_obj.SlideControler(
         mainUI_slideControlerMouseDown_valid,
         mainUI_slideControler_setValue,
         0.0, ChaptersMaxDx,
         0.0, 0.0, w, h
     )
     eventManager.regClickEventFs(mainUISlideControler.mouseDown, False)
-    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(mainUISlideControler.mouseUp))
-    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(mainUISlideControler.mouseMove))
+    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(mainUISlideControler.mouseUp))
+    eventManager.regMoveEvent(phigame_obj.MoveEvent(mainUISlideControler.mouseMove))
     
-    settingUIPlaySlideControler = PhigrosGameObject.SlideControler(
+    settingUIPlaySlideControler = phigame_obj.SlideControler(
         settingUI_slideControlerMouseDown_valid,
         settingUI_slideControler_setValue,
         0.0, 0.0,
         0.0, 0.0, w, h
     )
     eventManager.regClickEventFs(settingUIPlaySlideControler.mouseDown, False)
-    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(settingUIPlaySlideControler.mouseUp))
-    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(settingUIPlaySlideControler.mouseMove))
+    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(settingUIPlaySlideControler.mouseUp))
+    eventManager.regMoveEvent(phigame_obj.MoveEvent(settingUIPlaySlideControler.mouseMove))
     
-    settingUIOpenSourceLicenseSlideControler = PhigrosGameObject.SlideControler(
+    settingUIOpenSourceLicenseSlideControler = phigame_obj.SlideControler(
         lambda x, y: w * 0.2 <= x <= w * 0.8,
         lambda x, y: None,
         0.0, 0.0,
         0.0, 0.0, w, h
     )
     eventManager.regClickEventFs(settingUIOpenSourceLicenseSlideControler.mouseDown, False)
-    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(settingUIOpenSourceLicenseSlideControler.mouseUp))
-    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(settingUIOpenSourceLicenseSlideControler.mouseMove))
+    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(settingUIOpenSourceLicenseSlideControler.mouseUp))
+    eventManager.regMoveEvent(phigame_obj.MoveEvent(settingUIOpenSourceLicenseSlideControler.mouseMove))
     
-    SettingPlayWidgetEventManager = PhigrosGameObject.WidgetEventManager([], settingPlayWidgetEvent_valid)
+    SettingPlayWidgetEventManager = phigame_obj.WidgetEventManager([], settingPlayWidgetEvent_valid)
     eventManager.regClickEventFs(SettingPlayWidgetEventManager.MouseDown, False)
-    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(SettingPlayWidgetEventManager.MouseUp))
-    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(SettingPlayWidgetEventManager.MouseMove))
+    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(SettingPlayWidgetEventManager.MouseUp))
+    eventManager.regMoveEvent(phigame_obj.MoveEvent(SettingPlayWidgetEventManager.MouseMove))
     
-    dspSettingWidgetEventManager = PhigrosGameObject.WidgetEventManager([], lambda x, y: True)
+    dspSettingWidgetEventManager = phigame_obj.WidgetEventManager([], lambda x, y: True)
     eventManager.regClickEventFs(dspSettingWidgetEventManager.MouseDown, False)
-    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(dspSettingWidgetEventManager.MouseUp))
-    eventManager.regMoveEvent(PhigrosGameObject.MoveEvent(dspSettingWidgetEventManager.MouseMove))
+    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(dspSettingWidgetEventManager.MouseUp))
+    eventManager.regMoveEvent(phigame_obj.MoveEvent(dspSettingWidgetEventManager.MouseMove))
 
     eventManager.regClickEventFs(changeChapterMouseDown, False)
-    eventManager.regReleaseEvent(PhigrosGameObject.ReleaseEvent(changeChapterMouseUp))
+    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(changeChapterMouseUp))
 
 def drawBackground():
     f, t = Chapters.aFrom, Chapters.aTo
@@ -505,7 +505,7 @@ def drawFaculas():
                 add_code_array = True
             )
 
-def getChapterP(chapter: PhigrosGameObject.Chapter):
+def getChapterP(chapter: phigame_obj.Chapter):
     chapterIndex = Chapters.items.index(chapter)
     ef = rpe_easing.ease_funcs[0]
     atime = 1.0
@@ -519,7 +519,7 @@ def getChapterP(chapter: PhigrosGameObject.Chapter):
     else:
         p = 0.0
     
-    return ef(Tool_Functions.fixOutofRangeP(p))
+    return ef(tool_funcs.fixOutofRangeP(p))
 
 def getChapterWidth(p: float):
     return w * (0.221875 + (0.5640625 - 0.221875) * p)
@@ -533,13 +533,13 @@ def getChapterRect(dx: float, chapterWidth: float):
         dx + chapterWidth, h * (1.0 - 140 / 1080)
     )
 
-def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
+def drawChapterItem(item: phigame_obj.Chapter, dx: float):
     p = getChapterP(item)
     if dx > w: return getChapterToNextWidth(p)
     chapterWidth = getChapterWidth(p)
     if dx + chapterWidth < 0: return getChapterToNextWidth(p)
     chapterImWidth = h * (1.0 - 140 / 1080 * 2) / item.im.height * item.im.width
-    dPower = Tool_Functions.getDPower(chapterWidth, h * (1.0 - 140 / 1080 * 2), 75)
+    dPower = tool_funcs.getDPower(chapterWidth, h * (1.0 - 140 / 1080 * 2), 75)
     
     chapterRect = getChapterRect(dx, chapterWidth)
     
@@ -577,7 +577,7 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
         f"ctx.drawRotateText2(\
             '{processStringToLiteral(item.name)}',\
             {chapterRect[2] - dPower * chapterWidth - (w + h) / 150}, {chapterRect[3] - (w + h) / 150},\
-            -75, 'rgba(255, 255, 255, {0.95 * (1.0 - Tool_Functions.PhigrosChapterNameAlphaValueTransfrom(p))})', '{(w + h) / 50}px PhigrosFont',\
+            -75, 'rgba(255, 255, 255, {0.95 * (1.0 - tool_funcs.PhigrosChapterNameAlphaValueTransfrom(p))})', '{(w + h) / 50}px PhigrosFont',\
             'left', 'bottom'\
         );",
         add_code_array = True
@@ -607,7 +607,7 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
     
     PlayButtonWidth = w * 0.1453125
     PlayButtonHeight = h * (5 / 54)
-    PlayButtonDPower = Tool_Functions.getDPower(PlayButtonWidth, PlayButtonHeight, 75)
+    PlayButtonDPower = tool_funcs.getDPower(PlayButtonWidth, PlayButtonHeight, 75)
 
     playButtonRect = (
         chapterRect[2] - dPower * chapterWidth + PlayButtonDPower * PlayButtonWidth - PlayButtonWidth, chapterRect[3] - PlayButtonHeight,
@@ -620,7 +620,7 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
         playButtonRect[0] + (playButtonRect[2] - playButtonRect[0]) * 0.25, playButtonRect[1] + (playButtonRect[3] - playButtonRect[1]) * 0.5
     )
     
-    playButtonAlpha = Tool_Functions.PhigrosChapterPlayButtonAlphaValueTransfrom(p)
+    playButtonAlpha = tool_funcs.PhigrosChapterPlayButtonAlphaValueTransfrom(p)
     
     if playButtonAlpha != 0.0:
         root.run_js_code(
@@ -651,7 +651,7 @@ def drawChapterItem(item: PhigrosGameObject.Chapter, dx: float):
             wait_execute = True
         )
     
-    dataAlpha = Tool_Functions.PhigrosChapterDataAlphaValueTransfrom(p)
+    dataAlpha = tool_funcs.PhigrosChapterDataAlphaValueTransfrom(p)
     
     if dataAlpha != 0.0:
         root.create_text(
@@ -839,7 +839,7 @@ def showStartAnimation():
     
     a1_t = 5.0
     a1_st = time.time()
-    mixer.music.load("./Resources/NewSplashSceneBGM.mp3")
+    mixer.music.load("./resources/NewSplashSceneBGM.mp3")
     played_NewSplashSceneBGM = False
     while True:
         p = (time.time() - a1_st) / a1_t
@@ -860,7 +860,7 @@ def showStartAnimation():
         root.run_js_code(
             f"ctx.drawAlphaImage(\
                 {root.get_img_jsvarname("logoipt")},\
-                0, 0, {w}, {h}, {Tool_Functions.easeAlpha(p)}\
+                0, 0, {w}, {h}, {tool_funcs.easeAlpha(p)}\
             );",
             add_code_array = True
         )
@@ -879,7 +879,7 @@ def showStartAnimation():
         root.run_js_code(
             f"ctx.drawAlphaImage(\
                 {root.get_img_jsvarname("warning")},\
-                0, 0, {w}, {h}, {Tool_Functions.easeAlpha(p)}\
+                0, 0, {w}, {h}, {tool_funcs.easeAlpha(p)}\
             );",
             add_code_array = True
         )
@@ -891,7 +891,7 @@ def showStartAnimation():
             eventManager.clickEvents.remove(e)
             break
     
-    faManager = PhigrosGameObject.FaculaAnimationManager()
+    faManager = phigame_obj.FaculaAnimationManager()
     Thread(target=faManager.main, daemon=True).start()
     a3_st = time.time()
     a3_clicked = False
@@ -976,7 +976,7 @@ def showStartAnimation():
         root.create_text(
             w / 2,
             h * 0.98,
-            text = f"Version: {Const.PHIGROS_VERSION}",
+            text = f"Version: {const.PHIGROS_VERSION}",
             font = f"{(w + h) / 250}px PhigrosFont",
             textAlign = "center",
             textBaseline = "bottom",
@@ -1025,7 +1025,7 @@ def mainUI_slideControlerMouseDown_valid(x, y):
         return False
     
     for e in eventManager.clickEvents:
-        if e.tag == "mainUI" and Tool_Functions.InRect(x, y, e.rect):
+        if e.tag == "mainUI" and tool_funcs.InRect(x, y, e.rect):
             return False
     
     return True
@@ -1039,7 +1039,7 @@ def settingUI_slideControlerMouseDown_valid(x, y):
         return False
     
     return (
-        settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY and
+        settingState.aTo == const.PHIGROS_SETTING_STATE.PLAY and
         w * 0.0921875 <= x <= w * 0.534375 and
         h * (180 / 1080) <= y <= h * (1015 / 1080)
     )
@@ -1052,7 +1052,7 @@ def settingPlayWidgetEvent_valid(x, y):
     if settingState is None:
         return False
     
-    return settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY and inSettingUI
+    return settingState.aTo == const.PHIGROS_SETTING_STATE.PLAY and inSettingUI
     
 def changeChapterMouseDown(x, y):
     global changeChapterMouseDownX
@@ -1080,8 +1080,8 @@ def changeChapterMouseUp(x, y):
     for index, i in enumerate(Chapters.items):
         p = getChapterP(i)
         width = getChapterWidth(p)
-        dPower = Tool_Functions.getDPower(width, h * (1.0 - 140 / 1080 * 2), 75)
-        if Tool_Functions.inDiagonalRectangle(*getChapterRect(chapterX, width), dPower, x, y):
+        dPower = tool_funcs.getDPower(width, h * (1.0 - 140 / 1080 * 2), 75)
+        if tool_funcs.inDiagonalRectangle(*getChapterRect(chapterX, width), dPower, x, y):
             if Chapters.aTo != index:
                 Chapters.aFrom, Chapters.aTo, Chapters.aSTime = Chapters.aTo, index, time.time()
                 lastChangeChapterTime = time.time()
@@ -1095,7 +1095,7 @@ def mainRender():
     
     faManager.faculas.clear()
     mainRenderSt = time.time()
-    mixer.music.load("./Resources/ChapterSelect.mp3")
+    mixer.music.load("./resources/ChapterSelect.mp3")
     mixer.music.play(-1)
     
     messageRect = (w * 0.015, h * 0.985 - MessageButtonSize, MessageButtonSize, MessageButtonSize)
@@ -1115,7 +1115,7 @@ def mainRender():
             clickedMessage = True
             canClickJoinQQGuildBanner = True
             Resource["UISound_1"].play()
-    events.append(PhigrosGameObject.ClickEvent(
+    events.append(phigame_obj.ClickEvent(
         rect = (messageRect[0], messageRect[1], messageRect[0] + messageRect[2], messageRect[1] + messageRect[3]),
         callback = clickMessage,
         once = False,
@@ -1136,7 +1136,7 @@ def mainRender():
             messageBackTime = float("inf")
             inMainUI = False
             Resource["UISound_2"].play()
-    events.append(PhigrosGameObject.ClickEvent(
+    events.append(phigame_obj.ClickEvent(
         rect = (JoinQQGuildBannerRect[0], JoinQQGuildBannerRect[1], JoinQQGuildBannerRect[0] + JoinQQGuildBannerRect[2], JoinQQGuildBannerRect[1] + JoinQQGuildBannerRect[3]),
         callback = clickJoinQQGuildBanner,
         once = False
@@ -1184,7 +1184,7 @@ def mainRender():
             mixer.music.fadeout(500)
             Resource["UISound_2"].play()
     
-    events.append(PhigrosGameObject.ClickEvent(
+    events.append(phigame_obj.ClickEvent(
         rect = (w - ButtonWidth, h - ButtonHeight, w, h),
         callback = SettingCallback,
         once = False,
@@ -1282,16 +1282,16 @@ def mainRender():
             
             noRect, yesRect = drawDialog(
                 p, "JoinQQGuildPromo",
-                Const.JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER,
+                const.JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER,
                 (JoinQQGuildPromoWidth, JoinQQGuildPromoHeight),
                 "关闭", "跳转到外部应用"
             )
             
             if JoinQQGuildPromoNoEvent is None and JoinQQGuildPromoYesEvent is None:
-                JoinQQGuildPromoNoEvent = PhigrosGameObject.ClickEvent( # once is false, remove event in callback
+                JoinQQGuildPromoNoEvent = phigame_obj.ClickEvent( # once is false, remove event in callback
                     noRect, JoinQQGuildPromoNoCallback, False
                 )
-                JoinQQGuildPromoYesEvent = PhigrosGameObject.ClickEvent(
+                JoinQQGuildPromoYesEvent = phigame_obj.ClickEvent(
                     yesRect, JoinQQGuildPromoYesCallback, False
                 )
                 events.append(JoinQQGuildPromoNoEvent)
@@ -1318,7 +1318,7 @@ def mainRender():
             
             drawDialog(
                 p, "JoinQQGuildPromo",
-                Const.JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER,
+                const.JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER,
                 (JoinQQGuildPromoWidth, JoinQQGuildPromoHeight),
                 "关闭", "跳转到外部应用"
             )
@@ -1379,7 +1379,7 @@ def renderPhigrosWidgets(
     for widget in widgets:
         x, y = sx - dx_f(sy + (dy + widgets_height)), sy + (dy + widgets_height)
         
-        if isinstance(widget, PhigrosGameObject.PhiLabel):
+        if isinstance(widget, phigame_obj.PhiLabel):
             _temp = lambda text, align: root.create_text(
                 x + (max_width if align == "right" else 0.0), y, text, 
                 font = f"{widget.fontsize}px PhigrosFont",
@@ -1394,7 +1394,7 @@ def renderPhigrosWidgets(
             widgets_height += widget.fontsize
             widgets_height += widget.tonext
             widgets_height += h * (27 / 1080)
-        elif isinstance(widget, PhigrosGameObject.PhiSlider):
+        elif isinstance(widget, phigame_obj.PhiSlider):
             sliderShadowRect = (
                 x, y + h * (6 / 1080),
                 x + max_width, y + h * ((41 + 6) / 1080)
@@ -1402,7 +1402,7 @@ def renderPhigrosWidgets(
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, sliderShadowRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(sliderShadowRect), 75)},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(sliderShadowRect), 75)},\
                     'rgba(0, 0, 0, 0.25)'\
                 );",
                 add_code_array = True
@@ -1422,7 +1422,7 @@ def renderPhigrosWidgets(
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, lConRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(lConRect), 75)},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(lConRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
                 add_code_array = True
@@ -1431,14 +1431,14 @@ def renderPhigrosWidgets(
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, rConRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(rConRect), 75)},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(rConRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
                 add_code_array = True
             )
             
             if widget.lr_button:
-                ctp_l, ctp_r = Tool_Functions.getCenterPointByRect(lConRect), Tool_Functions.getCenterPointByRect(rConRect)
+                ctp_l, ctp_r = tool_funcs.getCenterPointByRect(lConRect), tool_funcs.getCenterPointByRect(rConRect)
                 coniw_l, coniw_r = (w + h) * 0.003, (w + h) * 0.005 # 控制按钮图标线长度
                 root.run_js_code(
                     f"ctx.drawLineEx(\
@@ -1465,9 +1465,9 @@ def renderPhigrosWidgets(
                     add_code_array = True
                 )
             
-            slider_p = Tool_Functions.sliderValueP(widget.value, widget.number_points)
+            slider_p = tool_funcs.sliderValueP(widget.value, widget.number_points)
             sliderBlockWidth = w * 0.0359375
-            sliderFrameWidth = conWidth - conWidth * Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(lConRect), 75) + sliderBlockWidth / 2 + w * 0.0046875
+            sliderFrameWidth = conWidth - conWidth * tool_funcs.getDPower(*tool_funcs.getSizeByRect(lConRect), 75) + sliderBlockWidth / 2 + w * 0.0046875
             sliderBlockHeight = conButtonHeight
             sliderBlock_x = x + sliderFrameWidth - sliderBlockWidth / 2 + slider_p * (max_width - sliderFrameWidth * 2)
             sliderBlockRect = (
@@ -1478,7 +1478,7 @@ def renderPhigrosWidgets(
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, sliderBlockRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(sliderBlockRect), 75)},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(sliderBlockRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
                 add_code_array = True
@@ -1492,7 +1492,7 @@ def renderPhigrosWidgets(
             widget.lconButtonRect, widget.rconButtonRect = lConRect, rConRect
             
             widgets_height += widget.tonext
-        elif isinstance(widget, PhigrosGameObject.PhiCheckbox):
+        elif isinstance(widget, phigame_obj.PhiCheckbox):
             root.create_text(
                 x, y, widget.text,
                 font = f"{widget.fontsize}px PhigrosFont",
@@ -1509,14 +1509,14 @@ def renderPhigrosWidgets(
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, checkboxShadowRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(checkboxShadowRect), 75)},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(checkboxShadowRect), 75)},\
                     'rgba(0, 0, 0, 0.25)'\
                 );",
                 add_code_array = True
             )
             
             checkAnimationP = (time.time() - widget.check_animation_st) / 0.2
-            checkAnimationP = Tool_Functions.fixOutofRangeP(checkAnimationP)
+            checkAnimationP = tool_funcs.fixOutofRangeP(checkAnimationP)
             if not widget.checked:
                 checkAnimationP = 1.0 - checkAnimationP
             checkAnimationP = 1.0 - (1.0 - checkAnimationP) ** 2
@@ -1531,7 +1531,7 @@ def renderPhigrosWidgets(
                 f"ctx.drawImage(\
                     {root.get_img_jsvarname("checked")},\
                     {x + w * 0.340625 - CheckedIconWidth / 2},\
-                    {y + Tool_Functions.getSizeByRect(checkButtonRect)[1] / 2 - CheckedIconHeight / 2},\
+                    {y + tool_funcs.getSizeByRect(checkButtonRect)[1] / 2 - CheckedIconHeight / 2},\
                     {CheckedIconWidth}, {CheckedIconHeight}\
                 );",
                 add_code_array = True
@@ -1540,7 +1540,7 @@ def renderPhigrosWidgets(
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, checkButtonRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(checkButtonRect), 75)},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(checkButtonRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
                 add_code_array = True
@@ -1549,7 +1549,7 @@ def renderPhigrosWidgets(
             widget.checkboxRect = checkboxShadowRect
             
             widgets_height += widget.tonext
-        elif isinstance(widget, PhigrosGameObject.PhiButton):
+        elif isinstance(widget, phigame_obj.PhiButton):
             buttonRect = (
                 x + max_width / 2 - widget.width / 2, y,
                 x + max_width / 2 + widget.width / 2, y + h * (80 / 1080)
@@ -1558,7 +1558,7 @@ def renderPhigrosWidgets(
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, buttonRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(buttonRect), 75)},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(buttonRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
                 add_code_array = True
@@ -1576,7 +1576,7 @@ def renderPhigrosWidgets(
             
             widget.buttonRect = buttonRect
         
-        if not isinstance(widget, PhigrosGameObject.PhiLabel):
+        if not isinstance(widget, phigame_obj.PhiLabel):
             widgets_height += h * (150 / 1080)
             
     root.run_js_code(
@@ -1594,7 +1594,7 @@ def settingRender():
     inSettingUI = True
     
     settingRenderSt = time.time()
-    settingState = PhigrosGameObject.SettingState()
+    settingState = phigame_obj.SettingState()
     clickedBackButton = False
     settingPlayWidgetsDy = 0.0
     CalibrationClickSoundPlayed = False
@@ -1612,12 +1612,12 @@ def settingRender():
     settingUIOpenSourceLicenseSlideControler.maxValueY = root.run_js_code(
         f"ctx.drawRectMultilineText(\
             -{w}, -{h}, 0, 0,\
-            {root.process_code_string_syntax_tocode(Const.PHI_OPENSOURCELICENSE)},\
+            {root.process_code_string_syntax_tocode(const.PHI_OPENSOURCELICENSE)},\
             'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
         );"
     ) + h * (143 / 1080) * 2 - h
     
-    mixer.music.load("./Resources/Calibration.wav")
+    mixer.music.load("./resources/Calibration.wav")
     mixer.music.play(-1)
     
     def unregEvents():
@@ -1633,7 +1633,7 @@ def settingRender():
             nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
             Resource["UISound_4"].play()
     
-    clickBackButtonEvent = PhigrosGameObject.ClickEvent(
+    clickBackButtonEvent = phigame_obj.ClickEvent(
         rect = (0, 0, ButtonWidth, ButtonHeight),
         callback = clickBackButtonCallback,
         once = False
@@ -1662,40 +1662,40 @@ def settingRender():
         nonlocal showBackgrounds, showBackgroundsSt
         
         # 游玩
-        if Tool_Functions.InRect(x, y, (
+        if tool_funcs.InRect(x, y, (
             w * 346 / 1920, h * 35 / 1080,
             w * 458 / 1920, h * 97 / 1080
         )) and inSettingUI and not editingUserData:
-            if settingState.aTo == Const.PHIGROS_SETTING_STATE.PLAY:
+            if settingState.aTo == const.PHIGROS_SETTING_STATE.PLAY:
                 return
             
             Thread(target=lambda: (time.sleep(settingState.atime / 2), mixer.music.stop(), mixer.music.play(-1)), daemon=True).start()
-            _setSettingState(Const.PHIGROS_SETTING_STATE.PLAY)
+            _setSettingState(const.PHIGROS_SETTING_STATE.PLAY)
         
         # 账号与统计
-        if Tool_Functions.InRect(x, y, (
+        if tool_funcs.InRect(x, y, (
             w * 540 / 1920, h * 35 / 1080,
             w * 723 / 1920, h * 97 / 1080
         )) and inSettingUI and not editingUserData:
-            if settingState.aTo == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT:
+            if settingState.aTo == const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT:
                 return
             
             mixer.music.fadeout(500)
-            _setSettingState(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
+            _setSettingState(const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
         
         # 其他
-        if Tool_Functions.InRect(x, y, (
+        if tool_funcs.InRect(x, y, (
             w * 807 / 1920, h * 35 / 1080,
             w * 915 / 1920, h * 97 / 1080
         )) and inSettingUI and not editingUserData:
-            if settingState.aTo == Const.PHIGROS_SETTING_STATE.OTHER:
+            if settingState.aTo == const.PHIGROS_SETTING_STATE.OTHER:
                 return
             
             mixer.music.fadeout(500)
-            _setSettingState(Const.PHIGROS_SETTING_STATE.OTHER)
+            _setSettingState(const.PHIGROS_SETTING_STATE.OTHER)
         
         # 校准延迟点击扩散的线条
-        if settingState.atis_p and Tool_Functions.InRect(x, y, (
+        if settingState.atis_p and tool_funcs.InRect(x, y, (
             w * 0.6015625, 0.0,
             w, h
         )) and inSettingUI:
@@ -1704,14 +1704,14 @@ def settingRender():
                 CalibrationClickEffectLines.append((time.time(), mixer_pos))
         
         # 账号与统计 - 编辑
-        if settingState.atis_a and Tool_Functions.InRect(x, y, (
+        if settingState.atis_a and tool_funcs.InRect(x, y, (
             w * 0.85625, h * (181 / 1080),
             w * 0.921875, h * (220 / 1080)
         )) and not (showAvatars or showBackgrounds):
             editingUserData = not editingUserData
         
         # 编辑用户名字
-        if settingState.atis_a and Tool_Functions.InRect(x, y, editUserNameRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and tool_funcs.InRect(x, y, editUserNameRect) and editingUserData and not (showAvatars or showBackgrounds):
             newName = root.run_js_code(f"prompt('请输入新名字', {root.process_code_string_syntax_tocode(getUserData("userdata-userName"))});")
             if newName is not None:
                 setUserData("userdata-userName", newName)
@@ -1719,7 +1719,7 @@ def settingRender():
                 saveUserData(userData)
         
         # 编辑用户介绍
-        if settingState.atis_a and Tool_Functions.InRect(x, y, editIntroductionRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and tool_funcs.InRect(x, y, editIntroductionRect) and editingUserData and not (showAvatars or showBackgrounds):
             newName = root.run_js_code(f"prompt('请输入新介绍 (输入\"\\\\n\"可换行)', {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction").replace("\n", "\\n"))});")
             if newName is not None:
                 setUserData("userdata-selfIntroduction", newName.replace("\\n", "\n"))
@@ -1727,15 +1727,15 @@ def settingRender():
                 saveUserData(userData)
         
         # 编辑用户头像
-        if settingState.atis_a and Tool_Functions.InRect(x, y, editAvatarRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and tool_funcs.InRect(x, y, editAvatarRect) and editingUserData and not (showAvatars or showBackgrounds):
             showAvatars, showAvatarsSt = True, time.time()
         
         # 编辑用户背景
-        if settingState.atis_a and Tool_Functions.InRect(x, y, editBackgroundRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and tool_funcs.InRect(x, y, editBackgroundRect) and editingUserData and not (showAvatars or showBackgrounds):
             showBackgrounds, showBackgroundsSt = True, time.time()
 
         # 编辑用户头像/背景 - 关闭
-        if settingState.atis_a and Tool_Functions.InRect(x, y, (
+        if settingState.atis_a and tool_funcs.InRect(x, y, (
             w * 0.9078125 - (w + h) * 0.014 / 2, h * (225 / 1080) - (w + h) * 0.014 / 2,
             w * 0.9078125 + (w + h) * 0.014 / 2, h * (225 / 1080) + (w + h) * 0.014 / 2
         )) and (showAvatars or showBackgrounds):
@@ -1743,18 +1743,18 @@ def settingRender():
             if showBackgrounds: showBackgrounds, showBackgroundsSt = False, time.time()
         
         # 音频问题疑难解答
-        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[0]) and inSettingUI:
+        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[0]) and inSettingUI:
             Resource["UISound_4"].play()
             unregEvents()
             nextUI, tonextUI, tonextUISt = audioQARender, True, time.time()
         
         # 观看教学
-        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[1]) and inSettingUI:
+        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[1]) and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
-                chartAudio = "./Resources/Introduction/audio.mp3",
-                chartImage = "./Resources/Introduction/image.png",
-                chartFile = "./Resources/Introduction/chart.json",
+                chartAudio = "./resources/Introduction/audio.mp3",
+                chartImage = "./resources/Introduction/image.png",
+                chartFile = "./resources/Introduction/chart.json",
                 startAnimation = False,
                 chart_information = {
                     "Name": "Introduction",
@@ -1770,47 +1770,47 @@ def settingRender():
             ), True, time.time()
         
         # 关于我们
-        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[2]) and inSettingUI:
+        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[2]) and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = aboutUsRender, True, time.time()
         
         # 开源许可证
-        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[3]) and inSettingUI:
+        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[3]) and inSettingUI:
             inSettingUI = False
             ShowOpenSource, ShowOpenSourceSt = True, time.time()
             settingUIOpenSourceLicenseSlideControler.setDy(settingUIOpenSourceLicenseSlideControler.minValueY)
         
         # 隐私政策
-        if settingState.atis_o and Tool_Functions.InRect(x, y, otherSettingButtonRects[4]) and inSettingUI:
-            webbrowser.open(Const.PHIGROS_LINKS.PRIVACYPOLIC)
+        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[4]) and inSettingUI:
+            webbrowser.open(const.PHIGROS_LINKS.PRIVACYPOLIC)
         
         # 推特链接
-        if settingState.atis_o and Tool_Functions.InRect(x, y, (
+        if settingState.atis_o and tool_funcs.InRect(x, y, (
             w * 128 / 1920, h * 1015 / 1080,
             w * 315 / 1920, h * 1042 / 1080
         )) and inSettingUI:
-            webbrowser.open(Const.PHIGROS_LINKS.TWITTER)
+            webbrowser.open(const.PHIGROS_LINKS.TWITTER)
         
         # B站链接
-        if settingState.atis_o and Tool_Functions.InRect(x, y, (
+        if settingState.atis_o and tool_funcs.InRect(x, y, (
             w * 376 / 1920, h * 1015 / 1080,
             w * 561 / 1920, h * 1042 / 1080
         )) and inSettingUI:
-            webbrowser.open(Const.PHIGROS_LINKS.BILIBILI)
+            webbrowser.open(const.PHIGROS_LINKS.BILIBILI)
         
         # QQ链接
-        if settingState.atis_o and Tool_Functions.InRect(x, y, (
+        if settingState.atis_o and tool_funcs.InRect(x, y, (
             w * 626 / 1920, h * 1015 / 1080,
             w * 856 / 1920, h * 1042 / 1080
         )) and inSettingUI:
-            webbrowser.open(Const.PHIGROS_LINKS.QQ)
+            webbrowser.open(const.PHIGROS_LINKS.QQ)
         
         # 开源许可证的关闭按钮
-        if Tool_Functions.InRect(x, y, (0, 0, ButtonWidth, ButtonHeight)) and ShowOpenSource and time.time() - ShowOpenSourceSt > 0.15:
+        if tool_funcs.InRect(x, y, (0, 0, ButtonWidth, ButtonHeight)) and ShowOpenSource and time.time() - ShowOpenSourceSt > 0.15:
             ShowOpenSource, ShowOpenSourceSt = False, float("nan")
             CloseOpenSource, CloseOpenSourceSt = True, time.time()
             
-    settingMainClickEvent = PhigrosGameObject.ClickEvent(
+    settingMainClickEvent = phigame_obj.ClickEvent(
         rect = (0, 0, w, h),
         callback = settingMainClickCallback,
         once = False
@@ -1820,7 +1820,7 @@ def settingRender():
     settingDx = [0.0, 0.0, 0.0]
     
     def getShadowDiagonalXByY(y: float):
-        return w * Tool_Functions.getDPower(w, h, 75) * ((h - y) / h)
+        return w * tool_funcs.getDPower(w, h, 75) * ((h - y) / h)
     
     def drawOtherSettingButton(x0: float, y0: float, x1: float, y1: float, dpower: float):
         root.run_js_code(
@@ -1937,7 +1937,7 @@ def settingRender():
                     random.seed(st)
                     block_size = noteWidth / 5.5 * (0.4 * math.sin(p * math.pi) + 0.6)
                     for i, deg in enumerate([random.uniform(0, 90) for _ in range(4)]):
-                        effect_random_point = Tool_Functions.rotate_point(
+                        effect_random_point = tool_funcs.rotate_point(
                             w * 0.75, h * 0.85, deg + i * 90,
                             ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.35
                         )
@@ -2003,7 +2003,7 @@ def settingRender():
                 {root.get_img_jsvarname("userBackground")},\
                 0, {(h * 0.425 - w * 0.8609375 / 16 * 9) / 2},\
                 {w * 0.8609375}, {w * 0.8609375 / 16 * 9},\
-                {Tool_Functions.getDPower(w * 0.8609375, h * 0.425, 75)}, 1.0\
+                {tool_funcs.getDPower(w * 0.8609375, h * 0.425, 75)}, 1.0\
             );",
             add_code_array = True
         )
@@ -2012,7 +2012,7 @@ def settingRender():
             f"ctx.drawDiagonalRectangleNoFix(\
                 {w * 0.0796875}, {h * 0.225},\
                 {w * 0.940625}, {h * 0.65},\
-                {Tool_Functions.getDPower(w * 0.8609375, h * 0.425, 75)},\
+                {tool_funcs.getDPower(w * 0.8609375, h * 0.425, 75)},\
                 'rgba(0, 0, 0, 0.375)'\
             );",
             add_code_array = True
@@ -2024,11 +2024,11 @@ def settingRender():
                 w * 0.8796875, h * (257 / 1080),
                 w * 0.93125, h * (301 / 1080)
             )
-            editBackgroundRectSize = Tool_Functions.getSizeByRect(editBackgroundRect)
+            editBackgroundRectSize = tool_funcs.getSizeByRect(editBackgroundRect)
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, editBackgroundRect))},\
-                    {Tool_Functions.getDPower(*editBackgroundRectSize, 75)},\
+                    {tool_funcs.getDPower(*editBackgroundRectSize, 75)},\
                     'rgb(255, 255, 255)'\
                 );",
                 add_code_array = True
@@ -2049,7 +2049,7 @@ def settingRender():
             f"ctx.drawDiagonalRectangleNoFix(\
                 {w * 0.0796875}, {h * 0.225},\
                 {w * ((0.940625 - 0.0796875) * leftBlackDiagonalX + 0.0796875)}, {h * 0.65},\
-                {Tool_Functions.getDPower(w * ((0.940625 - 0.0796875) * leftBlackDiagonalX), h * 0.425, 75)},\
+                {tool_funcs.getDPower(w * ((0.940625 - 0.0796875) * leftBlackDiagonalX), h * 0.425, 75)},\
                 'rgba(0, 0, 0, 0.25)'\
             );",
             add_code_array = True
@@ -2059,7 +2059,7 @@ def settingRender():
             f"ctx.drawDiagonalRectangleNoFix(\
                 {w * 0.121875}, {h * (283 / 1080)},\
                 {w * 0.465625}, {h * (397 / 1080)},\
-                {Tool_Functions.getDPower(w * 0.34375, h * (114 / 1080), 75)},\
+                {tool_funcs.getDPower(w * 0.34375, h * (114 / 1080), 75)},\
                 'rgba(0, 0, 0, 0.9)'\
             );",
             add_code_array = True
@@ -2070,7 +2070,7 @@ def settingRender():
             w * 0.128125, h * (280 / 1080),
             w * 0.225, h * (400 / 1080)
         )
-        avatarWidth, avatarHeight = Tool_Functions.getSizeByRect(avatarRect)
+        avatarWidth, avatarHeight = tool_funcs.getSizeByRect(avatarRect)
         root.run_js_code(
             f"ctx.drawDiagonalRectangleClipImage(\
                 {",".join(map(str, avatarRect))},\
@@ -2078,7 +2078,7 @@ def settingRender():
                 {(avatarWidth - avatarSize) / 2},\
                 {(avatarHeight - avatarSize) / 2},\
                 {avatarSize}, {avatarSize},\
-                {Tool_Functions.getDPower(avatarWidth, avatarHeight, 75)}, 1.0\
+                {tool_funcs.getDPower(avatarWidth, avatarHeight, 75)}, 1.0\
             );",
             add_code_array = True
         )
@@ -2091,11 +2091,11 @@ def settingRender():
                 avatarRect[2],
                 avatarRect[1] + avatarHeight * (1 / 3)
             )
-            editAvatarRectSize = Tool_Functions.getSizeByRect(editAvatarRect)
+            editAvatarRectSize = tool_funcs.getSizeByRect(editAvatarRect)
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, editAvatarRect))},\
-                    {Tool_Functions.getDPower(*editAvatarRectSize, 75)},\
+                    {tool_funcs.getDPower(*editAvatarRectSize, 75)},\
                     'rgb(255, 255, 255)'\
                 );",
                 add_code_array = True
@@ -2122,7 +2122,7 @@ def settingRender():
         )
         
         rankingScoreRect = (
-            w * 0.465625 - (w * 0.34375) * Tool_Functions.getDPower(w * 0.34375, h * (114 / 1080), 75),
+            w * 0.465625 - (w * 0.34375) * tool_funcs.getDPower(w * 0.34375, h * (114 / 1080), 75),
             h * (357 / 1080),
             w * 0.5140625,
             h * (397 / 1080)
@@ -2130,7 +2130,7 @@ def settingRender():
         root.run_js_code( # 这个矩形真头疼...
             f"ctx.drawDiagonalRectangleNoFix(\
                 {",".join(map(str, rankingScoreRect))},\
-                {Tool_Functions.getDPower(rankingScoreRect[2] - rankingScoreRect[0], rankingScoreRect[3] - rankingScoreRect[1], 75)},\
+                {tool_funcs.getDPower(rankingScoreRect[2] - rankingScoreRect[0], rankingScoreRect[3] - rankingScoreRect[1], 75)},\
                 'rgb(255, 255, 255)'\
             );",
             add_code_array = True
@@ -2165,7 +2165,7 @@ def settingRender():
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
                 {",".join(map(str, editButtonRect))},\
-                {Tool_Functions.getDPower(editButtonRect[2] - editButtonRect[0], editButtonRect[3] - editButtonRect[1], 75)},\
+                {tool_funcs.getDPower(editButtonRect[2] - editButtonRect[0], editButtonRect[3] - editButtonRect[1], 75)},\
                 'rgb(255, 255, 255)'\
             );",
             add_code_array = True
@@ -2198,7 +2198,7 @@ def settingRender():
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
                 {",".join(map(str, loginButtonRect))},\
-                {Tool_Functions.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
+                {tool_funcs.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
                 'rgba(255, 255, 255, {1.0 if not editingUserData else 0.75})'\
             );",
             add_code_array = True
@@ -2211,7 +2211,7 @@ def settingRender():
                 {((loginButtonRect[2] - loginButtonRect[0]) - TapTapIconWidth) / 2},\
                 {((loginButtonRect[3] - loginButtonRect[1]) - TapTapIconHeight) / 2},\
                 {TapTapIconWidth}, {TapTapIconHeight},\
-                {Tool_Functions.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
+                {tool_funcs.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
                 {1.0 if not editingUserData else 0.75}\
             );",
             add_code_array = True
@@ -2224,7 +2224,7 @@ def settingRender():
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
                 {",".join(map(str, chartDataDifRect))},\
-                {Tool_Functions.getDPower(chartDataDifRect[2] - chartDataDifRect[0], chartDataDifRect[3] - chartDataDifRect[1], 75)},\
+                {tool_funcs.getDPower(chartDataDifRect[2] - chartDataDifRect[0], chartDataDifRect[3] - chartDataDifRect[1], 75)},\
                 'rgb(255, 255, 255)'\
             );",
             add_code_array = True
@@ -2241,7 +2241,7 @@ def settingRender():
         )
         
         chartDataRect = (
-            chartDataDifRect[2] - Tool_Functions.getDPower(chartDataDifRect[2] - chartDataDifRect[0], chartDataDifRect[3] - chartDataDifRect[1], 75) * (chartDataDifRect[2] - chartDataDifRect[0]) * (77 / 85),
+            chartDataDifRect[2] - tool_funcs.getDPower(chartDataDifRect[2] - chartDataDifRect[0], chartDataDifRect[3] - chartDataDifRect[1], 75) * (chartDataDifRect[2] - chartDataDifRect[0]) * (77 / 85),
             chartDataDifRect[1] + (chartDataDifRect[3] - chartDataDifRect[1]) * (9 / 85),
             w * 0.871875,
             chartDataDifRect[1] + (chartDataDifRect[3] - chartDataDifRect[1]) * (77 / 85),
@@ -2249,7 +2249,7 @@ def settingRender():
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
                 {",".join(map(str, chartDataRect))},\
-                {Tool_Functions.getDPower(chartDataRect[2] - chartDataRect[0], chartDataRect[3] - chartDataRect[1], 75)},\
+                {tool_funcs.getDPower(chartDataRect[2] - chartDataRect[0], chartDataRect[3] - chartDataRect[1], 75)},\
                 'rgb(0, 0, 0, 0.45)'\
             );",
             add_code_array = True
@@ -2331,8 +2331,8 @@ def settingRender():
         def _drawChooseDialog(p: float, text: str):
             top = h - (905 / 1080) * h * p
             
-            settingShadowRect = Const.PHIGROS_SETTING_SHADOW_XRECT_MAP[Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT]
-            settingShadowDPower = Tool_Functions.getDPower((settingShadowRect[1] - settingShadowRect[0]) * w, h, 75)
+            settingShadowRect = const.PHIGROS_SETTING_SHADOW_XRECT_MAP[const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT]
+            settingShadowDPower = tool_funcs.getDPower((settingShadowRect[1] - settingShadowRect[0]) * w, h, 75)
             settingShadowDWidth = (settingShadowRect[1] - settingShadowRect[0]) * w * settingShadowDPower
             chooseDialogLeftX = settingShadowRect[0] * w
             chooseDialogRightX = settingShadowRect[1] * w - settingShadowDWidth + settingShadowDWidth * (h - top) / h
@@ -2344,7 +2344,7 @@ def settingRender():
             root.run_js_code(
                 f"ctx.save(); ctx.clipDiagonalRectangle(\
                     {",".join(map(str, chooseDialogRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(chooseDialogRect), 75)},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(chooseDialogRect), 75)},\
                 );",
                 add_code_array = True
             )
@@ -2354,7 +2354,7 @@ def settingRender():
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleNoFix(\
                     {",".join(map(str, chooseDialogRect))},\
-                    {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(chooseDialogRect), 75)},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(chooseDialogRect), 75)},\
                     'rgba(0, 0, 0, 0.65)'\
                 );",
                 add_code_array = True
@@ -2387,14 +2387,14 @@ def settingRender():
             )
         
         if showAvatars:
-            p = Tool_Functions.fixOutofRangeP((time.time() - showAvatarsSt) / 1.25)
+            p = tool_funcs.fixOutofRangeP((time.time() - showAvatarsSt) / 1.25)
             _drawChooseDialog(1.0 - (1.0 - p) ** 12, "选择头像")
         elif not showAvatars and time.time() - showAvatarsSt <= 1.25:
             p = (time.time() - showAvatarsSt) / 1.25
             _drawChooseDialog((p - 1.0) ** 12, "选择头像")
         
         if showBackgrounds:
-            p = Tool_Functions.fixOutofRangeP((time.time() - showBackgroundsSt) / 1.25)
+            p = tool_funcs.fixOutofRangeP((time.time() - showBackgroundsSt) / 1.25)
             _drawChooseDialog(1.0 - (1.0 - p) ** 12, "选择背景")
         elif not showBackgrounds and time.time() - showBackgroundsSt <= 1.25:
             p = (time.time() - showBackgroundsSt) / 1.25
@@ -2435,7 +2435,7 @@ def settingRender():
         
         root.create_text(
             w * 0.5703125, h * (308 / 1080),
-            f"Version: {Const.PHIGROS_VERSION}",
+            f"Version: {const.PHIGROS_VERSION}",
             font = f"{(w + h) /125}px PhigrosFont",
             textAlign = "left",
             textBaseline = "middle",
@@ -2445,7 +2445,7 @@ def settingRender():
         
         root.create_text(
             w * 0.5703125, h * (361 / 1080),
-            f"Device: {Const.DEVICE}",
+            f"Device: {const.DEVICE}",
             font = f"{(w + h) /125}px PhigrosFont",
             textAlign = "left",
             textBaseline = "middle",
@@ -2453,7 +2453,7 @@ def settingRender():
             wait_execute = True
         )
         
-        settingOtherButtonDPower = Tool_Functions.getDPower(90, 50, 75)
+        settingOtherButtonDPower = tool_funcs.getDPower(90, 50, 75)
         
         root.create_text(
             w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.575),
@@ -2516,7 +2516,7 @@ def settingRender():
         root.create_text(
             w * 0.5453125,
             h * (1031 / 1080),
-            Const.OTHERSERTTING_RIGHTDOWN_TEXT,
+            const.OTHERSERTTING_RIGHTDOWN_TEXT,
             font = f"{(w + h) / 135}px PhigrosFont",
             textAlign = "left",
             textBaseline = "middle",
@@ -2535,7 +2535,7 @@ def settingRender():
         
         root.create_text(
             w * 0.0875, h * (1031 / 1080),
-            Const.OTHER_SETTING_LB_STRINGS.TWITTER,
+            const.OTHER_SETTING_LB_STRINGS.TWITTER,
             font = f"{(w + h) / 135}px PhigrosFont",
             textAlign = "left",
             textBaseline = "middle",
@@ -2554,7 +2554,7 @@ def settingRender():
         
         root.create_text(
             w * 0.2171875, h * (1031 / 1080),
-            Const.OTHER_SETTING_LB_STRINGS.BILIBILI,
+            const.OTHER_SETTING_LB_STRINGS.BILIBILI,
             font = f"{(w + h) / 135}px PhigrosFont",
             textAlign = "left",
             textBaseline = "middle",
@@ -2573,7 +2573,7 @@ def settingRender():
         
         root.create_text(
             w * 0.346875, h * (1031 / 1080),
-            Const.OTHER_SETTING_LB_STRINGS.QQ,
+            const.OTHER_SETTING_LB_STRINGS.QQ,
             font = f"{(w + h) / 135}px PhigrosFont",
             textAlign = "left",
             textBaseline = "middle",
@@ -2589,13 +2589,13 @@ def settingRender():
     SettingPlayWidgetEventManager.widgets.clear()
     PlaySettingWidgets.clear()
     PlaySettingWidgets.update({
-        "OffsetLabel": PhigrosGameObject.PhiLabel(
+        "OffsetLabel": phigame_obj.PhiLabel(
             left_text = "谱面延时",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
-        "OffsetSlider": PhigrosGameObject.PhiSlider(
+        "OffsetSlider": phigame_obj.PhiSlider(
             tonext = h * (-67 / 1080),
             value = getUserData("setting-chartOffset"),
             number_points = (
@@ -2609,91 +2609,91 @@ def settingRender():
             numberType = int,
             command = updateConfig
         ),
-        "OffsetTip": PhigrosGameObject.PhiLabel(
+        "OffsetTip": phigame_obj.PhiLabel(
             left_text = "",
             right_text = "",
             fontsize = (w + h) / 150,
             color = "rgba(255, 255, 255, 0.6)"
         ),
-        "NoteScaleLabel": PhigrosGameObject.PhiLabel(
+        "NoteScaleLabel": phigame_obj.PhiLabel(
             left_text = "按键缩放",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
-        "NoteScaleSlider": PhigrosGameObject.PhiSlider(
+        "NoteScaleSlider": phigame_obj.PhiSlider(
             value = getUserData("setting-noteScale"),
             number_points = ((0.0, 1.0), (1.0, 1.29)),
             lr_button = False,
             command = updateConfig
         ),
-        "BackgroundDimLabel": PhigrosGameObject.PhiLabel(
+        "BackgroundDimLabel": phigame_obj.PhiLabel(
             left_text = "背景亮度",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
-        "BackgroundDimSlider": PhigrosGameObject.PhiSlider(
+        "BackgroundDimSlider": phigame_obj.PhiSlider(
             value = getUserData("setting-backgroundDim"),
             number_points = ((0.0, 0.05), (1.0, 0.4)),
             lr_button = False,
             command = updateConfig
         ),
-        "ClickSoundCheckbox": PhigrosGameObject.PhiCheckbox(
+        "ClickSoundCheckbox": phigame_obj.PhiCheckbox(
             text = "打开打击音效",
             fontsize = (w + h) / 75,
             checked = getUserData("setting-enableClickSound"),
             command = updateConfig
         ),
-        "MusicVolumeLabel": PhigrosGameObject.PhiLabel(
+        "MusicVolumeLabel": phigame_obj.PhiLabel(
             left_text = "音乐音量",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
-        "MusicVolumeSlider": PhigrosGameObject.PhiSlider(
+        "MusicVolumeSlider": phigame_obj.PhiSlider(
             value = getUserData("setting-musicVolume"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False,
             command = updateConfig
         ),
-        "UISoundVolumeLabel": PhigrosGameObject.PhiLabel(
+        "UISoundVolumeLabel": phigame_obj.PhiLabel(
             left_text = "界面音效音量",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
-        "UISoundVolumeSlider": PhigrosGameObject.PhiSlider(
+        "UISoundVolumeSlider": phigame_obj.PhiSlider(
             value = getUserData("setting-uiVolume"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False,
             command = updateConfig
         ),
-        "ClickSoundVolumeLabel": PhigrosGameObject.PhiLabel(
+        "ClickSoundVolumeLabel": phigame_obj.PhiLabel(
             left_text = "打击音效音量",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
-        "ClickSoundVolumeSlider": PhigrosGameObject.PhiSlider(
+        "ClickSoundVolumeSlider": phigame_obj.PhiSlider(
             value = getUserData("setting-clickSoundVolume"),
             number_points = ((0.0, 0.0), (1.0, 1.0)),
             lr_button = False,
             command = updateConfig
         ),
-        "MorebetsAuxiliaryCheckbox": PhigrosGameObject.PhiCheckbox(
+        "MorebetsAuxiliaryCheckbox": phigame_obj.PhiCheckbox(
             text = "开启多押辅助",
             fontsize = (w + h) / 75,
             checked = getUserData("setting-enableMorebetsAuxiliary"),
             command = updateConfig
         ),
-        "FCAPIndicatorCheckbox": PhigrosGameObject.PhiCheckbox(
+        "FCAPIndicatorCheckbox": phigame_obj.PhiCheckbox(
             text = "开启FC/AP指示器",
             fontsize = (w + h) / 75,
             checked = getUserData("setting-enableFCAPIndicator"),
             command = updateConfig
         ),
-        "LowQualityCheckbox": PhigrosGameObject.PhiCheckbox(
+        "LowQualityCheckbox": phigame_obj.PhiCheckbox(
             text = "低分辨率模式",
             fontsize = (w + h) / 75,
             checked = getUserData("setting-enableLowQuality"),
@@ -2721,7 +2721,7 @@ def settingRender():
             ShadowXRect[0] * w, 0.0,
             ShadowXRect[1] * w, h
         )
-        ShadowDPower = Tool_Functions.getDPower(ShadowRect[2] - ShadowRect[0], h, 75)
+        ShadowDPower = tool_funcs.getDPower(ShadowRect[2] - ShadowRect[0], h, 75)
         
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
@@ -2733,7 +2733,7 @@ def settingRender():
         
         BarWidth = settingState.getBarWidth() * w
         BarHeight = h * (2 / 27)
-        BarDPower = Tool_Functions.getDPower(BarWidth, BarHeight, 75)
+        BarDPower = tool_funcs.getDPower(BarWidth, BarHeight, 75)
         BarRect = (
             w * 0.153125, h * 0.025,
             w * 0.153125 + BarWidth, h * 0.025 + BarHeight
@@ -2751,7 +2751,7 @@ def settingRender():
         
         LabelWidth = settingState.getLabelWidth() * w
         LabelHeight = h * (113 / 1080)
-        LabelDPower = Tool_Functions.getDPower(LabelWidth, LabelHeight, 75)
+        LabelDPower = tool_funcs.getDPower(LabelWidth, LabelHeight, 75)
         LabelX = settingState.getLabelX() * w
         LabelRect = (
             LabelX, h * 1 / 108,
@@ -2766,12 +2766,12 @@ def settingRender():
             add_code_array = True
         )
         
-        PlayTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.PLAY) + (BarAlpha, )
-        AccountAndCountTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT) + (BarAlpha, )
-        OtherTextColor = settingState.getTextColor(Const.PHIGROS_SETTING_STATE.OTHER) + (BarAlpha, )
-        PlayTextFontScale = settingState.getTextScale(Const.PHIGROS_SETTING_STATE.PLAY)
-        AccountAndCountTextFontScale = settingState.getTextScale(Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
-        OtherTextFontScale = settingState.getTextScale(Const.PHIGROS_SETTING_STATE.OTHER)
+        PlayTextColor = settingState.getTextColor(const.PHIGROS_SETTING_STATE.PLAY) + (BarAlpha, )
+        AccountAndCountTextColor = settingState.getTextColor(const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT) + (BarAlpha, )
+        OtherTextColor = settingState.getTextColor(const.PHIGROS_SETTING_STATE.OTHER) + (BarAlpha, )
+        PlayTextFontScale = settingState.getTextScale(const.PHIGROS_SETTING_STATE.PLAY)
+        AccountAndCountTextFontScale = settingState.getTextScale(const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
+        OtherTextFontScale = settingState.getTextScale(const.PHIGROS_SETTING_STATE.OTHER)
         settingTextY = h * 0.025 + BarHeight / 2
                 
         root.create_text(
@@ -2817,10 +2817,10 @@ def settingRender():
                     root.run_js_code("dialog_canvas_ctx.clear()", add_code_array = True)
             
             if ShowOpenSource:
-                p = Tool_Functions.fixOutofRangeP((time.time() - ShowOpenSourceSt) / 0.15)
+                p = tool_funcs.fixOutofRangeP((time.time() - ShowOpenSourceSt) / 0.15)
                 p = 1.0 - (1.0 - p) ** 3
             else: # CloseOpenSource
-                p = Tool_Functions.fixOutofRangeP((time.time() - CloseOpenSourceSt) / 0.35)
+                p = tool_funcs.fixOutofRangeP((time.time() - CloseOpenSourceSt) / 0.35)
                 p = abs(p - 1.0) ** 3
             
             if ShowOpenSource or CloseOpenSource:
@@ -2833,7 +2833,7 @@ def settingRender():
                 root.run_js_code(
                     f"ctx.drawRectMultilineText(\
                         {w * 0.2}, {settingUIOpenSourceLicenseSlideControler.getDy() + h * (143 / 1080)}, {w * 0.8}, {h},\
-                        {root.process_code_string_syntax_tocode(Const.PHI_OPENSOURCELICENSE)},\
+                        {root.process_code_string_syntax_tocode(const.PHI_OPENSOURCELICENSE)},\
                         'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
                     );",
                     add_code_array = True
@@ -2889,7 +2889,7 @@ def audioQARender():
             mixer.music.fadeout(500)
             Resource["UISound_4"].play()
     
-    clickBackButtonEvent = PhigrosGameObject.ClickEvent(
+    clickBackButtonEvent = phigame_obj.ClickEvent(
         rect = (0, 0, ButtonWidth, ButtonHeight),
         callback = clickBackButtonCallback,
         once = False
@@ -2899,13 +2899,13 @@ def audioQARender():
     dspSettingWidgetEventManager.widgets.clear()
     dspSettingWidgets.clear()
     dspSettingWidgets.update({
-        "ValueLabel": PhigrosGameObject.PhiLabel(
+        "ValueLabel": phigame_obj.PhiLabel(
             left_text = "DSP Buffer",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
         ),
-        "ValueSlider": PhigrosGameObject.PhiSlider(
+        "ValueSlider": phigame_obj.PhiSlider(
             value = getUserData("internal-dspBufferExponential"),
             number_points = [(0.0, 7.0), (1.0, 12.0)],
             lr_button = False,
@@ -2913,11 +2913,11 @@ def audioQARender():
             numberType = int,
             command = updateConfig
         ),
-        "PlayButton": PhigrosGameObject.PhiButton(
+        "PlayButton": phigame_obj.PhiButton(
             text = "播放音频",
             fontsize = (w + h) / 75,
             width = w * 0.19375,
-            command = lambda: (mixer.music.load("./Resources/TouchToStart.mp3"), mixer.music.play())
+            command = lambda: (mixer.music.load("./resources/TouchToStart.mp3"), mixer.music.play())
         )
     })
     
@@ -2943,14 +2943,14 @@ def audioQARender():
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
                 {",".join(map(str, shadowRect))},\
-                {Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(shadowRect), 75)}, 'rgba(0, 0, 0, 0.25)'\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(shadowRect), 75)}, 'rgba(0, 0, 0, 0.25)'\
             );",
             add_code_array = True
         )
     
         renderPhigrosWidgets(
             dspSettingWidgets.values(), w * 0.275, h * (665 / 1080), 0.0,
-            lambda y: ((y - h * (665 / 1080)) / h) * (Tool_Functions.getSizeByRect(shadowRect)[0] * Tool_Functions.getDPower(*Tool_Functions.getSizeByRect(shadowRect), 75)),
+            lambda y: ((y - h * (665 / 1080)) / h) * (tool_funcs.getSizeByRect(shadowRect)[0] * tool_funcs.getDPower(*tool_funcs.getSizeByRect(shadowRect), 75)),
             w * 0.425, 0.0, h
         )
         
@@ -2967,7 +2967,7 @@ def audioQARender():
         root.run_js_code(
             f"ctx.drawRectMultilineTextDiagonal(\
                 {w * 0.28125}, {h * (241 / 1080)},\
-                {w * 0.7984375}, {h}, {root.process_code_string_syntax_tocode(Const.DSP_SETTING_TIP)},\
+                {w * 0.7984375}, {h}, {root.process_code_string_syntax_tocode(const.DSP_SETTING_TIP)},\
                 'rgb(255, 255, 255)',\
                 '{(w + h) / 120}px PhigrosFont', {(w + h) / 120}, {- w * 0.0046875}, 1.25\
             );",
@@ -3059,14 +3059,14 @@ def aboutUsRender():
         
         if clickedStart:
             if not mixer.music.get_busy():
-                mixer.music.load("./Resources/AboutUs.mp3")
+                mixer.music.load("./resources/AboutUs.mp3")
                 mixer.music.play(-1)
             dy = h - h * ((time.time() - clickedStartButtonTime) / 12.5)
             fontsize = (w + h) / 102.5
             root.run_js_code(
                 f"aboutus_textheight = ctx.drawRectMultilineTextCenter(\
                     {w * 0.05}, {dy}, {w * 0.95}, {h},\
-                    {root.process_code_string_syntax_tocode(Const.PHI_ABOUTUSTEXT)},\
+                    {root.process_code_string_syntax_tocode(const.PHI_ABOUTUSTEXT)},\
                     'rgb(255, 255, 255)', '{fontsize}px PhigrosFont', {fontsize}, 1.4\
                 );",
                 add_code_array = True
@@ -3138,13 +3138,13 @@ def chartPlayerRender(
     
     chart_information["BackgroundDim"] = getUserData("setting-backgroundDim")
     chartJsonData: dict = json.loads(open(chartFile, "r", encoding="utf-8").read())
-    CHART_TYPE = Const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else Const.CHART_TYPE.RPE
-    if CHART_TYPE == Const.CHART_TYPE.PHI: chartJsonData["offset"] += getUserData("setting-chartOffset") / 1000
-    elif CHART_TYPE == Const.CHART_TYPE.RPE: chartJsonData["META"]["offset"] += getUserData("setting-chartOffset")
-    chart_obj = Chart_Functions_Phi.Load_Chart_Object(chartJsonData) if CHART_TYPE == Const.CHART_TYPE.PHI else Chart_Functions_Rpe.Load_Chart_Object(chartJsonData)
+    CHART_TYPE = const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else const.CHART_TYPE.RPE
+    if CHART_TYPE == const.CHART_TYPE.PHI: chartJsonData["offset"] += getUserData("setting-chartOffset") / 1000
+    elif CHART_TYPE == const.CHART_TYPE.RPE: chartJsonData["META"]["offset"] += getUserData("setting-chartOffset")
+    chart_obj = chartfuncs_phi.Load_Chart_Object(chartJsonData) if CHART_TYPE == const.CHART_TYPE.PHI else chartfuncs_rpe.Load_Chart_Object(chartJsonData)
     mixer.music.load(chartAudio)
     raw_audio_length = mixer.Sound(chartAudio).get_length()
-    audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == Const.CHART_TYPE.RPE else 0.0)
+    audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
     
     root.run_js_code("delete background; delete begin_animation_image; delete finish_animation_image;")
     chart_image = Image.open(chartImage)
@@ -3158,19 +3158,19 @@ def chartPlayerRender(
     finish_animation_image_mask.putpixel((0, 2), (0, 0, 0, 64))
     
     animation_image = chart_image.copy().convert("RGBA")
-    Tool_Functions.cutAnimationIllImage(animation_image)
+    tool_funcs.cutAnimationIllImage(animation_image)
     
     finish_animation_image = chart_image.copy().convert("RGBA")
     finish_animation_image_mask = finish_animation_image_mask.resize(finish_animation_image.size)
     finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
-    Tool_Functions.cutAnimationIllImage(finish_animation_image)
+    tool_funcs.cutAnimationIllImage(finish_animation_image)
     
     root.reg_img(animation_image, "begin_animation_image")
     root.reg_img(finish_animation_image, "finish_animation_image")
     
     root.load_allimg()
     
-    coreConfig = PhiCore.PhiCoreConfigure(
+    coreConfig = phicore.PhiCoreConfigure(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
         root = root, w = w, h = h,
         chart_information = chart_information,
@@ -3197,18 +3197,18 @@ def chartPlayerRender(
         combotips = "Combo", noplaychart = False,
         clicksound_volume = getUserData("setting-clickSoundVolume"),
     )
-    PhiCore.CoreConfig(coreConfig)
+    phicore.CoreConfig(coreConfig)
     
     if startAnimation:
-        PhiCore.Begin_Animation(False, foregroundFrameRender)
+        phicore.Begin_Animation(False, foregroundFrameRender)
         
-    playChartThreadEvent, playChartThreadStopEvent = PhiCore.PlayChart_ThreadFunction()
+    playChartThreadEvent, playChartThreadStopEvent = phicore.PlayChart_ThreadFunction()
     playChartThreadEvent.wait()
     playChartThreadEvent.clear()
         
     show_start_time = time.time()
     coreConfig.show_start_time = show_start_time
-    PhiCore.CoreConfig(coreConfig)
+    phicore.CoreConfig(coreConfig)
     
     def clickEventCallback(x, y):
         global show_start_time
@@ -3217,8 +3217,8 @@ def chartPlayerRender(
         
         if rendingAnimationSt != rendingAnimationSt: # nan, playing chart
             pauseATime = 0.25 if paused else 3.0
-            pauseP = Tool_Functions.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
-            if not paused and Tool_Functions.InRect(x, y, (
+            pauseP = tool_funcs.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
+            if not paused and tool_funcs.InRect(x, y, (
                 w * 9.6 / 1920, h * -1.0 / 1080,
                 w * 96 / 1920, h * 102.6 / 1080
             )) and (time.time() - chartPlayerRenderSt) > 1.25 and pauseP == 1.0:
@@ -3228,7 +3228,7 @@ def chartPlayerRender(
                 pauseSt = time.time()
             
             pauseUIButtonR = (w + h) * 0.0275
-            if paused and Tool_Functions.InRect(x, y, (
+            if paused and tool_funcs.InRect(x, y, (
                 w * 0.5 - w * 0.1109375 - pauseUIButtonR / 2,
                 h * 0.5 - pauseUIButtonR / 2,
                 w * 0.5 - w * 0.1109375 + pauseUIButtonR / 2,
@@ -3236,7 +3236,7 @@ def chartPlayerRender(
             )):
                 eventManager.unregEvent(clickEvent)
                 tonextUI, tonextUISt = True, time.time()
-            elif paused and Tool_Functions.InRect(x, y, (
+            elif paused and tool_funcs.InRect(x, y, (
                 w * 0.5 - pauseUIButtonR / 2,
                 h * 0.5 - pauseUIButtonR / 2,
                 w * 0.5 + pauseUIButtonR / 2,
@@ -3254,7 +3254,7 @@ def chartPlayerRender(
                     foregroundFrameRender = lambda: None,
                     nextUI = nextUIBak
                 ), True, time.time()
-            elif paused and Tool_Functions.InRect(x, y, (
+            elif paused and tool_funcs.InRect(x, y, (
                 w * 0.5 + w * 0.1109375 - pauseUIButtonR / 2,
                 h * 0.5 - pauseUIButtonR / 2,
                 w * 0.5 + w * 0.1109375 + pauseUIButtonR / 2,
@@ -3262,12 +3262,12 @@ def chartPlayerRender(
             )):
                 paused, pauseAnimationSt = False, time.time()
                 
-        if rendingAnimation is not PhiCore.Chart_Finish_Animation_Frame or (time.time() - rendingAnimationSt) <= 0.5:
+        if rendingAnimation is not phicore.Chart_Finish_Animation_Frame or (time.time() - rendingAnimationSt) <= 0.5:
             return
         
-        if Tool_Functions.InRect(x, y, (
+        if tool_funcs.InRect(x, y, (
             0, 0,
-            w * Const.FINISH_UI_BUTTON_SIZE, w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145
+            w * const.FINISH_UI_BUTTON_SIZE, w * const.FINISH_UI_BUTTON_SIZE / 190 * 145
         )):
             eventManager.unregEvent(clickEvent)
             nextUIBak = nextUI
@@ -3282,8 +3282,8 @@ def chartPlayerRender(
                 nextUI = nextUIBak
             ), True, time.time()
             mixer.music.fadeout(500)
-        elif Tool_Functions.InRect(x, y, (
-            w - w * Const.FINISH_UI_BUTTON_SIZE, h - w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145,
+        elif tool_funcs.InRect(x, y, (
+            w - w * const.FINISH_UI_BUTTON_SIZE, h - w * const.FINISH_UI_BUTTON_SIZE / 190 * 145,
             w, h
         )):
             eventManager.unregEvent(clickEvent)
@@ -3295,14 +3295,14 @@ def chartPlayerRender(
     # 前面初始化时间太长了, 放这里
     chartPlayerRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = nextUI, False, float("nan")
-    rendingAnimation = PhiCore.Chart_BeforeFinish_Animation_Frame
+    rendingAnimation = phicore.Chart_BeforeFinish_Animation_Frame
     rendingAnimationSt = float("nan")
     stoped = False
     paused, pauseAnimationSt, pauseSt = False, 0.0, float("nan")
     mixer.music.play()
     while True:
         pauseATime = 0.25 if paused else 3.0
-        pauseP = Tool_Functions.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
+        pauseP = tool_funcs.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
         pauseBgBlurP = (1.0 - (1.0 - pauseP) ** 4) if paused else 1.0 - pauseP ** 15
         root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 100 * pauseBgBlurP}px)';", add_code_array = True)
         
@@ -3356,7 +3356,7 @@ def chartPlayerRender(
             mixer.music.unpause()
             show_start_time += time.time() - pauseSt
             coreConfig.show_start_time = show_start_time
-            PhiCore.CoreConfig(coreConfig)
+            phicore.CoreConfig(coreConfig)
             pauseSt = float("nan")
         
         if not paused and pauseP == 1.0:
@@ -3364,33 +3364,33 @@ def chartPlayerRender(
         
             if not stoped:
                 now_t = time.time() - show_start_time
-                if CHART_TYPE == Const.CHART_TYPE.PHI:
-                    Task = PhiCore.GetFrameRenderTask_Phi(now_t, False, False)
-                elif CHART_TYPE == Const.CHART_TYPE.RPE:
-                    Task = PhiCore.GetFrameRenderTask_Rpe(now_t, False, False)
+                if CHART_TYPE == const.CHART_TYPE.PHI:
+                    Task = phicore.GetFrameRenderTask_Phi(now_t, False, False)
+                elif CHART_TYPE == const.CHART_TYPE.RPE:
+                    Task = phicore.GetFrameRenderTask_Rpe(now_t, False, False)
                     
                 Task.ExecTask()
                 
-                break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
+                break_flag = chartfuncs_phi.FrameData_ProcessExTask(
                     Task.ExTask,
                     lambda x: eval(x)
                 )
                 
                 if break_flag and not stoped:
-                    PhiCore.initFinishAnimation()
+                    phicore.initFinishAnimation()
                     rendingAnimationSt = time.time()
                     stoped = True
             else:
-                if rendingAnimation is PhiCore.Chart_BeforeFinish_Animation_Frame:
+                if rendingAnimation is phicore.Chart_BeforeFinish_Animation_Frame:
                     if time.time() - rendingAnimationSt <= 0.75:
                         rendingAnimation((time.time() - rendingAnimationSt) / 0.75, globals()["PhigrosPlayManagerObject"].getCombo(), False)
                     else:
-                        rendingAnimation, rendingAnimationSt = PhiCore.Chart_Finish_Animation_Frame, time.time()
-                        mixer.music.load("./Resources/Over.mp3")
+                        rendingAnimation, rendingAnimationSt = phicore.Chart_Finish_Animation_Frame, time.time()
+                        mixer.music.load("./resources/Over.mp3")
                         Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
                 
-                if rendingAnimation is PhiCore.Chart_Finish_Animation_Frame: # 不能用elif, 不然会少渲染一个帧
-                    rendingAnimation(Tool_Functions.fixOutofRangeP((time.time() - rendingAnimationSt) / 3.5), False)
+                if rendingAnimation is phicore.Chart_Finish_Animation_Frame: # 不能用elif, 不然会少渲染一个帧
+                    rendingAnimation(tool_funcs.fixOutofRangeP((time.time() - rendingAnimationSt) / 3.5), False)
         
         if time.time() - chartPlayerRenderSt < 1.25 and blackIn:
             p = (time.time() - chartPlayerRenderSt) / 1.25
@@ -3531,7 +3531,7 @@ if "--window-host" in sys.argv:
 
 Load_Chapters()
 Resource = Load_Resource()
-eventManager = PhigrosGameObject.EventManager()
+eventManager = phigame_obj.EventManager()
 bindEvents()
 updateFontSizes()
 applyConfig()

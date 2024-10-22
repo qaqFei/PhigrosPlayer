@@ -8,12 +8,12 @@ import cv2
 import numpy
 from PIL import Image
 
-import Chart_Functions_Phi
-import Chart_Functions_Rpe
-import Chart_Objects_Phi
-import Chart_Objects_Rpe
-import Const
-import Tool_Functions
+import chartfuncs_phi
+import chartfuncs_rpe
+import chartobj_phi
+import chartobj_rpe
+import const
+import tool_funcs
 from rpe_easing import ease_funcs
 
 if len(argv) < 4:
@@ -27,10 +27,10 @@ outputVideoFilePath = argv[3]
 with open(chartFile, "r", encoding="utf-8") as f:
     jsonData = json.load(f)
 
-chartObj = Chart_Functions_Phi.Load_Chart_Object(jsonData) if "formatVersion" in jsonData else Chart_Functions_Rpe.Load_Chart_Object(jsonData)
+chartObj = chartfuncs_phi.Load_Chart_Object(jsonData) if "formatVersion" in jsonData else chartfuncs_rpe.Load_Chart_Object(jsonData)
 moveDatas = []
 
-if isinstance(chartObj, Chart_Objects_Phi.Phigros_Chart):
+if isinstance(chartObj, chartobj_phi.Phigros_Chart):
     for line in chartObj.judgeLineList:
         for note in line.notesAbove + line.notesBelow:
             moveDatas.append({
@@ -38,7 +38,7 @@ if isinstance(chartObj, Chart_Objects_Phi.Phigros_Chart):
                 "pos": note.getNoteClickPos(note.time)
             })
             
-            if note.type == Const.Note.HOLD:
+            if note.type == const.Note.HOLD:
                 dw = 1 / 12.5 / (1.875 / line.bpm)
                 ht = note.time
                 while ht < note.time + note.holdTime:
@@ -48,13 +48,13 @@ if isinstance(chartObj, Chart_Objects_Phi.Phigros_Chart):
                         "pos": note.getNoteClickPos(ht)
                     })
             
-            if note.type == Const.Note.FLICK:
+            if note.type == const.Note.FLICK:
                 e = moveDatas[-1]
                 moveDatas.append({
                     "time": e["time"] + 0.05,
                     "pos": (e["pos"][0], e["pos"][1] - 0.1)
                 })
-elif isinstance(chartObj, Chart_Objects_Rpe.Rpe_Chart): # eq else
+elif isinstance(chartObj, chartobj_rpe.Rpe_Chart): # eq else
     for line in chartObj.JudgeLineList:
         for note in line.notes:
             moveDatas.append({
@@ -62,7 +62,7 @@ elif isinstance(chartObj, Chart_Objects_Rpe.Rpe_Chart): # eq else
                 "pos": note.getNoteClickPos(note.startTime.value, chartObj, line)
             })
             
-            if note.phitype == Const.Note.HOLD:
+            if note.phitype == const.Note.HOLD:
                 dw = chartObj.sec2beat(1 / 12.5, line.bpmfactor)
                 ht = note.startTime.value
                 while ht < note.endTime.value:
@@ -72,7 +72,7 @@ elif isinstance(chartObj, Chart_Objects_Rpe.Rpe_Chart): # eq else
                         "pos": note.getNoteClickPos(ht, chartObj, line)
                     })
             
-            if note.phitype == Const.Note.FLICK:
+            if note.phitype == const.Note.FLICK:
                 e = moveDatas[-1]
                 moveDatas.append({
                     "time": e["time"] + 0.05,
@@ -110,8 +110,8 @@ def gfingerp(sec: float) -> tuple[float, float]:
     for e in moveEvents:
         if e["st"] <= sec < e["et"]:
             return (
-                Tool_Functions.easing_interpolation(sec, e["st"], e["et"], e["sp"][0], e["ep"][0], ease_funcs[9]),
-                Tool_Functions.easing_interpolation(sec, e["st"], e["et"], e["sp"][1], e["ep"][1], ease_funcs[9])
+                tool_funcs.easing_interpolation(sec, e["st"], e["et"], e["sp"][0], e["ep"][0], ease_funcs[9]),
+                tool_funcs.easing_interpolation(sec, e["st"], e["et"], e["sp"][1], e["ep"][1], ease_funcs[9])
             )
     return moveEvents[-1]["ep"]
 
@@ -123,7 +123,7 @@ optWriter = cv2.VideoWriter(outputVideoFilePath, cv2.VideoWriter.fourcc(*'mp4v')
 selfdir = dirname(argv[0])
 if selfdir == "": selfdir = abspath(".")
 chdir(selfdir)
-finger = Image.open("./Resources/finger.png")
+finger = Image.open("./resources/finger.png")
 finger = finger.resize((int(w * 0.4), int(w * 0.4 / finger.width * finger.height)))
 
 try:

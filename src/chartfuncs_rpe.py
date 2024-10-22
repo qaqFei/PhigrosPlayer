@@ -1,12 +1,12 @@
 import logging
 
-import Chart_Objects_Rpe
+import chartobj_rpe
 
 def Load_Chart_Object(chart: dict):
     logging.info("Loading Chart Object, fmt = rpe")
     meta = chart.get("META", {})
-    rpe_chart_obj = Chart_Objects_Rpe.Rpe_Chart(
-        META = Chart_Objects_Rpe.MetaData(
+    rpe_chart_obj = chartobj_rpe.Rpe_Chart(
+        META = chartobj_rpe.MetaData(
             RPEVersion = meta.get("RPEVersion", -1),
             offset = meta.get("offset", 0),
             name = meta.get("name", "Unknow"),
@@ -18,8 +18,8 @@ def Load_Chart_Object(chart: dict):
             level = meta.get("level", "Unknow"),
         ),
         BPMList = [
-            Chart_Objects_Rpe.BPMEvent(
-                startTime = Chart_Objects_Rpe.Beat(
+            chartobj_rpe.BPMEvent(
+                startTime = chartobj_rpe.Beat(
                     *BPMEvent_item.get("startTime", [0, 0, 1])
                 ),
                 bpm = BPMEvent_item.get("bpm", 140)
@@ -27,7 +27,7 @@ def Load_Chart_Object(chart: dict):
             for BPMEvent_item in chart.get("BPMList", [])
         ],
         JudgeLineList = [
-            Chart_Objects_Rpe.JudgeLine(
+            chartobj_rpe.JudgeLine(
                 isCover = judgeLine_item.get("isCover", 1),
                 Texture = judgeLine_item.get("Texture", "line.png"),
                 attachUI = judgeLine_item.get("attachUI", None),
@@ -35,13 +35,13 @@ def Load_Chart_Object(chart: dict):
                 father = judgeLine_item.get("father", -1),
                 zOrder = judgeLine_item.get("zOrder", 0),
                 eventLayers = [
-                    Chart_Objects_Rpe.EventLayer(
+                    chartobj_rpe.EventLayer(
                         speedEvents = [
-                            Chart_Objects_Rpe.LineEvent(
-                                startTime = Chart_Objects_Rpe.Beat(
+                            chartobj_rpe.LineEvent(
+                                startTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("startTime", [0, 0, 1])
                                 ),
-                                endTime = Chart_Objects_Rpe.Beat(
+                                endTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("endTime", [0, 0, 1])
                                 ),
                                 start = LineEvent_item.get("start", 0.0),
@@ -51,11 +51,11 @@ def Load_Chart_Object(chart: dict):
                             for LineEvent_item in EventLayer_item.get("speedEvents", [])
                         ] if EventLayer_item.get("speedEvents", []) is not None else [],
                         moveXEvents = [
-                            Chart_Objects_Rpe.LineEvent(
-                                startTime = Chart_Objects_Rpe.Beat(
+                            chartobj_rpe.LineEvent(
+                                startTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("startTime", [0, 0, 1])
                                 ),
-                                endTime = Chart_Objects_Rpe.Beat(
+                                endTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("endTime", [0, 0, 1])
                                 ),
                                 start = LineEvent_item.get("start", 0.0),
@@ -64,11 +64,11 @@ def Load_Chart_Object(chart: dict):
                             ) for LineEvent_item in EventLayer_item.get("moveXEvents", [])
                         ] if EventLayer_item.get("moveXEvents", []) is not None else [],
                         moveYEvents = [
-                            Chart_Objects_Rpe.LineEvent(
-                                startTime = Chart_Objects_Rpe.Beat(
+                            chartobj_rpe.LineEvent(
+                                startTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("startTime", [0, 0, 1])
                                 ),
-                                endTime = Chart_Objects_Rpe.Beat(
+                                endTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("endTime", [0, 0, 1])
                                 ),
                                 start = LineEvent_item.get("start", 0.0),
@@ -77,11 +77,11 @@ def Load_Chart_Object(chart: dict):
                             ) for LineEvent_item in EventLayer_item.get("moveYEvents", [])
                         ] if EventLayer_item.get("moveYEvents", []) is not None else [],
                         rotateEvents = [
-                            Chart_Objects_Rpe.LineEvent(
-                                startTime = Chart_Objects_Rpe.Beat(
+                            chartobj_rpe.LineEvent(
+                                startTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("startTime", [0, 0, 1])
                                 ),
-                                endTime = Chart_Objects_Rpe.Beat(
+                                endTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("endTime", [0, 0, 1])
                                 ),
                                 start = LineEvent_item.get("start", 0.0),
@@ -90,11 +90,11 @@ def Load_Chart_Object(chart: dict):
                             ) for LineEvent_item in EventLayer_item.get("rotateEvents", [])
                         ] if EventLayer_item.get("rotateEvents", []) is not None else [],
                         alphaEvents = [
-                            Chart_Objects_Rpe.LineEvent(
-                                startTime = Chart_Objects_Rpe.Beat(
+                            chartobj_rpe.LineEvent(
+                                startTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("startTime", [0, 0, 1])
                                 ),
-                                endTime = Chart_Objects_Rpe.Beat(
+                                endTime = chartobj_rpe.Beat(
                                     *LineEvent_item.get("endTime", [0, 0, 1])
                                 ),
                                 start = LineEvent_item.get("start", 0.0),
@@ -102,16 +102,16 @@ def Load_Chart_Object(chart: dict):
                                 easingType = LineEvent_item.get("easingType", 1)
                             ) for LineEvent_item in EventLayer_item.get("alphaEvents", [])
                         ] if EventLayer_item.get("alphaEvents", []) is not None else []
-                    ) if EventLayer_item is not None else Chart_Objects_Rpe.EventLayer(speedEvents = [], moveXEvents = [], moveYEvents = [], rotateEvents = [], alphaEvents = [])
+                    ) if EventLayer_item is not None else chartobj_rpe.EventLayer(speedEvents = [], moveXEvents = [], moveYEvents = [], rotateEvents = [], alphaEvents = [])
                     for EventLayer_item in judgeLine_item.get("eventLayers", [])
                 ],
-                extended = Chart_Objects_Rpe.Extended(
+                extended = chartobj_rpe.Extended(
                     scaleXEvents = [
-                        Chart_Objects_Rpe.LineEvent(
-                            startTime = Chart_Objects_Rpe.Beat(
+                        chartobj_rpe.LineEvent(
+                            startTime = chartobj_rpe.Beat(
                                 *LineEvent_item.get("startTime", [0, 0, 1])
                             ),
-                            endTime = Chart_Objects_Rpe.Beat(
+                            endTime = chartobj_rpe.Beat(
                                 *LineEvent_item.get("endTime", [0, 0, 1])
                             ),
                             start = LineEvent_item.get("start", 1.0),
@@ -120,11 +120,11 @@ def Load_Chart_Object(chart: dict):
                         ) for LineEvent_item in judgeLine_item.get("extended", {}).get("scaleXEvents", [])
                     ] if judgeLine_item.get("extended", {}).get("scaleXEvents", []) is not None else [],
                     scaleYEvents = [
-                        Chart_Objects_Rpe.LineEvent(
-                            startTime = Chart_Objects_Rpe.Beat(
+                        chartobj_rpe.LineEvent(
+                            startTime = chartobj_rpe.Beat(
                                 *LineEvent_item.get("startTime", [0, 0, 1])
                             ),
-                            endTime = Chart_Objects_Rpe.Beat(
+                            endTime = chartobj_rpe.Beat(
                                 *LineEvent_item.get("endTime", [0, 0, 1])
                             ),
                             start = LineEvent_item.get("start", 1.0),
@@ -133,11 +133,11 @@ def Load_Chart_Object(chart: dict):
                         ) for LineEvent_item in judgeLine_item.get("extended", {}).get("scaleYEvents", [])
                     ] if judgeLine_item.get("extended", {}).get("scaleYEvents", []) is not None else [],
                     colorEvents = [
-                        Chart_Objects_Rpe.LineEvent(
-                            startTime = Chart_Objects_Rpe.Beat(
+                        chartobj_rpe.LineEvent(
+                            startTime = chartobj_rpe.Beat(
                                 *LineEvent_item.get("startTime", [0, 0, 1])
                             ),
-                            endTime = Chart_Objects_Rpe.Beat(
+                            endTime = chartobj_rpe.Beat(
                                 *LineEvent_item.get("endTime", [0, 0, 1])
                             ),
                             start = LineEvent_item.get("start", [255, 255, 255]),
@@ -146,11 +146,11 @@ def Load_Chart_Object(chart: dict):
                         ) for LineEvent_item in judgeLine_item.get("extended", {}).get("colorEvents", [])
                     ] if judgeLine_item.get("extended", {}).get("colorEvents", []) is not None else [],
                     textEvents = [
-                        Chart_Objects_Rpe.LineEvent(
-                            startTime = Chart_Objects_Rpe.Beat(
+                        chartobj_rpe.LineEvent(
+                            startTime = chartobj_rpe.Beat(
                                 *LineEvent_item.get("startTime", [0, 0, 1])
                             ),
-                            endTime = Chart_Objects_Rpe.Beat(
+                            endTime = chartobj_rpe.Beat(
                                 *LineEvent_item.get("endTime", [0, 0, 1])
                             ),
                             start = LineEvent_item.get("start", ""),
@@ -160,12 +160,12 @@ def Load_Chart_Object(chart: dict):
                     ] if judgeLine_item.get("extended", {}).get("textEvents", []) is not None else [],
                 ) if judgeLine_item.get("extended", {}) is not None else None,
                 notes = [
-                    Chart_Objects_Rpe.Note(
+                    chartobj_rpe.Note(
                         type = Note_item.get("type", 1),
-                        startTime = Chart_Objects_Rpe.Beat(
+                        startTime = chartobj_rpe.Beat(
                             *Note_item.get("startTime", [0, 0, 1])
                         ),
-                        endTime = Chart_Objects_Rpe.Beat(
+                        endTime = chartobj_rpe.Beat(
                             *Note_item.get("endTime", [0, 0, 1])
                         ),
                         positionX = Note_item.get("positionX", 0),

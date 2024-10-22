@@ -19,7 +19,7 @@ def compile(file:str, hideconsole:bool):
 
 debug = "--debug" in argv
 compile_files = [
-    ("Main.py", False),
+    ("main.py", False),
     ("GUI_Launcher.py", False),
     ("Phigros.py", False)
 ]

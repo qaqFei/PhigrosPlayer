@@ -5,8 +5,8 @@ import typing
 import json
 from dataclasses import dataclass
 
-import Const
-import Tool_Functions
+import const
+import tool_funcs
 import rpe_easing
 
 def getFloorPosition(line: judgeLine, t: float) -> float:
@@ -33,7 +33,7 @@ class note:
     master: judgeLine|None = None
     show_effected: bool = False
     effect_times: list[tuple[int]] | tuple = ()
-    state: int = Const.NOTE_STATE.MISS
+    state: int = const.NOTE_STATE.MISS
     player_clicked: bool = False
     player_click_offset: float = 0.0
     player_click_sound_played: bool = False
@@ -43,14 +43,14 @@ class note:
     player_holdmiss_time: float = float("inf")
     player_last_testholdismiss_time: float = -float("inf")
     player_holdjudged: bool = False
-    player_holdclickstate: int = Const.NOTE_STATE.MISS
+    player_holdclickstate: int = const.NOTE_STATE.MISS
     player_holdjudged_tomanager: bool = False
     player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
     player_drag_judge_safe_used: bool = False
     
     def __post_init__(self):
-        self.id = Tool_Functions.Get_A_New_NoteId()
-        self.effect_random_blocks = Tool_Functions.get_effect_random_blocks()
+        self.id = tool_funcs.Get_A_New_NoteId()
+        self.effect_random_blocks = tool_funcs.get_effect_random_blocks()
     
     def __eq__(self, oth:object):
         if not isinstance(oth, note):
@@ -73,13 +73,13 @@ class note:
             hold_starttime += hold_effect_blocktime
             if hold_starttime >= self.hold_endtime:
                 break
-            self.effect_times.append((hold_starttime, Tool_Functions.get_effect_random_blocks()))
+            self.effect_times.append((hold_starttime, tool_funcs.get_effect_random_blocks()))
         
         self.type_string = {
-            Const.Note.TAP:"Tap",
-            Const.Note.DRAG:"Drag",
-            Const.Note.HOLD:"Hold",
-            Const.Note.FLICK:"Flick"
+            const.Note.TAP:"Tap",
+            const.Note.DRAG:"Drag",
+            const.Note.HOLD:"Hold",
+            const.Note.FLICK:"Flick"
         }[self.type]
         
         self.floorPosition = getFloorPosition(self.master, self.time)
@@ -87,7 +87,7 @@ class note:
     def getNoteClickPos(self, time: float) -> tuple[float, float]:
         linePos = self.master.get_datavar_move(time, 1.0, 1.0)
         lineRotate = self.master.get_datavar_rotate(time)
-        return Tool_Functions.rotate_point(*linePos, - lineRotate, self.positionX * 0.05625)
+        return tool_funcs.rotate_point(*linePos, - lineRotate, self.positionX * 0.05625)
     
 @dataclass
 class speedEvent:
@@ -184,7 +184,7 @@ class judgeLine:
     def get_datavar_rotate(self, now_time):
         for e in self.judgeLineRotateEvents:
             if e.startTime <= now_time <= e.endTime:
-                return Tool_Functions.linear_interpolation(
+                return tool_funcs.linear_interpolation(
                     now_time,
                     e.startTime,
                     e.endTime,
@@ -196,7 +196,7 @@ class judgeLine:
     def get_datavar_disappear(self, now_time):
         for e in self.judgeLineDisappearEvents:
             if e.startTime <= now_time <= e.endTime:
-                return Tool_Functions.linear_interpolation(
+                return tool_funcs.linear_interpolation(
                     now_time,
                     e.startTime,
                     e.endTime,
@@ -210,8 +210,8 @@ class judgeLine:
         for e in self.judgeLineMoveEvents:
             if e.startTime <= now_time <= e.endTime:
                 v = (
-                    Tool_Functions.linear_interpolation(now_time, e.startTime, e.endTime, e.start, e.end),
-                    Tool_Functions.linear_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2)
+                    tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start, e.end),
+                    tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2)
                 )
                 break
         return v

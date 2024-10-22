@@ -4,9 +4,9 @@ import typing
 from dataclasses import dataclass
 from functools import lru_cache, cache
 
-import Tool_Functions
+import tool_funcs
 import rpe_easing
-import Const
+import const
         
 def _init_events(es: list[LineEvent]):
     aes = []
@@ -53,7 +53,7 @@ class Note:
     show_effected: bool = False
     masterLine: JudgeLine|None = None
     
-    state: int = Const.NOTE_STATE.MISS
+    state: int = const.NOTE_STATE.MISS
     player_clicked: bool = False
     player_click_offset: float = 0.0
     player_click_sound_played: bool = False
@@ -63,7 +63,7 @@ class Note:
     player_holdmiss_time: float = float("inf")
     player_last_testholdismiss_time: float = -float("inf")
     player_holdjudged: bool = False
-    player_holdclickstate: int = Const.NOTE_STATE.MISS
+    player_holdclickstate: int = const.NOTE_STATE.MISS
     player_holdjudged_tomanager: bool = False
     player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
     player_drag_judge_safe_used: bool = False
@@ -74,15 +74,15 @@ class Note:
     def __post_init__(self):
         self.phitype = {1:1, 2:3, 3:4, 4:2}[self.type]
         self.type_string = {
-            Const.Note.TAP: "Tap",
-            Const.Note.DRAG: "Drag",
-            Const.Note.HOLD: "Hold",
-            Const.Note.FLICK: "Flick"
+            const.Note.TAP: "Tap",
+            const.Note.DRAG: "Drag",
+            const.Note.HOLD: "Hold",
+            const.Note.FLICK: "Flick"
         }[self.phitype]
         self.positionX2 = self.positionX / 1350
         self.float_alpha = (255 & int(self.alpha)) / 255
         self.ishold = self.type_string == "Hold"
-        self.effect_random_blocks = Tool_Functions.get_effect_random_blocks()
+        self.effect_random_blocks = tool_funcs.get_effect_random_blocks()
     
     def _init(self, master: Rpe_Chart, avgBpm: float):
         self.effect_times = []
@@ -94,7 +94,7 @@ class Note:
             hold_starttime += hold_effect_blocktime
             if hold_starttime >= hold_endtime:
                 break
-            self.effect_times.append((hold_starttime, Tool_Functions.get_effect_random_blocks()))
+            self.effect_times.append((hold_starttime, tool_funcs.get_effect_random_blocks()))
         
         self.secst = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
         self.secet = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
@@ -102,7 +102,7 @@ class Note:
     def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> tuple[float, float]:
         linePos = line.GetPos(time, master)
         lineRotate = sum([line.GetEventValue(time, layer.rotateEvents, 0.0) for layer in line.eventLayers])
-        return Tool_Functions.rotate_point(*linePos, lineRotate, self.positionX2)
+        return tool_funcs.rotate_point(*linePos, lineRotate, self.positionX2)
 
 @dataclass
 class LineEvent:
@@ -192,13 +192,13 @@ class JudgeLine:
         for e in es:
             if e.startTime.value <= t <= e.endTime.value:
                 if isinstance(e.start, float|int):
-                    return Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, e.easingFunc)
+                    return tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, e.easingFunc)
                 elif isinstance(e.start, str):
                     return e.start
                 elif isinstance(e.start, list):
-                    r = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], e.easingFunc)
-                    g = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], e.easingFunc)
-                    b = Tool_Functions.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], e.easingFunc)
+                    r = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], e.easingFunc)
+                    g = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], e.easingFunc)
+                    b = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], e.easingFunc)
                     return (r, g, b)
         return default
     
@@ -221,7 +221,7 @@ class JudgeLine:
         for layer in self.eventLayers:
             for e in layer.speedEvents:
                 if e.startTime.value <= t <= e.endTime.value:
-                    v += Tool_Functions.linear_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end)
+                    v += tool_funcs.linear_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end)
                     break # loop for other layers
         return v
     
@@ -245,7 +245,7 @@ class JudgeLine:
             lineColor = self.GetEventValue(t, self.extended.colorEvents, lineColor)
             lineText = self.GetEventValue(t, self.extended.textEvents, lineText)
         
-        return Tool_Functions.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
+        return tool_funcs.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
     def GetNoteFloorPosition(self, t: float, n: Note, master: Rpe_Chart):
         l, r = master.beat2sec(t, self.bpmfactor), master.beat2sec(n.startTime.value, self.bpmfactor)
@@ -269,8 +269,8 @@ class JudgeLine:
                 if e.start == e.end:
                     fp += (v2 - v1) * e.start
                 else:
-                    s1 = Tool_Functions.linear_interpolation(v1, st, et, e.start, e.end)
-                    s2 = Tool_Functions.linear_interpolation(v2, st, et, e.start, e.end)
+                    s1 = tool_funcs.linear_interpolation(v1, st, et, e.start, e.end)
+                    s2 = tool_funcs.linear_interpolation(v2, st, et, e.start, e.end)
                     fp += (v2 - v1) * (s1 + s2) / 2
         return fp * 120 / 900
 

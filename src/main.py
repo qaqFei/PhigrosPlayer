@@ -1,5 +1,5 @@
-import errProcesser as _
-import initLogging as _
+import err_processer as _
+import init_logging as _
 
 import json
 import sys
@@ -19,17 +19,17 @@ from pygame import mixer
 from pydub import AudioSegment
 
 import webcv
-import PlaySound
-import Chart_Objects_Phi
-import Chart_Functions_Phi
-import Chart_Functions_Rpe
-import Const
-import ConsoleWindow
-import Tool_Functions
+import playsound
+import chartobj_phi
+import chartfuncs_phi
+import chartfuncs_rpe
+import const
+import console_window
+import tool_funcs
 import dialog
 import info_loader
 import ppr_help
-from PhiCore import *
+from phicore import *
 
 selfdir = dirname(sys.argv[0])
 if selfdir == "": selfdir = abspath(".")
@@ -44,7 +44,7 @@ if len(sys.argv) == 1:
     print(HELP)
     windll.kernel32.ExitProcess(0)
     
-ConsoleWindow.Hide() if "--hideconsole" in sys.argv else None
+console_window.Hide() if "--hideconsole" in sys.argv else None
 
 for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_chart_temp_")]:
     item = f"{gettempdir()}\\{item}"
@@ -83,7 +83,7 @@ clickeffect_randomblock_roundn = float(eval(sys.argv[sys.argv.index("--clickeffe
 combotips = ("Autoplay" if not noautoplay else "Combo") if "--combotips" not in sys.argv else sys.argv[sys.argv.index("--combotips") + 1]
 noplaychart = "--noplaychart" in sys.argv
 clicksound_volume = float(sys.argv[sys.argv.index("--clicksound-volume") + 1]) if "--clicksound-volume" in sys.argv else 1.0
-respaths = ["./Resources"]
+respaths = ["./resources"]
 
 if "--res" in sys.argv:
     respaths.append(sys.argv[sys.argv.index("--res") + 1])
@@ -108,7 +108,7 @@ logging.info("Unpack Chart...")
 popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y >> nul").read()
 
 logging.info("Loading All Files of Chart...")
-chart_files = Tool_Functions.Get_All_Files(temp_dir)
+chart_files = tool_funcs.Get_All_Files(temp_dir)
 chart_files_dict = {
     "charts": [],
     "images": [],
@@ -310,9 +310,9 @@ else:
 phigros_chart_filepath = chart_files_dict["charts"][phigros_chart_index][0]
 
 if "formatVersion" in chart_json:
-    CHART_TYPE = Const.CHART_TYPE.PHI
+    CHART_TYPE = const.CHART_TYPE.PHI
 elif "META" in chart_json:
-    CHART_TYPE = Const.CHART_TYPE.RPE
+    CHART_TYPE = const.CHART_TYPE.RPE
     render_range_more = False
 else:
     logging.fatal("This is what format chart???")
@@ -320,17 +320,17 @@ else:
 
 def LoadChartObject(first: bool = False):
     global chart_obj
-    if CHART_TYPE == Const.CHART_TYPE.PHI:
-        chart_obj = Chart_Functions_Phi.Load_Chart_Object(chart_json)
-    elif CHART_TYPE == Const.CHART_TYPE.RPE:
-        chart_obj = Chart_Functions_Rpe.Load_Chart_Object(chart_json)
+    if CHART_TYPE == const.CHART_TYPE.PHI:
+        chart_obj = chartfuncs_phi.Load_Chart_Object(chart_json)
+    elif CHART_TYPE == const.CHART_TYPE.RPE:
+        chart_obj = chartfuncs_rpe.Load_Chart_Object(chart_json)
     
     if not first:
         updateCoreConfigure()
 LoadChartObject(True)
 
 if len(chart_files_dict["images"]) > 1:
-    if CHART_TYPE == Const.CHART_TYPE.RPE and chart_obj.META.background in [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]]:
+    if CHART_TYPE == const.CHART_TYPE.RPE and chart_obj.META.background in [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]]:
         chart_image_index = [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]].index(chart_obj.META.background)
         chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
     else:
@@ -344,7 +344,7 @@ else:
 chart_image_filepath = chart_files_dict["images"][chart_image_index][0]
 
 if len(chart_files_dict["audio"]) > 1:
-    if CHART_TYPE == Const.CHART_TYPE.RPE and chart_obj.META.song in [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]]:
+    if CHART_TYPE == const.CHART_TYPE.RPE and chart_obj.META.song in [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]]:
         audio_file_index = [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]].index(chart_obj.META.song)
         audio_file = chart_files_dict["audio"][audio_file_index]
     else:
@@ -368,7 +368,7 @@ if speed != 1.0:
 
 mixer.music.load(audio_file)
 raw_audio_length = mixer.Sound(audio_file).get_length()
-audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == Const.CHART_TYPE.RPE else 0.0)
+audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
 all_inforamtion = {}
 logging.info("Loading Chart Information...")
 
@@ -471,10 +471,10 @@ def Load_Resource():
             "F": Image.open(getResPath("/Levels/F.png"))
         },
         "Note_Click_Audio":{
-            "Tap": PlaySound.directSound(loadAudio(getResPath("/Note_Click_Audio/Tap.wav"))),
-            "Drag": PlaySound.directSound(loadAudio(getResPath("/Note_Click_Audio/Drag.wav"))),
-            "Hold": PlaySound.directSound(loadAudio(getResPath("/Note_Click_Audio/Hold.wav"))),
-            "Flick": PlaySound.directSound(loadAudio(getResPath("/Note_Click_Audio/Flick.wav")))
+            "Tap": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Tap.wav"))),
+            "Drag": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Drag.wav"))),
+            "Hold": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Hold.wav"))),
+            "Flick": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Flick.wav")))
         },
         "Start": Image.open(getResPath("/Start.png")),
         "Button_Left": Image.open(getResPath("/Button_Left.png")),
@@ -495,14 +495,14 @@ def Load_Resource():
     finish_animation_image_mask.putpixel((0, 2), (0, 0, 0, 64))
     
     animation_image = chart_image.copy().convert("RGBA")
-    Tool_Functions.cutAnimationIllImage(animation_image)
+    tool_funcs.cutAnimationIllImage(animation_image)
     
     finish_animation_image = chart_image.copy().convert("RGBA")
     finish_animation_image_mask = finish_animation_image_mask.resize(finish_animation_image.size)
     finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
-    Tool_Functions.cutAnimationIllImage(finish_animation_image)
+    tool_funcs.cutAnimationIllImage(finish_animation_image)
     
-    Const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
+    const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     for k, v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
         if v.width > Note_width:
             Resource["Notes"][k] = v.resize((int(Note_width),int(Note_width / v.width * v.height)))
@@ -536,7 +536,7 @@ def Load_Resource():
     root.reg_img(Resource["PauseImg"], "PauseImg")
     
     chart_res = {}
-    if CHART_TYPE == Const.CHART_TYPE.RPE:
+    if CHART_TYPE == const.CHART_TYPE.RPE:
         for line in chart_obj.JudgeLineList:
             if line.Texture != "line.png":
                 paths = [
@@ -697,7 +697,7 @@ def PlayerStart():
         
         def _f(): nonlocal play_restart_flag; play_restart_flag = True
         
-        @Tool_Functions.NoJoinThreadFunc
+        @tool_funcs.NoJoinThreadFunc
         def space():
             global show_start_time
             nonlocal pause_flag, pause_st
@@ -723,14 +723,14 @@ def PlayerStart():
             while pause_flag: time.sleep(1 / 30)
             
             now_t = time.time() - show_start_time
-            if CHART_TYPE == Const.CHART_TYPE.PHI:
+            if CHART_TYPE == const.CHART_TYPE.PHI:
                 Task = GetFrameRenderTask_Phi(now_t)
-            elif CHART_TYPE == Const.CHART_TYPE.RPE:
+            elif CHART_TYPE == const.CHART_TYPE.RPE:
                 Task = GetFrameRenderTask_Rpe(now_t)
                 
             Task.ExecTask()
             
-            break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
+            break_flag = chartfuncs_phi.FrameData_ProcessExTask(
                 Task.ExTask,
                 lambda x: eval(x)
             )
@@ -767,9 +767,9 @@ def PlayerStart():
                 if frame_count * frame_time > audio_length or frame_count - lfdaot_start_frame_num >= lfdaot_run_frame_num:
                     break
                 
-                if CHART_TYPE == Const.CHART_TYPE.PHI:
+                if CHART_TYPE == const.CHART_TYPE.PHI:
                     lfdaot_tasks.update({frame_count: GetFrameRenderTask_Phi(frame_count * frame_time)})
-                elif CHART_TYPE == Const.CHART_TYPE.RPE:
+                elif CHART_TYPE == const.CHART_TYPE.RPE:
                     lfdaot_tasks.update({frame_count: GetFrameRenderTask_Rpe(frame_count * frame_time)})
                 
                 frame_count += 1
@@ -784,8 +784,8 @@ def PlayerStart():
                 )
             
             if lfdaot_fp != "":
-                recorder = Chart_Objects_Phi.FrameTaskRecorder(
-                    meta = Chart_Objects_Phi.FrameTaskRecorder_Meta(
+                recorder = chartobj_phi.FrameTaskRecorder(
+                    meta = chartobj_phi.FrameTaskRecorder_Meta(
                         frame_speed = frame_speed,
                         frame_num = len(lfdaot_tasks),
                         render_range_more = render_range_more,
@@ -819,9 +819,9 @@ def PlayerStart():
             })
             for index,Task_data in enumerate(data["data"]):
                 lfdaot_tasks.update({
-                    index:Chart_Objects_Phi.FrameRenderTask(
+                    index:chartobj_phi.FrameRenderTask(
                         RenderTasks = [
-                            Chart_Objects_Phi.RenderTask(
+                            chartobj_phi.RenderTask(
                                 func = Task_function_mapping[render_task_data["func_name"]],
                                 args = tuple(render_task_data["args"]),
                                 kwargs = render_task_data["kwargs"]
@@ -845,14 +845,14 @@ def PlayerStart():
                 music_play_fcount = int(now_t / frame_time)
                 will_process_extask = []
                 try:
-                    Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
+                    Task:chartobj_phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
                 except KeyError:
                     continue
                 
                 if last_music_play_fcount is not None:
                     for fcount in range(last_music_play_fcount,music_play_fcount):
                         try:
-                            Task:Chart_Objects_Phi.FrameRenderTask = lfdaot_tasks[fcount]
+                            Task:chartobj_phi.FrameRenderTask = lfdaot_tasks[fcount]
                             if Task.ExTask is not None:
                                 will_process_extask.append(Task.ExTask)
                                 Task.ExTask = None
@@ -872,7 +872,7 @@ def PlayerStart():
                     will_process_extask.append(Task.ExTask)
                     Task.ExTask = None
                 for ExTask in will_process_extask:
-                    break_flag = Chart_Functions_Phi.FrameData_ProcessExTask(
+                    break_flag = chartfuncs_phi.FrameData_ProcessExTask(
                         ExTask,
                         lambda x: eval(x)
                     )
@@ -899,7 +899,7 @@ def PlayerStart():
             )
             
             if video_fp != "":
-                root.jsapi.uploadFrame = lambda dataUrl: writer.write(Tool_Functions.DataUrl2MatLike(dataUrl))
+                root.jsapi.uploadFrame = lambda dataUrl: writer.write(tool_funcs.DataUrl2MatLike(dataUrl))
                 
                 for Task in lfdaot_tasks.values():
                     Task.ExecTask()
@@ -958,12 +958,12 @@ def PlayerStart():
         
         def loopClick(clientX, clientY):
             nonlocal a2_loop_clicked
-            if clientX <= w * Const.FINISH_UI_BUTTON_SIZE and clientY <= w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145:
+            if clientX <= w * const.FINISH_UI_BUTTON_SIZE and clientY <= w * const.FINISH_UI_BUTTON_SIZE / 190 * 145:
                 a2_loop_clicked = True
         
         def continueClick(clientX, clientY):
             nonlocal a2_continue_clicked
-            if clientX >= w - w * Const.FINISH_UI_BUTTON_SIZE and clientY >= h - w * Const.FINISH_UI_BUTTON_SIZE / 190 * 145:
+            if clientX >= w - w * const.FINISH_UI_BUTTON_SIZE and clientY >= h - w * const.FINISH_UI_BUTTON_SIZE / 190 * 145:
                 a2_continue_clicked = True
         
         root.jsapi.set_attr("loopClick", loopClick)

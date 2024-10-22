@@ -8,8 +8,8 @@ import time
 
 from PIL import Image
 
-import Tool_Functions
-import Const
+import tool_funcs
+import const
 import rpe_easing
 
 @dataclass
@@ -46,7 +46,7 @@ class EventManager:
         self.releaseEvents: list[ReleaseEvent] = []
     
     def _callClickCallback(self, e: ClickEvent, x: int, y: int) -> None:
-        if Tool_Functions.InRect(x, y, e.rect):
+        if tool_funcs.InRect(x, y, e.rect):
             e.callback(x, y)
             if e.once:
                 self.unregEvent(e)
@@ -105,7 +105,7 @@ class FaculaAnimationManager:
                     self.faculas.remove(facula)
     
     def getFaculaState(self, facula: dict) -> dict:
-        p = (time.time() - facula["startTime"]) / (facula["endTime"] - facula["startTime"]) # cannot use Tool_Functions.linear_interpolation, it will return 0.0, i tkink is jit bug?. or f32 precision problem?
+        p = (time.time() - facula["startTime"]) / (facula["endTime"] - facula["startTime"]) # cannot use tool_funcs.linear_interpolation, it will return 0.0, i tkink is jit bug?. or f32 precision problem?
         if p <= 0.2:
             ep = 1.0 - (1.0 - (p / 0.2)) ** 2
         elif p <= 0.8:
@@ -183,8 +183,8 @@ class Setting:
     
 @dataclass
 class SettingState:
-    aFrom: int = Const.PHIGROS_SETTING_STATE.PLAY
-    aTo: int = Const.PHIGROS_SETTING_STATE.PLAY
+    aFrom: int = const.PHIGROS_SETTING_STATE.PLAY
+    aTo: int = const.PHIGROS_SETTING_STATE.PLAY
     aSTime: float = float("-inf")
     
     def __post_init__(self):
@@ -193,38 +193,38 @@ class SettingState:
         self.atime = 0.65
     
     def getBarWidth(self):
-        sv = Const.PHIGROS_SETTING_BAR_WIDTH_MAP[self.aFrom]
-        ev = Const.PHIGROS_SETTING_BAR_WIDTH_MAP[self.aTo]
+        sv = const.PHIGROS_SETTING_BAR_WIDTH_MAP[self.aFrom]
+        ev = const.PHIGROS_SETTING_BAR_WIDTH_MAP[self.aTo]
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
-        p = Tool_Functions.fixOutofRangeP(p)
+        p = tool_funcs.fixOutofRangeP(p)
         p = self._ease_slow(p)
         return p * (ev - sv) + sv
     
     def getLabelWidth(self):
-        sv = Const.PHIGROS_SETTING_LABEL_WIDTH_MAP[self.aFrom]
-        ev = Const.PHIGROS_SETTING_LABEL_WIDTH_MAP[self.aTo]
+        sv = const.PHIGROS_SETTING_LABEL_WIDTH_MAP[self.aFrom]
+        ev = const.PHIGROS_SETTING_LABEL_WIDTH_MAP[self.aTo]
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
-        p = Tool_Functions.fixOutofRangeP(p)
+        p = tool_funcs.fixOutofRangeP(p)
         p = self._ease_fast(p)
         return p * (ev - sv) + sv
     
     def getLabelX(self):
-        sv = Const.PHIGROS_SETTING_LABEL_X_MAP[self.aFrom]
-        ev = Const.PHIGROS_SETTING_LABEL_X_MAP[self.aTo]
+        sv = const.PHIGROS_SETTING_LABEL_X_MAP[self.aFrom]
+        ev = const.PHIGROS_SETTING_LABEL_X_MAP[self.aTo]
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
-        p = Tool_Functions.fixOutofRangeP(p)
+        p = tool_funcs.fixOutofRangeP(p)
         p = self._ease_slow(p)
         return p * (ev - sv) + sv
     
@@ -243,7 +243,7 @@ class SettingState:
             st = self.aSTime
             et = self.aSTime + self.atime
             p = (time.time() - st) / (et - st)
-            p = Tool_Functions.fixOutofRangeP(p)
+            p = tool_funcs.fixOutofRangeP(p)
             
             # 这里奇怪的算法: 为了视觉上好看和还原一点
             absv = abs(self.aFrom - self.aTo) if self.aFrom != self.aTo else 1.0
@@ -265,20 +265,20 @@ class SettingState:
             st = self.aSTime
             et = self.aSTime + self.atime
             p = (time.time() - st) / (et - st)
-            p = Tool_Functions.fixOutofRangeP(p)
+            p = tool_funcs.fixOutofRangeP(p)
             p = self._ease_slow(p)
             
-            return Tool_Functions.linear_interpolation(p, 0.0, 1.0, 1.175, 1.0) if self.aFrom == t else Tool_Functions.linear_interpolation(p, 0.0, 1.0, 1.0, 1.175)
+            return tool_funcs.linear_interpolation(p, 0.0, 1.0, 1.175, 1.0) if self.aFrom == t else tool_funcs.linear_interpolation(p, 0.0, 1.0, 1.0, 1.175)
     
     def getShadowRect(self):
-        sv = Const.PHIGROS_SETTING_SHADOW_XRECT_MAP[self.aFrom]
-        ev = Const.PHIGROS_SETTING_SHADOW_XRECT_MAP[self.aTo]
+        sv = const.PHIGROS_SETTING_SHADOW_XRECT_MAP[self.aFrom]
+        ev = const.PHIGROS_SETTING_SHADOW_XRECT_MAP[self.aTo]
         if self.aSTime == float("-inf"):
             return ev
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
-        p = Tool_Functions.fixOutofRangeP(p)
+        p = tool_funcs.fixOutofRangeP(p)
         p = self._ease_slow(p)
         return (
             p * (ev[0] - sv[0]) + sv[0],
@@ -290,7 +290,7 @@ class SettingState:
         self.aSTime = time.time()
     
     def getSettingDx(self, shadowRectLeft: float, w: int, t: int):
-        return (Const.PHIGROS_SETTING_SHADOW_XRECT_MAP[t][0] - shadowRectLeft) * w
+        return (const.PHIGROS_SETTING_SHADOW_XRECT_MAP[t][0] - shadowRectLeft) * w
         
     def render(
         self,
@@ -302,22 +302,22 @@ class SettingState:
     ):
         sp_state = self.aFrom == self.aTo # before user change ui state
         if sp_state:
-            self.aFrom = Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT
-            self.aTo = Const.PHIGROS_SETTING_STATE.PLAY
+            self.aFrom = const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT
+            self.aTo = const.PHIGROS_SETTING_STATE.PLAY
         
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st) if self.aSTime != float("-inf") else 1.0
-        p = Tool_Functions.fixOutofRangeP(p)
+        p = tool_funcs.fixOutofRangeP(p)
         p = self._ease_slow(p)
         
-        drawPlaySettingDx = self.getSettingDx(shadowRectLeft, w, Const.PHIGROS_SETTING_STATE.PLAY)
-        drawAccountAndCountSettingDx = self.getSettingDx(shadowRectLeft, w, Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
-        drawOtherSettingDx = self.getSettingDx(shadowRectLeft, w, Const.PHIGROS_SETTING_STATE.OTHER)
+        drawPlaySettingDx = self.getSettingDx(shadowRectLeft, w, const.PHIGROS_SETTING_STATE.PLAY)
+        drawAccountAndCountSettingDx = self.getSettingDx(shadowRectLeft, w, const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
+        drawOtherSettingDx = self.getSettingDx(shadowRectLeft, w, const.PHIGROS_SETTING_STATE.OTHER)
 
-        drawPlaySettingAlpha = 0.0 if Const.PHIGROS_SETTING_STATE.PLAY not in (self.aFrom, self.aTo) else ((1.0 - p) if self.aFrom == Const.PHIGROS_SETTING_STATE.PLAY else p)
-        drawAccountAndCountSettingAlpha = 0.0 if Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT not in (self.aFrom, self.aTo) else ((1.0 - p) if self.aFrom == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT else p)
-        drawOtherSettingAlpha = 0.0 if Const.PHIGROS_SETTING_STATE.OTHER not in (self.aFrom, self.aTo) else ((1.0 - p) if self.aFrom == Const.PHIGROS_SETTING_STATE.OTHER else p)
+        drawPlaySettingAlpha = 0.0 if const.PHIGROS_SETTING_STATE.PLAY not in (self.aFrom, self.aTo) else ((1.0 - p) if self.aFrom == const.PHIGROS_SETTING_STATE.PLAY else p)
+        drawAccountAndCountSettingAlpha = 0.0 if const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT not in (self.aFrom, self.aTo) else ((1.0 - p) if self.aFrom == const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT else p)
+        drawOtherSettingAlpha = 0.0 if const.PHIGROS_SETTING_STATE.OTHER not in (self.aFrom, self.aTo) else ((1.0 - p) if self.aFrom == const.PHIGROS_SETTING_STATE.OTHER else p)
 
         drawPlaySetting(drawPlaySettingDx, drawPlaySettingAlpha)
         drawAccountAndCountSetting(drawAccountAndCountSettingDx, drawAccountAndCountSettingAlpha)
@@ -326,17 +326,17 @@ class SettingState:
         settingDx.extend([drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx])
         
         if sp_state:
-            self.aFrom = Const.PHIGROS_SETTING_STATE.PLAY
-            self.aTo = Const.PHIGROS_SETTING_STATE.PLAY
+            self.aFrom = const.PHIGROS_SETTING_STATE.PLAY
+            self.aTo = const.PHIGROS_SETTING_STATE.PLAY
         
         return drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx
 
     @property
-    def atis_p(self): return self.aTo == Const.PHIGROS_SETTING_STATE.PLAY
+    def atis_p(self): return self.aTo == const.PHIGROS_SETTING_STATE.PLAY
     @property
-    def atis_a(self): return self.aTo == Const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT
+    def atis_a(self): return self.aTo == const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT
     @property
-    def atis_o(self): return self.aTo == Const.PHIGROS_SETTING_STATE.OTHER
+    def atis_o(self): return self.aTo == const.PHIGROS_SETTING_STATE.OTHER
 
 @dataclass
 class PhiBaseWidget:
@@ -379,14 +379,14 @@ class PhiSlider(PhiBaseWidget):
     
     def _SliderEvent(self, x: int, y: int):
         if not self._mouseDown or (
-            Tool_Functions.InRect(x, y, self.rconButtonRect)
-            or Tool_Functions.InRect(x, y, self.lconButtonRect)
+            tool_funcs.InRect(x, y, self.rconButtonRect)
+            or tool_funcs.InRect(x, y, self.lconButtonRect)
         ):
             return
         
         p = (x - self.sliderRect[0]) / (self.sliderRect[2] - self.sliderRect[0])
         p = 0.0 if p < 0.02 else (1.0 if p > 0.97 else p)
-        v = Tool_Functions.sliderValueValue(p, self.number_points)
+        v = tool_funcs.sliderValueValue(p, self.number_points)
         if self.sliderUnit != self.sliderUnit: # nan
             self.value = v
         else:
@@ -397,10 +397,10 @@ class PhiSlider(PhiBaseWidget):
         self._fixValue()
     
     def _ConButtonEvent(self, x: int, y: int):
-        if Tool_Functions.InRect(x, y, self.lconButtonRect):
+        if tool_funcs.InRect(x, y, self.lconButtonRect):
             self.value -= self.conUnit
             
-        elif Tool_Functions.InRect(x, y, self.rconButtonRect):
+        elif tool_funcs.InRect(x, y, self.rconButtonRect):
             self.value += self.conUnit
         
         self._fixValue()
@@ -419,9 +419,9 @@ class PhiSlider(PhiBaseWidget):
     
     def InRect(self, x: int, y: int):
         return any([
-            Tool_Functions.InRect(x, y, self.sliderRect),
-            Tool_Functions.InRect(x, y, self.lconButtonRect),
-            Tool_Functions.InRect(x, y, self.rconButtonRect)
+            tool_funcs.InRect(x, y, self.sliderRect),
+            tool_funcs.InRect(x, y, self.lconButtonRect),
+            tool_funcs.InRect(x, y, self.rconButtonRect)
         ])
     
 @dataclass
@@ -446,7 +446,7 @@ class PhiCheckbox(PhiBaseWidget):
         self._mouseDown = False
     
     def InRect(self, x: int, y: int):
-        return Tool_Functions.InRect(x, y, self.checkboxRect)
+        return tool_funcs.InRect(x, y, self.checkboxRect)
 
 @dataclass
 class PhiButton(PhiBaseWidget):
@@ -462,7 +462,7 @@ class PhiButton(PhiBaseWidget):
             self.command()
 
     def InRect(self, x: int, y: int):
-        return Tool_Functions.InRect(x, y, self.buttonRect)
+        return tool_funcs.InRect(x, y, self.buttonRect)
 
 class WidgetEventManager:
     def __init__(self, widgets: list[PhiBaseWidget], condition: typing.Callable[[int, int], bool]):

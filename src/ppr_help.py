@@ -1,5 +1,5 @@
 HELP_EN = '''\
-Usage: Main <chart_file> [<args>...] [<kwargs>...]
+Usage: main <chart_file> [<args>...] [<kwargs>...]
 
 <Args>
   --hideconsole: Hide the console window.
@@ -46,7 +46,7 @@ Usage: Main <chart_file> [<args>...] [<kwargs>...]
 '''
 
 HELP_ZH = '''\
-使用: Main <谱面文件> [<参数>...] [<关键字参数>...]
+使用: main <谱面文件> [<参数>...] [<关键字参数>...]
 
 <参数>
   --hideconsole: 隐藏控制台窗口

@@ -7,21 +7,21 @@ from os import chdir,popen
 from os.path import exists,isfile,dirname
 from sys import argv
 
-import GUI_Const
-import ConsoleWindow
+import gui_const
+import console_window
 
-ConsoleWindow.Hide()
+console_window.Hide()
 
 selfdir = dirname(argv[0])
 if selfdir == "": selfdir = "."
 chdir(selfdir)
 
-if exists("./Main.py"):
-    target_path = "./Main.py"
-elif exists("./Main.exe"):
-    target_path = "./Main.exe"
+if exists("./main.py"):
+    target_path = "./main.py"
+elif exists("./main.exe"):
+    target_path = "./main.exe"
 else:
-    print("Can't find Main.py or Main.exe.")
+    print("Can't find main.py or main.exe.")
     raise SystemExit
 
 if "--english" in argv or "--eng" in argv:
@@ -32,9 +32,9 @@ else:
     english = False
     
 if english:
-    TEXT = GUI_Const.ENGLISH
+    TEXT = gui_const.ENGLISH
 else:
-    TEXT = GUI_Const.CHINESE
+    TEXT = gui_const.CHINESE
 
 def hook_dropfiles_first(hwnd, callback):
     globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"] = ctypes.WINFUNCTYPE(*(ctypes.c_uint64,) * 5)(lambda hwnd,msg,wp,lp: [callback([ctypes.windll.shell32.DragQueryFileW(ctypes.c_uint64(wp),0,szFile := ctypes.create_unicode_buffer(260),ctypes.sizeof(szFile)),szFile.value][1]) if msg == 0x233 else None,ctypes.windll.user32.CallWindowProcW(*map(ctypes.c_uint64,(lptr,hwnd,msg,wp,lp)))][1]);ctypes.windll.shell32.DragAcceptFiles(hwnd,True);lptr = ctypes.windll.user32.GetWindowLongPtrA(hwnd,-4);ctypes.windll.user32.SetWindowLongPtrA(hwnd,-4,globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"])
