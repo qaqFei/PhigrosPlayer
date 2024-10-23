@@ -34,7 +34,7 @@ class CHINESE:
         RTACC = "实时Acc显示"
     
     class KWARGS:
-        COMBOTIPS = "Combo提示文本: "
+        COMBOTIPS = "COMBO提示文本: "
         RANDOM_BLOCK_NUM = "打击效果的随机扩散方块数量: "
         SCALE_NOTE = "Note贴图缩放: "
         LFDAOT_FILE = "在提前加载帧数据基础上的谱面渲染数据文件路径: "
@@ -78,7 +78,7 @@ class ENGLISH:
         RTACC = "Realtime Acc Display"
     
     class KWARGS:
-        COMBOTIPS = "Combo Tips Text: "
+        COMBOTIPS = "COMBO Tips Text: "
         RANDOM_BLOCK_NUM = "Click Effect Random Block Number: "
         SCALE_NOTE = "Note Texture Scale: "
         LFDAOT_FILE = "Frame Data Ahead of Time File Path: "

@@ -771,7 +771,7 @@ def draw_ui(
                 {comboUI_scaleX},\
                 {comboUI_scaleY},\
                 '{comboUI_color}',\
-                {(w + h) / 100 / 0.75},\
+                {(w + h) / 125 / 0.75},\
                 'center',\
             );",
             add_code_array = True

@@ -3186,23 +3186,24 @@ def chartPlayerRender(
         clickeffect_randomblock_roundn = 0.0,
         LoadSuccess = LoadSuccess,
         enable_clicksound = getUserData("setting-enableClickSound"),
-        rtacc = False, noautoplay = True, showfps = "--debug" in sys.argv,
+        rtacc = False, noautoplay = "--debug" not in sys.argv, showfps = "--debug" in sys.argv,
         lfdaot = False, no_mixer_reset_chart_time = False,
         speed = 1.0, render_range_more = False,
         render_range_more_scale = 1.0,
         judgeline_notransparent = False,
         debug = "--debug" in sys.argv,
-        combotips = "Combo", noplaychart = False,
+        combotips = "COMBO" if "--debug" not in sys.argv else "AUTOPLAY", noplaychart = False,
         clicksound_volume = getUserData("setting-clickSoundVolume"),
     )
     phicore.CoreConfig(coreConfig)
     
     if startAnimation:
         phicore.Begin_Animation(False, foregroundFrameRender)
-        
-    playChartThreadEvent, playChartThreadStopEvent = phicore.PlayChart_ThreadFunction()
-    playChartThreadEvent.wait()
-    playChartThreadEvent.clear()
+    
+    if phicore.noautoplay:
+        playChartThreadEvent, playChartThreadStopEvent = phicore.PlayChart_ThreadFunction()
+        playChartThreadEvent.wait()
+        playChartThreadEvent.clear()
         
     show_start_time = time.time()
     coreConfig.show_start_time = show_start_time
@@ -3328,7 +3329,9 @@ def chartPlayerRender(
             if pauseP <= pauseUIDrawPLP:
                 puiBsP = pauseP / pauseUIDrawPLP
                 _renderPauseUIButtons(1.0 - puiBsP, - w / 15 * (puiBsP ** 4))
-            numberEase = lambda x: int(x) + rpe_easing.ease_funcs[13](x % 1.0)
+            fastEaseX = 3.25
+            fastEase = lambda x: rpe_easing.ease_funcs[19](x * fastEaseX) if x <= 1 / fastEaseX else 1.0
+            numberEase = lambda x: int(x) + fastEase(x % 1.0)
             root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx;", add_code_array = True)
             def _drawNumber(number: str, dxv: float):
                 if pauseP == 1.0: return
@@ -3424,8 +3427,9 @@ def chartPlayerRender(
         
         root.run_js_wait_code()
     
-    playChartThreadStopEvent.set()
-    playChartThreadEvent.wait()
+    if phicore.noautoplay:
+        playChartThreadStopEvent.set()
+        playChartThreadEvent.wait()
     
 def updateFontSizes():
     global userName_FontSize

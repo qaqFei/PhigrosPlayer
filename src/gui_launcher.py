@@ -158,7 +158,7 @@ def Launch():
     if lfdaot_render_video_checkbutton_var.get():
         launch_args.append("--lfdaot-render-video")
     
-    if kwarg_combotips_entry.get() != "Autoplay": launch_args.append(f"--combotips \"{kwarg_combotips_entry.get()}\"")
+    if kwarg_combotips_entry.get() != "AUTOPLAY": launch_args.append(f"--combotips \"{kwarg_combotips_entry.get()}\"")
     launch_args.append(f"--random-block-num \"{kwarg_random_block_num_entry.get()}\"")
     launch_args.append(f"--scale-note \"{kwarg_scale_note_entry.get()}\"")
     
@@ -248,7 +248,7 @@ rtacc_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.RTACC, variable=
 rtacc_checkbutton.grid(sticky="w", row=5, column=2)
 
 
-kwarg_combotips_var = StringVar(value="Autoplay") # --combotips
+kwarg_combotips_var = StringVar(value="AUTOPLAY") # --combotips
 kwarg_combotips_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.COMBOTIPS)
 kwarg_combotips_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_combotips_var)
 kwarg_combotips_label.grid(row=0, column=0)
