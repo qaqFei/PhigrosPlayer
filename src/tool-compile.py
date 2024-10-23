@@ -20,8 +20,8 @@ def compile(file:str, hideconsole:bool):
 debug = "--debug" in argv
 compile_files = [
     ("main.py", False),
-    ("GUI_Launcher.py", False),
-    ("Phigros.py", False)
+    ("gui_launcher.py", False),
+    ("phigros.py", False)
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 
@@ -33,7 +33,7 @@ system(f"{py} -m pip install -r requirements.txt")
 system(f"{py} -m pip install pyinstaller")
 pyinstaller = ".\\compile_venv\\Scripts\\pyinstaller.exe"
 pyi_makespec = ".\\compile_venv\\Scripts\\pyi-makespec.exe"
-ts:list[Thread] = []
+ts: list[Thread] = []
 
 for file, hideconsole in compile_files:
     ts.append(Thread(target=compile, args=(file, hideconsole)))

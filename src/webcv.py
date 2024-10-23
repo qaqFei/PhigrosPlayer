@@ -1,22 +1,18 @@
 from __future__ import annotations
 
+import fix_workpath as _
+
 import threading
 import typing
 import http.server
 import io
 import time
 from ctypes import windll
-from os import chdir
-from os.path import abspath, dirname
-from sys import argv
+from os.path import abspath
 from random import randint
 
 import webview
 from PIL import Image
-
-selfdir = dirname(argv[0])
-if selfdir == "": selfdir = abspath(".")
-chdir(selfdir)
 
 current_thread = threading.current_thread
 screen_width = windll.user32.GetSystemMetrics(0)

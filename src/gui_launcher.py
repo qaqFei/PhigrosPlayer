@@ -1,20 +1,18 @@
+import fix_workpath as _
+
 import ctypes
 from tkinter import Tk, Label, BooleanVar, StringVar
 from tkinter.ttk import Entry, Button, Checkbutton, LabelFrame
 from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import showerror
-from os import chdir,popen
-from os.path import exists,isfile,dirname
+from os import popen
+from os.path import exists, isfile
 from sys import argv
 
 import gui_const
 import console_window
 
 console_window.Hide()
-
-selfdir = dirname(argv[0])
-if selfdir == "": selfdir = "."
-chdir(selfdir)
 
 if exists("./main.py"):
     target_path = "./main.py"

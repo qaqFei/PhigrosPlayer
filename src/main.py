@@ -1,5 +1,7 @@
 import err_processer as _
 import init_logging as _
+import fix_workpath as _
+import check_edgechromium as _
 
 import json
 import sys
@@ -7,8 +9,8 @@ import time
 import logging
 from threading import Thread
 from ctypes import windll
-from os import chdir, listdir, popen, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
-from os.path import exists, abspath, dirname, isfile, isdir
+from os import listdir, popen, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
+from os.path import exists, isfile, isdir
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
@@ -30,10 +32,6 @@ import dialog
 import info_loader
 import ppr_help
 from phicore import *
-
-selfdir = dirname(sys.argv[0])
-if selfdir == "": selfdir = abspath(".")
-chdir(selfdir)
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")

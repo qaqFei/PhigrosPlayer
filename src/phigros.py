@@ -1,5 +1,7 @@
 import err_processer as _
 import init_logging as _
+import fix_workpath as _
+import check_edgechromium as _
 
 import webbrowser
 import typing
@@ -11,8 +13,8 @@ import math
 import logging
 from threading import Thread
 from ctypes import windll
-from os import chdir, environ, mkdir, system, popen, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
-from os.path import exists, abspath, dirname
+from os import environ, mkdir, system, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
+from os.path import exists
 from shutil import rmtree
 from tempfile import gettempdir
 
@@ -30,10 +32,6 @@ import phicore
 import chartfuncs_phi
 import chartfuncs_rpe
 import playsound
-
-selfdir = dirname(sys.argv[0])
-if selfdir == "": selfdir = abspath(".")
-chdir(selfdir)
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")
