@@ -238,7 +238,7 @@ def Load_Resource():
             "Flick": playsound.directSound(loadAudio("./resources/Note_Click_Audio/Flick.wav"))
         },
         "logoipt": Image.open("./resources/logoipt.png"),
-        "warning": Image.open("./resources/Start.png"),
+        "warning": Image.open("./resources/le_warn.png"),
         "phigros": Image.open("./resources/phigros.png"),
         "AllSongBlur": Image.open("./resources/AllSongBlur.png"),
         "facula": Image.open("./resources/facula.png"),
@@ -517,7 +517,7 @@ def getChapterP(chapter: phigame_obj.Chapter):
     else:
         p = 0.0
     
-    return ef(tool_funcs.fixOutofRangeP(p))
+    return ef(tool_funcs.fixorp(p))
 
 def getChapterWidth(p: float):
     return w * (0.221875 + (0.5640625 - 0.221875) * p)
@@ -1514,7 +1514,7 @@ def renderPhigrosWidgets(
             )
             
             checkAnimationP = (time.time() - widget.check_animation_st) / 0.2
-            checkAnimationP = tool_funcs.fixOutofRangeP(checkAnimationP)
+            checkAnimationP = tool_funcs.fixorp(checkAnimationP)
             if not widget.checked:
                 checkAnimationP = 1.0 - checkAnimationP
             checkAnimationP = 1.0 - (1.0 - checkAnimationP) ** 2
@@ -1610,7 +1610,7 @@ def settingRender():
     settingUIOpenSourceLicenseSlideControler.maxValueY = root.run_js_code(
         f"ctx.drawRectMultilineText(\
             -{w}, -{h}, 0, 0,\
-            {root.process_code_string_syntax_tocode(const.PHI_OPENSOURCELICENSE)},\
+            {root.string2sctring_hqm(const.PHI_OPENSOURCELICENSE)},\
             'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
         );"
     ) + h * (143 / 1080) * 2 - h
@@ -1710,7 +1710,7 @@ def settingRender():
         
         # 编辑用户名字
         if settingState.atis_a and tool_funcs.InRect(x, y, editUserNameRect) and editingUserData and not (showAvatars or showBackgrounds):
-            newName = root.run_js_code(f"prompt('请输入新名字', {root.process_code_string_syntax_tocode(getUserData("userdata-userName"))});")
+            newName = root.run_js_code(f"prompt('请输入新名字', {root.string2sctring_hqm(getUserData("userdata-userName"))});")
             if newName is not None:
                 setUserData("userdata-userName", newName)
                 updateFontSizes()
@@ -1718,7 +1718,7 @@ def settingRender():
         
         # 编辑用户介绍
         if settingState.atis_a and tool_funcs.InRect(x, y, editIntroductionRect) and editingUserData and not (showAvatars or showBackgrounds):
-            newName = root.run_js_code(f"prompt('请输入新介绍 (输入\"\\\\n\"可换行)', {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction").replace("\n", "\\n"))});")
+            newName = root.run_js_code(f"prompt('请输入新介绍 (输入\"\\\\n\"可换行)', {root.string2sctring_hqm(getUserData("userdata-selfIntroduction").replace("\n", "\\n"))});")
             if newName is not None:
                 setUserData("userdata-selfIntroduction", newName.replace("\\n", "\n"))
                 updateFontSizes()
@@ -2149,7 +2149,7 @@ def settingRender():
             f"ctx.drawRectMultilineText(\
                 {w * 0.1484375}, {h * (447 / 1080)},\
                 {w * 0.4546875}, {h * (660 / 1080)},\
-                {root.process_code_string_syntax_tocode(getUserData("userdata-selfIntroduction"))},\
+                {root.string2sctring_hqm(getUserData("userdata-selfIntroduction"))},\
                 'rgb(255, 255, 255)', '{selfIntroduction_fontSize}px PhigrosFont',\
                 {selfIntroduction_fontSize}, 1.15\
             );",
@@ -2385,14 +2385,14 @@ def settingRender():
             )
         
         if showAvatars:
-            p = tool_funcs.fixOutofRangeP((time.time() - showAvatarsSt) / 1.25)
+            p = tool_funcs.fixorp((time.time() - showAvatarsSt) / 1.25)
             _drawChooseDialog(1.0 - (1.0 - p) ** 12, "选择头像")
         elif not showAvatars and time.time() - showAvatarsSt <= 1.25:
             p = (time.time() - showAvatarsSt) / 1.25
             _drawChooseDialog((p - 1.0) ** 12, "选择头像")
         
         if showBackgrounds:
-            p = tool_funcs.fixOutofRangeP((time.time() - showBackgroundsSt) / 1.25)
+            p = tool_funcs.fixorp((time.time() - showBackgroundsSt) / 1.25)
             _drawChooseDialog(1.0 - (1.0 - p) ** 12, "选择背景")
         elif not showBackgrounds and time.time() - showBackgroundsSt <= 1.25:
             p = (time.time() - showBackgroundsSt) / 1.25
@@ -2815,10 +2815,10 @@ def settingRender():
                     root.run_js_code("dialog_canvas_ctx.clear()", add_code_array = True)
             
             if ShowOpenSource:
-                p = tool_funcs.fixOutofRangeP((time.time() - ShowOpenSourceSt) / 0.15)
+                p = tool_funcs.fixorp((time.time() - ShowOpenSourceSt) / 0.15)
                 p = 1.0 - (1.0 - p) ** 3
             else: # CloseOpenSource
-                p = tool_funcs.fixOutofRangeP((time.time() - CloseOpenSourceSt) / 0.35)
+                p = tool_funcs.fixorp((time.time() - CloseOpenSourceSt) / 0.35)
                 p = abs(p - 1.0) ** 3
             
             if ShowOpenSource or CloseOpenSource:
@@ -2831,7 +2831,7 @@ def settingRender():
                 root.run_js_code(
                     f"ctx.drawRectMultilineText(\
                         {w * 0.2}, {settingUIOpenSourceLicenseSlideControler.getDy() + h * (143 / 1080)}, {w * 0.8}, {h},\
-                        {root.process_code_string_syntax_tocode(const.PHI_OPENSOURCELICENSE)},\
+                        {root.string2sctring_hqm(const.PHI_OPENSOURCELICENSE)},\
                         'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
                     );",
                     add_code_array = True
@@ -2965,7 +2965,7 @@ def audioQARender():
         root.run_js_code(
             f"ctx.drawRectMultilineTextDiagonal(\
                 {w * 0.28125}, {h * (241 / 1080)},\
-                {w * 0.7984375}, {h}, {root.process_code_string_syntax_tocode(const.DSP_SETTING_TIP)},\
+                {w * 0.7984375}, {h}, {root.string2sctring_hqm(const.DSP_SETTING_TIP)},\
                 'rgb(255, 255, 255)',\
                 '{(w + h) / 120}px PhigrosFont', {(w + h) / 120}, {- w * 0.0046875}, 1.25\
             );",
@@ -3064,7 +3064,7 @@ def aboutUsRender():
             root.run_js_code(
                 f"aboutus_textheight = ctx.drawRectMultilineTextCenter(\
                     {w * 0.05}, {dy}, {w * 0.95}, {h},\
-                    {root.process_code_string_syntax_tocode(const.PHI_ABOUTUSTEXT)},\
+                    {root.string2sctring_hqm(const.PHI_ABOUTUSTEXT)},\
                     'rgb(255, 255, 255)', '{fontsize}px PhigrosFont', {fontsize}, 1.4\
                 );",
                 add_code_array = True
@@ -3216,7 +3216,7 @@ def chartPlayerRender(
         
         if rendingAnimationSt != rendingAnimationSt: # nan, playing chart
             pauseATime = 0.25 if paused else 3.0
-            pauseP = tool_funcs.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
+            pauseP = tool_funcs.fixorp((time.time() - pauseAnimationSt) / pauseATime)
             if not paused and tool_funcs.InRect(x, y, (
                 w * 9.6 / 1920, h * -1.0 / 1080,
                 w * 96 / 1920, h * 102.6 / 1080
@@ -3301,7 +3301,7 @@ def chartPlayerRender(
     mixer.music.play()
     while True:
         pauseATime = 0.25 if paused else 3.0
-        pauseP = tool_funcs.fixOutofRangeP((time.time() - pauseAnimationSt) / pauseATime)
+        pauseP = tool_funcs.fixorp((time.time() - pauseAnimationSt) / pauseATime)
         pauseBgBlurP = (1.0 - (1.0 - pauseP) ** 4) if paused else 1.0 - pauseP ** 15
         root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 100 * pauseBgBlurP}px)';", add_code_array = True)
         
@@ -3391,7 +3391,7 @@ def chartPlayerRender(
                         Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
                 
                 if rendingAnimation is phicore.Chart_Finish_Animation_Frame: # 不能用elif, 不然会少渲染一个帧
-                    rendingAnimation(tool_funcs.fixOutofRangeP((time.time() - rendingAnimationSt) / 3.5), False)
+                    rendingAnimation(tool_funcs.fixorp((time.time() - rendingAnimationSt) / 3.5), False)
         
         if time.time() - chartPlayerRenderSt < 1.25 and blackIn:
             p = (time.time() - chartPlayerRenderSt) / 1.25
@@ -3434,7 +3434,7 @@ def chartPlayerRender(
 def updateFontSizes():
     global userName_FontSize
     
-    userName_Width1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(getUserData("userdata-userName"))}).width;") / 50
+    userName_Width1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(getUserData("userdata-userName"))}).width;") / 50
     userName_FontSize = w * 0.209375 / (userName_Width1px if userName_Width1px != 0.0 else 1.0)
     if userName_FontSize > w * 0.0234375:
         userName_FontSize = w * 0.0234375
@@ -3513,7 +3513,7 @@ root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
 if "--fullscreen" in sys.argv:
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
     root.resize(w, h)
-    root._web.toggle_fullscreen()
+    root.web.toggle_fullscreen()
     dw_legacy, dh_legacy = 0, 0
 else:
     w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)

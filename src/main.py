@@ -474,7 +474,7 @@ def Load_Resource():
             "Hold": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Hold.wav"))),
             "Flick": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Flick.wav")))
         },
-        "Start": Image.open(getResPath("/Start.png")),
+        "le_warn": Image.open(getResPath("/le_warn.png")),
         "Button_Left": Image.open(getResPath("/Button_Left.png")),
         "Button_Right": None,
         "Retry": Image.open(getResPath("/Retry.png")),
@@ -524,7 +524,7 @@ def Load_Resource():
     for k,v in Resource["Levels"].items(): # reg levels img
         root.reg_img(v, f"Level_{k}")
         
-    root.reg_img(Resource["Start"], "Start")
+    root.reg_img(Resource["le_warn"], "le_warn")
     root.reg_img(animation_image, "begin_animation_image")
     root.reg_img(finish_animation_image, "finish_animation_image")
     root.reg_img(Resource["Button_Left"], "Button_Left")
@@ -576,12 +576,11 @@ def Load_Resource():
         root.create_image(im, 0, 0, 50, 50, wait_execute=True)
     root.clear_canvas(wait_execute = True)
     root.run_js_wait_code()
-    root.run_js_code("color_block_img_ele = Start_img; color_block_img_ele.className = 'ppr-start'; body_ele.appendChild(color_block_img_ele);")
     root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
     while not root.run_js_code("font_loaded;"):
         time.sleep(0.1)
     
-    root.shutdown_fileserver()
+    root.file_server.shutdown()
     note_max_width = max(
         [
             Resource["Notes"]["Tap"].width,
@@ -657,14 +656,39 @@ def WaitLoading_FadeIn():
 
 def Show_Start():
     WaitLoading.fadeout(450)
-    root.run_js_code("show_in_animation();")
-    time.sleep(1.25)
+    
+    def dle_warn(a: float):
+        root.run_js_code(
+            f"ctx.drawAlphaImage(\
+                {root.get_img_jsvarname("le_warn")},\
+                0, 0, {w}, {h}, {a}\
+            );",
+            add_code_array = True
+        )
+    
+    animationst = time.time()
+    while time.time() - animationst < 1.0:
+        root.clear_canvas(wait_execute=True)
+        p = (time.time() - animationst) / 1.0
+        dle_warn(1.0 - (1.0 - tool_funcs.fixorp(p)) ** 4)
+        root.run_js_wait_code()
+    
+    time.sleep(0.35)
+    
+    animationst = time.time()
+    while time.time() - animationst < 1.0:
+        root.clear_canvas(wait_execute=True)
+        draw_background()
+        draw_ui(animationing=True)
+        p = (time.time() - animationst) / 1.0
+        dle_warn((tool_funcs.fixorp(p) - 1.0) ** 4)
+        root.run_js_wait_code()
+    
+    time.sleep(0.25)
+    root.clear_canvas(wait_execute=True)
     draw_background()
     draw_ui(animationing=True)
     root.run_js_wait_code()
-    time.sleep(0.5)
-    root.run_js_code("show_out_animation();")
-    time.sleep(1.25)
     Thread(target=PlayerStart, daemon=True).start()
 
 def PlayerStart():
@@ -1033,7 +1057,7 @@ if "--window-host" in sys.argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
 if "--fullscreen" in sys.argv:
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-    root._web.toggle_fullscreen()
+    root.web.toggle_fullscreen()
 else:
     if "--size" not in sys.argv:
         w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
