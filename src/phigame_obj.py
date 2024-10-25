@@ -200,7 +200,7 @@ class SettingState:
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
-        p = tool_funcs.fixOutofRangeP(p)
+        p = tool_funcs.fixorp(p)
         p = self._ease_slow(p)
         return p * (ev - sv) + sv
     
@@ -212,7 +212,7 @@ class SettingState:
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
-        p = tool_funcs.fixOutofRangeP(p)
+        p = tool_funcs.fixorp(p)
         p = self._ease_fast(p)
         return p * (ev - sv) + sv
     
@@ -224,7 +224,7 @@ class SettingState:
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
-        p = tool_funcs.fixOutofRangeP(p)
+        p = tool_funcs.fixorp(p)
         p = self._ease_slow(p)
         return p * (ev - sv) + sv
     
@@ -243,7 +243,7 @@ class SettingState:
             st = self.aSTime
             et = self.aSTime + self.atime
             p = (time.time() - st) / (et - st)
-            p = tool_funcs.fixOutofRangeP(p)
+            p = tool_funcs.fixorp(p)
             
             # 这里奇怪的算法: 为了视觉上好看和还原一点
             absv = abs(self.aFrom - self.aTo) if self.aFrom != self.aTo else 1.0
@@ -265,7 +265,7 @@ class SettingState:
             st = self.aSTime
             et = self.aSTime + self.atime
             p = (time.time() - st) / (et - st)
-            p = tool_funcs.fixOutofRangeP(p)
+            p = tool_funcs.fixorp(p)
             p = self._ease_slow(p)
             
             return tool_funcs.linear_interpolation(p, 0.0, 1.0, 1.175, 1.0) if self.aFrom == t else tool_funcs.linear_interpolation(p, 0.0, 1.0, 1.0, 1.175)
@@ -278,7 +278,7 @@ class SettingState:
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st)
-        p = tool_funcs.fixOutofRangeP(p)
+        p = tool_funcs.fixorp(p)
         p = self._ease_slow(p)
         return (
             p * (ev[0] - sv[0]) + sv[0],
@@ -308,7 +308,7 @@ class SettingState:
         st = self.aSTime
         et = self.aSTime + self.atime
         p = (time.time() - st) / (et - st) if self.aSTime != float("-inf") else 1.0
-        p = tool_funcs.fixOutofRangeP(p)
+        p = tool_funcs.fixorp(p)
         p = self._ease_slow(p)
         
         drawPlaySettingDx = self.getSettingDx(shadowRectLeft, w, const.PHIGROS_SETTING_STATE.PLAY)

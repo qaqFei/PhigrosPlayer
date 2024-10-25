@@ -25,17 +25,6 @@
         background-color: black;
     }
 
-    .ppr-start {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 2;
-        opacity: 0.0;
-        -webkit-user-drag: none;
-    }
-
     .main-canvas {
         z-index: 1;
         left: 0;
@@ -80,7 +69,7 @@
     ctx = canvas_ele.getContext("2d", {willReadFrequently: true, alpha: false});
     dialog_canvas_ctx = dialog_canvas_ele.getContext("2d");
     gl = glcanvas.getContext("webgl");
-    JavaScript_WaitToExecute_CodeArray = new Array();
+    jscodes = new Array();
     resize_task = false;
     lfdaot_render_fcount = 0;
     render_range_more = false;
@@ -137,53 +126,6 @@
         in python, width and height is the real size of canvas, so we donot need to scale the canvas.
         */
         // ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    }
-
-    function process_jswteca() {
-        for(var i=0;i<JavaScript_WaitToExecute_CodeArray.length;i++){
-            eval(JavaScript_WaitToExecute_CodeArray[i]);
-        }
-        JavaScript_WaitToExecute_CodeArray = new Array();
-    }
-
-    function change_color_block_opacity(opacity) {
-        color_block_img_ele.style.opacity = opacity; // color_block_img_ele define in python code. 
-    }
-
-    function ease_out(x) {
-        return Math.sqrt(1 - Math.pow(x - 1, 2));
-    }
-
-    function show_in_animation(first_call = true,start_time = 0.0) {
-        if (!first_call){
-            process = (new Date().getTime() / 1000 - start_time) / 1.25;
-            ease_number = ease_out(process);
-            if (process > 1.0) {
-                change_color_block_opacity(1.0);
-                return;
-            }
-            change_color_block_opacity(ease_number);
-            setTimeout(() => show_in_animation(false,start_time),1000 / 60);
-        }
-        else{
-            show_in_animation(false,new Date().getTime() / 1000);
-        }
-    }
-
-    function show_out_animation(first_call = true,start_time = 0.0) {
-        if (!first_call){
-            process = (new Date().getTime() / 1000 - start_time) / 1.25;
-            ease_number = ease_out(process);
-            if (process > 1.0) {
-                change_color_block_opacity(0.0);
-                return;
-            }
-            change_color_block_opacity(1.0 - ease_number);
-            setTimeout(() => show_out_animation(false,start_time),1000 / 60);
-        }
-        else{
-            show_out_animation(false,new Date().getTime() / 1000);
-        }
     }
 
     function loadFont(family, url) {

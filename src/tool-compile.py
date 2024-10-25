@@ -1,11 +1,14 @@
 from threading import Thread
-from os import system
+from os import system, mkdir
+from os.path import isfile
 from sys import argv
+from shutil import copy, copytree
 
 system("cls")
 
-if input("Sure? (y/n) ").lower() not in ("yes", "y"):
-    raise SystemExit
+if "-y" not in argv:
+    if input("Sure? (y/n) ").lower() not in ("yes", "y"):
+        raise SystemExit
 
 def compile(file:str, hideconsole:bool):
     system(f"{pyi_makespec} \"{file}\" -i icon.ico {"-w" if hideconsole and not debug else ""}")
@@ -22,6 +25,13 @@ compile_files = [
     ("main.py", False),
     ("gui_launcher.py", False),
     ("phigros.py", False)
+]
+res_files = [
+    "_internal",
+    "web_canvas.html",
+    "7z.exe", "7z.dll",
+    "ecwv_installer.exe",
+    "resources", "shaders"
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 
@@ -49,5 +59,16 @@ for file, _ in compile_files:
 system("rmdir .\\compile_venv /s /q")
 system("rmdir .\\build /s /q")
 system("rmdir .\\dist /s /q")
+
+if "--zip" in argv:
+    _copy = lambda src, tar: copy(src, tar) if isfile(src) else copytree(src, f"{tar}\\{src}")
+    try: mkdir(".\\compile_result")
+    except FileExistsError: pass
+    for i, _ in compile_files:
+        _copy(i.replace(".py", ".exe"), ".\\compile_result")
+    for i in res_files:
+        _copy(i, ".\\compile_result")
+    system("7z a compile_result.zip .\\compile_result\\*")
+
 print("\nCompile complete!")
 system("pause")

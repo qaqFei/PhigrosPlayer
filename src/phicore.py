@@ -717,7 +717,7 @@ def draw_ui(
     
     root.run_js_code(
         f"ctx.drawUIText(\
-            '{root.process_code_string_syntax_tostring(score)}',\
+            '{root.string2cstring(score)}',\
             {w * 0.988 + scoreUI_dx},\
             {h * (58 / 1080) + scoreUI_dy},\
             {scoreUI_rotate},\
@@ -733,7 +733,7 @@ def draw_ui(
     if rtacc:
         root.run_js_code(
             f"ctx.drawUIText(\
-                '{root.process_code_string_syntax_tostring(acc)}',\
+                '{root.string2cstring(acc)}',\
                 {w * 0.988 + scoreUI_dx},\
                 {h * (58 / 1080) + (w + h) / 145 / 0.75 * 1.5 + scoreUI_dy},\
                 {scoreUI_rotate},\
@@ -749,7 +749,7 @@ def draw_ui(
     if combo_state:
         root.run_js_code(
             f"ctx.drawUIText(\
-                '{root.process_code_string_syntax_tostring(f"{combo}")}',\
+                '{root.string2cstring(f"{combo}")}',\
                 {w / 2 + combonumberUI_dx},\
                 {h * 0.05 + combonumberUI_dy},\
                 {combonumberUI_rotate},\
@@ -764,7 +764,7 @@ def draw_ui(
         
         root.run_js_code(
             f"ctx.drawUIText(\
-                '{root.process_code_string_syntax_tostring(combotips)}',\
+                '{root.string2cstring(combotips)}',\
                 {w / 2 + comboUI_dx},\
                 {h * 0.095 + comboUI_dy},\
                 {comboUI_rotate},\
@@ -794,7 +794,7 @@ def draw_ui(
         
     root.run_js_code(
         f"ctx.drawUIText(\
-            '{root.process_code_string_syntax_tostring(chart_information["Name"])}',\
+            '{root.string2cstring(chart_information["Name"])}',\
             {w * 0.0125 + nameUI_dx},\
             {h * 0.976 - (w + h) / 125 / 0.75 / 2 + nameUI_dy},\
             {nameUI_rotate},\
@@ -809,7 +809,7 @@ def draw_ui(
         
     root.run_js_code(
         f"ctx.drawUIText(\
-            '{root.process_code_string_syntax_tostring(chart_information["Level"])}',\
+            '{root.string2cstring(chart_information["Level"])}',\
             {w * 0.9875 + levelUI_dx},\
             {h * 0.976 - (w + h) / 125 / 0.75 / 2 + levelUI_dy},\
             {levelUI_rotate},\
@@ -1366,7 +1366,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
             Task(
                 root.run_js_code,
                 f"ctx.drawRotateText(\
-                    '{root.process_code_string_syntax_tostring(lineText)}',\
+                    '{root.string2cstring(lineText)}',\
                     {linePos[0]},\
                     {linePos[1]},\
                     {lineRotate},\
@@ -1949,19 +1949,19 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
     animation_time = 4.5
     
     chart_name_text = chart_information["Name"]
-    chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_name_text)}).width;") / 50
+    chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_name_text)}).width;") / 50
     chart_level_number = Get_LevelNumber()
-    chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_level_number) if len(chart_level_number) >= 2 else "'00'"}).width;") / 50
+    chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_level_number) if len(chart_level_number) >= 2 else "'00'"}).width;") / 50
     if len(chart_level_number) == 1:
         chart_level_number_width_1px /= 1.35
     chart_level_text = Get_LevelText()
-    chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_level_text) if len(chart_level_text) >= 2 else "'00'"}).width;") / 50
+    chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_level_text) if len(chart_level_text) >= 2 else "'00'"}).width;") / 50
     chart_artist_text = chart_information["Artist"]
-    chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_artist_text)}).width;") / 50
+    chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_artist_text)}).width;") / 50
     chart_charter_text = chart_information["Charter"]
-    chart_charter_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_charter_text)}).width;") / 50
+    chart_charter_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_charter_text)}).width;") / 50
     chart_illustrator_text = chart_information["Illustrator"]
-    chart_illustrator_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(chart_illustrator_text)}).width;") / 50
+    chart_illustrator_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_illustrator_text)}).width;") / 50
     tip = phi_tips.get_tip()
     tip_font_size = w * 0.020833 / 1.25
     infoframe_x = w * 0.095
@@ -2053,9 +2053,9 @@ def initFinishAnimation():
     MaxCombo = chart_obj.note_num if not noautoplay else PhigrosPlayManagerObject.getMaxCombo()
     AccString = f"{(Acc * 100):.2f}%"
     ChartNameString = chart_information["Name"]
-    ChartNameStringFontSize = w * im_size * 0.65 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(ChartNameString)}).width;") / 50)
+    ChartNameStringFontSize = w * im_size * 0.65 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(ChartNameString)}).width;") / 50)
     ChartLevelString = chart_information["Level"]
-    ChartLevelStringFontSize = w * im_size * 0.25 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.process_code_string_syntax_tocode(ChartLevelString)}).width;") / 50)
+    ChartLevelStringFontSize = w * im_size * 0.25 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(ChartLevelString)}).width;") / 50)
     if ChartNameStringFontSize > w * 0.0275:
         ChartNameStringFontSize = w * 0.0275
     if ChartLevelStringFontSize > w * 0.0275 * 0.5:

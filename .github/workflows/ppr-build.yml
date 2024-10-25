@@ -1,0 +1,26 @@
+name: PhigrosPlayer Auto Build
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: py3.12
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.12
+
+      - name: build
+        run: |
+          cd src
+          python tool-compile.py -y --zip
+      
+      - name: upload
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ github.workspace }}/compile_result.zip

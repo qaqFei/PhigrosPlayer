@@ -304,7 +304,7 @@ def compute_intersection(x0, y0, x1, y1, x2, y2, x3, y3):
     c2 = x3 * y2 - x2 * y3
     return (b2 * c1 - b1 * c2) / (a1 * b2 - a2 * b1), (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1)
 
-def fixOutofRangeP(p: float):
+def fixorp(p: float):
     return max(0.0, min(1.0, p))
 
 def PhigrosChapterNameAlphaValueTransfrom(p: float):
