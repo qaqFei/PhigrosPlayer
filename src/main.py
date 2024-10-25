@@ -867,7 +867,7 @@ def PlayerStart():
                 music_play_fcount = int(now_t / frame_time)
                 will_process_extask = []
                 try:
-                    Task:chartobj_phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
+                    Task: chartobj_phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
                 except KeyError:
                     continue
                 
