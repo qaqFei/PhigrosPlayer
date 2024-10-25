@@ -1,8 +1,34 @@
 <html>
     <body>
         <h1>这里是qaqFei/PhigrosPlayer的Github Page</h1>
-        <a href="https://github.com/qaqFei/PhigrosPlayer/actions?query=branch%3Amain+event%3Apush+is%3Asuccess">点这里下载最新的PhigrosPlayer! 点击最近时间的workflow进行下载artifact哦!</a>
-        <br>
-        <a href="./webphiplayer.html">webphiplayer</a>
+        <button onclick="downloadLatest()">下载最新PhigrosPlayer！ (需调用Github Rest API, 请检查网络环境)</button>
+        <br><br>
+        <a href="./src/webphiplayer.html">webphiplayer</a>
     </body>
 </html>
+
+<script>
+    const api = "https://api.github.com";
+    const github = "https://github.com";
+    const repoName = "qaqFei/PhigrosPlayer";
+
+    function bytes2Size(bytes) {
+        var sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+        if (bytes == 0) return '0 Byte';
+        var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+        return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+    }
+
+    async function downloadLatest() {
+        let artifacts = await fetch(`${api}/repos/${repoName}/actions/artifacts`).then(res => res.json());
+        for (let item of artifacts.artifacts) {
+            if (item.name === "artifact") {
+                let download_url = `${github}/${repoName}/actions/runs/${item.workflow_run.id}/artifacts/${item.id}`;
+                alert(`找到符合要求的artifact\n更新时间: ${item.created_at}\n大小: ${bytes2Size(item.size_in_bytes)}\n\n点击确定下载`);
+                window.location.href = download_url;
+                return;
+            }
+        }
+        alert("没有找到符合要求的artifact");
+    }
+</script>
