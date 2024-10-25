@@ -279,18 +279,21 @@ class PhigrosPlayManager:
         elif 1000000 <= score:
             return "AP"
     
-def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perfect: bool, Task: chartobj_phi.FrameRenderTask):
+def process_effect_base(
+    x: float, y: float,
+    p: float, effect_random_blocks: tuple[tuple[float, float], ...],
+    perfect: bool, Task: chartobj_phi.FrameRenderTask
+):
     color = (254, 255, 169) if perfect else (162, 238, 255)
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
     if clickeffect_randomblock:
-        beforedeg = 0
         block_alpha = (1.0 - p) * 0.85
-        randomblock_r = ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.35
+        randomblock_r = ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.2
         block_size = EFFECT_RANDOM_BLOCK_SIZE * (0.4 * math.sin(p * math.pi) + 0.6)
-        for deg in effect_random_blocks:
+        for deg, randdr in effect_random_blocks:
             effect_random_point = tool_funcs.rotate_point(
-                x, y, beforedeg + deg,
-                randomblock_r
+                x, y, deg,
+                randomblock_r + EFFECT_RANDOM_BLOCK_SIZE * 2 * randdr * p
             )
             Task(
                 root.run_js_code,
@@ -305,7 +308,6 @@ def process_effect_base(x: float, y: float, p: float, effect_random_blocks, perf
                 );",
                 add_code_array = True
             )
-            beforedeg += 90
     Task(
         root.run_js_code,
         f"ctx.drawImage(\
@@ -1117,7 +1119,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
     def process_effect(
         note: chartobj_phi.note,
         t: float,
-        effect_random_blocks,
+        effect_random_blocks: tuple[tuple[float, float], ...],
         perfect: bool
     ):
         p = (now_t - t * note.master.T) / effect_time

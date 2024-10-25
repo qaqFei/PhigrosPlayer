@@ -1,7 +1,7 @@
 import typing
 import math
 import base64
-from random import randint
+import random
 from sys import argv
 from threading import Thread
 from os import listdir
@@ -47,8 +47,8 @@ def unpack_pos(number:int) -> tuple[int, int]:
 def ease_out(x:float) -> float:
     return math.sqrt(1.0 - (1.0 - x) ** 2)
 
-def get_effect_random_blocks() -> tuple[int, ...]:
-    return tuple((randint(1, 90) for _ in range(random_block_num)))
+def get_effect_random_blocks() -> tuple[tuple[float, float], ...]:
+    return tuple(((random.uniform(0.0, 360.0), random.uniform(0.0, 1.0)) for _ in range(random_block_num)))
 
 @numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
 def linear_interpolation(

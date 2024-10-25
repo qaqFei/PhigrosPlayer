@@ -1933,11 +1933,12 @@ def settingRender():
                     )
                     
                     random.seed(st)
+                    random.seed(random.uniform(-st, st))
                     block_size = noteWidth / 5.5 * (0.4 * math.sin(p * math.pi) + 0.6)
-                    for i, deg in enumerate([random.uniform(0, 90) for _ in range(4)]):
+                    for deg, randdr in tool_funcs.get_effect_random_blocks():
                         effect_random_point = tool_funcs.rotate_point(
-                            w * 0.75, h * 0.85, deg + i * 90,
-                            ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.35
+                            w * 0.75, h * 0.85, deg ,
+                            ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.2 + noteWidth / 5.5 * 2 * randdr * p
                         )
                         root.run_js_code(
                             f"ctx.fillRectEx(\
