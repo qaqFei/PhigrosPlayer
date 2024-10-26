@@ -1,11 +1,13 @@
 # 这是一个使用WebView实现的Phigros谱面的模拟器
 
 ## 环境配置
+
 - Python 版本: `3.12.0`
 - Windows 版本需 >= `8.1`
 - 第三方库: [requirements.txt](./requirements.txt)
 
 ## 谱面兼容
+
 <details>
 <summary>展开</summary>
 
@@ -91,9 +93,9 @@
     - [x] startTime
     - [x] endTime
     - [ ] linkgroup (???)
+
 </details>
 
 ### 声明
+
 - 此项目仅用于学习交流，请勿用于商业用途
-- 如有侵权 请联系删除: qaq_fei@163.com 或提issue
-- 项目中的`/shaders/*.glsl`文件都是直接取自`prpr`, 源文件`https://github.com/Mivik/prpr/tree/main/prpr/src/core/shaders`
