@@ -10,9 +10,6 @@ from os.path import exists, isfile
 from sys import argv
 
 import gui_const
-import console_window
-
-console_window.Hide()
 
 if exists("./main.py"):
     target_path = "./main.py"

@@ -27,7 +27,6 @@ import const
 import tool_funcs
 import phigame_obj
 import rpe_easing
-import console_window
 import phicore
 import chartfuncs_phi
 import chartfuncs_rpe
@@ -43,12 +42,9 @@ if not exists("./phigros_assets") or not all([
         "chapters.json"
     ]
 ]):
-    logging.error("phigros_assets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_phigros_assets")
+    logging.error("phigros_assets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
     system("pause")
     windll.kernel32.ExitProcess(0)
-
-if sys.argv[0].endswith(".exe"):
-    console_window.Hide()
 
 for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_temp_")]:
     try: rmtree(f"{gettempdir()}\\{item}")
@@ -287,36 +283,37 @@ def Load_Resource():
     imageBlackMask.putpixel((0, imageBlackMaskHeight - 2), (0, 0, 0, 32))
     imageBlackMask.putpixel((0, imageBlackMaskHeight - 1), (0, 0, 0, 64))
     
-    root.reg_img(imageBlackMask.resize((1, 500)), "imageBlackMask")
-    root.reg_img(Resource["Button_Left"], "Button_Left")
-    root.reg_img(Resource["Button_Right"], "Button_Right")
-    root.reg_img(Resource["Retry"], "Retry")
-    root.reg_img(Resource["PauseImg"], "PauseImg")
-    root.reg_img(Resource["logoipt"], "logoipt")
-    root.reg_img(Resource["warning"], "warning")
-    root.reg_img(Resource["phigros"], "phigros")
-    root.reg_img(Resource["AllSongBlur"], "AllSongBlur")
-    root.reg_img(Resource["facula"], "facula")
-    root.reg_img(Resource["collectibles"], "collectibles")
-    root.reg_img(Resource["setting"], "setting")
-    root.reg_img(Resource["ButtonLeftBlack"], "ButtonLeftBlack")
-    root.reg_img(Resource["ButtonRightBlack"], "ButtonRightBlack")
-    root.reg_img(Resource["message"], "message")
-    root.reg_img(Resource["JoinQQGuildBanner"], "JoinQQGuildBanner")
-    root.reg_img(Resource["JoinQQGuildPromo"], "JoinQQGuildPromo")
-    root.reg_img(Resource["Arrow_Left"], "Arrow_Left")
-    root.reg_img(Resource["Arrow_Right"], "Arrow_Right")
-    root.reg_img(Resource["Arrow_Right_Black"], "Arrow_Right_Black")
-    root.reg_img(Resource["twitter"], "twitter")
-    root.reg_img(Resource["qq"], "qq")
-    root.reg_img(Resource["bilibili"], "bilibili")
-    root.reg_img(Resource["taptap"], "taptap")
-    root.reg_img(Resource["checked"], "checked")
-    root.reg_img(Resource["PUIBack"], "PUIBack")
-    root.reg_img(Resource["PUIRetry"], "PUIRetry")
-    root.reg_img(Resource["PUIResume"], "PUIResume")
-    root.reg_img(Resource["edit"], "edit")
-    root.reg_img(Resource["close"], "close")
+    respacker = webcv.PILResourcePacker(root)
+    respacker.reg_img(imageBlackMask.resize((1, 500)), "imageBlackMask")
+    respacker.reg_img(Resource["Button_Left"], "Button_Left")
+    respacker.reg_img(Resource["Button_Right"], "Button_Right")
+    respacker.reg_img(Resource["Retry"], "Retry")
+    respacker.reg_img(Resource["PauseImg"], "PauseImg")
+    respacker.reg_img(Resource["logoipt"], "logoipt")
+    respacker.reg_img(Resource["warning"], "warning")
+    respacker.reg_img(Resource["phigros"], "phigros")
+    respacker.reg_img(Resource["AllSongBlur"], "AllSongBlur")
+    respacker.reg_img(Resource["facula"], "facula")
+    respacker.reg_img(Resource["collectibles"], "collectibles")
+    respacker.reg_img(Resource["setting"], "setting")
+    respacker.reg_img(Resource["ButtonLeftBlack"], "ButtonLeftBlack")
+    respacker.reg_img(Resource["ButtonRightBlack"], "ButtonRightBlack")
+    respacker.reg_img(Resource["message"], "message")
+    respacker.reg_img(Resource["JoinQQGuildBanner"], "JoinQQGuildBanner")
+    respacker.reg_img(Resource["JoinQQGuildPromo"], "JoinQQGuildPromo")
+    respacker.reg_img(Resource["Arrow_Left"], "Arrow_Left")
+    respacker.reg_img(Resource["Arrow_Right"], "Arrow_Right")
+    respacker.reg_img(Resource["Arrow_Right_Black"], "Arrow_Right_Black")
+    respacker.reg_img(Resource["twitter"], "twitter")
+    respacker.reg_img(Resource["qq"], "qq")
+    respacker.reg_img(Resource["bilibili"], "bilibili")
+    respacker.reg_img(Resource["taptap"], "taptap")
+    respacker.reg_img(Resource["checked"], "checked")
+    respacker.reg_img(Resource["PUIBack"], "PUIBack")
+    respacker.reg_img(Resource["PUIRetry"], "PUIRetry")
+    respacker.reg_img(Resource["PUIResume"], "PUIResume")
+    respacker.reg_img(Resource["edit"], "edit")
+    respacker.reg_img(Resource["close"], "close")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -339,33 +336,30 @@ def Load_Resource():
     CheckedIconHeight = CheckedIconWidth / Resource["checked"].width * Resource["checked"].height
     
     for k,v in Resource["Levels"].items():
-        root.reg_img(v, f"Level_{k}")
+        respacker.reg_img(v, f"Level_{k}")
         
     for k, v in Resource["Notes"].items():
-        root.reg_img(Resource["Notes"][k], f"Note_{k}")
+        respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
     
     for i in range(ClickEffectFrameCount):
-        root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
-        root.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
+        respacker.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
+        respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
 
     for chapter in Chapters.items:
         im = Image.open(f"./phigros_assets/{chapter.image}")
         chapter.im = im
-        root.reg_img(im, f"chapter_{chapter.chapterId}_raw")
-        root.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
+        respacker.reg_img(im, f"chapter_{chapter.chapterId}_raw")
+        respacker.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
     
     for index, avatar in enumerate(assetConfig["avatars"]):
-        root.reg_img(Image.open(f"./phigros_assets/{avatar}"), f"avatar_{index}")
+        respacker.reg_img(Image.open(f"./phigros_assets/{avatar}"), f"avatar_{index}")
     
-    root.reg_img(Image.open(f"./phigros_assets/{getUserData("userdata-userBackground")}"), "userBackground")
+    respacker.reg_img(Image.open(f"./phigros_assets/{getUserData("userdata-userBackground")}"), "userBackground")
     
     with open("./resources/font.ttf", "rb") as f:
-        root.reg_res(f.read(),"PhigrosFont")
-    root.load_allimg()
-    for im in root._is_loadimg.keys(): # ...  create image draw cache
-        root.create_image(im, 0, 0, 50, 50, wait_execute=True)
-    root.clear_canvas(wait_execute = True)
-    root.run_js_wait_code()
+        root.reg_res(f.read(), "PhigrosFont")
+    respacker.load(*respacker.pack())
+    
     root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
     while not root.run_js_code("font_loaded;"):
         time.sleep(0.1)
@@ -3145,11 +3139,13 @@ def chartPlayerRender(
     raw_audio_length = mixer.Sound(chartAudio).get_length()
     audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
     
+    respacker = webcv.PILResourcePacker(root)
+    
     root.run_js_code("delete background; delete begin_animation_image; delete finish_animation_image;")
     chart_image = Image.open(chartImage)
     background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
     background_image = ImageEnhance.Brightness(background_image_blur).enhance(getUserData("setting-backgroundDim"))
-    root.reg_img(background_image, "background")
+    respacker.reg_img(background_image, "background")
     
     finish_animation_image_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
     finish_animation_image_mask.putpixel((0, 4), (0, 0, 0, 204))
@@ -3164,10 +3160,10 @@ def chartPlayerRender(
     finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
     tool_funcs.cutAnimationIllImage(finish_animation_image)
     
-    root.reg_img(animation_image, "begin_animation_image")
-    root.reg_img(finish_animation_image, "finish_animation_image")
+    respacker.reg_img(animation_image, "begin_animation_image")
+    respacker.reg_img(finish_animation_image, "finish_animation_image")
     
-    root.load_allimg()
+    respacker.load(*respacker.pack())
     
     coreConfig = phicore.PhiCoreConfigure(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
@@ -3387,7 +3383,7 @@ def chartPlayerRender(
             else:
                 if rendingAnimation is phicore.Chart_BeforeFinish_Animation_Frame:
                     if time.time() - rendingAnimationSt <= 0.75:
-                        rendingAnimation((time.time() - rendingAnimationSt) / 0.75, globals()["PhigrosPlayManagerObject"].getCombo(), False)
+                        rendingAnimation((time.time() - rendingAnimationSt) / 0.75, globals()["PhigrosPlayManagerObject"].getCombo() if phicore.noautoplay else phicore.chart_obj.note_num, False)
                     else:
                         rendingAnimation, rendingAnimationSt = phicore.Chart_Finish_Animation_Frame, time.time()
                         mixer.music.load("./resources/Over.mp3")

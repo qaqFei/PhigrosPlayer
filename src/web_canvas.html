@@ -190,6 +190,21 @@
         blackgrd.addColorStop(1.0, "rgba(0, 0, 0, 0.5)");
     }
 
+    async function loadrespackage(url, indexs) {
+        let respackage = await (await fetch(url)).blob();
+        let imnames = [];
+        for (i of indexs) {
+            let [pn, [pd, ps]] = i;
+            let resdata = respackage.slice(pd, pd + ps);
+            let im = new Image();
+            im.src = URL.createObjectURL(resdata);
+            im.loading = "eager";
+            imnames.push(pn);
+            window[`${pn}_img`] = im;
+        }
+        return imnames;
+    }
+
     function splitText(x0, y0, x1, y1, text, cv) {
         texts = [];
         function _splitTexts (element) {

@@ -59,6 +59,34 @@ class JsApi:
     def call_attr(self,name: str, *args, **kwargs):
         return getattr(self, name)(*args, **kwargs)
 
+class PILResourcePacker:
+    def __init__(self, cv: WebCanvas):
+        self.cv = cv
+        self.imgs: list[tuple[str, Image.Image]] = []
+    
+    def reg_img(self, img: Image.Image, name: str):
+        self.imgs.append((name, img))
+    
+    def pack(self):
+        datas = []
+        dataindexs = []
+        datacount = 0
+        for name, img in self.imgs:
+            btio = io.BytesIO()
+            img.save(btio, "png") # toooooooooooooo slow
+            data = btio.getvalue()
+            datas.append(data)
+            dataindexs.append([name, [datacount, len(data)]])
+            datacount += len(data)
+        return b"".join(datas), dataindexs
+
+    def load(self, data: bytes, indexs: list[list[str, list[int, int]]]):
+        rid = f"pilrespacker_{randint(0, 2 << 31)}"
+        self.cv.reg_res(data, rid)
+        imnames = self.cv.wait_jspromise(f"loadrespackage('{self.cv.get_resource_path(rid)}', {indexs});")
+        self.cv.wait_loadimgs(self.cv.get_imgcomplete_jseval(imnames))
+        self.cv.unreg_res(rid)
+
 def ban_threadtest_current_thread():
     obj = current_thread()
     obj.name = "MainThread"
@@ -207,9 +235,6 @@ class WebCanvas:
         width: int|float, height: int|float,
         wait_execute: bool = False
     ) -> None:
-        if imgname not in self._is_loadimg:
-            raise ValueError("Image not found.")
-        
         jsvarname = self.get_img_jsvarname(imgname)
         self.run_js_code(f"ctx.drawImage({jsvarname}, {x}, {y}, {width}, {height});", wait_execute)
 
@@ -234,12 +259,19 @@ class WebCanvas:
     def reg_res(self, res_data: bytes, name: str) -> None:
         self._regres[name] = res_data
     
-    def load_allimg(self) -> None:
-        complete_code = f"[{",".join([f"{self.get_img_jsvarname(item)}.complete" for item in self._regims])}]"
-        for imgname in self._regims:
-            self._load_img(imgname)
+    def unreg_res(self, name: str) -> None:
+        self._regres.pop(name)
+    
+    def get_imgcomplete_jseval(self, ns: list[str]) -> str:
+        return f"[{",".join([f"{self.get_img_jsvarname(item)}.complete" for item in ns])}]"
+    
+    def wait_loadimgs(self, complete_code: str) -> None:
         while not all(self.run_js_code(complete_code)):
             time.sleep(0.01)
+        
+    def load_allimg(self) -> None:
+        for imgname in self._regims: self._load_img(imgname)
+        self.wait_loadimgs(self.get_imgcomplete_jseval(self._regims))
     
     def reg_event(self, name: str, callback: typing.Callable) -> None:
         setattr(self.web.events, name, getattr(self.web.events, name) + callback)
@@ -249,6 +281,23 @@ class WebCanvas:
     
     def get_resource_path(self, name: str) -> str:
         return f"http://127.0.0.1:{self.web_port + 1}/{name}"
+
+    def wait_jspromise(self, code: str) -> None:
+        eid = f"wait_jspromise_{randint(0, 2 << 31)}"
+        ete = threading.Event()
+        ecbname = f"{eid}_callback"
+        result = None
+        
+        def _callback(jsresult):
+            nonlocal result
+            result = jsresult
+            ete.set()
+            
+        self.jsapi.set_attr(ecbname, _callback)
+        self.run_js_code(f"eval({self.string2sctring_hqm(code)}).then((result) => pywebview.api.call_attr('{ecbname}', result));")
+        ete.wait()
+        delattr(self.jsapi, ecbname)
+        return result
     
     def _load_img(self, imgname: str) -> None:
         jsvarname = self.get_img_jsvarname(imgname)

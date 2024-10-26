@@ -483,6 +483,12 @@ def Load_Resource():
         "PauseImg": Image.open(getResPath("/Pause.png"))
     }
     
+    respacker = webcv.PILResourcePacker(root)
+    
+    background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
+    background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
+    respacker.reg_img(background_image, "background")
+    
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["Notes"]["Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
     
@@ -504,7 +510,7 @@ def Load_Resource():
         if v.width > Note_width:
             Resource["Notes"][k] = v.resize((int(Note_width),int(Note_width / v.width * v.height)))
     
-    #process lowquality images
+    # process lowquality images
     for k,v in Resource["Notes"].items():
         Resource["Notes"][k] = getLowqualityImage(v)
     for k, v in Resource["Note_Click_Effect"].items():
@@ -512,25 +518,25 @@ def Load_Resource():
             Resource["Note_Click_Effect"][k][i] = getLowqualityImage(im)
     for k, v in Resource["Levels"].items():
         Resource["Levels"][k] = getLowqualityImage(v)
-            
+    
     for k, v in Resource["Notes"].items():
-        root.reg_img(Resource["Notes"][k], f"Note_{k}")
+        respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
     
     for i in range(ClickEffectFrameCount): # reg click effect
-        root.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
-        root.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
+        respacker.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
+        respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
         
     for k,v in Resource["Levels"].items(): # reg levels img
-        root.reg_img(v, f"Level_{k}")
+        respacker.reg_img(v, f"Level_{k}")
         
-    root.reg_img(Resource["le_warn"], "le_warn")
-    root.reg_img(animation_image, "begin_animation_image")
-    root.reg_img(finish_animation_image, "finish_animation_image")
-    root.reg_img(Resource["Button_Left"], "Button_Left")
-    root.reg_img(Resource["Button_Right"], "Button_Right")
-    root.reg_img(Resource["Retry"], "Retry")
-    root.reg_img(Resource["Arrow_Right"], "Arrow_Right")
-    root.reg_img(Resource["PauseImg"], "PauseImg")
+    respacker.reg_img(Resource["le_warn"], "le_warn")
+    respacker.reg_img(animation_image, "begin_animation_image")
+    respacker.reg_img(finish_animation_image, "finish_animation_image")
+    respacker.reg_img(Resource["Button_Left"], "Button_Left")
+    respacker.reg_img(Resource["Button_Right"], "Button_Right")
+    respacker.reg_img(Resource["Retry"], "Retry")
+    respacker.reg_img(Resource["Arrow_Right"], "Arrow_Right")
+    respacker.reg_img(Resource["PauseImg"], "PauseImg")
     
     chart_res = {}
     if CHART_TYPE == const.CHART_TYPE.RPE:
@@ -566,15 +572,12 @@ def Load_Resource():
                     logging.error(f"Can't find texture {line.Texture}")
                     texture = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
                     chart_res[line.Texture] = (texture, texture.size)
-                root.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
+                respacker.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
     
     with open(getResPath("/font.ttf"), "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
-    root.load_allimg()
-    for im in root._is_loadimg.keys(): # ...  create image draw cache
-        root.create_image(im, 0, 0, 50, 50, wait_execute=True)
-    root.clear_canvas(wait_execute = True)
-    root.run_js_wait_code()
+    respacker.load(*respacker.pack())
+    
     root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
     while not root.run_js_code("font_loaded;"):
         time.sleep(0.1)
@@ -1077,9 +1080,6 @@ if render_range_more:
     root.run_js_code("render_range_more = true;")
     root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
     
-background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
-background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
-root.reg_img(background_image,"background")
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
 Resource = Load_Resource()
