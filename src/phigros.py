@@ -3236,6 +3236,7 @@ def chartPlayerRender(
             )):
                 eventManager.unregEvent(clickEvent)
                 tonextUI, tonextUISt = True, time.time()
+                Resource["UISound_4"].play()
             elif paused and tool_funcs.InRect(x, y, (
                 w * 0.5 - pauseUIButtonR / 2,
                 h * 0.5 - pauseUIButtonR / 2,
@@ -3330,7 +3331,7 @@ def chartPlayerRender(
             if pauseP <= pauseUIDrawPLP:
                 puiBsP = pauseP / pauseUIDrawPLP
                 _renderPauseUIButtons(1.0 - puiBsP, - w / 15 * (puiBsP ** 4))
-            fastEaseX = 3.25
+            fastEaseX = 3.75
             fastEase = lambda x: rpe_easing.ease_funcs[19](x * fastEaseX) if x <= 1 / fastEaseX else 1.0
             numberEase = lambda x: int(x) + fastEase(x % 1.0)
             root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx;", add_code_array = True)
