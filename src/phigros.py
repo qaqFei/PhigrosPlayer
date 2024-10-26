@@ -3195,6 +3195,7 @@ def chartPlayerRender(
         debug = "--debug" in sys.argv,
         combotips = "COMBO" if "--debug" not in sys.argv else "AUTOPLAY", noplaychart = False,
         clicksound_volume = getUserData("setting-clickSoundVolume"),
+        musicsound_volume = getUserData("setting-musicVolume")
     )
     phicore.CoreConfig(coreConfig)
     
@@ -3432,6 +3433,8 @@ def chartPlayerRender(
     if phicore.noautoplay:
         playChartThreadStopEvent.set()
         playChartThreadEvent.wait()
+    
+    mixer.music.set_volume(1.0)
     
 def updateFontSizes():
     global userName_FontSize

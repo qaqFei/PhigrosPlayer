@@ -43,6 +43,7 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --render-finish-animation-video <filepath-string-value>: output a chart finish animation video to the path. (fps: 120, noaudio) tip: when video is rendering, buttons will be blocked.
   --clickeffect-randomblock-roundn <number-value>: Set the round number of random block click effect. (0.0 ~ 0.5) (default: 0)
   --clicksound-volume <number-value>: Set the click sound volume. (0.0 ~ 1.0) (default: 1.0)
+  --musicsound-volume <number-value>: Set the music sound volume. (0.0 ~ 1.0) (default: 1.0)
 '''
 
 HELP_ZH = '''\
@@ -87,4 +88,5 @@ HELP_ZH = '''\
   --render-before-finish-animation-video <文件路径>: 导出一个谱面结束UI过渡动画到指定路径 (帧率恒定120, 无声音)
   --clickeffect-randomblock-roundn <数字>: 设置打击效果方块的圆角系数 (0.0 = 方, 0.5 = 圆), 默认 = 0.0
   --clicksound-volume <数字>: 设置点击音效音量 (0.0 = 无声, 1.0 = 原音), 默认 = 1.0
+  --musicsound-volume <数字>: 设置音乐音量 (0.0 = 无声, 1.0 = 原音), 默认 = 1.0
 '''

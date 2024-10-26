@@ -58,6 +58,7 @@ class PhiCoreConfigure:
     combotips: bool
     noplaychart: bool
     clicksound_volume: float
+    musicsound_volume: float
 
 @dataclass
 class PhiCoreConfigureEx:
@@ -136,6 +137,7 @@ def CoreConfig(config: PhiCoreConfigure):
     combotips = config.combotips
     noplaychart = config.noplaychart
     
+    mixer.music.set_volume(config.musicsound_volume)
     for i in Resource["Note_Click_Audio"].values():
         i.set_volume(config.clicksound_volume)
     
@@ -181,12 +183,12 @@ drawUI_Default_Kwargs = {
 lastCallDrawUI = - float("inf")
 
 class PhigrosPlayManager:
-    def __init__(self, noteCount:int):
+    def __init__(self, noteCount: int):
         self.events: list[typing.Literal["P", "G", "B", "M"]] = []
         self.event_offsets: list[float] = [] # the note click offset (s)
-        self.noteCount: int = noteCount
+        self.noteCount = noteCount
     
-    def addEvent(self, event:typing.Literal["P", "G", "B", "M"], offset:float|None = None): # Perfect, Good, Bad, Miss
+    def addEvent(self, event: typing.Literal["P", "G", "B", "M"], offset: float|None = None): # Perfect, Good, Bad, Miss
         self.events.append(event)
         if offset is not None: # offset is only good judge.
             self.event_offsets.append(offset)

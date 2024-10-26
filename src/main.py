@@ -81,6 +81,7 @@ clickeffect_randomblock_roundn = float(eval(sys.argv[sys.argv.index("--clickeffe
 combotips = ("AUTOPLAY" if not noautoplay else "COMBO") if "--combotips" not in sys.argv else sys.argv[sys.argv.index("--combotips") + 1]
 noplaychart = "--noplaychart" in sys.argv
 clicksound_volume = float(sys.argv[sys.argv.index("--clicksound-volume") + 1]) if "--clicksound-volume" in sys.argv else 1.0
+musicsound_volume = float(sys.argv[sys.argv.index("--musicsound-volume") + 1]) if "--musicsound-volume" in sys.argv else 1.0
 respaths = ["./resources"]
 
 if "--res" in sys.argv:
@@ -98,9 +99,7 @@ if lfdaot and speed != 1.0:
     speed = 1.0
     logging.warning("if use --lfdaot, you cannot use --speed")
 
-logging.info("Init Pygame Mixer...")
 mixer.init()
-mixer.music.set_volume(0.85)
 
 logging.info("Unpack Chart...")
 popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y >> nul").read()
@@ -935,6 +934,7 @@ def PlayerStart():
                 
                 writer.release()
     
+    mixer.music.set_volume(1.0)
     initFinishAnimation()
     
     def Chart_Finish_Animation():
@@ -1031,7 +1031,8 @@ def updateCoreConfigure():
         render_range_more_scale = render_range_more_scale,
         judgeline_notransparent = judgeline_notransparent,
         debug = debug, combotips = combotips, noplaychart = noplaychart,
-        clicksound_volume = clicksound_volume
+        clicksound_volume = clicksound_volume,
+        musicsound_volume = musicsound_volume
     )
     CoreConfig(PhiCoreConfigureObject)
 
