@@ -62,9 +62,9 @@ class JsApi:
 class PILResourcePacker:
     def __init__(self, cv: WebCanvas):
         self.cv = cv
-        self.imgs: list[tuple[str, Image.Image]] = []
+        self.imgs: list[tuple[str, Image.Image|bytes]] = []
     
-    def reg_img(self, img: Image.Image, name: str):
+    def reg_img(self, img: Image.Image|bytes, name: str):
         self.imgs.append((name, img))
     
     def pack(self):
@@ -72,9 +72,13 @@ class PILResourcePacker:
         dataindexs = []
         datacount = 0
         for name, img in self.imgs:
-            btio = io.BytesIO()
-            img.save(btio, "png") # toooooooooooooo slow
-            data = btio.getvalue()
+            if isinstance(img, Image.Image):
+                btio = io.BytesIO()
+                img.save(btio, "png") # toooooooooooooo slow
+                data = btio.getvalue()
+            else:
+                data = img
+                
             datas.append(data)
             dataindexs.append([name, [datacount, len(data)]])
             datacount += len(data)
@@ -86,6 +90,13 @@ class PILResourcePacker:
         imnames = self.cv.wait_jspromise(f"loadrespackage('{self.cv.get_resource_path(rid)}', {indexs});")
         self.cv.wait_loadimgs(self.cv.get_imgcomplete_jseval(imnames))
         self.cv.unreg_res(rid)
+        self.cv.run_js_code(f"[{",".join(map(self.cv.get_img_jsvarname, imnames))}].forEach(im => URL.revokeObjectURL(im.src));")
+    
+    def getnames(self):
+        return [name for name, _ in self.imgs]
+
+    def unload(self, names: list[str]):
+        self.cv.run_js_code(f"{";".join(map(lambda x: f"delete {self.cv.get_img_jsvarname(x)}", names))};")
 
 def ban_threadtest_current_thread():
     obj = current_thread()

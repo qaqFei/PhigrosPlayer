@@ -11,6 +11,7 @@ import sys
 import time
 import math
 import logging
+from io import BytesIO
 from threading import Thread
 from ctypes import windll
 from os import environ, mkdir, system, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
@@ -346,15 +347,16 @@ def Load_Resource():
         respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
 
     for chapter in Chapters.items:
-        im = Image.open(f"./phigros_assets/{chapter.image}")
+        chapterimbytes = open(f"./phigros_assets/{chapter.image}", "rb").read()
+        im = Image.open(BytesIO(chapterimbytes))
         chapter.im = im
-        respacker.reg_img(im, f"chapter_{chapter.chapterId}_raw")
+        respacker.reg_img(chapterimbytes, f"chapter_{chapter.chapterId}_raw")
         respacker.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
     
     for index, avatar in enumerate(assetConfig["avatars"]):
-        respacker.reg_img(Image.open(f"./phigros_assets/{avatar}"), f"avatar_{index}")
+        respacker.reg_img(open(f"./phigros_assets/{avatar}", "rb").read(), f"avatar_{index}")
     
-    respacker.reg_img(Image.open(f"./phigros_assets/{getUserData("userdata-userBackground")}"), "userBackground")
+    ... # respacker.reg_img(Image.open(f"./phigros_assets/{getUserData("userdata-userBackground")}"), "userBackground")
     
     with open("./resources/font.ttf", "rb") as f:
         root.reg_res(f.read(), "PhigrosFont")
@@ -1628,8 +1630,21 @@ def settingRender():
         );"
     ) + h * (143 / 1080) * 2 - h
     
+    bgrespacker = webcv.PILResourcePacker(root)
+    for i, bg in enumerate(assetConfig["backgrounds"]):
+        bgrespacker.reg_img(open(f"./phigros_assets/{bg}", "rb").read(), f"background_{i}")
+    bgrespacker.load(*bgrespacker.pack())
+    background_imnames = bgrespacker.getnames()
+    bgrespacker.imgs.clear()
+    
     mixer.music.load("./resources/Calibration.wav")
     mixer.music.play(-1)
+    
+    def updatebg():
+        ubgjsname = root.get_img_jsvarname("userBackground")
+        root.run_js_code(f"delete {ubgjsname};")
+        bgimname = f"background_{assetConfig["backgrounds"].index(getUserData("userdata-userBackground"))}"
+        root.run_js_code(f"{ubgjsname} = {root.get_img_jsvarname(bgimname)};")
     
     def unregEvents():
         eventManager.unregEvent(clickBackButtonEvent)
@@ -2716,6 +2731,7 @@ def settingRender():
     SettingPlayWidgetEventManager.widgets.clear()
     SettingPlayWidgetEventManager.widgets.extend(PlaySettingWidgets.values())
     updateConfig()
+    updatebg()
     
     while True:
         root.clear_canvas(wait_execute = True)
@@ -2883,6 +2899,7 @@ def settingRender():
     settingState = None
     SettingPlayWidgetEventManager.widgets.clear()
     PlaySettingWidgets.clear()
+    bgrespacker.unload(background_imnames)
     
 def audioQARender():
     global dspSettingWidgets
