@@ -324,7 +324,7 @@ def Load_Resource():
     MessageButtonSize = w * 0.025
     JoinQQGuildBannerWidth = w * 0.2
     JoinQQGuildBannerHeight = JoinQQGuildBannerWidth / Resource["JoinQQGuildBanner"].width * Resource["JoinQQGuildBanner"].height
-    JoinQQGuildPromoWidth = w * 0.61
+    JoinQQGuildPromoWidth = w * 0.721875
     JoinQQGuildPromoHeight = JoinQQGuildPromoWidth / Resource["JoinQQGuildPromo"].width * Resource["JoinQQGuildPromo"].height
     SettingUIOtherDownIconWidth = w * 0.01725
     SettingUIOtherDownIconHeight_Twitter = SettingUIOtherDownIconWidth / Resource["twitter"].width * Resource["twitter"].height
@@ -360,9 +360,8 @@ def Load_Resource():
         root.reg_res(f.read(), "PhigrosFont")
     respacker.load(*respacker.pack())
     
-    root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
-    while not root.run_js_code("font_loaded;"):
-        time.sleep(0.1)
+    root.wait_jspromise(f"loadFont('PhigrosFont', \"{root.get_resource_path("PhigrosFont")}\");")
+    root.unreg_res("PhigrosFont")
     
     initUserAvatar()
     root._regims.clear()
@@ -537,7 +536,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
     
     root.run_js_code(
         f"ctx.drawDiagonalRectangleClipImage(\
-            {", ".join(map(str, chapterRect))},\
+            {",".join(map(str, chapterRect))},\
             {root.get_img_jsvarname(f"chapter_{item.chapterId}_raw")},\
             {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
             {dPower}, {p}\
@@ -547,7 +546,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
     
     root.run_js_code(
         f"ctx.drawDiagonalRectangleClipImage(\
-            {", ".join(map(str, chapterRect))},\
+            {",".join(map(str, chapterRect))},\
             {root.get_img_jsvarname(f"chapter_{item.chapterId}_blur")},\
             {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
             {dPower}, {1.0 - p}\
@@ -557,7 +556,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
     
     root.run_js_code(
         f"ctx.drawDiagonalRectangleClipImage(\
-            {", ".join(map(str, chapterRect))},\
+            {",".join(map(str, chapterRect))},\
             {root.get_img_jsvarname("imageBlackMask")},\
             {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
             {dPower}, 1.0\
@@ -617,7 +616,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
     if playButtonAlpha != 0.0:
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
-                {", ".join(map(str, playButtonRect))},\
+                {",".join(map(str, playButtonRect))},\
                 {PlayButtonDPower}, 'rgba(255, 255, 255, {playButtonAlpha})'\
             );",
             add_code_array = True
@@ -625,7 +624,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
         
         root.run_js_code(
             f"ctx.drawTriangleFrame(\
-                {", ".join(map(str, playButtonTriangle))},\
+                {",".join(map(str, playButtonTriangle))},\
                 'rgba(0, 0, 0, {playButtonAlpha})',\
                 {(w + h) / 800}\
             );",
@@ -778,11 +777,28 @@ def drawDialog(
     tempWidth = dialogImageSize[0] * (0.65 + p * 0.35)
     tempHeight = dialogImageSize[1] * (0.65 + p * 0.35)
     diagonalRectanglePowerPx = diagonalPower * tempWidth
+    dialogCenterY = h * 0.5 - tempHeight * 0.2 / 2
+    
+    dialogRect = (
+        w / 2 - tempWidth / 2,
+        dialogCenterY - tempHeight / 2,
+        w / 2 + tempWidth / 2,
+        dialogCenterY + tempHeight / 2 + tempHeight * 0.2
+    )
+    
+    root.run_js_code(
+        f"dialog_canvas_ctx.save();\
+        dialog_canvas_ctx.clipDiagonalRectangle(\
+            {",".join(map(str, dialogRect))},\
+            {tool_funcs.getDPower(*tool_funcs.getSizeByRect(dialogRect), 75)}\
+        );",
+        add_code_array = True
+    )
     
     root.run_js_code(
         f"dialog_canvas_ctx.drawAlphaImage(\
             {root.get_img_jsvarname(dialogImageName)},\
-            {w / 2 - tempWidth / 2}, {h * 0.39 - tempHeight / 2},\
+            {w / 2 - tempWidth / 2}, {dialogCenterY - tempHeight / 2},\
             {tempWidth}, {tempHeight}, {p}\
         );",
         add_code_array = True
@@ -790,30 +806,32 @@ def drawDialog(
     
     diagonalRectangle = (
         w / 2 - tempWidth / 2 - diagonalRectanglePowerPx * 0.2,
-        h * 0.39 + tempHeight / 2,
+        dialogCenterY + tempHeight / 2,
         w / 2 + tempWidth / 2 - diagonalRectanglePowerPx,
-        h * 0.39 + tempHeight / 2 + tempHeight * 0.2
+        dialogCenterY + tempHeight / 2 + tempHeight * 0.2
     )
     
     root.run_js_code(
-        f"dialog_canvas_ctx.drawDiagonalRectangle(\
-            {", ".join(map(str, diagonalRectangle))},\
-            {diagonalPower * 0.2}, 'rgba(0, 0, 0, {0.85 * p})'\
+        f"dialog_canvas_ctx.fillRectExByRect(\
+            {",".join(map(str, diagonalRectangle))},\
+            'rgba(0, 0, 0, {0.85 * p})'\
         );",
         add_code_array = True
     )
     
     root.run_js_code(
-        f"dialog_canvas_ctx.drawDiagonalRectangleText(\
-            {", ".join(map(str, diagonalRectangle))},\
+        f"dialog_canvas_ctx.drawDiagonalDialogRectangleText(\
+            {",".join(map(str, diagonalRectangle))},\
             {diagonalPower * 0.2},\
             '{processStringToLiteral(noText)}',\
             '{processStringToLiteral(yesText)}',\
             'rgba(255, 255, 255, {p})',\
-            '{(w + h) / 100 * (0.65 + p * 0.35)}px PhigrosFont'\
+            '{(w + h) / 95 * (0.65 + p * 0.35)}px PhigrosFont'\
         );",
         add_code_array = True
     )
+    
+    root.run_js_code(f"dialog_canvas_ctx.restore();", add_code_array=True)
     
     return (
         diagonalRectangle[0] + diagonalRectanglePowerPx * 0.2, diagonalRectangle[1],
@@ -933,7 +951,7 @@ def showStartAnimation():
         root.run_js_code(
             f"ctx.drawImage(\
                 {root.get_img_jsvarname("phigros")},\
-                {", ".join(map(str, phigros_logo_rect))}\
+                {",".join(map(str, phigros_logo_rect))}\
             );",
             add_code_array = True
         )
@@ -1204,7 +1222,7 @@ def mainRender():
         root.run_js_code(
             f"ctx.drawAlphaImage(\
                 {root.get_img_jsvarname("message")},\
-                {", ".join(map(str, messageRect))}, 0.7\
+                {",".join(map(str, messageRect))}, 0.7\
             );",
             add_code_array = True
         )
@@ -2718,7 +2736,7 @@ def settingRender():
         
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
-                {", ".join(map(str, ShadowRect))},\
+                {",".join(map(str, ShadowRect))},\
                 {ShadowDPower}, 'rgba(0, 0, 0, 0.2)'\
             );",
             add_code_array = True
@@ -2734,7 +2752,7 @@ def settingRender():
         
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
-                {", ".join(map(str, BarRect))},\
+                {",".join(map(str, BarRect))},\
                 {BarDPower}, 'rgba(0, 0, 0, 0.45)'\
             );",
             add_code_array = True
@@ -2753,7 +2771,7 @@ def settingRender():
         
         root.run_js_code(
             f"ctx.drawDiagonalRectangleNoFix(\
-                {", ".join(map(str, LabelRect))},\
+                {",".join(map(str, LabelRect))},\
                 {LabelDPower}, '{"rgb(255, 255, 255)" if not editingUserData else "rgb(192, 192, 192)"}'\
             );",
             add_code_array = True

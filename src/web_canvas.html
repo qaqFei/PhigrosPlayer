@@ -74,7 +74,6 @@
     lfdaot_render_fcount = 0;
     render_range_more = false;
     render_range_more_scale = 2.0;
-    font_loaded = false;
     uploadFrame_addQueue = false;
     uploadFrame_finish = false;
     lowquality_scale = 1.0;
@@ -128,12 +127,9 @@
         // ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     }
 
-    function loadFont(family, url) {
-        var font = new FontFace(family, `url(${url})`);
-        font.load().then((rfont) => {
-            document.fonts.add(rfont);
-            font_loaded = true;
-        })
+    async function loadFont(family, url) {
+        let font = new FontFace(family, `url(${url})`);
+        document.fonts.add(await font.load());
     }
 
     async function async_sleep(ms) {
@@ -317,38 +313,42 @@
     }
 
     CanvasRenderingContext2D.prototype.fillRectEx = function (x, y, w, h, color) {
-        ctx.save();
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, w, h);
-        ctx.restore();
+        this.save();
+        this.fillStyle = color;
+        this.fillRect(x, y, w, h);
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.fillRectExByRect = function (x0, y0, x1, y1, color) {
+        return this.fillRectEx(x0, y0, x1 - x0, y1 - y0, color);
     }
 
     CanvasRenderingContext2D.prototype.strokeRectEx = function (x, y, w, h, color, width) {
-        ctx.save();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = width;
-        ctx.strokeRect(x, y, w, h);
-        ctx.restore();
+        this.save();
+        this.strokeStyle = color;
+        this.lineWidth = width;
+        this.strokeRect(x, y, w, h);
+        this.restore();
     }
 
     CanvasRenderingContext2D.prototype.roundRectEx = function (x, y, w, h, r, color) {
-        ctx.save();
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.roundRect(x, y, w, h, r);
-        ctx.fill();
-        ctx.restore();
+        this.save();
+        this.fillStyle = color;
+        this.beginPath();
+        this.roundRect(x, y, w, h, r);
+        this.fill();
+        this.restore();
     }
 
     CanvasRenderingContext2D.prototype.drawLineEx = function (x1, y1, x2, y2, width, color) {
-        ctx.save();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = width;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        ctx.restore();
+        this.save();
+        this.strokeStyle = color;
+        this.lineWidth = width;
+        this.beginPath();
+        this.moveTo(x1, y1);
+        this.lineTo(x2, y2);
+        this.stroke();
+        this.restore();
     }
 
     CanvasRenderingContext2D.prototype._diagonalRectangle = function(x0, y0, x1, y1, power) {
@@ -390,13 +390,13 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.drawDiagonalRectangleText = function(x0, y0, x1, y1, power, text1, text2, color, font) {
+    CanvasRenderingContext2D.prototype.drawDiagonalDialogRectangleText = function(x0, y0, x1, y1, power, text1, text2, color, font) {
         this.save();
         this.fillStyle = color;
         this.font = font;
         this.textBaseline = "middle";
         this.textAlign = "left";
-        this.fillText(text1, x0 + (x1 - x0) * power * 2.0, y0 + (y1 - y0) * 0.5);
+        this.fillText(text1, x0 + (x1 - x0) * power * 3.0, y0 + (y1 - y0) * 0.5);
         this.textAlign = "right";
         this.fillText(text2, x1 - (x1 - x0) * power * 2.0, y0 + (y1 - y0) * 0.5);
         this.restore();

@@ -910,7 +910,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
             Task(
                 root.run_js_code,
                 f"ctx.drawLineEx(\
-                    {", ".join(map(str, judgeLine_DrawPos))},\
+                    {",".join(map(str, judgeLine_DrawPos))},\
                     {JUDGELINE_WIDTH},\
                     '{judgeLine_webCanvas_color}'\
                 );",
@@ -1395,7 +1395,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
             Task(
                 root.run_js_code,
                 f"ctx.drawLineEx(\
-                    {", ".join(map(str, judgeLine_DrawPos))},\
+                    {",".join(map(str, judgeLine_DrawPos))},\
                     {JUDGELINE_WIDTH * lineScaleY},\
                     '{judgeLine_webCanvas_color}'\
                 );",

@@ -578,9 +578,8 @@ def Load_Resource():
         root.reg_res(f.read(),"PhigrosFont")
     respacker.load(*respacker.pack())
     
-    root.run_js_code(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
-    while not root.run_js_code("font_loaded;"):
-        time.sleep(0.1)
+    root.wait_jspromise(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
+    root.unreg_res("PhigrosFont")
     
     root.file_server.shutdown()
     note_max_width = max(
