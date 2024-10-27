@@ -39,8 +39,16 @@ system("python -m venv compile_venv")
 py = ".\\compile_venv\\Scripts\\python.exe"
 
 system(f"{py} -m pip install --upgrade pip")
-system(f"{py} -m pip install -r requirements.txt")
-system(f"{py} -m pip install pyinstaller")
+
+packages = ["pyinstaller", *open(".\\requirements.txt", "r", encoding="utf-8").read().splitlines()]
+pits: list[Thread] = []
+
+for package in packages:
+    pits.append(Thread(target=system, args=(f"{py} -m pip install {package}", )))
+
+for t in pits: t.start()
+for t in pits: t.join()
+
 pyinstaller = ".\\compile_venv\\Scripts\\pyinstaller.exe"
 pyi_makespec = ".\\compile_venv\\Scripts\\pyi-makespec.exe"
 ts: list[Thread] = []
@@ -48,10 +56,8 @@ ts: list[Thread] = []
 for file, hideconsole in compile_files:
     ts.append(Thread(target=compile, args=(file, hideconsole)))
 
-for t in ts:
-    t.start()
-for t in ts:
-    t.join()
+for t in ts: t.start()
+for t in ts: t.join()
 
 for file, _ in compile_files:
     system(f"xcopy \".\\dist\\{file.replace(".py", "")}\\*\" .\\ /c /q /e /y")
