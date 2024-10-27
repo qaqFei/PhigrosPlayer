@@ -2,7 +2,7 @@ import json
 from sys import argv
 
 if len(argv) < 5:
-    print("Usage: phiChart2onlyOneNote <input> <output> <ntype> <interval>")
+    print("Usage: tool-phiChart2onlyOneNote <input> <output> <ntype> <interval>")
     raise SystemExit
 
 def _processNotes(ns: list, bpm: int):

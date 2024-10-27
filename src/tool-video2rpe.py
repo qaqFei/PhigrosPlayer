@@ -5,7 +5,7 @@ from PIL import Image
 import cv2
 
 if len(argv) < 3:
-    print("video2rpe.py <input video> <output rpe chart>")
+    print("Usage: tool-video2rpe <input video> <output rpe chart>")
     raise SystemExit
 
 w, h = 64, 36

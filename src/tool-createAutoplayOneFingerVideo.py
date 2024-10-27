@@ -17,7 +17,7 @@ import tool_funcs
 from rpe_easing import ease_funcs
 
 if len(argv) < 4:
-    print("Usage: createAutoplayOneFingerVideo <videoFile> <chartFile> <outputVideoFilePath>")
+    print("Usage: tool-createAutoplayOneFingerVideo <videoFile> <chartFile> <outputVideoFilePath>")
     raise SystemExit
 
 videoFile = argv[1]
