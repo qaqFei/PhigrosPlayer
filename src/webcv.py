@@ -92,7 +92,16 @@ class PILResourcePacker:
         self.cv.unreg_res(rid)
         self.cv.run_js_code(f"[{",".join(map(self.cv.get_img_jsvarname, imnames))}].forEach(im => URL.revokeObjectURL(im.src));")
         
-        createcache = lambda: self.cv.run_js_code(f"{";".join(map(lambda x: f"cachecv = document.createElement('canvas'); cachecv.getContext('2d').drawImage({self.cv.get_img_jsvarname(x)}, 0, 0); delete cachecv;", imnames))};")
+        def createcache():
+            codes = []
+            codes.append(f"cachecv = document.createElement('canvas');")
+            codes.append(f"cachecv.width = cachecv.height = 1;")
+            codes.append(f"cachectx = cachecv.getContext('2d');")
+            for im in imnames:
+                codes.append(f"cachectx.drawImage({self.cv.get_img_jsvarname(im)}, 0, 0);")
+            codes.append(f"delete cachecv; delete cachectx;")
+            self.cv.run_js_code("".join(codes))
+            
         threading.Thread(target=createcache, daemon=True).start()
     
     def getnames(self):

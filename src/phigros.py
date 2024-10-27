@@ -1604,6 +1604,11 @@ def settingRender():
     
     inSettingUI = True
     
+    bgrespacker = webcv.PILResourcePacker(root)
+    for i, bg in enumerate(assetConfig["backgrounds"]):
+        bgrespacker.reg_img(open(f"./phigros_assets/{bg}", "rb").read(), f"background_{i}")
+    bgrespacker.load(*bgrespacker.pack())
+    
     settingState = phigame_obj.SettingState()
     clickedBackButton = False
     settingPlayWidgetsDy = 0.0
@@ -1625,11 +1630,6 @@ def settingRender():
             'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
         );"
     ) + h * (143 / 1080) * 2 - h
-    
-    bgrespacker = webcv.PILResourcePacker(root)
-    for i, bg in enumerate(assetConfig["backgrounds"]):
-        bgrespacker.reg_img(open(f"./phigros_assets/{bg}", "rb").read(), f"background_{i}")
-    bgrespacker.load(*bgrespacker.pack())
     
     mixer.music.load("./resources/Calibration.wav")
     mixer.music.play(-1)
