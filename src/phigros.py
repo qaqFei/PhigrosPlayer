@@ -2418,7 +2418,6 @@ def settingRender():
             imgdp = tool_funcs.getDPower(imgwidth, imgheight, 75)
             lcount = 0
             for img in imgs:
-                print(img, imgx, imgy, imgwidth, imgheight)
                 root.run_js_code(
                     f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
                         {imgx}, {imgy},\

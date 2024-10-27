@@ -91,6 +91,9 @@ class PILResourcePacker:
         self.cv.wait_loadimgs(self.cv.get_imgcomplete_jseval(imnames))
         self.cv.unreg_res(rid)
         self.cv.run_js_code(f"[{",".join(map(self.cv.get_img_jsvarname, imnames))}].forEach(im => URL.revokeObjectURL(im.src));")
+        
+        createcache = lambda: self.cv.run_js_code(f"{";".join(map(lambda x: f"cachecv = document.createElement('canvas'); cachecv.getContext('2d').drawImage({self.cv.get_img_jsvarname(x)}, 0, 0); delete cachecv;", imnames))};")
+        threading.Thread(target=createcache, daemon=True).start()
     
     def getnames(self):
         return [name for name, _ in self.imgs]
