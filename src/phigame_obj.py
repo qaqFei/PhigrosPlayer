@@ -328,8 +328,6 @@ class SettingState:
         if sp_state:
             self.aFrom = const.PHIGROS_SETTING_STATE.PLAY
             self.aTo = const.PHIGROS_SETTING_STATE.PLAY
-        
-        return drawPlaySettingDx, drawAccountAndCountSettingDx, drawOtherSettingDx
 
     @property
     def atis_p(self): return self.aTo == const.PHIGROS_SETTING_STATE.PLAY

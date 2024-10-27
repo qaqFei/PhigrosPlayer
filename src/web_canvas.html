@@ -382,16 +382,6 @@
     }
 
     CanvasRenderingContext2D.prototype.drawDiagonalRectangle = function(x0, y0, x1, y1, power, color) {
-        x0 += canvas_ele.width / lowquality_scale * (1.35 / 1920); // ??, 写到这里, 再不开学就要精神异常了...
-        this.save();
-        this.fillStyle = color;
-        this.beginPath();
-        this._diagonalRectangle(x0, y0 - 0.25, x1, y1 - 0.25, power);
-        this.fill();
-        this.restore();
-    }
-
-    CanvasRenderingContext2D.prototype.drawDiagonalRectangleNoFix = function(x0, y0, x1, y1, power, color) {
         this.save();
         this.fillStyle = color;
         this.beginPath();
@@ -421,6 +411,17 @@
         this.clip();
         this.drawImage(im, x0 + imx, y0 + imy, imw, imh);
         this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawDiagonalRectangleClipImageOnlyHeight = function(x0, y0, x1, y1, im, imh, power, alpha) {
+        let imw = imh * im.width / im.height;
+        if (imw < x1 - x0) {
+            imw = x1 - x0;
+            imh = imw * im.height / im.width;
+        }
+        let imx = (x1 - x0) / 2 - imw / 2;
+        let imy = (y1 - y0) / 2 - imh / 2;
+        return this.drawDiagonalRectangleClipImage(x0, y0, x1, y1, im, imx, imy, imw, imh, power, alpha);
     }
 
     CanvasRenderingContext2D.prototype.drawRotateText2 = function(text, x, y, deg, color, font, align, baseline) {

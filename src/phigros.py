@@ -615,7 +615,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
     
     if playButtonAlpha != 0.0:
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, playButtonRect))},\
                 {PlayButtonDPower}, 'rgba(255, 255, 255, {playButtonAlpha})'\
             );",
@@ -1411,7 +1411,7 @@ def renderPhigrosWidgets(
                 x + max_width, y + h * ((41 + 6) / 1080)
             )
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, sliderShadowRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(sliderShadowRect), 75)},\
                     'rgba(0, 0, 0, 0.25)'\
@@ -1431,7 +1431,7 @@ def renderPhigrosWidgets(
             )
             
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, lConRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(lConRect), 75)},\
                     'rgb(255, 255, 255)'\
@@ -1440,7 +1440,7 @@ def renderPhigrosWidgets(
             )
             
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, rConRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(rConRect), 75)},\
                     'rgb(255, 255, 255)'\
@@ -1487,7 +1487,7 @@ def renderPhigrosWidgets(
             )
             
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, sliderBlockRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(sliderBlockRect), 75)},\
                     'rgb(255, 255, 255)'\
@@ -1518,7 +1518,7 @@ def renderPhigrosWidgets(
                 x + w * 0.321875 + w * 0.06875, y + h * ((41 + 6) / 1080)
             )
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, checkboxShadowRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(checkboxShadowRect), 75)},\
                     'rgba(0, 0, 0, 0.25)'\
@@ -1549,7 +1549,7 @@ def renderPhigrosWidgets(
             )
             
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, checkButtonRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(checkButtonRect), 75)},\
                     'rgb(255, 255, 255)'\
@@ -1567,7 +1567,7 @@ def renderPhigrosWidgets(
             )
             
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, buttonRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(buttonRect), 75)},\
                     'rgb(255, 255, 255)'\
@@ -1604,7 +1604,6 @@ def settingRender():
     
     inSettingUI = True
     
-    settingRenderSt = time.time()
     settingState = phigame_obj.SettingState()
     clickedBackButton = False
     settingPlayWidgetsDy = 0.0
@@ -1612,7 +1611,6 @@ def settingRender():
     editingUserData = False
     CalibrationClickEffects = []
     CalibrationClickEffectLines = []
-    playSettingDx, accountAndCountSettingDx, otherSettingDx = 0.0, 0.0, 0.0
     editUserNameRect, editIntroductionRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
     editAvatarRect, editBackgroundRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
@@ -1632,8 +1630,6 @@ def settingRender():
     for i, bg in enumerate(assetConfig["backgrounds"]):
         bgrespacker.reg_img(open(f"./phigros_assets/{bg}", "rb").read(), f"background_{i}")
     bgrespacker.load(*bgrespacker.pack())
-    background_imnames = bgrespacker.getnames()
-    bgrespacker.imgs.clear()
     
     mixer.music.load("./resources/Calibration.wav")
     mixer.music.play(-1)
@@ -1848,7 +1844,7 @@ def settingRender():
     
     def drawOtherSettingButton(x0: float, y0: float, x1: float, y1: float, dpower: float):
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {x0}, {y0},\
                 {x1}, {y1},\
                 {dpower}, '#FFFFFF'\
@@ -2034,7 +2030,7 @@ def settingRender():
         )
         
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {w * 0.0796875}, {h * 0.225},\
                 {w * 0.940625}, {h * 0.65},\
                 {tool_funcs.getDPower(w * 0.8609375, h * 0.425, 75)},\
@@ -2051,7 +2047,7 @@ def settingRender():
             )
             editBackgroundRectSize = tool_funcs.getSizeByRect(editBackgroundRect)
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, editBackgroundRect))},\
                     {tool_funcs.getDPower(*editBackgroundRectSize, 75)},\
                     'rgb(255, 255, 255)'\
@@ -2071,7 +2067,7 @@ def settingRender():
         
         leftBlackDiagonalX = 0.538
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {w * 0.0796875}, {h * 0.225},\
                 {w * ((0.940625 - 0.0796875) * leftBlackDiagonalX + 0.0796875)}, {h * 0.65},\
                 {tool_funcs.getDPower(w * ((0.940625 - 0.0796875) * leftBlackDiagonalX), h * 0.425, 75)},\
@@ -2081,7 +2077,7 @@ def settingRender():
         )
         
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {w * 0.121875}, {h * (283 / 1080)},\
                 {w * 0.465625}, {h * (397 / 1080)},\
                 {tool_funcs.getDPower(w * 0.34375, h * (114 / 1080), 75)},\
@@ -2118,7 +2114,7 @@ def settingRender():
             )
             editAvatarRectSize = tool_funcs.getSizeByRect(editAvatarRect)
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, editAvatarRect))},\
                     {tool_funcs.getDPower(*editAvatarRectSize, 75)},\
                     'rgb(255, 255, 255)'\
@@ -2153,7 +2149,7 @@ def settingRender():
             h * (397 / 1080)
         )
         root.run_js_code( # 这个矩形真头疼...
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, rankingScoreRect))},\
                 {tool_funcs.getDPower(rankingScoreRect[2] - rankingScoreRect[0], rankingScoreRect[3] - rankingScoreRect[1], 75)},\
                 'rgb(255, 255, 255)'\
@@ -2188,7 +2184,7 @@ def settingRender():
             w * 0.921875, h * (220 / 1080)
         )
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, editButtonRect))},\
                 {tool_funcs.getDPower(editButtonRect[2] - editButtonRect[0], editButtonRect[3] - editButtonRect[1], 75)},\
                 'rgb(255, 255, 255)'\
@@ -2221,7 +2217,7 @@ def settingRender():
             w * 0.5109375, h * (910 / 1080)
         )
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, loginButtonRect))},\
                 {tool_funcs.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
                 'rgba(255, 255, 255, {1.0 if not editingUserData else 0.75})'\
@@ -2247,7 +2243,7 @@ def settingRender():
             w * 0.5765625, h * (672 / 1080)
         )
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, chartDataDifRect))},\
                 {tool_funcs.getDPower(chartDataDifRect[2] - chartDataDifRect[0], chartDataDifRect[3] - chartDataDifRect[1], 75)},\
                 'rgb(255, 255, 255)'\
@@ -2272,7 +2268,7 @@ def settingRender():
             chartDataDifRect[1] + (chartDataDifRect[3] - chartDataDifRect[1]) * (77 / 85),
         )
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, chartDataRect))},\
                 {tool_funcs.getDPower(chartDataRect[2] - chartDataRect[0], chartDataRect[3] - chartDataRect[1], 75)},\
                 'rgb(0, 0, 0, 0.45)'\
@@ -2353,7 +2349,13 @@ def settingRender():
             _strokeRect(editUserNameRect)
             _strokeRect(editIntroductionRect)
         
-        def _drawChooseDialog(p: float, text: str):
+        def _drawChooseDialog(
+            p: float, text: str, imgs: list[str],
+            imgwidth: float, imgheight: float,
+            imgx_padding: float, imgy_padding: float,
+            imgsx: float, imgsy: float,
+            linemax: int
+        ):
             top = h - (905 / 1080) * h * p
             
             settingShadowRect = const.PHIGROS_SETTING_SHADOW_XRECT_MAP[const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT]
@@ -2377,7 +2379,7 @@ def settingRender():
             root.run_js_code("ctx.restore();", add_code_array=True)
             
             root.run_js_code(
-                f"ctx.drawDiagonalRectangleNoFix(\
+                f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, chooseDialogRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(chooseDialogRect), 75)},\
                     'rgba(0, 0, 0, 0.65)'\
@@ -2410,20 +2412,68 @@ def settingRender():
                 );",
                 add_code_array = True
             )
+            
+            imgsx = imgsx + settingShadowDWidth * (h - top) / h + w * 0.015625
+            imgx, imgy = imgsx, imgsy + top
+            imgdp = tool_funcs.getDPower(imgwidth, imgheight, 75)
+            lcount = 0
+            for img in imgs:
+                print(img, imgx, imgy, imgwidth, imgheight)
+                root.run_js_code(
+                    f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
+                        {imgx}, {imgy},\
+                        {imgx + imgwidth}, {imgy + imgheight},\
+                        {root.get_img_jsvarname(img)},\
+                        {imgheight}, {imgdp}, 1.0\
+                    );",
+                    add_code_array = True
+                )
+                
+                imgx += imgwidth + imgx_padding
+                lcount += 1
+                if lcount >= linemax:
+                    imgsx -= (ShadowXRect[1] - ShadowXRect[0]) * w * ShadowDPower * (imgheight + imgy_padding) / h
+                    imgx = imgsx
+                    imgy += imgheight + imgy_padding
+                    lcount = 0
+                if imgy >= h:
+                    break
+        
+        avatar_imnames = [f"avatar_{i}" for i in range(len(assetConfig["avatars"]))]
+        background_imnames = [f"background_{i}" for i in range(len(assetConfig["backgrounds"]))]
         
         if showAvatars:
-            p = tool_funcs.fixorp((time.time() - showAvatarsSt) / 1.25)
-            _drawChooseDialog(1.0 - (1.0 - p) ** 12, "选择头像")
+            sa_p = tool_funcs.fixorp((time.time() - showAvatarsSt) / 1.25)
+            sa_p = 1.0 - (1.0 - sa_p) ** 12
         elif not showAvatars and time.time() - showAvatarsSt <= 1.25:
-            p = (time.time() - showAvatarsSt) / 1.25
-            _drawChooseDialog((p - 1.0) ** 12, "选择头像")
+            sa_p = (time.time() - showAvatarsSt) / 1.25
+            sa_p = (sa_p - 1.0) ** 12
+        else: sa_p = None
         
         if showBackgrounds:
-            p = tool_funcs.fixorp((time.time() - showBackgroundsSt) / 1.25)
-            _drawChooseDialog(1.0 - (1.0 - p) ** 12, "选择背景")
+            sb_p = tool_funcs.fixorp((time.time() - showBackgroundsSt) / 1.25)
+            sb_p = 1.0 - (1.0 - sb_p) ** 12
         elif not showBackgrounds and time.time() - showBackgroundsSt <= 1.25:
-            p = (time.time() - showBackgroundsSt) / 1.25
-            _drawChooseDialog((p - 1.0) ** 12, "选择背景")
+            sb_p = (time.time() - showBackgroundsSt) / 1.25
+            sb_p = (sb_p - 1.0) ** 12
+        else: sb_p = None
+        
+        if sa_p is not None:
+            _drawChooseDialog(
+                sa_p, "选择头像", avatar_imnames,
+                w * 0.14375, h * (185 / 1080),
+                0.0, h * (38 / 1080),
+                w * 0.1625, h * (120 / 1080),
+                5
+            )
+        if sb_p is not None:
+            _drawChooseDialog(
+                sb_p, "选择背景", background_imnames,
+                w * 0.3765625, h * (200 / 1080),
+                w * -0.0078125, h * (23 / 1080),
+                w * 0.1484375, h * (120 / 1080),
+                2
+            )
         
         root.run_js_code(
             f"ctx.restore();",
@@ -2730,6 +2780,7 @@ def settingRender():
     SettingPlayWidgetEventManager.widgets.extend(PlaySettingWidgets.values())
     updateConfig()
     updatebg()
+    settingRenderSt = time.time()
     
     while True:
         root.clear_canvas(wait_execute = True)
@@ -2750,7 +2801,7 @@ def settingRender():
         ShadowDPower = tool_funcs.getDPower(ShadowRect[2] - ShadowRect[0], h, 75)
         
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, ShadowRect))},\
                 {ShadowDPower}, 'rgba(0, 0, 0, 0.2)'\
             );",
@@ -2766,7 +2817,7 @@ def settingRender():
         )
         
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, BarRect))},\
                 {BarDPower}, 'rgba(0, 0, 0, 0.45)'\
             );",
@@ -2785,7 +2836,7 @@ def settingRender():
         )
         
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, LabelRect))},\
                 {LabelDPower}, '{"rgb(255, 255, 255)" if not editingUserData else "rgb(192, 192, 192)"}'\
             );",
@@ -2830,7 +2881,7 @@ def settingRender():
             wait_execute = True
         )
         
-        playSettingDx, accountAndCountSettingDx, otherSettingDx = settingState.render(drawPlaySetting, drawAccountAndCountSetting, drawOtherSetting, ShadowXRect[0], w, settingDx)
+        settingState.render(drawPlaySetting, drawAccountAndCountSetting, drawOtherSetting, ShadowXRect[0], w, settingDx)
         
         drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
         
@@ -2897,7 +2948,7 @@ def settingRender():
     settingState = None
     SettingPlayWidgetEventManager.widgets.clear()
     PlaySettingWidgets.clear()
-    bgrespacker.unload(background_imnames)
+    bgrespacker.unload(bgrespacker.getnames())
     
 def audioQARender():
     global dspSettingWidgets
@@ -2968,7 +3019,7 @@ def audioQARender():
             w * 0.9, h
         )
         root.run_js_code(
-            f"ctx.drawDiagonalRectangleNoFix(\
+            f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, shadowRect))},\
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(shadowRect), 75)}, 'rgba(0, 0, 0, 0.25)'\
             );",
