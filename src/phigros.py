@@ -356,8 +356,6 @@ def Load_Resource():
     for index, avatar in enumerate(assetConfig["avatars"]):
         respacker.reg_img(open(f"./phigros_assets/{avatar}", "rb").read(), f"avatar_{index}")
     
-    ... # respacker.reg_img(Image.open(f"./phigros_assets/{getUserData("userdata-userBackground")}"), "userBackground")
-    
     with open("./resources/font.ttf", "rb") as f:
         root.reg_res(f.read(), "PhigrosFont")
     respacker.load(*respacker.pack())
@@ -1644,7 +1642,7 @@ def settingRender():
         ubgjsname = root.get_img_jsvarname("userBackground")
         root.run_js_code(f"delete {ubgjsname};")
         bgimname = f"background_{assetConfig["backgrounds"].index(getUserData("userdata-userBackground"))}"
-        root.run_js_code(f"{ubgjsname} = {root.get_img_jsvarname(bgimname)};")
+        root.run_js_code(f"{ubgjsname} = blurImg({root.get_img_jsvarname(bgimname)}, {(w + h) / 125});")
     
     def unregEvents():
         eventManager.unregEvent(clickBackButtonEvent)

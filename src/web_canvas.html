@@ -201,6 +201,16 @@
         return imnames;
     }
 
+    function blurImg(im, r) {
+        let cv = document.createElement("canvas");
+        cv.width = im.width;
+        cv.height = im.height;
+        let ctx = cv.getContext("2d");
+        ctx.filter = `blur(${r}px)`;
+        ctx.drawImage(im, 0, 0);
+        return cv;
+    }
+
     function splitText(x0, y0, x1, y1, text, cv) {
         texts = [];
         function _splitTexts (element) {
