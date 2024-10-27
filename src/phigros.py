@@ -799,7 +799,7 @@ def drawDialog(
     root.run_js_code(
         f"dialog_canvas_ctx.drawAlphaImage(\
             {root.get_img_jsvarname(dialogImageName)},\
-            {w / 2 - tempWidth / 2 + tempWidth * dialogDPower * 0.2 / 2}, {dialogCenterY - tempHeight / 2},\
+            {w / 2 - tempWidth / 2 + tempWidth * dialogDPower * (0.2 / 1.2)}, {dialogCenterY - tempHeight / 2},\
             {tempWidth}, {tempHeight}, {p}\
         );",
         add_code_array = True
