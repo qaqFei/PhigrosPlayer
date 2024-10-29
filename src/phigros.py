@@ -404,6 +404,7 @@ def bindEvents():
     global mainUISlideControler, settingUIPlaySlideControler
     global settingUIOpenSourceLicenseSlideControler
     global SettingPlayWidgetEventManager, dspSettingWidgetEventManager
+    global settingUIChooseAvatarAndBackgroundSlideControler
     
     root.jsapi.set_attr("click", eventManager.click)
     root.run_js_code("_click = (e) => pywebview.api.call_attr('click', e.x, e.y);")
@@ -446,6 +447,16 @@ def bindEvents():
     eventManager.regClickEventFs(settingUIOpenSourceLicenseSlideControler.mouseDown, False)
     eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(settingUIOpenSourceLicenseSlideControler.mouseUp))
     eventManager.regMoveEvent(phigame_obj.MoveEvent(settingUIOpenSourceLicenseSlideControler.mouseMove))
+    
+    settingUIChooseAvatarAndBackgroundSlideControler = phigame_obj.SlideControler(
+        lambda x, y: True,
+        lambda x, y: None,
+        0.0, 0.0,
+        0.0, 0.0, w, h
+    )
+    eventManager.regClickEventFs(settingUIChooseAvatarAndBackgroundSlideControler.mouseDown, False)
+    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(settingUIChooseAvatarAndBackgroundSlideControler.mouseUp))
+    eventManager.regMoveEvent(phigame_obj.MoveEvent(settingUIChooseAvatarAndBackgroundSlideControler.mouseMove))
     
     SettingPlayWidgetEventManager = phigame_obj.WidgetEventManager([], settingPlayWidgetEvent_valid)
     eventManager.regClickEventFs(SettingPlayWidgetEventManager.MouseDown, False)
@@ -1749,10 +1760,12 @@ def settingRender():
         # 编辑用户头像
         if settingState.atis_a and tool_funcs.InRect(x, y, editAvatarRect) and editingUserData and not (showAvatars or showBackgrounds):
             showAvatars, showAvatarsSt = True, time.time()
+            settingUIChooseAvatarAndBackgroundSlideControler.setDy(0.0)
         
         # 编辑用户背景
         if settingState.atis_a and tool_funcs.InRect(x, y, editBackgroundRect) and editingUserData and not (showAvatars or showBackgrounds):
             showBackgrounds, showBackgroundsSt = True, time.time()
+            settingUIChooseAvatarAndBackgroundSlideControler.setDy(0.0)
 
         # 编辑用户头像/背景 - 关闭
         if settingState.atis_a and tool_funcs.InRect(x, y, (
@@ -2413,10 +2426,17 @@ def settingRender():
                 add_code_array = True
             )
             
+            scdy = settingUIChooseAvatarAndBackgroundSlideControler.getDy()
+            imgsy += scdy
+            imgsx -= (ShadowXRect[1] - ShadowXRect[0]) * w * ShadowDPower * scdy / h
             imgsx = imgsx + settingShadowDWidth * (h - top) / h + w * 0.015625
             imgx, imgy = imgsx, imgsy + top
             imgdp = tool_funcs.getDPower(imgwidth, imgheight, 75)
             lcount = 0
+            
+            clipy0, clipy1 = top + h * (100 / 1080), h
+            root.run_js_code(f"ctx.save(); ctx.clipRect(0.0, {min(clipy0, clipy1)}, {w}, {max(clipy0, clipy1)});", add_code_array = True)
+            
             for img in imgs:
                 root.run_js_code(
                     f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
@@ -2435,8 +2455,20 @@ def settingRender():
                     imgx = imgsx
                     imgy += imgheight + imgy_padding
                     lcount = 0
+                
                 if imgy >= h:
                     break
+            
+            settingUIChooseAvatarAndBackgroundSlideControler.setDx(0.0)
+            settingUIChooseAvatarAndBackgroundSlideControler.maxValueY = (
+                math.ceil(len(imgs) / linemax) * (imgheight + imgy_padding)
+                - imgy_padding
+                - (h - top)
+                + (imgsy - scdy)
+                + h * (91 / 1080)
+            )
+            
+            root.run_js_code(f"ctx.restore();", add_code_array = True)
         
         avatar_imnames = [f"avatar_{i}" for i in range(len(assetConfig["avatars"]))]
         background_imnames = [f"background_{i}" for i in range(len(assetConfig["backgrounds"]))]
