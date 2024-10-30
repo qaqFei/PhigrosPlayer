@@ -167,7 +167,7 @@ def putColor(color: tuple|str, im: Image.Image):
         im.split()[-1]
     ))
 
-def initUserAvatar():
+def updateUserAvatar():
     udAvatar = getUserData("userdata-userAvatar")
     if udAvatar not in assetConfig["avatars"]:
         setUserData("userdata-userAvatar", userData_default["userdata-userAvatar"])
@@ -363,7 +363,7 @@ def Load_Resource():
     root.wait_jspromise(f"loadFont('PhigrosFont', \"{root.get_resource_path("PhigrosFont")}\");")
     root.unreg_res("PhigrosFont")
     
-    initUserAvatar()
+    updateUserAvatar()
     root._regims.clear()
     root.run_js_code(f"createChapterBlackGrd({h * (140 / 1080)}, {h * (1.0 - 140 / 1080)});")
     
@@ -1634,6 +1634,8 @@ def settingRender():
     CloseOpenSource, CloseOpenSourceSt = False, float("nan")
     showAvatars, showAvatarsSt = False, float("nan")
     showBackgrounds, showBackgroundsSt = False, float("nan")
+    chooseRects = {"avatars": {}, "backgrounds": {}}
+    lastClickChooseAvatarOrBackgroundPos = (0.0, 0.0)
     settingUIOpenSourceLicenseSlideControler.maxValueY = root.run_js_code(
         f"ctx.drawRectMultilineText(\
             -{w}, -{h}, 0, 0,\
@@ -1647,13 +1649,13 @@ def settingRender():
     
     def updatebg():
         ubgjsname = root.get_img_jsvarname("userBackground")
-        root.run_js_code(f"delete {ubgjsname};")
         bgimname = f"background_{assetConfig["backgrounds"].index(getUserData("userdata-userBackground"))}"
         root.run_js_code(f"{ubgjsname} = blurImg({root.get_img_jsvarname(bgimname)}, {(w + h) / 125});")
     
     def unregEvents():
         eventManager.unregEvent(clickBackButtonEvent)
         eventManager.unregEvent(settingMainClickEvent)
+        eventManager.unregEvent(settingMainReleaseEvent)
     
     def clickBackButtonCallback(*args):
         nonlocal clickedBackButton
@@ -1691,6 +1693,7 @@ def settingRender():
         nonlocal editingUserData
         nonlocal showAvatars, showAvatarsSt
         nonlocal showBackgrounds, showBackgroundsSt
+        nonlocal lastClickChooseAvatarOrBackgroundPos
         
         # 游玩
         if tool_funcs.InRect(x, y, (
@@ -1775,6 +1778,14 @@ def settingRender():
             if showAvatars: showAvatars, showAvatarsSt = False, time.time()
             if showBackgrounds: showBackgrounds, showBackgroundsSt = False, time.time()
         
+        # 编辑用户头像 - 选择
+        if settingState.atis_a and showAvatars and (time.time() - showAvatarsSt) > 0.15:
+            lastClickChooseAvatarOrBackgroundPos = (x, y)
+        
+        # 编辑用户背景 - 选择
+        if settingState.atis_a and showBackgrounds and (time.time() - showBackgroundsSt) > 0.15:
+            lastClickChooseAvatarOrBackgroundPos = (x, y)
+        
         # 音频问题疑难解答
         if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[0]) and inSettingUI:
             Resource["UISound_4"].play()
@@ -1842,14 +1853,38 @@ def settingRender():
         if tool_funcs.InRect(x, y, (0, 0, ButtonWidth, ButtonHeight)) and ShowOpenSource and time.time() - ShowOpenSourceSt > 0.15:
             ShowOpenSource, ShowOpenSourceSt = False, float("nan")
             CloseOpenSource, CloseOpenSourceSt = True, time.time()
-            
+    
+    def settingMainReleaseCallback(x, y):
+        nonlocal showAvatars, showAvatarsSt
+        nonlocal showBackgrounds, showBackgroundsSt
+        
+        if settingState.atis_a and showAvatars and tool_funcs.getLineLength(x, y, *lastClickChooseAvatarOrBackgroundPos) <= (w + h) / 400:
+            for v, r in chooseRects["avatars"].items():
+                if tool_funcs.InRect(x, y, r):
+                    showAvatars, showAvatarsSt = False, time.time()
+                    setUserData("userdata-userAvatar", assetConfig["avatars"][v])
+                    saveUserData(userData)
+                    updateUserAvatar()
+        
+        if settingState.atis_a and showBackgrounds and tool_funcs.getLineLength(x, y, *lastClickChooseAvatarOrBackgroundPos) <= (w + h) / 400:
+            for v, r in chooseRects["backgrounds"].items():
+                if tool_funcs.InRect(x, y, r):
+                    showBackgrounds, showBackgroundsSt = False, time.time()
+                    setUserData("userdata-userBackground", assetConfig["backgrounds"][v])
+                    saveUserData(userData)
+                    updatebg()
+    
     settingMainClickEvent = phigame_obj.ClickEvent(
         rect = (0, 0, w, h),
         callback = settingMainClickCallback,
         once = False
     )
     eventManager.regClickEvent(settingMainClickEvent)
-    
+    settingMainReleaseEvent = phigame_obj.ReleaseEvent(
+        callback = settingMainReleaseCallback
+    )
+    eventManager.regReleaseEvent(settingMainReleaseEvent)
+
     settingDx = [0.0, 0.0, 0.0]
     
     def getShadowDiagonalXByY(y: float):
@@ -2367,7 +2402,7 @@ def settingRender():
             imgwidth: float, imgheight: float,
             imgx_padding: float, imgy_padding: float,
             imgsx: float, imgsy: float,
-            linemax: int
+            linemax: int, dialogrectname: str
         ):
             top = h - (905 / 1080) * h * p
             
@@ -2437,7 +2472,7 @@ def settingRender():
             clipy0, clipy1 = top + h * (100 / 1080), h
             root.run_js_code(f"ctx.save(); ctx.clipRect(0.0, {min(clipy0, clipy1)}, {w}, {max(clipy0, clipy1)});", add_code_array = True)
             
-            for img in imgs:
+            for imgindex, img in enumerate(imgs):
                 root.run_js_code(
                     f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
                         {imgx}, {imgy},\
@@ -2446,6 +2481,10 @@ def settingRender():
                         {imgheight}, {imgdp}, 1.0\
                     );",
                     add_code_array = True
+                )
+                chooseRects[dialogrectname][imgindex] = (
+                    imgx, imgy,
+                    imgx + imgwidth, imgy + imgheight
                 )
                 
                 imgx += imgwidth + imgx_padding
@@ -2495,7 +2534,7 @@ def settingRender():
                 w * 0.14375, h * (185 / 1080),
                 0.0, h * (38 / 1080),
                 w * (32 / 1920), h * (120 / 1080),
-                5
+                5, "avatars"
             )
         if sb_p is not None:
             _drawChooseDialog(
@@ -2503,7 +2542,7 @@ def settingRender():
                 w * 0.3765625, h * (200 / 1080),
                 w * -0.0078125, h * (23 / 1080),
                 w * (10 / 1920), h * (120 / 1080),
-                2
+                2, "backgrounds"
             )
         
         root.run_js_code(

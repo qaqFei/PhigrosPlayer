@@ -50,15 +50,18 @@ class EventManager:
             e.callback(x, y)
             if e.once:
                 self.unregEvent(e)
-    
+                
+    @tool_funcs.NoJoinThreadFunc
     def click(self, x: int, y: int) -> None:
         for e in self.clickEvents:
             self._callClickCallback(e, x, y)
-    
+            
+    @tool_funcs.NoJoinThreadFunc
     def move(self, x: int, y: int) -> None:
         for e in self.moveEvents:
             e.callback(x, y)
     
+    @tool_funcs.NoJoinThreadFunc
     def release(self, x: int, y: int) -> None:
         for e in self.releaseEvents:
             e.callback(x, y)

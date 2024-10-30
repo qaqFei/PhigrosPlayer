@@ -368,7 +368,7 @@ def cutAnimationIllImage(im: Image.Image):
         fill = "#00000000"
     )
     
-def Get_All_Files(path:str) -> list[str]:
+def Get_All_Files(path: str) -> list[str]:
     if path[-1] == "/" or path[:-1] == "\\":
         path = path[:-1]
     path = path.replace("/", "\\")
@@ -379,6 +379,9 @@ def Get_All_Files(path:str) -> list[str]:
         else:
             files += Get_All_Files(f"{path}\\{item}")
     return files
+
+def getLineLength(x0: float, y0: float, x1: float, y1: float):
+    return ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
 
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
