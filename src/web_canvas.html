@@ -240,6 +240,15 @@
         return texts;
     }
 
+    function r2eval(c) {
+        try {
+            return eval(c);
+        } catch (e) {
+            console.log({code: c, err: e});
+            throw e;
+        }
+    }
+
     CanvasRenderingContext2D.prototype._fillText = CanvasRenderingContext2D.prototype.fillText;
 
     CanvasRenderingContext2D.prototype.fillText = function(text, x, y) {

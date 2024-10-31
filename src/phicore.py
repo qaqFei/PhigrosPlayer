@@ -705,18 +705,22 @@ def draw_ui(
     if animationing:
         root.run_js_code(f"ctx.translate(0,{- h / 7 + dy});",add_code_array=True)
     
-    root.create_rectangle(
-        0, 0,
-        w * process, h / 125,
-        fillStyle = "rgba(145, 145, 145, 0.85)",
-        wait_execute = True
+    root.run_js_code(
+        f"ctx.fillRectEx(\
+            0, 0,\
+            {w * process}, {h / 125},\
+            'rgba(145, 145, 145, 0.85)',\
+        )",
+        add_code_array = True
     )
     
-    root.create_rectangle(
-        w * process - w * 0.002, 0,
-        w * process, h / 125,
-        fillStyle = "rgba(255, 255, 255, 0.9)",
-        wait_execute = True
+    root.run_js_code(
+        f"ctx.fillRectEx(\
+            {w * process - w * 0.002}, 0,\
+            {w * 0.002}, {h / 125},\
+            'rgba(255, 255, 255, 0.9)',\
+        )",
+        add_code_array = True
     )
     
     root.run_js_code(
@@ -931,13 +935,15 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                 )
                 
                 Task(
-                    root.create_rectangle,
-                    linePos[0] - (w + h) / 250,
-                    linePos[1] - (w + h) / 250,
-                    linePos[0] + (w + h) / 250,
-                    linePos[1] + (w + h) / 250,
-                    fillStyle = "rgb(238, 130, 238)",
-                    wait_execute = True
+                    root.run_js_code,
+                    f"ctx.fillRectEx(\
+                        {linePos[0] - (w + h) / 250},\
+                        {linePos[1] - (w + h) / 250},\
+                        {(w + h) / 250 * 2},\
+                        {(w + h) / 250 * 2},\
+                        'rgb(238, 130, 238)'\
+                    );",
+                    add_code_array = True
                 )
                     
             if render_range_more:
@@ -1416,13 +1422,15 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
             )
             
             Task(
-                root.create_rectangle,
-                linePos[0] - (w + h) / 250,
-                linePos[1] - (w + h) / 250,
-                linePos[0] + (w + h) / 250,
-                linePos[1] + (w + h) / 250,
-                fillStyle = "rgb(238, 130, 238)",
-                wait_execute = True
+                root.run_js_code,
+                f"ctx.fillRectEx(\
+                    {linePos[0] - (w + h) / 250},\
+                    {linePos[1] - (w + h) / 250},\
+                    {(w + h) / 250 * 2},\
+                    {(w + h) / 250 * 2},\
+                    'rgb(238, 130, 238)'\
+                );",
+                add_code_array = True
             )
         
         line.playingFloorPosition = line.GetFloorPosition(0.0, now_t, chart_obj)

@@ -177,28 +177,11 @@ class WebCanvas:
         return self._jscodes.append(code) if add_code_array else self.web.evaluate_js(code)
     
     def run_js_wait_code(self):
-        self.web.evaluate_js(f"{self._jscodes}.forEach(eval);")
+        self.web.evaluate_js(f"{self._jscodes}.forEach(r2eval);")
         self._jscodes.clear()
     
     def string2cstring(self, code: str): return code.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"").replace("`", "\\`").replace("\n", "\\n")
     def string2sctring_hqm(self, code: str): return f"'{self.string2cstring(code)}'"
-
-    def create_rectangle(
-        self,
-        x0: int|float, y0: int|float,
-        x1: int|float, y1: int|float,
-        fillStyle: str|None = None,
-        strokeStyle: str|None = None,
-        wait_execute: bool = False
-    ) -> None:
-        code = f"\
-            ctx.save();\
-            ctx.fillStyle = \"{fillStyle}\";\
-            ctx.strokeStyle = \"{strokeStyle}\";\
-            ctx.fillRect({x0}, {y0}, {x1 - x0}, {y1 - y0});\
-            ctx.restore();\
-        "
-        self.run_js_code(code, wait_execute)
     
     def create_line(
         self,

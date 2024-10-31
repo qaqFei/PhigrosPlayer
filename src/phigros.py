@@ -936,19 +936,19 @@ def showStartAnimation():
         atime = time.time() - a3_st
         
         if a3_clicked and time.time() - a3_clicked_time > 1.0:
-            root.create_rectangle( # no wait
-                0, 0, w, h, fillStyle = "#000000"
-            )
+            root.clear_canvas() # no wait
             break
         
         root.clear_canvas(wait_execute = True)
         
         drawBackground()
         
-        root.create_rectangle(
-            0, 0, w, h,
-            fillStyle = f"rgba(0, 0, 0, {(math.sin(atime / 1.5) + 1.0) / 5 + 0.15})",
-            wait_execute = True
+        root.run_js_code(
+            f"ctx.fillRectEx(\
+                0, 0, {w}, {h},\
+                'rgba(0, 0, 0, {(math.sin(atime / 1.5) + 1.0) / 5 + 0.15})'\
+            );",
+            add_code_array = True
         )
         
         for i in range(50):
@@ -1016,10 +1016,13 @@ def showStartAnimation():
             if not a3_sound_fadeout:
                 a3_sound_fadeout = True
                 mixer.music.fadeout(500)
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - (time.time() - a3_clicked_time)) ** 2})",
-                wait_execute = True
+            
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {1.0 - (1.0 - (time.time() - a3_clicked_time)) ** 2})'\
+                );",
+                add_code_array = True
             )
         
         root.run_js_wait_code()
@@ -1219,10 +1222,12 @@ def mainRender():
         
         drawBackground()
         
-        root.create_rectangle(
-            0, 0, w, h,
-            fillStyle = "rgba(0, 0, 0, 0.7)",
-            wait_execute = True
+        root.run_js_code(
+            f"ctx.fillRectEx(\
+                0, 0, {w}, {h},\
+                'rgba(0, 0, 0, 0.7)'\
+            );",
+            add_code_array = True
         )
         
         drawFaculas()
@@ -1291,10 +1296,12 @@ def mainRender():
             p = p if p <= 1.0 else 1.0
             ep = 1.0 - (1.0 - p) ** 2
             
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {ep * 0.5})",
-                wait_execute = True                
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {ep * 0.5})'\
+                );",
+                add_code_array = True
             )
             
             root.run_js_code(
@@ -1327,10 +1334,12 @@ def mainRender():
             p = 1.0 - (time.time() - JoinQQGuildBackingSt) / 0.35
             ep = 1.0 - (1.0 - p) ** 2
             
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {ep * 0.5})",
-                wait_execute = True                
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {ep * 0.5})'\
+                );",
+                add_code_array = True
             )
             
             root.run_js_code(
@@ -1361,18 +1370,22 @@ def mainRender():
         
         if time.time() - mainRenderSt < 2.0:
             p = (time.time() - mainRenderSt) / 2.0
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
-                wait_execute = True
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
             )
         
         if SettingClicked and time.time() - SettingClickedTime < 0.75:
             p = (time.time() - SettingClickedTime) / 0.75
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
-                wait_execute = True
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
             )
         elif SettingClicked:
             inMainUI = False
@@ -2857,10 +2870,12 @@ def settingRender():
         
         drawBackground()
         
-        root.create_rectangle(
-            0, 0, w, h,
-            fillStyle = "rgba(0, 0, 0, 0.5)",
-            wait_execute = True
+        root.run_js_code(
+            f"ctx.fillRectEx(\
+                0, 0, {w}, {h},\
+                'rgba(0, 0, 0, 0.5)'\
+            );",
+            add_code_array = True
         )
         
         ShadowXRect = settingState.getShadowRect()
@@ -2976,7 +2991,7 @@ def settingRender():
                 root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 75 * p}px)';", add_code_array = True)
                 root.run_js_code(f"ctx.save(); ctx.globalAlpha = {p};", add_code_array = True)
                 
-                root.create_rectangle(0, 0, w, h, fillStyle = "rgba(0, 0, 0, 0.5)", wait_execute = True)
+                root.run_js_code(f"ctx.fillRectEx(0, 0, {w}, {h}, 'rgba(0, 0, 0, 0.5)');", add_code_array = True)
                 root.run_js_code(
                     f"ctx.drawRectMultilineText(\
                         {w * 0.2}, {settingUIOpenSourceLicenseSlideControler.getDy() + h * (143 / 1080)}, {w * 0.8}, {h},\
@@ -2993,18 +3008,22 @@ def settingRender():
                 
         if time.time() - settingRenderSt < 1.25:
             p = (time.time() - settingRenderSt) / 1.25
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
-                wait_execute = True
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
             )
         
         if tonextUI and time.time() - tonextUISt < 0.75:
             p = (time.time() - tonextUISt) / 0.75
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
-                wait_execute = True
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
             )
         elif tonextUI:
             root.clear_canvas(wait_execute = True)
@@ -3078,10 +3097,12 @@ def audioQARender():
         
         drawBackground()
         
-        root.create_rectangle(
-            0, 0, w, h,
-            fillStyle = "rgba(0, 0, 0, 0.5)",
-            wait_execute = True
+        root.run_js_code(
+            f"ctx.fillRectEx(\
+                0, 0, {w}, {h},\
+                'rgba(0, 0, 0, 0.5)'\
+            );",
+            add_code_array = True
         )
         
         shadowRect = (
@@ -3126,18 +3147,22 @@ def audioQARender():
                 
         if time.time() - audioQARenderSt < 1.25:
             p = (time.time() - audioQARenderSt) / 1.25
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
-                wait_execute = True
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
             )
         
         if tonextUI and time.time() - tonextUISt < 0.75:
             p = (time.time() - tonextUISt) / 0.75
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
-                wait_execute = True
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
             )
         elif tonextUI:
             root.clear_canvas(wait_execute = True)
@@ -3225,10 +3250,12 @@ def aboutUsRender():
         
         if time.time() - aboutUsRenderSt < 1.25:
             p = (time.time() - aboutUsRenderSt) / 1.25
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
-                wait_execute = True
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
             )
         
         if (skipStart and skipStartButtonTime == skipStartButtonTime) or (tonextUI and skipStartButtonTime == skipStartButtonTime):
@@ -3245,10 +3272,12 @@ def aboutUsRender():
         
         if tonextUI and time.time() - tonextUISt < 0.75:
             p = (time.time() - tonextUISt) / 0.75
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
-                wait_execute = True
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
             )
         elif tonextUI:
             root.clear_canvas(wait_execute = True)
@@ -3549,26 +3578,32 @@ def chartPlayerRender(
         
         if time.time() - chartPlayerRenderSt < 1.25 and blackIn:
             p = (time.time() - chartPlayerRenderSt) / 1.25
-            root.create_rectangle(
-                0, 0, w, h,
-                fillStyle = f"rgba(0, 0, 0, {(1.0 - p) ** 2})",
-                wait_execute = True
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
             )
         
         if tonextUI and time.time() - tonextUISt < 0.75:
             p = (time.time() - tonextUISt) / 0.75
             if not paused:
-                root.create_rectangle(
-                    0, 0, w, h,
-                    fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
-                    wait_execute = True
+                root.run_js_code(
+                    f"ctx.fillRectEx(\
+                        0, 0, {w}, {h},\
+                        'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
+                    );",
+                    add_code_array = True
                 )
             else:
                 root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx;", add_code_array = True)
-                root.create_rectangle(
-                    0, 0, w, h,
-                    fillStyle = f"rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})",
-                    wait_execute = True
+                root.run_js_code(
+                    f"ctx.fillRectEx(\
+                        0, 0, {w}, {h},\
+                        'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
+                    );",
+                    add_code_array = True
                 )
                 root.run_js_code("ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
         elif tonextUI:
