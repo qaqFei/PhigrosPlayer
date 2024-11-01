@@ -545,22 +545,23 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
     
     chapterRect = getChapterRect(dx, chapterWidth)
     
+    if p != 1.0:
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleClipImage(\
+                {",".join(map(str, chapterRect))},\
+                {root.get_img_jsvarname(f"chapter_{item.chapterId}_blur")},\
+                {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
+                {dPower}, 1.0\
+            );",
+            add_code_array = True
+        )
+    
     root.run_js_code(
         f"ctx.drawDiagonalRectangleClipImage(\
             {",".join(map(str, chapterRect))},\
             {root.get_img_jsvarname(f"chapter_{item.chapterId}_raw")},\
             {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
             {dPower}, {p}\
-        );",
-        add_code_array = True
-    )
-    
-    root.run_js_code(
-        f"ctx.drawDiagonalRectangleClipImage(\
-            {",".join(map(str, chapterRect))},\
-            {root.get_img_jsvarname(f"chapter_{item.chapterId}_blur")},\
-            {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
-            {dPower}, {1.0 - p}\
         );",
         add_code_array = True
     )

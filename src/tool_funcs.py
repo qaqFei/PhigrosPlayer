@@ -2,6 +2,7 @@ import typing
 import math
 import base64
 import random
+from functools import cache
 from sys import argv
 from threading import Thread
 from os import listdir
@@ -295,7 +296,12 @@ def inDiagonalRectangle(x0: float, y0: float, x1: float, y1: float, power: float
     x += (y - y0) / (y1 - y0) * (x1 - x0) * power
     return x0 + (x1 - x0) * power <= x <= x1 and y0 <= y <= y1
 
-def compute_intersection(x0, y0, x1, y1, x2, y2, x3, y3):
+def compute_intersection(
+    x0: float, y0: float,
+    x1: float, y1: float,
+    x2: float, y2: float,
+    x3: float, y3: float
+):
     a1 = y1 - y0
     b1 = x0 - x1
     c1 = x1 * y0 - x0 * y1
@@ -322,6 +328,7 @@ def PhigrosChapterDataAlphaValueTransfrom(p: float):
         return 0.0
     return (p - 0.6) / 0.4
 
+@cache
 def getDPower(width: float, height: float, deg: float):
     l1 = 0, 0, width, 0
     l2 = 0, height, *rotate_point(0, height, deg, (width ** 2 + height ** 2) ** 0.5)
