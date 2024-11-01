@@ -585,27 +585,28 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
         add_code_array = True
     )
     
-    root.create_text(
-        chapterRect[2] - (w + h) / 50,
-        chapterRect[1] + (w + h) / 90,
-        item.cn_name,
-        font = f"{(w + h) / 75}px PhigrosFont",
-        textAlign = "right",
-        textBaseline = "top",
-        fillStyle = f"rgba(255, 255, 255, {p ** 2})", # ease again
-        wait_execute = True
-    )
-    
-    root.create_text(
-        chapterRect[0] + dPower * chapterWidth + (w + h) / 125,
-        chapterRect[1] + (w + h) / 90,
-        item.o_name,
-        font = f"{(w + h) / 115}px PhigrosFont",
-        textAlign = "left",
-        textBaseline = "top",
-        fillStyle = f"rgba(255, 255, 255, {p ** 2})", # ease again
-        wait_execute = True
-    )
+    if p != 0.0:
+        root.create_text(
+            chapterRect[2] - (w + h) / 50,
+            chapterRect[1] + (w + h) / 90,
+            item.cn_name,
+            font = f"{(w + h) / 75}px PhigrosFont",
+            textAlign = "right",
+            textBaseline = "top",
+            fillStyle = f"rgba(255, 255, 255, {p ** 2})", # ease again
+            wait_execute = True
+        )
+        
+        root.create_text(
+            chapterRect[0] + dPower * chapterWidth + (w + h) / 125,
+            chapterRect[1] + (w + h) / 90,
+            item.o_name,
+            font = f"{(w + h) / 115}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = f"rgba(255, 255, 255, {p ** 2})", # ease again
+            wait_execute = True
+        )
     
     PlayButtonWidth = w * 0.1453125
     PlayButtonHeight = h * (5 / 54)
