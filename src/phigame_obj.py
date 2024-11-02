@@ -46,7 +46,7 @@ class EventManager:
         self.releaseEvents: list[ReleaseEvent] = []
     
     def _callClickCallback(self, e: ClickEvent, x: int, y: int) -> None:
-        if tool_funcs.InRect(x, y, e.rect):
+        if tool_funcs.inrect(x, y, e.rect):
             e.callback(x, y)
             if e.once:
                 self.unregEvent(e)
@@ -380,8 +380,8 @@ class PhiSlider(PhiBaseWidget):
     
     def _SliderEvent(self, x: int, y: int):
         if not self._mouseDown or (
-            tool_funcs.InRect(x, y, self.rconButtonRect)
-            or tool_funcs.InRect(x, y, self.lconButtonRect)
+            tool_funcs.inrect(x, y, self.rconButtonRect)
+            or tool_funcs.inrect(x, y, self.lconButtonRect)
         ):
             return
         
@@ -398,10 +398,10 @@ class PhiSlider(PhiBaseWidget):
         self._fixValue()
     
     def _ConButtonEvent(self, x: int, y: int):
-        if tool_funcs.InRect(x, y, self.lconButtonRect):
+        if tool_funcs.inrect(x, y, self.lconButtonRect):
             self.value -= self.conUnit
             
-        elif tool_funcs.InRect(x, y, self.rconButtonRect):
+        elif tool_funcs.inrect(x, y, self.rconButtonRect):
             self.value += self.conUnit
         
         self._fixValue()
@@ -420,9 +420,9 @@ class PhiSlider(PhiBaseWidget):
     
     def InRect(self, x: int, y: int):
         return any([
-            tool_funcs.InRect(x, y, self.sliderRect),
-            tool_funcs.InRect(x, y, self.lconButtonRect),
-            tool_funcs.InRect(x, y, self.rconButtonRect)
+            tool_funcs.inrect(x, y, self.sliderRect),
+            tool_funcs.inrect(x, y, self.lconButtonRect),
+            tool_funcs.inrect(x, y, self.rconButtonRect)
         ])
     
 @dataclass
@@ -447,7 +447,7 @@ class PhiCheckbox(PhiBaseWidget):
         self._mouseDown = False
     
     def InRect(self, x: int, y: int):
-        return tool_funcs.InRect(x, y, self.checkboxRect)
+        return tool_funcs.inrect(x, y, self.checkboxRect)
 
 @dataclass
 class PhiButton(PhiBaseWidget):
@@ -463,7 +463,7 @@ class PhiButton(PhiBaseWidget):
             self.command()
 
     def InRect(self, x: int, y: int):
-        return tool_funcs.InRect(x, y, self.buttonRect)
+        return tool_funcs.inrect(x, y, self.buttonRect)
 
 class WidgetEventManager:
     def __init__(self, widgets: list[PhiBaseWidget], condition: typing.Callable[[int, int], bool]):

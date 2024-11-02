@@ -281,7 +281,7 @@ def DataUrl2MatLike(dataurl: str) -> cv2.typing.MatLike:
         cv2.IMREAD_COLOR
     )
 
-def InRect(x: float, y: float, rect: tuple[float, float, float, float]) -> bool:
+def inrect(x: float, y: float, rect: tuple[float, float, float, float]) -> bool:
     return rect[0] <= x <= rect[2] and rect[1] <= y <= rect[3]
 
 def easeAlpha(p: float):

@@ -535,7 +535,7 @@ def getChapterRect(dx: float, chapterWidth: float):
         dx + chapterWidth, h * (1.0 - 140 / 1080)
     )
 
-def drawChapterItem(item: phigame_obj.Chapter, dx: float):
+def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
     p = getChapterP(item)
     if dx > w: return getChapterToNextWidth(p)
     chapterWidth = getChapterWidth(p)
@@ -625,6 +625,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
     )
     
     playButtonAlpha = tool_funcs.PhigrosChapterPlayButtonAlphaValueTransfrom(p)
+    rectmap[item.chapterId] = playButtonRect
     
     if playButtonAlpha != 0.0:
         root.run_js_code(
@@ -748,10 +749,10 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float):
     
     return getChapterToNextWidth(p)
 
-def drawChapters():
+def drawChapters(rectmap: dict):
     chapterX = w * 0.034375 + chaptersDx
     for chapter in Chapters.items:
-        chapterX += drawChapterItem(chapter, chapterX)
+        chapterX += drawChapterItem(chapter, chapterX, rectmap)
 
 def drawButton(buttonName: typing.Literal["ButtonLeftBlack", "ButtonRightBlack"], iconName: str, buttonPos: tuple[float, float]):
     root.run_js_code(
@@ -1052,7 +1053,7 @@ def mainUI_slideControlerMouseDown_valid(x, y):
         return False
     
     for e in eventManager.clickEvents:
-        if e.tag == "mainUI" and tool_funcs.InRect(x, y, e.rect):
+        if e.tag == "mainUI" and tool_funcs.inrect(x, y, e.rect):
             return False
     
     return True
@@ -1175,6 +1176,8 @@ def mainRender():
     JoinQQGuildBacking = False
     JoinQQGuildBackingSt = float("nan")
     
+    chapterPlayButtonRectMap = {}
+    
     def JoinQQGuildPromoNoCallback(*args):
         global inMainUI
         nonlocal JoinQQGuildBacking, JoinQQGuildBackingSt, clickedJoinQQGuildBanner
@@ -1197,17 +1200,15 @@ def mainRender():
         webbrowser.open_new("https://qun.qq.com/qqweb/qunpro/share?inviteCode=21JzOLUd6J0")
         JoinQQGuildPromoNoCallback(*args)
     
-    SettingClicked = False
-    SettingClickedTime = float("nan")
+    nextUI, tonextUI, tonextUISt = None, False, float("nan")
     
     def SettingCallback(*args):
-        nonlocal SettingClicked, SettingClickedTime
-        if not SettingClicked:
-            for e in events:
-                eventManager.unregEvent(e)
+        nonlocal nextUI, tonextUI, tonextUISt
+        
+        if not tonextUI:
+            for e in events: eventManager.unregEvent(e)
             
-            SettingClicked = True
-            SettingClickedTime = time.time()
+            nextUI, tonextUI, tonextUISt = settingRender, True, time.time()
             mixer.music.fadeout(500)
             Resource["UISound_2"].play()
     
@@ -1216,6 +1217,27 @@ def mainRender():
         callback = SettingCallback,
         once = False,
         tag = "mainUI"
+    ))
+    eventManager.regClickEvent(events[-1])
+    
+    def chaptertChooseCallback(x, y):
+        nonlocal nextUI, tonextUI, tonextUISt
+        
+        if clickedMessage: return
+        
+        for cid, rect in chapterPlayButtonRectMap.items():
+            if tool_funcs.inrect(x, y, rect) and Chapters.items[Chapters.aTo].chapterId == cid:
+                if not tonextUI:
+                    for e in events: eventManager.unregEvent(e)
+
+                nextUI, tonextUI, tonextUISt = lambda: chooseChartRender(Chapters.items[Chapters.aTo]), True, time.time()
+                mixer.music.fadeout(500)
+                Resource["UISound_2"].play()
+    
+    events.append(phigame_obj.ClickEvent(
+        rect = (0, 0, w, h),
+        callback = chaptertChooseCallback,
+        once = False
     ))
     eventManager.regClickEvent(events[-1])
     
@@ -1236,7 +1258,7 @@ def mainRender():
         
         drawButton("ButtonLeftBlack", "collectibles", (0, 0))
         drawButton("ButtonRightBlack", "setting", (w - ButtonWidth, h - ButtonHeight))
-        drawChapters()
+        drawChapters(chapterPlayButtonRectMap)
         
         root.run_js_code(
             f"ctx.drawAlphaImage(\
@@ -1380,8 +1402,8 @@ def mainRender():
                 add_code_array = True
             )
         
-        if SettingClicked and time.time() - SettingClickedTime < 0.75:
-            p = (time.time() - SettingClickedTime) / 0.75
+        if tonextUI and time.time() - tonextUISt < 0.75:
+            p = (time.time() - tonextUISt) / 0.75
             root.run_js_code(
                 f"ctx.fillRectEx(\
                     0, 0, {w}, {h},\
@@ -1389,11 +1411,11 @@ def mainRender():
                 );",
                 add_code_array = True
             )
-        elif SettingClicked:
+        elif tonextUI:
             inMainUI = False
             root.clear_canvas(wait_execute = True)
             root.run_js_wait_code()
-            Thread(target=settingRender, daemon=True).start()
+            Thread(target=nextUI, daemon=True).start()
             break
         
         root.run_js_wait_code()
@@ -1711,7 +1733,7 @@ def settingRender():
         nonlocal lastClickChooseAvatarOrBackgroundPos
         
         # 游玩
-        if tool_funcs.InRect(x, y, (
+        if tool_funcs.inrect(x, y, (
             w * 346 / 1920, h * 35 / 1080,
             w * 458 / 1920, h * 97 / 1080
         )) and inSettingUI and not editingUserData:
@@ -1722,7 +1744,7 @@ def settingRender():
             _setSettingState(const.PHIGROS_SETTING_STATE.PLAY)
         
         # 账号与统计
-        if tool_funcs.InRect(x, y, (
+        if tool_funcs.inrect(x, y, (
             w * 540 / 1920, h * 35 / 1080,
             w * 723 / 1920, h * 97 / 1080
         )) and inSettingUI and not editingUserData:
@@ -1733,7 +1755,7 @@ def settingRender():
             _setSettingState(const.PHIGROS_SETTING_STATE.ACCOUNT_AND_COUNT)
         
         # 其他
-        if tool_funcs.InRect(x, y, (
+        if tool_funcs.inrect(x, y, (
             w * 807 / 1920, h * 35 / 1080,
             w * 915 / 1920, h * 97 / 1080
         )) and inSettingUI and not editingUserData:
@@ -1744,7 +1766,7 @@ def settingRender():
             _setSettingState(const.PHIGROS_SETTING_STATE.OTHER)
         
         # 校准延迟点击扩散的线条
-        if settingState.atis_p and tool_funcs.InRect(x, y, (
+        if settingState.atis_p and tool_funcs.inrect(x, y, (
             w * 0.6015625, 0.0,
             w, h
         )) and inSettingUI:
@@ -1753,14 +1775,14 @@ def settingRender():
                 CalibrationClickEffectLines.append((time.time(), mixer_pos))
         
         # 账号与统计 - 编辑
-        if settingState.atis_a and tool_funcs.InRect(x, y, (
+        if settingState.atis_a and tool_funcs.inrect(x, y, (
             w * 0.85625, h * (181 / 1080),
             w * 0.921875, h * (220 / 1080)
         )) and not (showAvatars or showBackgrounds):
             editingUserData = not editingUserData
         
         # 编辑用户名字
-        if settingState.atis_a and tool_funcs.InRect(x, y, editUserNameRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and tool_funcs.inrect(x, y, editUserNameRect) and editingUserData and not (showAvatars or showBackgrounds):
             newName = root.run_js_code(f"prompt('请输入新名字', {root.string2sctring_hqm(getUserData("userdata-userName"))});")
             if newName is not None:
                 setUserData("userdata-userName", newName)
@@ -1768,7 +1790,7 @@ def settingRender():
                 saveUserData(userData)
         
         # 编辑用户介绍
-        if settingState.atis_a and tool_funcs.InRect(x, y, editIntroductionRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and tool_funcs.inrect(x, y, editIntroductionRect) and editingUserData and not (showAvatars or showBackgrounds):
             newName = root.run_js_code(f"prompt('请输入新介绍 (输入\"\\\\n\"可换行)', {root.string2sctring_hqm(getUserData("userdata-selfIntroduction").replace("\n", "\\n"))});")
             if newName is not None:
                 setUserData("userdata-selfIntroduction", newName.replace("\\n", "\n"))
@@ -1776,17 +1798,17 @@ def settingRender():
                 saveUserData(userData)
         
         # 编辑用户头像
-        if settingState.atis_a and tool_funcs.InRect(x, y, editAvatarRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and tool_funcs.inrect(x, y, editAvatarRect) and editingUserData and not (showAvatars or showBackgrounds):
             showAvatars, showAvatarsSt = True, time.time()
             settingUIChooseAvatarAndBackgroundSlideControler.setDy(0.0)
         
         # 编辑用户背景
-        if settingState.atis_a and tool_funcs.InRect(x, y, editBackgroundRect) and editingUserData and not (showAvatars or showBackgrounds):
+        if settingState.atis_a and tool_funcs.inrect(x, y, editBackgroundRect) and editingUserData and not (showAvatars or showBackgrounds):
             showBackgrounds, showBackgroundsSt = True, time.time()
             settingUIChooseAvatarAndBackgroundSlideControler.setDy(0.0)
 
         # 编辑用户头像/背景 - 关闭
-        if settingState.atis_a and tool_funcs.InRect(x, y, (
+        if settingState.atis_a and tool_funcs.inrect(x, y, (
             w * 0.9078125 - (w + h) * 0.014 / 2, h * (225 / 1080) - (w + h) * 0.014 / 2,
             w * 0.9078125 + (w + h) * 0.014 / 2, h * (225 / 1080) + (w + h) * 0.014 / 2
         )) and (showAvatars or showBackgrounds):
@@ -1802,13 +1824,13 @@ def settingRender():
             lastClickChooseAvatarOrBackgroundPos = (x, y)
         
         # 音频问题疑难解答
-        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[0]) and inSettingUI:
+        if settingState.atis_o and tool_funcs.inrect(x, y, otherSettingButtonRects[0]) and inSettingUI:
             Resource["UISound_4"].play()
             unregEvents()
             nextUI, tonextUI, tonextUISt = audioQARender, True, time.time()
         
         # 观看教学
-        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[1]) and inSettingUI:
+        if settingState.atis_o and tool_funcs.inrect(x, y, otherSettingButtonRects[1]) and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
                 chartAudio = "./resources/Introduction/audio.mp3",
@@ -1829,43 +1851,43 @@ def settingRender():
             ), True, time.time()
         
         # 关于我们
-        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[2]) and inSettingUI:
+        if settingState.atis_o and tool_funcs.inrect(x, y, otherSettingButtonRects[2]) and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = aboutUsRender, True, time.time()
         
         # 开源许可证
-        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[3]) and inSettingUI:
+        if settingState.atis_o and tool_funcs.inrect(x, y, otherSettingButtonRects[3]) and inSettingUI:
             inSettingUI = False
             ShowOpenSource, ShowOpenSourceSt = True, time.time()
             settingUIOpenSourceLicenseSlideControler.setDy(settingUIOpenSourceLicenseSlideControler.minValueY)
         
         # 隐私政策
-        if settingState.atis_o and tool_funcs.InRect(x, y, otherSettingButtonRects[4]) and inSettingUI:
+        if settingState.atis_o and tool_funcs.inrect(x, y, otherSettingButtonRects[4]) and inSettingUI:
             webbrowser.open(const.PHIGROS_LINKS.PRIVACYPOLIC)
         
         # 推特链接
-        if settingState.atis_o and tool_funcs.InRect(x, y, (
+        if settingState.atis_o and tool_funcs.inrect(x, y, (
             w * 128 / 1920, h * 1015 / 1080,
             w * 315 / 1920, h * 1042 / 1080
         )) and inSettingUI:
             webbrowser.open(const.PHIGROS_LINKS.TWITTER)
         
         # B站链接
-        if settingState.atis_o and tool_funcs.InRect(x, y, (
+        if settingState.atis_o and tool_funcs.inrect(x, y, (
             w * 376 / 1920, h * 1015 / 1080,
             w * 561 / 1920, h * 1042 / 1080
         )) and inSettingUI:
             webbrowser.open(const.PHIGROS_LINKS.BILIBILI)
         
         # QQ链接
-        if settingState.atis_o and tool_funcs.InRect(x, y, (
+        if settingState.atis_o and tool_funcs.inrect(x, y, (
             w * 626 / 1920, h * 1015 / 1080,
             w * 856 / 1920, h * 1042 / 1080
         )) and inSettingUI:
             webbrowser.open(const.PHIGROS_LINKS.QQ)
         
         # 开源许可证的关闭按钮
-        if tool_funcs.InRect(x, y, (0, 0, ButtonWidth, ButtonHeight)) and ShowOpenSource and time.time() - ShowOpenSourceSt > 0.15:
+        if tool_funcs.inrect(x, y, (0, 0, ButtonWidth, ButtonHeight)) and ShowOpenSource and time.time() - ShowOpenSourceSt > 0.15:
             ShowOpenSource, ShowOpenSourceSt = False, float("nan")
             CloseOpenSource, CloseOpenSourceSt = True, time.time()
     
@@ -1875,7 +1897,7 @@ def settingRender():
         
         if settingState.atis_a and showAvatars and tool_funcs.getLineLength(x, y, *lastClickChooseAvatarOrBackgroundPos) <= (w + h) / 400:
             for v, r in chooseRects["avatars"].items():
-                if tool_funcs.InRect(x, y, r):
+                if tool_funcs.inrect(x, y, r):
                     showAvatars, showAvatarsSt = False, time.time()
                     setUserData("userdata-userAvatar", assetConfig["avatars"][v])
                     saveUserData(userData)
@@ -1883,7 +1905,7 @@ def settingRender():
         
         if settingState.atis_a and showBackgrounds and tool_funcs.getLineLength(x, y, *lastClickChooseAvatarOrBackgroundPos) <= (w + h) / 400:
             for v, r in chooseRects["backgrounds"].items():
-                if tool_funcs.InRect(x, y, r):
+                if tool_funcs.inrect(x, y, r):
                     showBackgrounds, showBackgroundsSt = False, time.time()
                     setUserData("userdata-userBackground", assetConfig["backgrounds"][v])
                     saveUserData(userData)
@@ -3401,7 +3423,7 @@ def chartPlayerRender(
         if rendingAnimationSt != rendingAnimationSt: # nan, playing chart
             pauseATime = 0.25 if paused else 3.0
             pauseP = tool_funcs.fixorp((time.time() - pauseAnimationSt) / pauseATime)
-            if not paused and tool_funcs.InRect(x, y, (
+            if not paused and tool_funcs.inrect(x, y, (
                 w * 9.6 / 1920, h * -1.0 / 1080,
                 w * 96 / 1920, h * 102.6 / 1080
             )) and (time.time() - chartPlayerRenderSt) > 1.25 and pauseP == 1.0:
@@ -3411,7 +3433,7 @@ def chartPlayerRender(
                 pauseSt = time.time()
             
             pauseUIButtonR = (w + h) * 0.0275
-            if paused and tool_funcs.InRect(x, y, (
+            if paused and tool_funcs.inrect(x, y, (
                 w * 0.5 - w * 0.1109375 - pauseUIButtonR / 2,
                 h * 0.5 - pauseUIButtonR / 2,
                 w * 0.5 - w * 0.1109375 + pauseUIButtonR / 2,
@@ -3420,7 +3442,7 @@ def chartPlayerRender(
                 eventManager.unregEvent(clickEvent)
                 tonextUI, tonextUISt = True, time.time()
                 Resource["UISound_4"].play()
-            elif paused and tool_funcs.InRect(x, y, (
+            elif paused and tool_funcs.inrect(x, y, (
                 w * 0.5 - pauseUIButtonR / 2,
                 h * 0.5 - pauseUIButtonR / 2,
                 w * 0.5 + pauseUIButtonR / 2,
@@ -3438,7 +3460,7 @@ def chartPlayerRender(
                     foregroundFrameRender = lambda: None,
                     nextUI = nextUIBak
                 ), True, time.time()
-            elif paused and tool_funcs.InRect(x, y, (
+            elif paused and tool_funcs.inrect(x, y, (
                 w * 0.5 + w * 0.1109375 - pauseUIButtonR / 2,
                 h * 0.5 - pauseUIButtonR / 2,
                 w * 0.5 + w * 0.1109375 + pauseUIButtonR / 2,
@@ -3449,7 +3471,7 @@ def chartPlayerRender(
         if rendingAnimation is not phicore.Chart_Finish_Animation_Frame or (time.time() - rendingAnimationSt) <= 0.5:
             return
         
-        if tool_funcs.InRect(x, y, (
+        if tool_funcs.inrect(x, y, (
             0, 0,
             w * const.FINISH_UI_BUTTON_SIZE, w * const.FINISH_UI_BUTTON_SIZE / 190 * 145
         )):
@@ -3466,7 +3488,7 @@ def chartPlayerRender(
                 nextUI = nextUIBak
             ), True, time.time()
             mixer.music.fadeout(500)
-        elif tool_funcs.InRect(x, y, (
+        elif tool_funcs.inrect(x, y, (
             w - w * const.FINISH_UI_BUTTON_SIZE, h - w * const.FINISH_UI_BUTTON_SIZE / 190 * 145,
             w, h
         )):
@@ -3623,6 +3645,79 @@ def chartPlayerRender(
         playChartThreadEvent.wait()
     
     mixer.music.set_volume(1.0)
+
+def chooseChartRender(chapter_item: phigame_obj.Chapter):
+    
+    global dspSettingWidgets
+    
+    chooseChartRenderSt = time.time()
+    nextUI, tonextUI, tonextUISt = None, False, float("nan")
+    clickedBackButton = False
+    
+    def clickBackButtonCallback(*args):
+        nonlocal clickedBackButton
+        nonlocal nextUI, tonextUI, tonextUISt
+        
+        if not clickedBackButton:
+            eventManager.unregEvent(clickBackButtonEvent)
+            nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
+            mixer.music.fadeout(500)
+            Resource["UISound_4"].play()
+    
+    clickBackButtonEvent = phigame_obj.ClickEvent(
+        rect = (0, 0, ButtonWidth, ButtonHeight),
+        callback = clickBackButtonCallback,
+        once = False
+    )
+    eventManager.regClickEvent(clickBackButtonEvent)
+    
+    while True:
+        root.clear_canvas(wait_execute = True)
+        
+        drawBackground()
+        drawFaculas()
+        
+        chartsShadowRect = (
+            w * -0.009375, 0,
+            w * 0.4921875, h
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, chartsShadowRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(chartsShadowRect), 75)},\
+                'rgba(0, 0, 0, 0.2)'\
+            );",
+            add_code_array = True
+        )
+        
+        drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
+                
+        if time.time() - chooseChartRenderSt < 1.25:
+            p = (time.time() - chooseChartRenderSt) / 1.25
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
+            )
+        
+        if tonextUI and time.time() - tonextUISt < 0.75:
+            p = (time.time() - tonextUISt) / 0.75
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
+                );",
+                add_code_array = True
+            )
+        elif tonextUI:
+            root.clear_canvas(wait_execute = True)
+            root.run_js_wait_code()
+            Thread(target=nextUI, daemon=True).start()
+            break
+        
+        root.run_js_wait_code()
     
 def updateFontSizes():
     global userName_FontSize
