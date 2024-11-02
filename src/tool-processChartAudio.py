@@ -48,13 +48,16 @@ for JudgeLine in Chart["judgeLineList"]:
     t_dw = 1.875 / JudgeLine["bpm"]
     Note_cut = 0
     for note in JudgeLine["notesBelow"] + JudgeLine["notesAbove"]:
-        t = note["time"] * t_dw
-        t_index = int(t / (ChartAudio_Split_Audio_Block_Length / 1000))
-        t %= ChartAudio_Split_Audio_Block_Length / 1000
-        seg:AudioSegment = ChartAudio_Split_Audio_List[t_index]
-        ChartAudio_Split_Audio_List[t_index] = seg.overlay(NoteClickAudios[note["type"]], t * 1000)
-        print(f"Process Note: {JudgeLine_cut}+{Note_cut}")
-        Note_cut += 1
+        try:
+            t = note["time"] * t_dw
+            t_index = int(t / (ChartAudio_Split_Audio_Block_Length / 1000))
+            t %= ChartAudio_Split_Audio_Block_Length / 1000
+            seg: AudioSegment = ChartAudio_Split_Audio_List[t_index]
+            ChartAudio_Split_Audio_List[t_index] = seg.overlay(NoteClickAudios[note["type"]], t * 1000)
+            print(f"Process Note: {JudgeLine_cut}+{Note_cut}")
+            Note_cut += 1
+        except IndexError:
+            pass
     JudgeLine_cut += 1
 
 print("Merge...")
