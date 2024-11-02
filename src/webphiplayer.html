@@ -475,6 +475,18 @@
 
     }
 
+    CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
+
+    CanvasRenderingContext2D.prototype.drawImage = function(...args) {
+        try {
+            return this._drawImage(...args);
+        }
+        catch (e) {
+            console.log(e);
+            alert("啊不是，你等资源加载啊喂！等一会再点！");
+        }
+    }
+
     CanvasRenderingContext2D.prototype.drawLineEx = function (x1, y1, x2, y2, width, color) {
         ctx.save();
         ctx.strokeStyle = color;
