@@ -967,7 +967,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                             f"Resource[\"Note_Click_Audio\"][\"{note_item.type_string}\"].play",
                             "()"
                         ))
-                    
+                
                 if not this_note_ishold and note_item.clicked:
                     continue
                 elif this_note_ishold and now_t > note_item.hold_endtime:
@@ -977,6 +977,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                 elif noautoplay and not this_note_ishold and note_item.player_clicked:
                     continue
                 elif not note_item.clicked and (note_item.floorPosition - lineFloorPosition / PHIGROS_Y) < -0.001 and note_item.type != const.Note.HOLD:
+                    continue
+                elif this_note_ishold and note_item.speed == 0.0:
                     continue
                 
                 note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (

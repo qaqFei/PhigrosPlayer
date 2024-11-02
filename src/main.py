@@ -1063,7 +1063,7 @@ if "--fullscreen" in sys.argv:
     root.web.toggle_fullscreen()
 else:
     if "--size" not in sys.argv:
-        w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+        w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)                                                      # 黄会
     else:
         w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
     root.resize(w, h)
