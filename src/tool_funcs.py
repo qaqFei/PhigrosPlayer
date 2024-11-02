@@ -276,7 +276,7 @@ def DataUrl2MatLike(dataurl: str) -> cv2.typing.MatLike:
             base64.b64decode(
                 dataurl[dataurl.find(",") + 1:]
             ),
-            dtype=numpy.uint8
+            dtype = numpy.uint8
         ),
         cv2.IMREAD_COLOR
     )
