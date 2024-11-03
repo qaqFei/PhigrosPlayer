@@ -395,6 +395,10 @@ def gtpresp(p: str):
     while "//" in result: result = result.replace("//", "/")
     return result
 
+def indrect(x: float, y: float, rect: tuple[float, float, float, float], dpower: float):
+    x += (1.0 - (y - rect[1]) / (rect[3] - rect[1])) * (dpower * (rect[2] - rect[0]))
+    return inrect(x, y, rect)
+
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
 TextureLine_CanRender(1920, 1080, 50, 0, 0)

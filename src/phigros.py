@@ -3651,8 +3651,13 @@ def chartPlayerRender(
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
     illrespacker = webcv.PILResourcePacker(root)
     for song in chapter_item.songs:
-        illrespacker.reg_img(open(tool_funcs.gtpresp(song.image), "rb").read(), f"songill-{song.songId}")
+        illrespacker.reg_img(open(tool_funcs.gtpresp(song.image), "rb").read(), f"songill_{song.songId}")
     illrespacker.load(*illrespacker.pack())
+    
+    chooseChartControl = phigame_obj.ChooseChartControl(chapter_item, w, h)
+    eventManager.regClickEventFs(chooseChartControl.scter_mousedown, False)
+    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(chooseChartControl.scter_mouseup))
+    eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseChartControl.scter_mousemove))
     
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
@@ -3689,7 +3694,33 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, chartsShadowRect))},\
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(chartsShadowRect), 75)},\
-                'rgba(0, 0, 0, 0.2)'\
+                'rgba(0, 0, 0, 0.3)'\
+            );",
+            add_code_array = True
+        )
+        
+        songShadowRect = (
+            w * 0.0640625, h * (361 / 1080),
+            w * 0.45, h * (505 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, songShadowRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(songShadowRect), 75)},\
+                'rgba(0, 0, 0, 0.6)'\
+            );",
+            add_code_array = True
+        )
+        
+        barShadowRect = (
+            w * 0.121875, h * (12 / 1080),
+            w * 0.49375, h * (123 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, barShadowRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(barShadowRect), 75)},\
+                'rgba(0, 0, 0, 0.6)'\
             );",
             add_code_array = True
         )
@@ -3723,6 +3754,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
         root.run_js_wait_code()
         
+    eventManager.unregEventByChooseChartControl(chooseChartControl)
     illrespacker.unload(illrespacker.getnames())
     
 def updateFontSizes():

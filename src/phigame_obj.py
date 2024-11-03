@@ -91,6 +91,22 @@ class EventManager:
                 elist.remove(e)
             except ValueError:
                 pass
+    
+    def unregEventByChooseChartControl(self, ccc: ChooseChartControl):
+        for e in self.clickEvents:
+            if e.callback is ccc.scter_mousedown:
+                self.unregEvent(e)
+                break
+                
+        for e in self.releaseEvents:
+            if e.callback is ccc.scter_mouseup:
+                self.unregEvent(e)
+                break
+        
+        for e in self.moveEvents:
+            if e.callback is ccc.scter_mousemove:
+                self.unregEvent(e)
+                break
 
 @dataclass
 class FaculaAnimationManager:
@@ -637,3 +653,32 @@ class SlideControler:
 
     def _set(self):
         self.setFunc(self._dx, self._dy)
+
+class ChooseChartControl:
+    def __init__(
+        self, chapter: Chapter,
+        w: int, h: int # screen size
+    ):
+        self._chapter = chapter
+        self._songIndex = 0
+        self._songLastIndex = 0
+        self._songLastChooseSt = -float("inf")
+        self._chartsShadowRect = (
+            w * -0.009375, 0,
+            w * 0.4921875, h
+        )
+        self._chartsShadowRectDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(self._chartsShadowRect), 75)
+        
+        self._slideControl = SlideControler(
+            eventRect = lambda x, y: tool_funcs.indrect(x, y, self._chartsShadowRect, self._chartsShadowRectDPower),
+            setFunc = self._slide_setfunc,
+            minValueX = 0.0, maxValueX = 0.0,
+            minValueY = 0.0, maxValueY = 0.0,
+            w = h, h = h
+        )
+        self.scter_mousedown = self._slideControl.mouseDown
+        self.scter_mouseup = self._slideControl.mouseUp
+        self.scter_mousemove = self._slideControl.mouseMove
+    
+    def _slide_setfunc(self, x: float, y: float):
+        print(y)
