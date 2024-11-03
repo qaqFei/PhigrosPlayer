@@ -183,7 +183,7 @@ class JudgeLine:
     extended: Extended|None
     notes: list[Note]
     bpmfactor: float
-    father: int
+    father: int|JudgeLine # in other object, __post_init__ change this value to a line
     zOrder: int
     
     playingFloorPosition: float = 0.0
@@ -210,7 +210,7 @@ class JudgeLine:
             linePos[1] += self.GetEventValue(t, layer.moveYEvents, 0.0)
         if self.father != -1:
             try:
-                fatherPos = master.JudgeLineList[self.father].GetPos(t, master)
+                fatherPos = self.father.GetPos(t, master)
                 linePos = list(map(lambda x, y: x + y, linePos, fatherPos))
             except IndexError:
                 pass
@@ -298,12 +298,23 @@ class Rpe_Chart:
         
         try: avgBpm = sum([e.bpm for e in self.BPMList]) / len(self.BPMList)
         except ZeroDivisionError: avgBpm = 140.0
+        
         for line in self.JudgeLineList:
             for note in line.notes:
                 note.masterLine = line
                 note._init(self, avgBpm)
+                
+            if line.father != -1:
+                line.father = self.JudgeLineList[line.father]
         
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
+        
+        zos = {}
+        for line in self.JudgeLineList:
+            if line.zOrder not in zos: zos[line.zOrder] = []
+            zos[line.zOrder].append(line)
+        zositems = sorted(zos.items(), key=lambda x: x[0])
+        self.JudgeLineList = [i for _, v in zositems for i in v]
     
     @cache
     def sec2beat(self, t: float, bpmfactor: float):
