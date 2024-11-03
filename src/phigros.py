@@ -72,9 +72,9 @@ userData_default = {
     "setting-enableMorebetsAuxiliary": True,
     "setting-enableFCAPIndicator": True,
     "setting-enableLowQuality": False,
-    "internal-lowQualityScale": 2.0,
+    "internal-lowQualityScale": 1.0,
     "internal-dspBufferExponential": 8,
-    "internal-lowQualityScale-JSLayer": 1.0
+    "internal-lowQualityScale-JSLayer": 2.5
 }
 
 def saveUserData(data: dict):
