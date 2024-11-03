@@ -141,7 +141,9 @@ def Load_Chapters():
                                 level = diff["level"],
                                 chart_audio = diff["chart_audio"],
                                 chart_image = diff["chart_image"],
-                                chart_file = diff["chart_file"]
+                                chart_file = diff["chart_file"],
+                                charter = diff["charter"],
+                                iller = diff["iller"]
                             )
                             for diff in song["difficlty"]
                         ]
@@ -3647,9 +3649,6 @@ def chartPlayerRender(
     mixer.music.set_volume(1.0)
 
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
-    
-    global dspSettingWidgets
-    
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     clickedBackButton = False

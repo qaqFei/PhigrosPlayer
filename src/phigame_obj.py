@@ -140,6 +140,8 @@ class SongDifficlty:
     chart_audio: str
     chart_image: str
     chart_file: str
+    charter: str
+    iller: str
     
 @dataclass
 class Song:
@@ -148,6 +150,9 @@ class Song:
     image: str
     preview: str
     difficlty: list[SongDifficlty]
+    
+    def __post_init__(self):
+        self.songId = int(uniform(0.0, 1.0) * (2 << 31))
 
 @dataclass
 class Chapter:
