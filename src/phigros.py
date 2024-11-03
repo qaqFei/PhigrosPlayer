@@ -38,7 +38,7 @@ if not exists("./7z.exe") or not exists("./7z.dll"):
     windll.kernel32.ExitProcess(1)
     
 if not exists("./phigros_assets") or not all([
-    exists(f"./phigros_assets/{i}") for i in [
+    exists(tool_funcs.gtpresp(i)) for i in [
         "config.json",
         "chapters.json"
     ]
@@ -55,7 +55,7 @@ temp_dir = f"{gettempdir()}\\phigros_temp_{time.time()}"
 try: mkdir(temp_dir)
 except FileExistsError: pass
 
-assetConfig = json.loads(open("./phigros_assets/config.json", "r", encoding="utf-8").read())
+assetConfig = json.loads(open(tool_funcs.gtpresp("config.json"), "r", encoding="utf-8").read())
 userData_default = {
     "userdata-userName": "GUEST",
     "userdata-userAvatar": assetConfig["default-avatar"],
@@ -121,7 +121,7 @@ dspSettingWidgets: dict[str, phigame_obj.PhiBaseWidget] = {}
 
 def Load_Chapters():
     global Chapters, ChaptersMaxDx
-    jsonData = json.loads(open("./phigros_assets/chapters.json", "r", encoding="utf-8").read())
+    jsonData = json.loads(open(tool_funcs.gtpresp("chapters.json"), "r", encoding="utf-8").read())
     Chapters = phigame_obj.Chapters(
         [
             phigame_obj.Chapter(
@@ -349,14 +349,14 @@ def Load_Resource():
         respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
 
     for chapter in Chapters.items:
-        chapterimbytes = open(f"./phigros_assets/{chapter.image}", "rb").read()
+        chapterimbytes = open(tool_funcs.gtpresp(chapter.image), "rb").read()
         im = Image.open(BytesIO(chapterimbytes))
         chapter.im = im
         respacker.reg_img(chapterimbytes, f"chapter_{chapter.chapterId}_raw")
         respacker.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
     
     for index, avatar in enumerate(assetConfig["avatars"]):
-        respacker.reg_img(open(f"./phigros_assets/{avatar}", "rb").read(), f"avatar_{index}")
+        respacker.reg_img(open(tool_funcs.gtpresp(avatar), "rb").read(), f"avatar_{index}")
     
     with open("./resources/font.ttf", "rb") as f:
         root.reg_res(f.read(), "PhigrosFont")
@@ -1656,7 +1656,7 @@ def settingRender():
     
     bgrespacker = webcv.PILResourcePacker(root)
     for i, bg in enumerate(assetConfig["backgrounds"]):
-        bgrespacker.reg_img(open(f"./phigros_assets/{bg}", "rb").read(), f"background_{i}")
+        bgrespacker.reg_img(open(tool_funcs.gtpresp(bg), "rb").read(), f"background_{i}")
     bgrespacker.load(*bgrespacker.pack())
     
     settingState = phigame_obj.SettingState()
@@ -3649,6 +3649,11 @@ def chartPlayerRender(
     mixer.music.set_volume(1.0)
 
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
+    illrespacker = webcv.PILResourcePacker(root)
+    for song in chapter_item.songs:
+        illrespacker.reg_img(open(tool_funcs.gtpresp(song.image), "rb").read(), f"songill-{song.songId}")
+    illrespacker.load(*illrespacker.pack())
+    
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     clickedBackButton = False
@@ -3717,6 +3722,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             break
         
         root.run_js_wait_code()
+        
+    illrespacker.unload(illrespacker.getnames())
     
 def updateFontSizes():
     global userName_FontSize

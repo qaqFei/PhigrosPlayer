@@ -390,6 +390,11 @@ def Get_All_Files(path: str) -> list[str]:
 def getLineLength(x0: float, y0: float, x1: float, y1: float):
     return ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
 
+def gtpresp(p: str):
+    result =  f"./phigros_assets/{p}".replace("\\", "/")
+    while "//" in result: result = result.replace("//", "/")
+    return result
+
 linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
 is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
 TextureLine_CanRender(1920, 1080, 50, 0, 0)
