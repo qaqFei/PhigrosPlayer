@@ -73,7 +73,8 @@ userData_default = {
     "setting-enableFCAPIndicator": True,
     "setting-enableLowQuality": False,
     "internal-lowQualityScale": 2.0,
-    "internal-dspBufferExponential": 8
+    "internal-dspBufferExponential": 8,
+    "internal-lowQualityScale-JSLayer": 1.0
 }
 
 def saveUserData(data: dict):
@@ -3820,9 +3821,11 @@ def updateConfig():
 def applyConfig():
     if getUserData("setting-enableLowQuality"):
         root.run_js_code(f"lowquality_scale = {1.0 / webdpr * getUserData("internal-lowQualityScale")};")
+        root.run_js_code(f"lowquality_imjscvscale_x = {getUserData("internal-lowQualityScale-JSLayer")};")
         root.run_js_code(f"ctx.imageSmoothingEnabled = false;")
     else:
         root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
+        root.run_js_code(f"lowquality_imjscvscale_x = 1.0;")
         root.run_js_code(f"ctx.imageSmoothingEnabled = true;")
     root.run_js_code("resizeCanvas();") # update canvas
 

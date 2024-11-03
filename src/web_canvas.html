@@ -77,6 +77,7 @@
     uploadFrame_addQueue = false;
     uploadFrame_finish = false;
     lowquality_scale = 1.0;
+    lowquality_imjscvscale_x = 1.0;
     const textureLineColorFilterColorMatrix = document.getElementById("textureLineColorFilterColorMatrix");
     const letters = [
         "a", "b", "c", "d", "e",
@@ -91,6 +92,7 @@
         "U", "V", "W", "X", "Y", "Z"
     ]
     const None = undefined;
+    const lowquality_imweakmap = new WeakMap();
 
     /*
     (if enable render_range_more)
@@ -253,6 +255,29 @@
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
+        if (lowquality_imjscvscale_x != 1.0) {
+            let im = args[0];
+            if (!lowquality_imweakmap.get(im) && !im._lowquality_pcsing) {
+                im._lowquality_pcsing = true;
+                (async () => {
+                    let tempcv = document.createElement("canvas");
+                    tempcv.width = Math.floor(im.width / lowquality_imjscvscale_x);
+                    tempcv.height = Math.floor(im.height / lowquality_imjscvscale_x);
+                    if (tempcv.width < 1 || tempcv.height < 1) {
+                        tempcv.width = im.width;
+                        tempcv.height = im.height;
+                    }
+                    let tempctx = tempcv.getContext("2d");
+                    tempctx.drawImage(im, 0, 0, tempcv.width, tempcv.height);
+                    lowquality_imweakmap.set(im, tempcv);
+                    // im._lowquality_pcsing = undefined; // this is not necessary
+                })();
+            }
+            else if (lowquality_imweakmap.has(im)) {
+                args[0] = lowquality_imweakmap.get(im);
+            }
+        }
+
         if (!this.globalAlpha) return;
         return this._drawImage(...args);
     }

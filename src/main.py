@@ -82,6 +82,7 @@ combotips = ("AUTOPLAY" if not noautoplay else "COMBO") if "--combotips" not in 
 noplaychart = "--noplaychart" in sys.argv
 clicksound_volume = float(sys.argv[sys.argv.index("--clicksound-volume") + 1]) if "--clicksound-volume" in sys.argv else 1.0
 musicsound_volume = float(sys.argv[sys.argv.index("--musicsound-volume") + 1]) if "--musicsound-volume" in sys.argv else 1.0
+lowquality_imjscvscale_x = float(sys.argv[sys.argv.index("--lowquality-imjscvscale-x") + 1]) if "--lowquality-imjscvscale-x" in sys.argv else 1.0
 respaths = ["./resources"]
 
 if "--res" in sys.argv:
@@ -1078,6 +1079,8 @@ else:
 if render_range_more:
     root.run_js_code("render_range_more = true;")
     root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
+
+root.run_js_code(f"lowquality_imjscvscale_x = {lowquality_imjscvscale_x};")
     
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
