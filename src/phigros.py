@@ -3726,6 +3726,42 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             add_code_array = True
         )
         
+        difRect = (
+            w * 0.340625, h * (355 / 1080),
+            w * 0.440625, h * (513 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, difRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(difRect), 75)},\
+                'rgb(255, 255, 255)'\
+            );",
+            add_code_array = True
+        )
+        
+        playButtonRect = (
+            w * 0.878125, h * (861 / 1080),
+            w * 2.0, h * (1012 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, playButtonRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)},\
+                'rgb(255, 255, 255)'\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawTriangleFrame(\
+                {w * 0.93125}, {h * (905 / 1080)},\
+                {w * 0.93125}, {h * (967 / 1080)},\
+                {w * 0.959375}, {h * (936 / 1080)},\
+                'rgb(0, 0, 0)', {(w + h) * 0.001}\
+            );",
+            add_code_array = True
+        )
+        
         drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
                 
         if time.time() - chooseChartRenderSt < 1.25:
