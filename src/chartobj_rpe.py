@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import typing
 from dataclasses import dataclass
 from functools import lru_cache, cache
@@ -208,12 +209,21 @@ class JudgeLine:
         for layer in self.eventLayers:
             linePos[0] += self.GetEventValue(t, layer.moveXEvents, 0.0)
             linePos[1] += self.GetEventValue(t, layer.moveYEvents, 0.0)
+            
         if self.father != -1:
             try:
-                fatherPos = self.father.GetPos(t, master)
-                linePos = list(map(lambda x, y: x + y, linePos, fatherPos))
+                sec = master.beat2sec(t, self.bpmfactor)
+                fatherBeat = master.sec2beat(sec, self.father.bpmfactor)
+                fatherPos = self.father.GetPos(fatherBeat, master)
+                posabsValue = tool_funcs.getLineLength(*linePos, 0.0, 0.0)
+                possitaValue = (
+                    math.degrees(math.atan2(*linePos))
+                    + sum([self.father.GetEventValue(fatherBeat, layer.rotateEvents, 0.0) for layer in self.father.eventLayers])
+                )
+                return list(map(lambda v1, v2: v1 + v2, fatherPos, tool_funcs.rotate_point(0.0, 0.0, 90 - possitaValue, posabsValue)))
             except IndexError:
                 pass
+            
         return linePos
     
     def GetSpeed(self, t: float):

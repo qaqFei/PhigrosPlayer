@@ -700,7 +700,7 @@ def PlayerStart():
     Begin_Animation()
     ChartStart_Animation()
 
-    show_start_time = time.time()
+    show_start_time = time.time() - 50
     PhiCoreConfigureObject.show_start_time = show_start_time
     updateCoreConfigure()
     now_t = 0
