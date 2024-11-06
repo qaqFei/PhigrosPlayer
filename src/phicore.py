@@ -286,7 +286,8 @@ def process_effect_base(
     p: float, effect_random_blocks: tuple[tuple[float, float], ...],
     perfect: bool, Task: chartobj_phi.FrameRenderTask
 ):
-    color = (254, 255, 169) if perfect else (162, 238, 255)
+    color = (255, 236, 160) if perfect else (180, 225, 255)
+    alphas = (225 if perfect else 235) / 255
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
     if clickeffect_randomblock:
         block_alpha = (1.0 - p) * 0.85
@@ -299,23 +300,22 @@ def process_effect_base(
             )
             Task(
                 root.run_js_code,
-                f"\
-                ctx.roundRectEx(\
+                f"ctx.roundRectEx(\
                     {effect_random_point[0] - block_size / 2},\
                     {effect_random_point[1] - block_size / 2},\
                     {block_size},\
                     {block_size},\
                     {block_size * clickeffect_randomblock_roundn},\
-                    'rgba{color + (block_alpha, )}'\
+                    'rgba{color + (block_alpha * alphas, )}'\
                 );",
                 add_code_array = True
             )
     Task(
         root.run_js_code,
-        f"ctx.drawImage(\
+        f"ctx.drawAlphaImage(\
             {root.get_img_jsvarname(f"{imn}_{int(p * (ClickEffectFrameCount - 1)) + 1}")},\
             {x - ClickEffect_Size / 2}, {y - ClickEffect_Size / 2},\
-            {ClickEffect_Size}, {ClickEffect_Size}\
+            {ClickEffect_Size}, {ClickEffect_Size}, {alphas}\
         );",
         add_code_array = True
     )

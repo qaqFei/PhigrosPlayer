@@ -218,7 +218,7 @@ def Load_Resource():
             "Bad": None
         },
         "Note_Click_Effect":{
-            "Perfect": list(map(lambda im: putColor((204, 196, 138), im), ClickEffectImages)),
+            "Perfect": list(map(lambda im: putColor((255, 236, 160), im), ClickEffectImages)),
             "Good": list(map(lambda im: putColor((180, 225, 255), im), ClickEffectImages)),
         },
         "Levels":{

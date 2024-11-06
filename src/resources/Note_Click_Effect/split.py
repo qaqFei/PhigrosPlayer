@@ -1,6 +1,6 @@
 from PIL import Image
 
-im = Image.open("Raw.png")
+im = Image.open("Raw.png").convert("RGBA")
 
 col, row = int(input("Enter the number of columns: ")), int(input("Enter the number of rows: "))
 
@@ -15,4 +15,4 @@ for i in range(row):
         Image.merge("RGBA", (
             *Image.new("RGB", croped.size, (255, 255, 255)).split(),
             croped.split()[-1]
-        )).save(f"{i * col + j + 1}.png")
+        )).save(f"Frames/{i * col + j + 1}.png")
