@@ -109,10 +109,10 @@
 
     (async () => {
         if (window.location.href.startsWith("file://")) return;
-        Res_TapSound.src = URL.createObjectURL(await fetch("./resources/Note_Click_Audio/Tap.wav"));
-        Res_DragSound.src = URL.createObjectURL(await fetch("./resources/Note_Click_Audio/Drag.wav"));
-        Res_FlickSound.src = URL.createObjectURL(await fetch("./resources/Note_Click_Audio/Flick.wav"));
-        Res_HoldSound.src = URL.createObjectURL(await fetch("./resources/Note_Click_Audio/Hold.wav"));
+        Res_TapSound.src = URL.createObjectURL(await (await fetch("./resources/Note_Click_Audio/Tap.wav")).blob());
+        Res_DragSound.src = URL.createObjectURL(await (await fetch("./resources/Note_Click_Audio/Drag.wav")).blob());
+        Res_FlickSound.src = URL.createObjectURL(await (await fetch("./resources/Note_Click_Audio/Flick.wav")).blob());
+        Res_HoldSound.src = URL.createObjectURL(await (await fetch("./resources/Note_Click_Audio/Hold.wav")).blob());
     })();
 
     function initCanvas() {
