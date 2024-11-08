@@ -2,7 +2,6 @@ import json
 from copy import deepcopy
 from fractions import Fraction
 from sys import argv
-
 from threading import Thread
 
 if len(argv) < 3:
