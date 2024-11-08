@@ -3,6 +3,8 @@ from copy import deepcopy
 from fractions import Fraction
 from sys import argv
 
+from threading import Thread
+
 if len(argv) < 3:
     print("Usage: tool-phi2rpe <input> <output>")
     raise SystemExit
@@ -17,6 +19,11 @@ def n2f(x: float):
 
 def f2n(x: list):
     return (x[0] + x[1] / x[2]) / 0.03125
+
+def optimize_events(es: list[dict], x: float):
+    for e in es:
+        if f2n(e["startTime"]) >= x:
+            es.remove(e)
 
 bpms = [i["bpm"] for i in phic["judgeLineList"]]
 rpeop = {
@@ -38,7 +45,7 @@ rpeop = {
     "multiScale": 1.0
 }
 
-for line in phic["judgeLineList"]:
+def transform_line(line: dict):
     rpel = {
         "Group": 0,
         "Name": "Untitled",
@@ -192,24 +199,16 @@ for line in phic["judgeLineList"]:
             
             for e in hnl["eventLayers"][0]["speedEvents"]:
                 pts, pte = f2n(e["startTime"]), f2n(e["endTime"])
-                if pte == pts:
-                    hnl["eventLayers"][0]["speedEvents"].remove(e)
-                    continue
-                
-                if pte <= n["time"]:
-                    continue
-                else:
-                    if pts >= n["time"] + n["holdTime"]:
+                if (
+                    pts <= n["time"] <= n["holdTime"] <= pte
+                    or pts <= n["time"] <= pte <= n["holdTime"]
+                    or n["time"] <= pts <= n["holdTime"] <= pte
+                    or n["time"] <= pts <= pte <= n["holdTime"]
+                ):
+                    if pts >= n["time"]:
                         hnl["eventLayers"][0]["speedEvents"].remove(e)
-                    else:
-                        if n["time"] <= pts <= pte <= n["time"] + n["holdTime"]:
-                            hnl["eventLayers"][0]["speedEvents"].remove(e)
-                        elif n["time"] <= pts <= n["time"] + n["holdTime"] <= pte:
-                            hnl["eventLayers"][0]["speedEvents"].remove(e)
-                        elif pte >= n["time"]:
-                            e["endTime"] = n2f(n["time"])
-                            nv = e["start"] / ((n["time"] - pts) / (pte - pts))
-                            e["start"], e["end"] = nv, nv
+                    elif pte >= n["time"]:
+                        e["endTime"] = n2f(n["time"])
             
             hnl["notes"].clear()
             hnl["eventLayers"][0]["alphaEvents"].clear()
@@ -224,8 +223,8 @@ for line in phic["judgeLineList"]:
                 "linkgroup": 0,
                 "startTime": n2f(n["time"]),
                 "endTime": n2f(n["time"] + n["holdTime"]),
-                "start": 0.6 * 900 / 120,
-                "end": 0.6 * 900 / 120,
+                "start": n["speed"] * 0.6 * 900 / 120,
+                "end": n["speed"] * 0.6 * 900 / 120,
             })
             hnl["notes"].append({
                 "above": above, "alpha": 255, "isFake": 0, "size": 1.0,
@@ -235,11 +234,21 @@ for line in phic["judgeLineList"]:
                 "startTime": n2f(n["time"]),
                 "endTime": n2f(n["time"] + n["holdTime"]),
                 "positionX": n["positionX"] * 0.05625 * 1350,
-                "speed": n["speed"]
+                "speed": 1.0
             })
+            
+            optimize_events(hnl["eventLayers"][0]["moveXEvents"], n["time"] + n["holdTime"])
+            optimize_events(hnl["eventLayers"][0]["moveYEvents"], n["time"] + n["holdTime"])
+            optimize_events(hnl["eventLayers"][0]["rotateEvents"], n["time"] + n["holdTime"])
+            optimize_events(hnl["eventLayers"][0]["alphaEvents"], n["time"] + n["holdTime"])
             rpeop["judgeLineList"].append(hnl)
-            print(f"add tie line hold: {n["time"]}")
     
     rpeop["judgeLineList"].append(rpel)
 
-json.dump(rpeop, open(argv[2], "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+ts: list[Thread] = []
+for line in phic["judgeLineList"]:
+    ts.append(Thread(target=transform_line, args=(line, ), daemon=True))
+    ts[-1].start()
+(*(map(lambda x: x.join(), ts)), )
+
+json.dump(rpeop, open(argv[2], "w", encoding="utf-8"), ensure_ascii=False)
