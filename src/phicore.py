@@ -1414,7 +1414,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                 add_code_array = True
             )
             
-        if debug and line.attachUI is None and tool_funcs.point_in_screen(linePos, w, h) and lineAlpha > 0.0:
+        if debug and line.attachUI is None and tool_funcs.point_in_screen(linePos, w, h):
             Task(
                 root.create_text,
                 *tool_funcs.rotate_point(*linePos, 90 + lineRotate - 180, (w + h) / 75),
