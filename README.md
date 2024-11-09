@@ -71,11 +71,11 @@
       - [x] visibleTime
       - [ ] yOffset
     - [x] numOfNotes (未使用)
-    - [ ] alphaControl
-    - [ ] posControl
-    - [ ] sizeControl
+    - [x] alphaControl (有bug)
+    - [x] posControl (有bug)
+    - [x] sizeControl (有bug)
     - [ ] skewControl
-    - [ ] yControl
+    - [x] yControl (有bug)
     - [x] zOrder
   - [ ] multiLineString (???)
   - [ ] multiScale (???)

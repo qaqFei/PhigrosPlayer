@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import typing
+import logging
 from dataclasses import dataclass
 from functools import lru_cache, cache
 
@@ -19,6 +20,15 @@ def _init_events(es: list[LineEvent]):
     es.extend(aes)
     es.sort(key = lambda x: x.startTime.value)
     if es: es.append(LineEvent(es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, 1))
+
+def geteasing_func(t: int):
+    try:
+        if not isinstance(t, int): t = 1
+        t = 1 if t < 1 else (len(rpe_easing.ease_funcs) if t > len(rpe_easing.ease_funcs) else t)
+        return rpe_easing.ease_funcs[int(t) - 1]
+    except Exception as e:
+        logging.warning(f"geteasing_func error: {e}")
+        return rpe_easing.ease_funcs[0]
         
 @dataclass
 class Beat:
@@ -115,9 +125,7 @@ class LineEvent:
     easingFunc: typing.Callable[[float], float] = rpe_easing.ease_funcs[0]
     
     def __post_init__(self):
-        if not isinstance(self.easingType, int): self.easingType = 1
-        self.easingType = 1 if self.easingType < 1 else (len(rpe_easing.ease_funcs) if self.easingType > len(rpe_easing.ease_funcs) else self.easingType)
-        self.easingFunc = rpe_easing.ease_funcs[self.easingType - 1]
+        self.easingFunc = geteasing_func(self.easingType)
     
 @dataclass
 class EventLayer:
@@ -159,6 +167,55 @@ class Extended:
         _init_events(self.textEvents)
 
 @dataclass
+class ControlItem:
+    sval: float
+    tval: float
+    easing: int
+    easingFunc: typing.Callable[[float], float] = rpe_easing.ease_funcs[0]
+    next: ControlItem|None = None
+    
+    def __post_init__(self):
+        self.easingFunc = geteasing_func(self.easing)
+
+@dataclass
+class ControlEvents:
+    alphaControls: list[ControlItem]
+    posControls: list[ControlItem]
+    sizeControls: list[ControlItem]
+    yControls: list[ControlItem]
+    
+    def __post_init__(self):
+        self.alphaControls.sort(key = lambda x: x.sval)
+        self.posControls.sort(key = lambda x: x.sval)
+        self.sizeControls.sort(key = lambda x: x.sval)
+        self.yControls.sort(key = lambda x: x.sval)
+        self._inite(self.alphaControls)
+        self._inite(self.posControls)
+        self._inite(self.sizeControls)
+        self._inite(self.yControls)
+    
+    def _inite(self, es: list[ControlItem]):
+        for i, e in enumerate(es):
+            if i != len(es) - 1:
+                e.next = es[i + 1]
+    
+    def _gtvalue(self, s: float, es: list[ControlItem], default: float = 1.0):
+        for e in es:
+            if e.next is None:
+                return e.sval
+            if e.sval <= s <= e.next.sval:
+                return e.easingFunc((s - e.sval) / (e.next.sval - e.sval)) * (e.next.tval - e.tval) + e.tval
+        return default
+    
+    def gtvalue(self, x: float):
+        return (
+            self._gtvalue(x, self.alphaControls, 1.0),
+            self._gtvalue(x, self.posControls, 0.0),
+            self._gtvalue(x, self.sizeControls, 1.0),
+            self._gtvalue(x, self.yControls, 0.0)
+        )
+
+@dataclass
 class MetaData:
     RPEVersion: int
     offset: int
@@ -186,6 +243,7 @@ class JudgeLine:
     bpmfactor: float
     father: int|JudgeLine # in other object, __post_init__ change this value to a line
     zOrder: int
+    controlEvents: ControlEvents
     
     playingFloorPosition: float = 0.0
     

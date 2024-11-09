@@ -83,6 +83,7 @@ noplaychart = "--noplaychart" in sys.argv
 clicksound_volume = float(sys.argv[sys.argv.index("--clicksound-volume") + 1]) if "--clicksound-volume" in sys.argv else 1.0
 musicsound_volume = float(sys.argv[sys.argv.index("--musicsound-volume") + 1]) if "--musicsound-volume" in sys.argv else 1.0
 lowquality_imjscvscale_x = float(sys.argv[sys.argv.index("--lowquality-imjscvscale-x") + 1]) if "--lowquality-imjscvscale-x" in sys.argv else 1.0
+enable_controls = "--enable-controls" in sys.argv
 respaths = ["./resources"]
 
 if "--res" in sys.argv:
@@ -1035,7 +1036,8 @@ def updateCoreConfigure():
         judgeline_notransparent = judgeline_notransparent,
         debug = debug, combotips = combotips, noplaychart = noplaychart,
         clicksound_volume = clicksound_volume,
-        musicsound_volume = musicsound_volume
+        musicsound_volume = musicsound_volume,
+        enable_controls = enable_controls
     )
     CoreConfig(PhiCoreConfigureObject)
 

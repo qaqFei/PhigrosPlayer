@@ -59,6 +59,7 @@ class PhiCoreConfigure:
     noplaychart: bool
     clicksound_volume: float
     musicsound_volume: float
+    enable_controls: bool
 
 @dataclass
 class PhiCoreConfigureEx:
@@ -81,7 +82,7 @@ class PhiCoreConfigureEx:
     chart_charter_text_font_size: float
     chart_illustrator_text: str
     chart_illustrator_text_font_size: float
-
+    
 def CoreConfig(config: PhiCoreConfigure):
     global SETTER
     global root, w, h, chart_information
@@ -101,6 +102,7 @@ def CoreConfig(config: PhiCoreConfigure):
     global render_range_more_scale
     global judgeline_notransparent
     global debug, combotips, noplaychart
+    global enable_controls
     
     SETTER = config.SETTER
     root = config.root
@@ -136,6 +138,7 @@ def CoreConfig(config: PhiCoreConfigure):
     debug = config.debug
     combotips = config.combotips
     noplaychart = config.noplaychart
+    enable_controls = config.enable_controls
     
     mixer.music.set_volume(config.musicsound_volume)
     for i in Resource["Note_Click_Audio"].values():
@@ -1469,6 +1472,22 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                 *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
             )
             
+            if enable_controls:
+                rpex = tool_funcs.aconrpepos(x, y)[0]
+                ax, px, sx, yx = line.controlEvents.gtvalue(rpex)
+                noteFloorPosition *= yx
+                x, y = tool_funcs.rotate_point(
+                    *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
+                )
+                rpex, rpey = tool_funcs.aconrpepos(x, y)
+                noteAlpha = note.float_alpha * ax
+                rpex *= px
+                noteWidthX = note.width * sx
+                x, y = tool_funcs.conrpepos(rpex, rpey)
+            else:
+                noteAlpha = note.float_alpha
+                noteWidthX = note.width
+            
             if note.ishold:
                 holdLength = note.holdLength * h
                 noteHoldDrawLength = noteFloorPosition + holdLength
@@ -1538,10 +1557,10 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                             {root.get_img_jsvarname(this_note_imgname_end)},\
                             {holdend_x},\
                             {holdend_y},\
-                            {this_note_width * note.width},\
+                            {this_note_width * noteWidthX},\
                             {this_noteend_height},\
                             {noteRotate},\
-                            {note.float_alpha * miss_alpha_change}\
+                            {noteAlpha * miss_alpha_change}\
                         );",
                         add_code_array = True
                     )
@@ -1553,10 +1572,10 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                                 {root.get_img_jsvarname(this_note_imgname_body)},\
                                 {holdbody_x},\
                                 {holdbody_y},\
-                                {this_note_width * note.width},\
+                                {this_note_width * noteWidthX},\
                                 {holdbody_length},\
                                 {noteRotate},\
-                                {note.float_alpha * miss_alpha_change}\
+                                {noteAlpha * miss_alpha_change}\
                             );",
                             add_code_array = True
                         )
@@ -1568,10 +1587,10 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                             {root.get_img_jsvarname(this_note_imgname)},\
                             {x},\
                             {y},\
-                            {this_note_width * note.width},\
+                            {this_note_width * noteWidthX},\
                             {this_note_height},\
                             {noteRotate},\
-                            {note.float_alpha}\
+                            {noteAlpha}\
                         );",
                         add_code_array = True
                     )

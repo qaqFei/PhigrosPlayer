@@ -264,6 +264,9 @@ def NoJoinThreadFunc(f):
 def conrpepos(x: float, y: float):
     return (x + 675) / 1350, 1.0 - (y + 450) / 900
 
+def aconrpepos(x: float, y: float):
+    return (x * 1350 - 675), (1.0 - y) * 900 - 450
+
 def Format_Time(t:int|float) -> str:
     if t < 0.0: t = 0.0
     m,s = t // 60,t % 60

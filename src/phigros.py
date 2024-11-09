@@ -3402,7 +3402,8 @@ def chartPlayerRender(
         debug = "--debug" in sys.argv,
         combotips = "COMBO" if "--debug" not in sys.argv else "AUTOPLAY", noplaychart = False,
         clicksound_volume = getUserData("setting-clickSoundVolume"),
-        musicsound_volume = getUserData("setting-musicVolume")
+        musicsound_volume = getUserData("setting-musicVolume"),
+        enable_controls = False
     )
     phicore.CoreConfig(coreConfig)
     
