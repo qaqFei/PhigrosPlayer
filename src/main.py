@@ -819,7 +819,7 @@ def PlayerStart():
                     ),
                     data = lfdaot_tasks.values()
                 )
-                with open(lfdaot_fp,"w") as f:
+                with open(lfdaot_fp, "w", encoding="utf-8") as f:
                     f.write(recorder.jsonify())
                     
             if "--lfdaot-file-output-autoexit" in sys.argv:

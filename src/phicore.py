@@ -40,7 +40,7 @@ class PhiCoreConfigure:
     audio_length: float
     raw_audio_length: float
     show_start_time: float
-    chart_res: dict[str, tuple[Image.Image,tuple[int, int]]]
+    chart_res: dict[str, tuple[Image.Image, tuple[int, int]]]
     clickeffect_randomblock: bool
     clickeffect_randomblock_roundn: int
     LoadSuccess: mixer.Sound
@@ -140,9 +140,10 @@ def CoreConfig(config: PhiCoreConfigure):
     noplaychart = config.noplaychart
     enable_controls = config.enable_controls
     
-    mixer.music.set_volume(config.musicsound_volume)
-    for i in Resource["Note_Click_Audio"].values():
-        i.set_volume(config.clicksound_volume)
+    if Resource["Note_Click_Audio"] is not None: # use in tools
+        mixer.music.set_volume(config.musicsound_volume)
+        for i in Resource["Note_Click_Audio"].values():
+            i.set_volume(config.clicksound_volume)
     
     logging.info("CoreConfig Done")
 
