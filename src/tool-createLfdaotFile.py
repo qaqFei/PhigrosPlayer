@@ -82,7 +82,7 @@ coreCfg = phicore.PhiCoreConfigure(
     clickeffect_randomblock = True,
     clickeffect_randomblock_roundn = 0.0,
     LoadSuccess = None,
-    enable_clicksound = True,
+    enable_clicksound = False,
     rtacc = False,
     noautoplay = False,
     showfps = False,
@@ -123,7 +123,7 @@ def _frame(n: int):
 
 def worker():
     while pool:
-        _frame(pool.pop())
+        _frame(pool.pop(0))
 
 ts: list[Thread] = []
 for _ in range(maxthreads):

@@ -46,6 +46,7 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --clicksound-volume <number-value>: Set the click sound volume. (0.0 ~ 1.0) (default: 1.0)
   --musicsound-volume <number-value>: Set the music sound volume. (0.0 ~ 1.0) (default: 1.0)
   --lowquality-imjscvscale-x <number-value>: Set the low quality render scale (js call layer). (default: 1.0)
+  --lfdaot-video-fourcc <fourcc-string-value>: Set the fourcc of the video file. (default: mp4v)
 '''
 
 HELP_ZH = '''\
@@ -92,5 +93,6 @@ HELP_ZH = '''\
   --clickeffect-randomblock-roundn <数字>: 设置打击效果方块的圆角系数 (0.0 = 方, 0.5 = 圆), 默认 = 0.0
   --clicksound-volume <数字>: 设置点击音效音量 (0.0 = 无声, 1.0 = 原音), 默认 = 1.0
   --musicsound-volume <数字>: 设置音乐音量 (0.0 = 无声, 1.0 = 原音), 默认 = 1.0
-  --lowquality-imjscvscale-x <数字>: 设置低画质渲染缩放 (js调用层). (default: 1.0)
+  --lowquality-imjscvscale-x <数字>: 设置低画质渲染缩放 (js调用层). 默认 = 1.0
+  --lfdaot-video-fourcc <字符串>: 设置 *.lfdaot 文件生成的视频编码 默认 = mp4v
 '''

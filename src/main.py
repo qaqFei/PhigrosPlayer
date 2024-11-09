@@ -84,6 +84,7 @@ clicksound_volume = float(sys.argv[sys.argv.index("--clicksound-volume") + 1]) i
 musicsound_volume = float(sys.argv[sys.argv.index("--musicsound-volume") + 1]) if "--musicsound-volume" in sys.argv else 1.0
 lowquality_imjscvscale_x = float(sys.argv[sys.argv.index("--lowquality-imjscvscale-x") + 1]) if "--lowquality-imjscvscale-x" in sys.argv else 1.0
 enable_controls = "--enable-controls" in sys.argv
+lfdaot_video_fourcc = sys.argv[sys.argv.index("--lfdaot-video-fourcc") + 1] if "--lfdaot-video-fourcc" in sys.argv else "mp4v"
 respaths = ["./resources"]
 
 if "--res" in sys.argv:
@@ -918,7 +919,7 @@ def PlayerStart():
                 )
             writer = cv2.VideoWriter(
                 video_fp,
-                cv2.VideoWriter.fourcc(*"mp4v"),
+                cv2.VideoWriter.fourcc(*lfdaot_video_fourcc),
                 frame_speed, (w, h),
                 True
             )
