@@ -18,10 +18,9 @@ jobs:
       - name: unpack
         run: |
           cd src
-          curl -o pgr.apk "https://github.com/SteveZMTstudios/Phigros-history/releases/download/v3.10.0/Phigros_3.10.0.apk"
-          ls
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          python tool-downloadFIle.py pgr.apk https://github.com/SteveZMTstudios/Phigros-history/releases/download/v3.10.0/Phigros_3.10.0.apk
           python tool-unpack.py pgr.apk
           .\7z a unpack_result.zip unpack-result\*
       
