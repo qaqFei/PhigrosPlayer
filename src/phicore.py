@@ -1063,7 +1063,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                     
                     fix_scale = const.NOTE_DUB_FIXSCALE if note_item.morebets else 1.0 # because the note img if has morebets frame, the note will be look small, so we will `*` a fix scale to fix the frame size make the note look is small.
                     this_note_width = Note_width * fix_scale
-                    this_note_height = Note_width / this_note_img.width * this_note_img.height
+                    this_note_height = this_note_width / this_note_img.width * this_note_img.height
                         
                     if this_note_ishold:
                         this_noteend_height = Note_width / this_note_img_end.width * this_note_img_end.height
