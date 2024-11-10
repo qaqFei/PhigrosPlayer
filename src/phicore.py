@@ -907,7 +907,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
         )
         judgeLine_color = (*((254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), lineAlpha if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
-        if judgeLine_color[-1] > 0.0:
+        if judgeLine_color[-1] > 0.0 or debug:
             if render_range_more:
                 Task(
                     root.run_js_code,
