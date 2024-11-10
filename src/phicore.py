@@ -294,23 +294,23 @@ def process_effect_base(
     alphas = (225 if perfect else 235) / 255
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
     if clickeffect_randomblock:
-        block_alpha = (1.0 - p) * 0.85
         randomblock_r = ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.2
         block_size = EFFECT_RANDOM_BLOCK_SIZE * (0.4 * math.sin(p * math.pi) + 0.6)
+        
         for deg, randdr in effect_random_blocks:
-            effect_random_point = tool_funcs.rotate_point(
-                x, y, deg,
-                randomblock_r + EFFECT_RANDOM_BLOCK_SIZE * 2 * randdr * p
-            )
+            pointr = randomblock_r + EFFECT_RANDOM_BLOCK_SIZE * 2 * randdr * p
+            if pointr < 0.0: continue
+            
+            point = tool_funcs.rotate_point(x, y, deg, pointr)
             Task(
                 root.run_js_code,
                 f"ctx.roundRectEx(\
-                    {effect_random_point[0] - block_size / 2},\
-                    {effect_random_point[1] - block_size / 2},\
+                    {point[0] - block_size / 2},\
+                    {point[1] - block_size / 2},\
                     {block_size},\
                     {block_size},\
                     {block_size * clickeffect_randomblock_roundn},\
-                    'rgba{color + (block_alpha * alphas, )}'\
+                    'rgba{color + ((1.0 - p) * alphas, )}'\
                 );",
                 add_code_array = True
             )
