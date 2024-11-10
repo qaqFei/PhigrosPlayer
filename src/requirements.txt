@@ -8,3 +8,5 @@ numpy==2.0.2
 pywebview==5.2
 rjsmin==1.2.3
 librosa==0.10.2.post1
+UnityPy==1.10.18
+fsb5==1.0

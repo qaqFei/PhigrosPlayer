@@ -2,3 +2,5 @@ __pycache__
 phigros_assets
 phigros_userdata.json
 error_*.txt
+unpack-result
+unpack-temp
