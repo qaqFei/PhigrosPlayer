@@ -1,5 +1,5 @@
 from threading import Thread
-from os import system, mkdir
+from os import system, mkdir, listdir
 from os.path import isfile
 from sys import argv
 from shutil import copy, copytree
@@ -24,7 +24,8 @@ debug = "--debug" in argv
 compile_files = [
     ("main.py", False),
     ("gui_launcher.py", False),
-    ("phigros.py", False)
+    ("phigros.py", False),
+    *(map(lambda x: (x, False), filter(lambda x: x.startswith("tool-") and x.endswith(".py") and x != "tool-compile.py", listdir())))
 ]
 res_files = [
     "_internal",
