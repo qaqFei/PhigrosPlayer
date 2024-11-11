@@ -4,12 +4,11 @@ import fix_workpath as _
 import json
 import struct
 import base64
-from os import mkdir, popen
-from os.path import exists
+from os import mkdir, popen, listdir
+from os.path import exists, isfile
 from shutil import rmtree
 from threading import Thread
 from time import sleep
-from queue import Queue
 from uuid import uuid4
 
 import UnityPy
@@ -324,7 +323,7 @@ def generate_resources():
         
     print()
 
-def pack_charts(infos: list[dict]):
+def pack_charts(infos: list[dict], rpe: bool):
     try: rmtree(f"./unpack-result/packed")
     except Exception: pass
     try: mkdir(f"./unpack-result/packed")
@@ -356,8 +355,9 @@ def pack_charts(infos: list[dict]):
     packthread_num = 64
     stopthread_count = 0
     packed_num = 0
+    charts_bak = charts.copy()
     
-    def packworker():
+    def packworker(p2r: bool = False):
         nonlocal packed_num, stopthread_count
         
         while charts:
@@ -371,7 +371,7 @@ def pack_charts(infos: list[dict]):
                 mkdir(f"./unpack-temp/pack-{rid}")
                 with open(f"./unpack-temp/pack-{rid}/info.csv", "w", encoding="utf-8") as f:
                     f.write(item[5])
-                popen(f".\\7z.exe a .\\unpack-result\\packed\\{item[0]}_{item[1]}.zip {" ".join(map(lambda x: f"\"{x}\"", (item[2], item[3], item[4], f"./unpack-temp/pack-{rid}/info.csv")))} -y >> nul").read()
+                popen(f".\\7z.exe a .\\unpack-result\\packed\\{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip {" ".join(map(lambda x: f"\"{x}\"", (item[2], item[3], item[4], f"./unpack-temp/pack-{rid}/info.csv")))} -y >> nul").read()
                 packed_num += 1
             except Exception:
                 pass
@@ -383,6 +383,53 @@ def pack_charts(infos: list[dict]):
     
     while stopthread_count != packthread_num:
         print(f"\r{packed_num} / {allcount}", end="")
+        sleep(0.1)
+    
+    print()
+    
+    if not rpe: return
+    
+    p2r = "tool-phi2rpe.py" if exists("tool-phi2rpe.py") and isfile("tool-phi2rpe.py") else "tool-phi2rpe.exe"
+    phicharts = [f"./unpack-result/Chart_{l}/{i}" for l in ["EZ", "HD", "IN", "AT", "Legacys"] for i in listdir(f"./unpack-result/Chart_{l}")]
+    p2rthread_num = 64
+    p2red_num = 0
+    stopthread_count = 0
+    
+    def p2rworker():
+        nonlocal packed_num, stopthread_count
+        
+        while charts:
+            try:
+                item = phicharts.pop()
+            except IndexError:
+                break
+            
+            try:
+                popen(f"{p2r} {item} {item}").read()
+                packed_num += 1
+            except Exception:
+                pass
+        
+        stopthread_count += 1
+    
+    ts = [Thread(target=p2rworker, daemon=True) for _ in range(p2rthread_num)]
+    (*map(lambda x: x.start(), ts),)
+    
+    while stopthread_count != p2rthread_num:
+        print(f"\rp2r: {p2red_num} / {allcount}", end="")
+        sleep(0.1)
+    
+    print()
+    
+    stopthread_count = 0
+    packed_num = 0
+    charts = charts_bak
+    
+    ts = [Thread(target=packworker, daemon=True, args=(True, )) for _ in range(packthread_num)]
+    (*map(lambda x: x.start(), ts),)
+    
+    while stopthread_count != packthread_num:
+        print(f"\rp2r pack: {packed_num} / {allcount}", end="")
         sleep(0.1)
     
     print()
