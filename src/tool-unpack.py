@@ -391,7 +391,7 @@ def pack_charts(infos: list[dict], rpe: bool):
     
     p2r = "tool-phi2rpe.py" if exists("tool-phi2rpe.py") and isfile("tool-phi2rpe.py") else "tool-phi2rpe.exe"
     phicharts = [f"./unpack-result/Chart_{l}/{i}" for l in ["EZ", "HD", "IN", "AT", "Legacy"] for i in listdir(f"./unpack-result/Chart_{l}")]
-    p2rthread_num = 64
+    p2rthread_num = 8
     p2red_num = 0
     stopthread_count = 0
     
