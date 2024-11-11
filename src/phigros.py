@@ -3882,7 +3882,7 @@ if "--fullscreen" in sys.argv:
     root.web.toggle_fullscreen()
     dw_legacy, dh_legacy = 0, 0
 else:
-    w, h = int(root.winfo_screenwidth() * 0.61803398874989484820458683436564), int(root.winfo_screenheight() * 0.61803398874989484820458683436564)
+    w, h = int(root.winfo_screenwidth() * 0.6), int(root.winfo_screenheight() * 0.6)
     root.resize(w, h)
     w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
     dw_legacy, dh_legacy = w - w_legacy, h - h_legacy
