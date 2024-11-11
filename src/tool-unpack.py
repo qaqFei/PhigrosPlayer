@@ -396,9 +396,9 @@ def pack_charts(infos: list[dict], rpe: bool):
     stopthread_count = 0
     
     def p2rworker():
-        nonlocal packed_num, stopthread_count
+        nonlocal p2red_num, stopthread_count
         
-        while charts:
+        while phicharts:
             try:
                 item = phicharts.pop()
             except IndexError:
@@ -406,7 +406,7 @@ def pack_charts(infos: list[dict], rpe: bool):
             
             try:
                 popen(f"{p2r} {item} {item}").read()
-                packed_num += 1
+                p2red_num += 1
             except Exception:
                 pass
         
