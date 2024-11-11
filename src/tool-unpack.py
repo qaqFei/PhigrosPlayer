@@ -73,7 +73,7 @@ class ByteReaderB:
         self.position += 4
         return int.from_bytes(self.data[self.position - 4 : self.position], "little")
 
-def run(pgrapk: str):
+def run(pgrapk: str, rpe: bool):
     print("unpack apk...")
     unpack_apk(pgrapk)
     print("unpacked apk")
@@ -87,7 +87,7 @@ def run(pgrapk: str):
     print("unpacked")
     
     print("pack charts...")
-    pack_charts(infoResult)
+    pack_charts(infoResult, rpe)
     print("packed charts")
     
     try: rmtree("unpack-temp")
@@ -440,4 +440,4 @@ if __name__ == "__main__":
         print("Usage: tool-unpack <apk>")
         raise SystemExit
     
-    run(argv[1])
+    run(argv[1], "--rpe" in argv)

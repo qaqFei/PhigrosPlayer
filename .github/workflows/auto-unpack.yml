@@ -21,7 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           python tool-downloadFile.py pgr.apk "https://github.com/SteveZMTstudios/Phigros-history/releases/download/v3.10.0/Phigros_3.10.0.apk"
-          python tool-unpack.py pgr.apk
+          python tool-unpack.py pgr.apk --rpe
           .\7z a unpack_result.zip unpack-result\*
       
       - name: upload
