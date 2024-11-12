@@ -17,7 +17,7 @@ jobs:
 
       - name: unpack
         run: |
-          # exit # if phigros update, please remove this line
+          exit # if phigros update, please remove this line
 
           cd src
           python -m pip install --upgrade pip
