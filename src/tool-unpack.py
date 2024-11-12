@@ -1,4 +1,3 @@
-import UnityPy.classes
 import fix_workpath as _
 
 import json

@@ -44,6 +44,9 @@ rpeop = {
     "multiScale": 1.0
 }
 
+def unpack_pos(number: int) -> tuple[int, int]:
+    return (number - number % 1000) // 1000, number % 1000
+
 def transform_line(line: dict):
     rpel = {
         "Group": 0,
@@ -83,6 +86,13 @@ def transform_line(line: dict):
         })
     
     for e in line["judgeLineMoveEvents"]:
+        if phic["formatVersion"] != 3:
+            sp, ep = unpack_pos(e["start"]), unpack_pos(e["end"])
+            e["start"] = sp[0] / 880
+            e["end"] = ep[0] / 880
+            e["start2"] = sp[1] / 520
+            e["end2"] = ep[1] / 520
+        
         rpel["eventLayers"][0]["moveXEvents"].append({
             "linkgroup": 0,
             "bezier": 0,
