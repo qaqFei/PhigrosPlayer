@@ -383,8 +383,7 @@ def pack_charts(infos: list[dict], rpe: bool):
     while stopthread_count != packthread_num:
         print(f"\r{packed_num} / {allcount}", end="")
         sleep(0.1)
-    
-    print()
+    print(f"\r{packed_num} / {allcount}")
     
     if not rpe: return
     
@@ -417,8 +416,7 @@ def pack_charts(infos: list[dict], rpe: bool):
     while stopthread_count != p2rthread_num:
         print(f"\rp2r: {p2red_num} / {allcount}", end="")
         sleep(0.1)
-    
-    print()
+    print(f"\rp2r: {p2red_num} / {allcount}")
     
     stopthread_count = 0
     packed_num = 0
@@ -430,8 +428,7 @@ def pack_charts(infos: list[dict], rpe: bool):
     while stopthread_count != packthread_num:
         print(f"\rp2r pack: {packed_num} / {allcount}", end="")
         sleep(0.1)
-    
-    print()
+    print(f"\rp2r pack: {packed_num} / {allcount}")
 
 if __name__ == "__main__":
     from sys import argv
