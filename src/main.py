@@ -1046,7 +1046,7 @@ logging.info("Loading Window...")
 root = webcv.WebCanvas(
     width = 1, height = 1,
     x = 0, y = 0,
-    title = "Phigros Chart Player",
+    title = "PhigrosPlayer - Simulator",
     debug = "--debug" in sys.argv,
     resizable = False,
     frameless = "--frameless" in sys.argv
