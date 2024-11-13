@@ -222,6 +222,17 @@ def Note_CanRender(
             ]
         ))
 
+def lineInScreen(w: int|float, h: int|float, line: tuple[int|float, ...]):
+    return any(batch_is_intersect(
+        [
+            ((line[0], line[1]), (line[2], line[3]))
+        ],
+        [
+            ((0, 0), (w, 0)), ((0, 0), (0, h)),
+            ((w, 0), (w, h)), ((0, h), (w, h))
+        ]
+    ))
+
 @numba.jit
 def TextureLine_CanRender(
     w: int, h: int,

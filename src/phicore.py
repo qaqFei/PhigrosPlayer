@@ -907,7 +907,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
         )
         judgeLine_color = (*((254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), lineAlpha if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
-        if judgeLine_color[-1] > 0.0 or debug:
+        if (judgeLine_color[-1] > 0.0 and tool_funcs.lineInScreen(w, h, judgeLine_DrawPos)) or debug:
             if render_range_more:
                 Task(
                     root.run_js_code,
@@ -959,6 +959,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
         
         def process(notes_list: typing.List[chartobj_phi.note], t: typing.Literal[1, -1]): # above => t = 1, below => t = -1
             for note_item in notes_list:
+                if note_item.render_skiped: continue
+                
                 this_note_sectime = note_item.time * line.T
                 this_noteitem_clicked = this_note_sectime < now_t
                 this_note_ishold = note_item.type == const.Note.HOLD
@@ -973,12 +975,16 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                         ))
                 
                 if not this_note_ishold and note_item.clicked:
+                    note_item.render_skiped = True
                     continue
                 elif this_note_ishold and now_t > note_item.hold_endtime:
+                    note_item.render_skiped = True
                     continue
                 elif noautoplay and note_item.state == const.NOTE_STATE.BAD:
+                    note_item.render_skiped = True
                     continue
                 elif noautoplay and not this_note_ishold and note_item.player_clicked:
+                    note_item.render_skiped = True
                     continue
                 elif not note_item.clicked and (note_item.floorPosition - lineFloorPosition / PHIGROS_Y) < -0.001 and note_item.type != const.Note.HOLD:
                     continue
@@ -1000,6 +1006,12 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                 rotatenote_at_judgeLine_pos = tool_funcs.rotate_point(*linePos, -lineRotate, note_item.positionX * PHIGROS_X)
                 judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) - lineRotate
                 x, y = tool_funcs.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_now_floorPosition)
+                
+                parallelLineParallelToTheDecisionLineLocatedOnTheNoteExtension = (
+                    *tool_funcs.rotate_point(x, y, -lineRotate, 5.76 * h / 2),
+                    *tool_funcs.rotate_point(x, y, -lineRotate + 180, 5.76 * h / 2)
+                )
+                if not tool_funcs.lineInScreen(w, h, parallelLineParallelToTheDecisionLineLocatedOnTheNoteExtension) and note_now_floorPosition > 0.0: break
                 
                 if this_note_ishold:
                     note_hold_draw_length = note_now_floorPosition + note_item.hold_length_pgry * PHIGROS_Y
@@ -1403,7 +1415,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                     f"{line.attachUI}UI_color": judgeLine_webCanvas_color,
                     f"{line.attachUI}UI_rotate": lineRotate
                 })
-        elif lineAlpha > 0.0:
+        elif lineAlpha > 0.0 and tool_funcs.lineInScreen(w, h, judgeLine_DrawPos):
             Task(
                 root.run_js_code,
                 f"ctx.drawLineEx(\
@@ -1441,6 +1453,8 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
         
         line.playingFloorPosition = line.GetFloorPosition(0.0, now_t, chart_obj)
         for note in line.notes:
+            if note.render_skiped: continue
+            
             note_clicked = note.startTime.value < beatTime
             
             if note_clicked and not note.clicked:
@@ -1453,12 +1467,16 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                     ))
             
             if not note.ishold and note.clicked:
+                note.render_skiped = True
                 continue
             elif note.ishold and beatTime > note.endTime.value:
+                note.render_skiped = True
                 continue
             elif noautoplay and note.state == const.NOTE_STATE.BAD:
+                note.render_skiped = True
                 continue
             elif noautoplay and not note.ishold and note.player_clicked:
+                note.render_skiped = True
                 continue
             
             noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h
@@ -1488,6 +1506,12 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
             else:
                 noteAlpha = note.float_alpha
                 noteWidthX = note.width
+            
+            parallelLineParallelToTheDecisionLineLocatedOnTheNoteExtension = (
+                *tool_funcs.rotate_point(x, y, lineRotate, w * 4000 / 1350 * lineScaleX / 2),
+                *tool_funcs.rotate_point(x, y, lineRotate + 180, w * 4000 / 1350 * lineScaleX / 2)
+            )
+            if not tool_funcs.lineInScreen(w, h, parallelLineParallelToTheDecisionLineLocatedOnTheNoteExtension) and noteFloorPosition > 0.0: break
             
             if note.ishold:
                 holdLength = note.holdLength * h

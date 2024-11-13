@@ -82,6 +82,8 @@ class Note:
     player_badtime_beat: float = float("nan")
     player_badjudge_floorp: float = float("nan")
     
+    render_skiped: bool = False
+    
     def __post_init__(self):
         self.phitype = {1:1, 2:3, 3:4, 4:2}[self.type]
         self.type_string = {
@@ -374,6 +376,8 @@ class Rpe_Chart:
                 
             if line.father != -1:
                 line.father = self.JudgeLineList[line.father]
+            
+            line.notes.sort(key=lambda x: x.startTime.value)
         
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
         

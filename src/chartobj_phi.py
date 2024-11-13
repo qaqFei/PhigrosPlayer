@@ -48,6 +48,8 @@ class note:
     player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
     player_drag_judge_safe_used: bool = False
     
+    render_skiped: bool = False
+    
     def __post_init__(self):
         self.id = tool_funcs.Get_A_New_NoteId()
         self.effect_random_blocks = tool_funcs.get_effect_random_blocks()
@@ -168,6 +170,8 @@ class judgeLine:
         self.speedEvents += spes
         
         self._sort_events()
+        self.notesAbove.sort(key = lambda x: x.time)
+        self.notesBelow.sort(key = lambda x: x.time)
     
     def _sort_events(self):
         self.speedEvents.sort(key = lambda x: x.startTime) # it cannot sort, if sort it -> cal floorPosition will be error. (i donot know why...)

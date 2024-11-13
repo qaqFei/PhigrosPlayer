@@ -491,7 +491,10 @@
         }
         catch (e) {
             console.log(e);
-            alert("啊不是，你等资源加载啊喂！等一会再点！");
+            if (!this._showedError) {
+                alert("啊不是，你等资源加载啊喂！等一会再点！");
+                this._showedError = true;
+            }
         }
     }
 
