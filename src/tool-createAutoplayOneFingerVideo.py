@@ -58,7 +58,7 @@ elif isinstance(chartObj, chartobj_rpe.Rpe_Chart): # eq else
     for line in chartObj.JudgeLineList:
         for note in line.notes:
             moveDatas.append({
-                "time": chartObj.beat2sec(note.startTime.value, line.bpmfactor),
+                "time": note.secst,
                 "pos": note.getNoteClickPos(note.startTime.value, chartObj, line)
             })
             

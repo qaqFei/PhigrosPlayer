@@ -63,6 +63,7 @@ class Note:
     holdLength: float = 0.0
     show_effected: bool = False
     masterLine: JudgeLine|None = None
+    master_index: int|None = None
     
     state: int = const.NOTE_STATE.MISS
     player_clicked: bool = False
@@ -98,19 +99,17 @@ class Note:
         self.effect_random_blocks = tool_funcs.get_effect_random_blocks()
     
     def _init(self, master: Rpe_Chart, avgBpm: float):
-        self.effect_times = []
-        hold_starttime = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
-        hold_effect_blocktime = 1 / avgBpm * 30
-        hold_endtime = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
-        self.player_holdjudge_tomanager_time = max(0, master.beat2sec(self.endTime.value, self.masterLine.bpmfactor) - 0.2)
-        while True:
-            hold_starttime += hold_effect_blocktime
-            if hold_starttime >= hold_endtime:
-                break
-            self.effect_times.append((hold_starttime, tool_funcs.get_effect_random_blocks()))
-        
         self.secst = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
         self.secet = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
+        
+        self.effect_times = []
+        hold_effect_blocktime = 1 / avgBpm * 30
+        self.player_holdjudge_tomanager_time = max(0, self.secet - 0.2)
+        while True:
+            self.secst += hold_effect_blocktime
+            if self.secst >= self.secet:
+                break
+            self.effect_times.append((self.secst, tool_funcs.get_effect_random_blocks()))
         
     def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> tuple[float, float]:
         linePos = line.GetPos(time, master)
@@ -345,9 +344,7 @@ class JudgeLine:
         return fp * 120 / 900
 
     def GetHoldLength(self, t: float, n: Note, master: Rpe_Chart):
-        sect = master.beat2sec(n.endTime.value, self.bpmfactor) - master.beat2sec(n.startTime.value, self.bpmfactor)
-        speed = self.GetSpeed(t)
-        return sect * speed * 120 / 900
+        return (n.secet - n.secst) * self.GetSpeed(t) * 120 / 900
 
     def __hash__(self) -> int:
         return id(self)
@@ -370,9 +367,11 @@ class Rpe_Chart:
         except ZeroDivisionError: avgBpm = 140.0
         
         for line in self.JudgeLineList:
-            for note in line.notes:
+            for i, note in enumerate(line.notes):
+                note.master_index = i
                 note.masterLine = line
                 note._init(self, avgBpm)
+                note
                 
             if line.father != -1:
                 line.father = self.JudgeLineList[line.father]

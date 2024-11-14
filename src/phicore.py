@@ -843,7 +843,6 @@ def draw_ui(
         y = h * 0.995,
         textAlign = "right",
         textBaseline = "bottom",
-        strokeStyle = "rgba(255, 255, 255, 0.5)",
         fillStyle = "rgba(255, 255, 255, 0.5)",
         font = f"{((w + h) / 275 / 0.75)}px PhigrosFont",
         wait_execute = True
@@ -907,7 +906,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
         )
         judgeLine_color = (*((254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), lineAlpha if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
-        if (judgeLine_color[-1] > 0.0 and tool_funcs.lineInScreen(w, h, judgeLine_DrawPos)) or debug:
+        if (judgeLine_color[-1] > 0.0 and (tool_funcs.lineInScreen(w, h, judgeLine_DrawPos) or render_range_more)) or debug:
             if render_range_more:
                 Task(
                     root.run_js_code,
@@ -933,7 +932,6 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                     font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
                     textAlign = "center",
                     textBaseline = "middle",
-                    strokeStyle = "rgba(254, 255, 169, 0.5)",
                     fillStyle = "rgba(254, 255, 169, 0.5)",
                     wait_execute = True
                 )
@@ -1007,11 +1005,23 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                 judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) - lineRotate
                 x, y = tool_funcs.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_now_floorPosition)
                 
-                parallelLineParallelToTheDecisionLineLocatedOnTheNoteExtension = (
-                    *tool_funcs.rotate_point(x, y, -lineRotate, 5.76 * h / 2),
-                    *tool_funcs.rotate_point(x, y, -lineRotate + 180, 5.76 * h / 2)
-                )
-                if not tool_funcs.lineInScreen(w, h, parallelLineParallelToTheDecisionLineLocatedOnTheNoteExtension) and note_now_floorPosition > 0.0: break
+                if note_now_floorPosition > note_max_size_half:
+                    plpttdllotne_line = (
+                        *tool_funcs.rotate_point(x, y, -lineRotate, (w + h) * 50),
+                        *tool_funcs.rotate_point(x, y, -lineRotate + 180, (w + h) * 50)
+                    )
+                    
+                    plpttdllotne_center_point_addsomefp = tool_funcs.rotate_point(
+                        *rotatenote_at_judgeLine_pos,
+                        judgeLine_to_note_rotate_deg,
+                        note_now_floorPosition + 1.0 # add 1.0 px
+                    )
+                    
+                    if not tool_funcs.lineInScreen(w, h, plpttdllotne_line) and (
+                        tool_funcs.getLineLength(*plpttdllotne_center_point_addsomefp, w / 2, h / 2)
+                        - tool_funcs.getLineLength(x, y, w / 2, h / 2)
+                    ) > 0.0:
+                        break
                 
                 if this_note_ishold:
                     note_hold_draw_length = note_now_floorPosition + note_item.hold_length_pgry * PHIGROS_Y
@@ -1134,6 +1144,30 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                             );",
                             add_code_array = True
                         )
+                
+                    if debug:
+                        Task(
+                            root.create_text,
+                            *tool_funcs.rotate_point(x, y, judgeLine_to_note_rotate_deg, (w + h) / 75),
+                            text = f"{lineIndex}+{note_item.master_index}",
+                            font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
+                            textAlign = "center",
+                            textBaseline = "middle",
+                            fillStyle = "rgba(0, 255, 255, 0.5)",
+                            wait_execute = True
+                        )
+                        
+                        Task(
+                            root.run_js_code,
+                            f"ctx.fillRectEx(\
+                                {x - (w + h) / 250},\
+                                {y - (w + h) / 250},\
+                                {(w + h) / 250 * 2},\
+                                {(w + h) / 250 * 2},\
+                                'rgb(0, 255, 0)'\
+                            );",
+                            add_code_array = True
+                        )
         
         process(line.notesAbove, 1)
         process(line.notesBelow, -1)
@@ -1234,6 +1268,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
         for note in line.notesAbove + line.notesBelow:
             note_time = note.time * line.T
             note_ishold = note.type == const.Note.HOLD
+            
             if not note_ishold and note.show_effected:
                 continue
             
@@ -1259,6 +1294,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                                         hold_effect_random_blocks,
                                         True
                                     )
+                
             else: # noautoplay
                 if note.player_holdjudged or (note.state == const.NOTE_STATE.PERFECT or note.state == const.NOTE_STATE.GOOD and note.player_clicked):
                     if note_time - note.player_click_offset <= now_t:
@@ -1434,7 +1470,6 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                 font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
                 textAlign = "center",
                 textBaseline = "middle",
-                strokeStyle = "rgba(254, 255, 169, 0.5)",
                 fillStyle = "rgba(254, 255, 169, 0.5)",
                 wait_execute = True
             )
@@ -1506,12 +1541,24 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
             else:
                 noteAlpha = note.float_alpha
                 noteWidthX = note.width
-            
-            parallelLineParallelToTheDecisionLineLocatedOnTheNoteExtension = (
-                *tool_funcs.rotate_point(x, y, lineRotate, w * 4000 / 1350 * lineScaleX / 2),
-                *tool_funcs.rotate_point(x, y, lineRotate + 180, w * 4000 / 1350 * lineScaleX / 2)
-            )
-            if not tool_funcs.lineInScreen(w, h, parallelLineParallelToTheDecisionLineLocatedOnTheNoteExtension) and noteFloorPosition > 0.0: break
+                
+            if noteFloorPosition > note_max_size_half:
+                plpttdllotne_line = (
+                    *tool_funcs.rotate_point(x, y, lineRotate, (w + h) * 50),
+                    *tool_funcs.rotate_point(x, y, lineRotate + 180, (w + h) * 50)
+                )
+                
+                plpttdllotne_center_point_addsomefp = tool_funcs.rotate_point(
+                    *noteAtJudgeLinePos,
+                    lineToNoteRotate,
+                    noteFloorPosition + 1.0 # add 1.0 px
+                )
+                
+                if not tool_funcs.lineInScreen(w, h, plpttdllotne_line) and (
+                    tool_funcs.getLineLength(*plpttdllotne_center_point_addsomefp, w / 2, h / 2)
+                    - tool_funcs.getLineLength(x, y, w / 2, h / 2)
+                ) > 0.0:
+                    break
             
             if note.ishold:
                 holdLength = note.holdLength * h
@@ -1616,6 +1663,30 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                             {this_note_height},\
                             {noteRotate},\
                             {noteAlpha}\
+                        );",
+                        add_code_array = True
+                    )
+                    
+                if debug:
+                    Task(
+                        root.create_text,
+                        *tool_funcs.rotate_point(x, y, lineToNoteRotate, (w + h) / 75),
+                        text = f"{line_index}+{note.master_index}",
+                        font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
+                        textAlign = "center",
+                        textBaseline = "middle",
+                        fillStyle = "rgba(0, 255, 255, 0.5)",
+                        wait_execute = True
+                    )
+                    
+                    Task(
+                        root.run_js_code,
+                        f"ctx.fillRectEx(\
+                            {x - (w + h) / 250},\
+                            {y - (w + h) / 250},\
+                            {(w + h) / 250 * 2},\
+                            {(w + h) / 250 * 2},\
+                            'rgb(0, 255, 0)'\
                         );",
                         add_code_array = True
                     )
@@ -1728,7 +1799,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                         note.show_effected = True
                     
                     if note.ishold:
-                        efct_et = chart_obj.beat2sec(note.endTime.value, line.bpmfactor) + effect_time
+                        efct_et = note.secet + effect_time
                         if efct_et >= now_t:
                             for temp_time, hold_effect_random_blocks in note.effect_times:
                                 if temp_time < now_t:

@@ -135,7 +135,7 @@ def Load_Chart_Object(chart: dict):
         for note in line.notes:
             note.floorPosition = line.GetNoteFloorPosition(0.0, note, rpe_chart_obj)
             if note.ishold:
-                note.holdLength = line.GetFloorPosition(0.0, rpe_chart_obj.beat2sec(note.endTime.value, line.bpmfactor), rpe_chart_obj) - note.floorPosition
+                note.holdLength = line.GetFloorPosition(0.0, note.secet, rpe_chart_obj) - note.floorPosition
                 
     logging.info("Load Chart Object Successfully, fmt = rpe")
     

@@ -26,7 +26,7 @@ if "META" in Chart and "formatVersion" not in Chart:
                 "bpm": 1.875,
                 "notesAbove": [
                     {
-                        "time": rpeobj.beat2sec(note.startTime.value, line.bpmfactor),
+                        "time": note.secst,
                         "type": note.phitype
                     }
                     for note in line.notes if not note.isFake

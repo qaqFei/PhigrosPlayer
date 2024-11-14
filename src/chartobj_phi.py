@@ -34,6 +34,7 @@ class note:
     show_effected: bool = False
     effect_times: list[tuple[int]] | tuple = ()
     state: int = const.NOTE_STATE.MISS
+    master_index: int|None = None
     player_clicked: bool = False
     player_click_offset: float = 0.0
     player_click_sound_played: bool = False
@@ -170,6 +171,8 @@ class judgeLine:
         self.speedEvents += spes
         
         self._sort_events()
+        for i, n in enumerate(self.notesAbove): n.master_index = i
+        for i, n in enumerate(self.notesBelow): n.master_index = i
         self.notesAbove.sort(key = lambda x: x.time)
         self.notesBelow.sort(key = lambda x: x.time)
     
