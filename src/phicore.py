@@ -1780,48 +1780,18 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
         )
     
     for line in chart_obj.JudgeLineList:
-        for note in line.notes:
-            if not note.ishold and note.show_effected:
-                continue
-            elif note.isFake:
-                continue
+        for note in line.effectNotes.copy():
+            if not noautoplay and not note.clicked: break
             
             if not noautoplay:
-                if note.clicked:
-                    if now_t - note.secst <= effect_time:
-                        process_effect(
-                            note,
-                            note.startTime.value,
-                            note.effect_random_blocks,
-                            True
-                        )
-                    else:
-                        note.show_effected = True
-                    
-                    if note.ishold:
-                        efct_et = note.secet + effect_time
-                        if efct_et >= now_t:
-                            for temp_time, hold_effect_random_blocks in note.effect_times:
-                                if temp_time < now_t:
-                                    if now_t - temp_time <= effect_time:
-                                        process_effect(
-                                            note,
-                                            chart_obj.sec2beat(temp_time, note.masterLine.bpmfactor),
-                                            hold_effect_random_blocks,
-                                            True
-                                        )
+                for dt, bt, erbs in note.effect_times:
+                    if note.secst + dt <= now_t <= note.secst + dt + effect_time:
+                        process_effect(note, bt, erbs, True)
             else: # noautoplay
                 if note.player_holdjudged or (note.state == const.NOTE_STATE.PERFECT or note.state == const.NOTE_STATE.GOOD and note.player_clicked):
-                    if note.secst - note.player_click_offset <= now_t:
-                        if now_t - (note.secst - note.player_click_offset) <= effect_time:
-                            process_effect(
-                                note,
-                                chart_obj.sec2beat(note.secst - note.player_click_offset, note.masterLine.bpmfactor),
-                                note.effect_random_blocks,
-                                note.state == const.NOTE_STATE.PERFECT if not note.ishold else note.player_holdclickstate == const.NOTE_STATE.PERFECT
-                            )
-                        else:
-                            note.show_effected = True
+                    dt, bt, erbs = note.effect_times[0]
+                    if note.secst + dt <= now_t <= note.secst + dt + effect_time:
+                        process_effect(note, bt, erbs, note.state == const.NOTE_STATE.PERFECT if not note.ishold else note.player_holdclickstate == const.NOTE_STATE.PERFECT)
                 elif note.state == const.NOTE_STATE.MISS:
                     if 0.0 <= now_t - note.secst <= miss_effect_time and not note.ishold:
                         process_miss(note)
@@ -1830,20 +1800,14 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                         process_bad(note)
                         
                 if note.ishold and note.player_holdjudged and note.player_holdclickstate != const.NOTE_STATE.MISS:
-                    efct_et = note.player_holdmiss_time + effect_time
-                    if efct_et >= now_t:
-                        for temp_time, hold_effect_random_blocks in note.effect_times:
-                            if temp_time < now_t:
-                                if now_t - temp_time <= effect_time:
-                                    if temp_time + effect_time <= efct_et:
-                                        process_effect(
-                                            note,
-                                            chart_obj.sec2beat(temp_time, note.masterLine.bpmfactor),
-                                            hold_effect_random_blocks,
-                                            note.player_holdclickstate == const.NOTE_STATE.PERFECT
-                                        )
+                    for dt, bt, erbs in note.effect_times[1:]:
+                        if note.secst + dt <= now_t <= note.secst + dt + effect_time and note.secst + dt >= note.secst + note.player_click_offset:
+                            process_effect(note, bt, erbs, note.player_holdclickstate == const.NOTE_STATE.PERFECT)
+                
+            if note.secst + note.effect_times[-1][0] + effect_time + 0.16 < now_t:
+                line.effectNotes.remove(note)
     
-    combo = len([i for line in chart_obj.JudgeLineList for i in line.notes if not i.isFake and ((not i.ishold and i.clicked) or (i.ishold and i.secet - 0.2 < now_t))]) if not noautoplay else PhigrosPlayManagerObject.getCombo()
+    combo = chart_obj.getCombo(now_t + chart_obj.META.offset / 1000) if not noautoplay else PhigrosPlayManagerObject.getCombo()
     now_t /= speed
     Task(
         draw_ui,

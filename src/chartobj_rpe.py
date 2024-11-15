@@ -96,25 +96,29 @@ class Note:
         self.positionX2 = self.positionX / 1350
         self.float_alpha = (255 & int(self.alpha)) / 255
         self.ishold = self.type_string == "Hold"
-        self.effect_random_blocks = tool_funcs.get_effect_random_blocks()
     
     def _init(self, master: Rpe_Chart, avgBpm: float):
         self.secst = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
         self.secet = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
+        self.player_holdjudge_tomanager_time = max(self.secst, self.secet - 0.2)
         
         self.effect_times = []
-        hold_effect_blocktime = 1 / avgBpm * 30
-        self.player_holdjudge_tomanager_time = max(0, self.secet - 0.2)
-        while True:
-            self.secst += hold_effect_blocktime
-            if self.secst >= self.secet:
-                break
-            self.effect_times.append((self.secst, tool_funcs.get_effect_random_blocks()))
+        
+        self.effect_times.append((0.0, master.sec2beat(self.secst, self.masterLine.bpmfactor), tool_funcs.get_effect_random_blocks()))
+        if self.ishold:
+            bt = 1 / avgBpm * 30
+            st = 0.0
+            while True:
+                st += bt
+                if st >= self.secet - self.secst: break
+                self.effect_times.append((st, master.sec2beat(self.secst + st, self.masterLine.bpmfactor), tool_funcs.get_effect_random_blocks()))
         
     def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> tuple[float, float]:
         linePos = line.GetPos(time, master)
         lineRotate = sum([line.GetEventValue(time, layer.rotateEvents, 0.0) for layer in line.eventLayers])
         return tool_funcs.rotate_point(*linePos, lineRotate, self.positionX2)
+
+    def __eq__(self, value): return self is value
 
 @dataclass
 class LineEvent:
@@ -247,6 +251,7 @@ class JudgeLine:
     controlEvents: ControlEvents
     
     playingFloorPosition: float = 0.0
+    effectNotes: list[Note]|None = None
     
     def GetEventValue(self, t: float, es: list[LineEvent], default):
         for e in es:
@@ -360,8 +365,11 @@ class Rpe_Chart:
     BPMList: list[BPMEvent]
     JudgeLineList: list[JudgeLine]
     
+    combotimes: list[float]|None = None
+    
     def __post_init__(self):
         self.BPMList.sort(key=lambda x: x.startTime.value)
+        self.combotimes = []
         
         try: avgBpm = sum([e.bpm for e in self.BPMList]) / len(self.BPMList)
         except ZeroDivisionError: avgBpm = 140.0
@@ -371,21 +379,26 @@ class Rpe_Chart:
                 note.master_index = i
                 note.masterLine = line
                 note._init(self, avgBpm)
-                note
+                if not note.isFake:
+                    self.combotimes.append(note.secst if not note.ishold else max(note.secst, note.secet - 0.2))
                 
             if line.father != -1:
                 line.father = self.JudgeLineList[line.father]
             
             line.notes.sort(key=lambda x: x.startTime.value)
+            line.effectNotes = [i for i in line.notes if not i.isFake]
         
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
-        
-        zos = {}
-        for line in self.JudgeLineList:
-            if line.zOrder not in zos: zos[line.zOrder] = []
-            zos[line.zOrder].append(line)
-        zositems = sorted(zos.items(), key=lambda x: x[0])
-        self.JudgeLineList = [i for _, v in zositems for i in v]
+        self.JudgeLineList.sort(key = lambda x: x.zOrder)
+        self.combotimes.sort()
+    
+    def getCombo(self, t: float):
+        l, r = 0, len(self.combotimes)
+        while l < r:
+            m = (l + r) // 2
+            if self.combotimes[m] < t: l = m + 1
+            else: r = m
+        return l
     
     @cache
     def sec2beat(self, t: float, bpmfactor: float):
