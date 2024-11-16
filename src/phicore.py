@@ -1273,6 +1273,9 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                         if eft <= now_t <= eft + effect_time and eft >= note.secst + note.player_click_offset:
                             process_effect(eft, erbs, note.player_holdclickstate == const.NOTE_STATE.PERFECT, position)
                     
+            if note.effect_times[-1][0] + effect_time + 0.16 < now_t:
+                line.effectNotes.remove(note)
+                
     if render_range_more:
         Task(
             root.run_js_code,
@@ -1724,7 +1727,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                         if eft <= now_t <= eft + effect_time and eft >= note.secst + note.player_click_offset:
                             process_effect(eft, erbs, note.player_holdclickstate == const.NOTE_STATE.PERFECT, position)
                 
-            if note.secst + note.effect_times[-1][0] + effect_time + 0.16 < now_t:
+            if note.effect_times[-1][0] + effect_time + 0.16 < now_t:
                 line.effectNotes.remove(note)
     
     combo = chart_obj.getCombo(now_t) if not noautoplay else PhigrosPlayManagerObject.getCombo()
