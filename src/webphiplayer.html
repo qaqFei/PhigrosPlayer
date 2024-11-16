@@ -296,7 +296,7 @@
             let [effectRandomX, effectRandomY] = rotatePoint(effectX, effectY, beforedeg + deg, randomBlockR);
             ctx.save();
             ctx.beginPath();
-            ctx.fillStyle = `rgba(254, 255, 169, ${blockAlpha})`;
+            ctx.fillStyle = `rgba(255, 255, 170, ${blockAlpha})`;
             ctx.fillRect(
                 effectRandomX - blockSize / 2,
                 effectRandomY - blockSize / 2,
@@ -341,7 +341,7 @@
 
             let [lineX1, lineY1] = rotatePoint(lineX, lineY, lineRotate, h * 5.76 / 2);
             let [lineX2, lineY2] = rotatePoint(lineX, lineY, lineRotate + 180, h * 5.76 / 2);
-            ctx.drawLineEx(lineX1, lineY1, lineX2, lineY2, h * 0.0075, `rgba(254, 255, 169, ${lineAlpha})`);
+            ctx.drawLineEx(lineX1, lineY1, lineX2, lineY2, h * 0.0075, `rgba(255, 255, 170, ${lineAlpha})`);
 
             let lineFPosition = getPhiFP(line, curBTime);
 

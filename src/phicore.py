@@ -202,7 +202,7 @@ class PhigrosPlayManager:
             return (255, 255, 255) # White
         if "G" in self.events:
             return (162, 238, 255) # FC
-        return (254, 255, 169) # AP
+        return (255, 255, 170) # AP
 
     def getCombo(self) -> int:
         cut = 0
@@ -904,7 +904,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
             *tool_funcs.rotate_point(*linePos, -lineRotate, 5.76 * h / 2),
             *tool_funcs.rotate_point(*linePos, -lineRotate + 180, 5.76 * h / 2)
         )
-        judgeLine_color = (*((254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), lineAlpha if not judgeline_notransparent else 1.0)
+        judgeLine_color = (*((255, 255, 170) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor()), lineAlpha if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
         if (judgeLine_color[-1] > 0.0 and (tool_funcs.lineInScreen(w, h, judgeLine_DrawPos) or render_range_more)) or debug:
             if render_range_more:
@@ -932,7 +932,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                     font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
                     textAlign = "center",
                     textBaseline = "middle",
-                    fillStyle = "rgba(254, 255, 169, 0.5)",
+                    fillStyle = "rgba(255, 255, 170, 0.5)",
                     wait_execute = True
                 )
                 
@@ -1398,7 +1398,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
     attachUIData = {}
     
     for line_index, line in enumerate(chart_obj.JudgeLineList):
-        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t, line.bpmfactor), (254, 255, 169) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
+        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t, line.bpmfactor), (255, 255, 170) if not noautoplay else PhigrosPlayManagerObject.getJudgelineColor(), chart_obj)
         beatTime = chart_obj.sec2beat(now_t, line.bpmfactor)
         if judgeline_notransparent: lineAlpha = 1.0
         linePos = (linePos[0] * w, linePos[1] * h)
@@ -1470,7 +1470,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                 font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
                 textAlign = "center",
                 textBaseline = "middle",
-                fillStyle = "rgba(254, 255, 169, 0.5)",
+                fillStyle = "rgba(255, 255, 170, 0.5)",
                 wait_execute = True
             )
             

@@ -7,7 +7,6 @@ from dataclasses import dataclass
 
 import const
 import tool_funcs
-import rpe_easing
 
 def getFloorPosition(line: judgeLine, t: float) -> float:
     if not line.speedEvents: return 0.0
@@ -16,6 +15,24 @@ def getFloorPosition(line: judgeLine, t: float) -> float:
             return speed_event.floorPosition + (t - speed_event.startTime) * line.T * speed_event.value
     last_speed_event = line.speedEvents[-1]
     return last_speed_event.floorPosition + (t - last_speed_event.endTime) * line.T * last_speed_event.value
+
+def findevent(
+    events: list[
+        judgeLineDisappearEvent
+        |judgeLineMoveEvent
+        |judgeLineRotateEvent
+    ], t: float
+) -> judgeLineDisappearEvent|judgeLineMoveEvent|judgeLineRotateEvent|None:
+    l, r = 0, len(events) - 1
+    
+    while l <= r:
+        m = (l + r) // 2
+        e = events[m]
+        if e.startTime <= t <= e.endTime: return e
+        elif e.startTime > t: r = m - 1
+        else: l = m + 1
+            
+    return None
 
 @dataclass
 class note:
@@ -123,28 +140,6 @@ class judgeLineDisappearEvent:
     end: float
 
 @dataclass
-class TextEvent:
-    startTime: float
-    value: str
-
-@dataclass
-class ScaleEvent:
-    startTime: float
-    endTime: float
-    start: float
-    end: float
-    easingType: int
-    easingFunc: typing.Callable|None = None
-    
-    def __post_init__(self):
-        self.easingFunc = rpe_easing.ease_funcs[self.easingType - 1]
-
-@dataclass
-class ColorEvent:
-    startTime: float
-    value: list[int]
-
-@dataclass
 class judgeLine:
     bpm: float
     notesAbove: list[note]
@@ -177,7 +172,7 @@ class judgeLine:
         self.notesBelow.sort(key = lambda x: x.time)
     
     def _sort_events(self):
-        self.speedEvents.sort(key = lambda x: x.startTime) # it cannot sort, if sort it -> cal floorPosition will be error. (i donot know why...)
+        self.speedEvents.sort(key = lambda x: x.startTime)
         self.judgeLineMoveEvents.sort(key = lambda x: x.startTime)
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
         self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)
@@ -189,39 +184,31 @@ class judgeLine:
             note.master = self
     
     def get_datavar_rotate(self, now_time):
-        for e in self.judgeLineRotateEvents:
-            if e.startTime <= now_time <= e.endTime:
-                return tool_funcs.linear_interpolation(
-                    now_time,
-                    e.startTime,
-                    e.endTime,
-                    e.start,
-                    e.end
-                )
-        return 0.0
+        e = findevent(self.judgeLineRotateEvents, now_time)
+        return tool_funcs.linear_interpolation(
+            now_time,
+            e.startTime,
+            e.endTime,
+            e.start,
+            e.end
+        ) if e is not None else 0.0
     
     def get_datavar_disappear(self, now_time):
-        for e in self.judgeLineDisappearEvents:
-            if e.startTime <= now_time <= e.endTime:
-                return tool_funcs.linear_interpolation(
-                    now_time,
-                    e.startTime,
-                    e.endTime,
-                    e.start,
-                    e.end
-                )
-        return 0.0
+        e = findevent(self.judgeLineDisappearEvents, now_time)
+        return tool_funcs.linear_interpolation(
+            now_time,
+            e.startTime,
+            e.endTime,
+            e.start,
+            e.end
+        ) if e is not None else 0.0
     
     def _get_datavar_move_rawphi(self, now_time):
-        v = (0.0, 0.0)
-        for e in self.judgeLineMoveEvents:
-            if e.startTime <= now_time <= e.endTime:
-                v = (
-                    tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start, e.end),
-                    tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2)
-                )
-                break
-        return v
+        e = findevent(self.judgeLineMoveEvents, now_time)
+        return (
+            tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start, e.end),
+            tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2)
+        ) if e is not None else (0.0, 0.0)
     
     def get_datavar_move(self, now_time, w, h):
         raw = self._get_datavar_move_rawphi(now_time)

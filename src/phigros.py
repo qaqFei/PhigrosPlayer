@@ -1993,7 +1993,7 @@ def settingRender():
             h * (180 / 1080), h * (1015 / 1080)
         ) - h * (835 / 1080) # 这里为什么要减, ???
         
-        lineColor = "254, 255, 169" if getUserData("setting-enableFCAPIndicator") else "255, 255, 255"
+        lineColor = "255, 255, 170" if getUserData("setting-enableFCAPIndicator") else "255, 255, 255"
         root.run_js_code( # 2 layers alpha
             f"ctx.drawLineEx(\
                 {w * 0.49375}, {h * 0.8},\
@@ -2055,7 +2055,7 @@ def settingRender():
                                 {effect_random_point[0] - block_size / 2},\
                                 {effect_random_point[1] - block_size / 2},\
                                 {block_size}, {block_size},\
-                                'rgba(254, 255, 169, {(1.0 - p) * 0.85})'\
+                                'rgba(255, 255, 170, {(1.0 - p) * 0.85})'\
                             );",
                             add_code_array = True
                         )

@@ -117,7 +117,7 @@ class Note:
         self.player_holdjudge_tomanager_time = max(self.secst, self.secet - 0.2)
         
         self.floorPosition = self.masterLine.GetFloorPosition(0.0, self.secst)
-        if self.ishold: self.holdLength = self.masterLine.GetFloorPosition(0.0, self.secet) - self.floorPosition
+        if self.ishold: self.holdLength = self.masterLine.GetFloorPosition(self.secst, self.secet)
 
         self.effect_times = []
         self.effect_times.append((
@@ -350,16 +350,18 @@ class JudgeLine:
         for layer in self.eventLayers:
             for e in layer.speedEvents:
                 st, et = e.startTime.secvar, e.endTime.secvar
+                
                 if l <= st <= r <= et:
                     v1, v2 = st, r
                 elif st <= l <= et <= r:
-                    v1, v2 = st, l
+                    v1, v2 = l, et
                 elif l <= st <= et <= r:
                     v1, v2 = st, et
                 elif st <= l <= r <= et:
                     v1, v2 = l, r
-                else:
-                    continue
+                elif st > r: break
+                else: continue
+                
                 if e.start == e.end:
                     fp += (v2 - v1) * e.start
                 else:
@@ -373,9 +375,7 @@ class JudgeLine:
         return id(self)
     
     def __eq__(self, oth) -> bool:
-        if isinstance(oth, JudgeLine):
-            return self is oth
-        return False
+        return self is oth
 
 @dataclass
 class Rpe_Chart:
@@ -393,6 +393,9 @@ class Rpe_Chart:
         except ZeroDivisionError: avgBpm = 140.0
         
         for line in self.JudgeLineList:
+            if line.father != -1:
+                line.father = self.JudgeLineList[line.father]
+                
             for layer in line.eventLayers:
                 for e in layer.speedEvents:
                     e.startTime.secvar = self.beat2sec(e.startTime.value, line.bpmfactor)
@@ -404,9 +407,6 @@ class Rpe_Chart:
                 note._init(self, avgBpm)
                 if not note.isFake:
                     self.combotimes.append(note.secst if not note.ishold else max(note.secst, note.secet - 0.2))
-                
-            if line.father != -1:
-                line.father = self.JudgeLineList[line.father]
             
             line.notes.sort(key=lambda x: x.startTime.value)
             line.effectNotes = [i for i in line.notes if not i.isFake]
