@@ -955,7 +955,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                     add_code_array = True
                 )
         
-        def process(notes_list: typing.List[chartobj_phi.note], t: typing.Literal[1, -1]): # above => t = 1, below => t = -1
+        def process(notes_list: list[chartobj_phi.note], t: typing.Literal[1, -1]): # above => t = 1, below => t = -1
             for note_item in notes_list:
                 if note_item.render_skiped: continue
                 
@@ -1486,7 +1486,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                 add_code_array = True
             )
         
-        line.playingFloorPosition = line.GetFloorPosition(0.0, now_t, chart_obj)
+        line.playingFloorPosition = line.GetFloorPosition(0.0, now_t)
         for note in line.notes:
             if note.render_skiped: continue
             
@@ -1696,21 +1696,14 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
     bad_effect_time = 0.5
         
     def process_effect(
-        note: chartobj_rpe.Note,
-        t: float,
+        sec_t: float,
         effect_random_blocks,
-        perfect: bool
+        perfect: bool,
+        position: tuple[float, float]
     ):
-        p = (now_t - chart_obj.beat2sec(t, note.masterLine.bpmfactor)) / effect_time
+        p = (now_t - sec_t) / effect_time
         if not (0.0 <= p <= 1.0): return
-        linePos = tool_funcs.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
-        lineRotate = sum([line.GetEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
-        pos = tool_funcs.rotate_point(
-            *linePos,
-            lineRotate,
-            note.positionX2 * w
-        )
-        process_effect_base(*pos, p, effect_random_blocks, perfect, Task)
+        process_effect_base(position[0] * w, position[1] * h, p, effect_random_blocks, perfect, Task)
     
     def process_miss(
         note:chartobj_rpe.Note
@@ -1784,14 +1777,14 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
             if not noautoplay and not note.clicked: break
             
             if not noautoplay:
-                for dt, bt, erbs in note.effect_times:
-                    if note.secst + dt <= now_t <= note.secst + dt + effect_time:
-                        process_effect(note, bt, erbs, True)
+                for eft, erbs, position in note.effect_times:
+                    if eft <= now_t <= eft + effect_time:
+                        process_effect(eft, erbs, True, position)
             else: # noautoplay
                 if note.player_holdjudged or (note.state == const.NOTE_STATE.PERFECT or note.state == const.NOTE_STATE.GOOD and note.player_clicked):
-                    dt, bt, erbs = note.effect_times[0]
-                    if note.secst + dt <= now_t <= note.secst + dt + effect_time:
-                        process_effect(note, bt, erbs, note.state == const.NOTE_STATE.PERFECT if not note.ishold else note.player_holdclickstate == const.NOTE_STATE.PERFECT)
+                    eft, erbs, position = note.effect_times[0]
+                    if eft <= now_t <= eft + effect_time:
+                        process_effect(eft, erbs, note.state == const.NOTE_STATE.PERFECT if not note.ishold else note.player_holdclickstate == const.NOTE_STATE.PERFECT, position)
                 elif note.state == const.NOTE_STATE.MISS:
                     if 0.0 <= now_t - note.secst <= miss_effect_time and not note.ishold:
                         process_miss(note)
@@ -1800,14 +1793,14 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                         process_bad(note)
                         
                 if note.ishold and note.player_holdjudged and note.player_holdclickstate != const.NOTE_STATE.MISS:
-                    for dt, bt, erbs in note.effect_times[1:]:
-                        if note.secst + dt <= now_t <= note.secst + dt + effect_time and note.secst + dt >= note.secst + note.player_click_offset:
-                            process_effect(note, bt, erbs, note.player_holdclickstate == const.NOTE_STATE.PERFECT)
+                    for eft, erbs, position in note.effect_times[1:]:
+                        if eft <= now_t <= eft + effect_time and eft >= note.secst + note.player_click_offset:
+                            process_effect(eft, erbs, note.player_holdclickstate == const.NOTE_STATE.PERFECT, position)
                 
             if note.secst + note.effect_times[-1][0] + effect_time + 0.16 < now_t:
                 line.effectNotes.remove(note)
     
-    combo = chart_obj.getCombo(now_t + chart_obj.META.offset / 1000) if not noautoplay else PhigrosPlayManagerObject.getCombo()
+    combo = chart_obj.getCombo(now_t) if not noautoplay else PhigrosPlayManagerObject.getCombo()
     now_t /= speed
     Task(
         draw_ui,

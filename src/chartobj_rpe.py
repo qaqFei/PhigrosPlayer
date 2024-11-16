@@ -36,6 +36,8 @@ class Beat:
     var2: int
     var3: int
     
+    secvar: float|None = None # only speed events
+    
     def __post_init__(self):
         self.value = self.var1 + (self.var2 / self.var3)
         self._hash = hash(self.value)
@@ -102,21 +104,37 @@ class Note:
         self.secet = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
         self.player_holdjudge_tomanager_time = max(self.secst, self.secet - 0.2)
         
+        self.floorPosition = self.masterLine.GetFloorPosition(0.0, self.secst)
+        if self.ishold: self.holdLength = self.masterLine.GetFloorPosition(0.0, self.secet) - self.floorPosition
+
         self.effect_times = []
+        self.effect_times.append((
+            self.secst,
+            tool_funcs.get_effect_random_blocks(),
+            self.getNoteClickPos(self.startTime.value, master, self.masterLine)
+        ))
         
-        self.effect_times.append((0.0, master.sec2beat(self.secst, self.masterLine.bpmfactor), tool_funcs.get_effect_random_blocks()))
         if self.ishold:
             bt = 1 / avgBpm * 30
             st = 0.0
             while True:
                 st += bt
                 if st >= self.secet - self.secst: break
-                self.effect_times.append((st, master.sec2beat(self.secst + st, self.masterLine.bpmfactor), tool_funcs.get_effect_random_blocks()))
+                self.effect_times.append((
+                    self.secst + st,
+                    tool_funcs.get_effect_random_blocks(),
+                    self.getNoteClickPos(master.sec2beat(self.secst + st, self.masterLine.bpmfactor), master, self.masterLine)
+                ))
         
     def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> tuple[float, float]:
-        linePos = line.GetPos(time, master)
-        lineRotate = sum([line.GetEventValue(time, layer.rotateEvents, 0.0) for layer in line.eventLayers])
-        return tool_funcs.rotate_point(*linePos, lineRotate, self.positionX2)
+        return tool_funcs.rotate_point(
+            *tool_funcs.conrpepos(*line.GetPos(time, master)),
+            sum([
+                line.GetEventValue(time, layer.rotateEvents, 0.0)
+                for layer in line.eventLayers
+            ]),
+            self.positionX2
+        )
 
     def __eq__(self, value): return self is value
 
@@ -290,15 +308,6 @@ class JudgeLine:
             
         return linePos
     
-    def GetSpeed(self, t: float):
-        v = 0.0
-        for layer in self.eventLayers:
-            for e in layer.speedEvents:
-                if e.startTime.value <= t <= e.endTime.value:
-                    v += tool_funcs.linear_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end)
-                    break # loop for other layers
-        return v
-    
     def GetState(self, t: float, defaultColor: tuple[int, int, int], master: Rpe_Chart) -> tuple[tuple[float, float], float, float, tuple[int, int, int], float, float, str|None]:
         "linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText"
         linePos = self.GetPos(t, master)
@@ -321,15 +330,14 @@ class JudgeLine:
         
         return tool_funcs.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
-    def GetNoteFloorPosition(self, t: float, n: Note, master: Rpe_Chart):
-        l, r = master.beat2sec(t, self.bpmfactor), master.beat2sec(n.startTime.value, self.bpmfactor)
-        return self.GetFloorPosition(*sorted((l, r)), master) * (-1.0 if l > r else 1.0)
-    
-    def GetFloorPosition(self, l: float, r: float, master: Rpe_Chart):
+    def GetFloorPosition(self, l: float, r: float):
+        yl, yr = l, r
+        l, r = sorted((l, r))
         fp = 0.0
+        
         for layer in self.eventLayers:
             for e in layer.speedEvents:
-                st, et = master.beat2sec(e.startTime.value, self.bpmfactor), master.beat2sec(e.endTime.value, self.bpmfactor)
+                st, et = e.startTime.secvar, e.endTime.secvar
                 if l <= st <= r <= et:
                     v1, v2 = st, r
                 elif st <= l <= et <= r:
@@ -346,10 +354,8 @@ class JudgeLine:
                     s1 = tool_funcs.linear_interpolation(v1, st, et, e.start, e.end)
                     s2 = tool_funcs.linear_interpolation(v2, st, et, e.start, e.end)
                     fp += (v2 - v1) * (s1 + s2) / 2
-        return fp * 120 / 900
-
-    def GetHoldLength(self, t: float, n: Note, master: Rpe_Chart):
-        return (n.secet - n.secst) * self.GetSpeed(t) * 120 / 900
+                    
+        return fp * 120 / 900 * (-1.0 if yl > yr else 1.0)
 
     def __hash__(self) -> int:
         return id(self)
@@ -375,6 +381,11 @@ class Rpe_Chart:
         except ZeroDivisionError: avgBpm = 140.0
         
         for line in self.JudgeLineList:
+            for layer in line.eventLayers:
+                for e in layer.speedEvents:
+                    e.startTime.secvar = self.beat2sec(e.startTime.value, line.bpmfactor)
+                    e.endTime.secvar = self.beat2sec(e.endTime.value, line.bpmfactor)
+            
             for i, note in enumerate(line.notes):
                 note.master_index = i
                 note.masterLine = line

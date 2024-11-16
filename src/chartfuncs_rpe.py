@@ -130,12 +130,6 @@ def Load_Chart_Object(chart: dict):
     all_notes = [note for line in rpe_chart_obj.JudgeLineList for note in line.notes]
     morebets_note([i for i in all_notes if not i.isFake])
     morebets_note([i for i in all_notes if i.isFake])
-    
-    for line in rpe_chart_obj.JudgeLineList:
-        for note in line.notes:
-            note.floorPosition = line.GetNoteFloorPosition(0.0, note, rpe_chart_obj)
-            if note.ishold:
-                note.holdLength = line.GetFloorPosition(0.0, note.secet, rpe_chart_obj) - note.floorPosition
                 
     logging.info("Load Chart Object Successfully, fmt = rpe")
     

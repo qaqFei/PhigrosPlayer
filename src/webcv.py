@@ -221,7 +221,7 @@ class WebCanvas:
         self.run_js_code(f"ctx.save(); ctx.font = \"{font}\"; ctx.textAlign = \"{textAlign}\"; ctx.textBaseline = \"{textBaseline}\"; ctx.fillStyle = \"{fillStyle}\"; ctx.strokeStyle = \"{strokeStyle}\"; ctx.{method}Text({text},{x},{y}); ctx.restore();", wait_execute)
     
     def create_polygon(
-        self, points: typing.Iterator[typing.Tuple[int|float, int|float]],
+        self, points: typing.Iterator[tuple[int|float, int|float]],
         fillStyle: str|None = None,
         strokeStyle: str|None = None,
         wait_execute: bool = False

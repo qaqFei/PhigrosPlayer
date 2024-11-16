@@ -13,59 +13,45 @@ import numpy
 import cv2
 from PIL import Image, ImageDraw
 
+import rpe_easing
+
 note_id = -1
 random_block_num = 4
 if "--random-block-num" in argv:
     random_block_num = eval(argv[argv.index("--random-block-num") + 1])
 
-def Get_Animation_Gr(fps:float,t:float):
-    gr_x = int(fps * t) + 1
-    gr = [math.cos(x / gr_x) + 1 for x in range(int(gr_x * math.pi))]
-    gr_sum = sum(gr)
-    step_time = t / len(gr)
-    return [item / gr_sum for item in gr],step_time
-
+@numba.jit
 def rotate_point(x, y, θ, r) -> tuple[float, float]:
     xo = r * math.cos(math.radians(θ))
     yo = r * math.sin(math.radians(θ))
     return x + xo, y + yo
-
-def Get_A_New_NoteId_By_judgeLine(judgeLine_item:dict):
-    if "_note_count" not in judgeLine_item:
-        judgeLine_item["_note_count"] = 1
-    else:
-        judgeLine_item["_note_count"] += 1
-    return judgeLine_item["_note_count"] - 1
 
 def Get_A_New_NoteId():
     global note_id
     note_id += 1
     return note_id
 
-def unpack_pos(number:int) -> tuple[int, int]:
+@numba.jit
+def unpack_pos(number: int) -> tuple[int, int]:
     return (number - number % 1000) // 1000, number % 1000
-
-def ease_out(x:float) -> float:
-    return math.sqrt(1.0 - (1.0 - x) ** 2)
 
 def get_effect_random_blocks() -> tuple[tuple[float, float], ...]:
     return tuple(((random.uniform(0.0, 360.0), random.uniform(-0.25, 1.15)) for _ in range(random_block_num)))
 
-@numba.jit(numba.float32(numba.float32,numba.float32,numba.float32,numba.float32,numba.float32))
+@numba.jit
 def linear_interpolation(
-    t:float,
-    st:float,
-    et:float,
-    sv:float,
-    ev:float
+    t: float,
+    st: float, et: float,
+    sv: float, ev: float
 ) -> float:
     if t == st: return sv
     return (t - st) / (et - st) * (ev - sv) + sv
 
 def easing_interpolation(
-    t: float, st: float,
-    et: float, sv: float,
-    ev: float, f: typing.Callable[[float], float]
+    t: float,
+    st: float, et: float,
+    sv: float, ev: float,
+    f: typing.Callable[[float], float]
 ):
     if t == st: return sv
     return f((t - st) / (et - st)) * (ev - sv) + sv
@@ -157,13 +143,13 @@ finish_animation_eases = finish_animation_eases_class()
 
 @numba.jit
 def is_intersect(
-    line_1: typing.Tuple[
-        typing.Tuple[float, float],
-        typing.Tuple[float, float]
+    line_1: tuple[
+        tuple[float, float],
+        tuple[float, float]
     ],
-    line_2: typing.Tuple[
-        typing.Tuple[float, float],
-        typing.Tuple[float, float]
+    line_2: tuple[
+        tuple[float, float],
+        tuple[float, float]
     ]
 ) -> bool:
     return not (
@@ -174,13 +160,13 @@ def is_intersect(
     )
 
 def batch_is_intersect(
-    lines_group_1: typing.List[typing.Tuple[
-        typing.Tuple[float, float],
-        typing.Tuple[float, float]
+    lines_group_1: list[tuple[
+        tuple[float, float],
+        tuple[float, float]
     ]],
-    lines_group_2: typing.List[typing.Tuple[
-        typing.Tuple[float, float],
-        typing.Tuple[float, float]
+    lines_group_2: list[tuple[
+        tuple[float, float],
+        tuple[float, float]
     ]]
 ) -> typing.Generator[bool, None, None]:
     for i in lines_group_1:
@@ -191,12 +177,12 @@ def Note_CanRender(
     w: int, h: int,
     note_max_size_half: float,
     x: float, y: float,
-    hold_points: typing.Union[typing.Tuple[
-        typing.Tuple[float, float],
-        typing.Tuple[float, float],
-        typing.Tuple[float, float],
-        typing.Tuple[float, float]
-    ], None] = None
+    hold_points: tuple[
+        tuple[float, float],
+        tuple[float, float],
+        tuple[float, float],
+        tuple[float, float]
+    ] | None = None
 ) -> bool: # note 宽度不会比窗口大的... 一定不会的... 相信我...!!                                                    好吧, 其实我就是想~~偷懒和~~节约性能...  note当线看能简单一些
     if hold_points is None: # type != HOLD                                                                                         ↑↑↑↑↑↑↑↑↑ (划掉... (markdown))
         return (
@@ -256,7 +242,7 @@ def TextureLine_CanRender(
     )
     
 @numba.jit
-def point_in_screen(point:typing.Tuple[float,float], w: int, h: int) -> bool:
+def point_in_screen(point: tuple[float, float], w: int, h: int) -> bool:
     return 0 < point[0] < w and 0 < point[1] < h
 
 def ThreadFunc(f):
@@ -272,16 +258,18 @@ def NoJoinThreadFunc(f):
         t.start()
     return wrapper
 
+@numba.jit
 def conrpepos(x: float, y: float):
     return (x + 675) / 1350, 1.0 - (y + 450) / 900
 
+@numba.jit
 def aconrpepos(x: float, y: float):
     return (x * 1350 - 675), (1.0 - y) * 900 - 450
 
-def Format_Time(t:int|float) -> str:
+def Format_Time(t: int|float) -> str:
     if t < 0.0: t = 0.0
-    m,s = t // 60,t % 60
-    m,s = int(m), int(s)
+    m, s = t // 60, t % 60
+    m, s = int(m), int(s)
     return f"{m}:{s:>2}".replace(" ", "0")
 
 def DataUrl2MatLike(dataurl: str) -> cv2.typing.MatLike:
@@ -295,6 +283,7 @@ def DataUrl2MatLike(dataurl: str) -> cv2.typing.MatLike:
         cv2.IMREAD_COLOR
     )
 
+@numba.jit
 def inrect(x: float, y: float, rect: tuple[float, float, float, float]) -> bool:
     return rect[0] <= x <= rect[2] and rect[1] <= y <= rect[3]
 
@@ -306,10 +295,12 @@ def easeAlpha(p: float):
     else:
         return (2.0 - 2.0 * ((p - 0.8) * (0.5 / 0.2) + 0.5)) ** 2
 
-def inDiagonalRectangle(x0: float, y0: float, x1: float, y1: float, power: float, x: float, y:float):
+@numba.jit
+def inDiagonalRectangle(x0: float, y0: float, x1: float, y1: float, power: float, x: float, y: float):
     x += (y - y0) / (y1 - y0) * (x1 - x0) * power
     return x0 + (x1 - x0) * power <= x <= x1 and y0 <= y <= y1
 
+@numba.jit
 def compute_intersection(
     x0: float, y0: float,
     x1: float, y1: float,
@@ -324,33 +315,40 @@ def compute_intersection(
     c2 = x3 * y2 - x2 * y3
     return (b2 * c1 - b1 * c2) / (a1 * b2 - a2 * b1), (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1)
 
+@numba.jit
 def fixorp(p: float):
     return max(0.0, min(1.0, p))
 
+@numba.jit
 def PhigrosChapterNameAlphaValueTransfrom(p: float):
     if p >= 0.4:
         return 1.0
     return p / 0.4
 
+@numba.jit
 def PhigrosChapterPlayButtonAlphaValueTransfrom(p: float):
     if p <= 0.6:
         return 0.0
     return (p - 0.6) / 0.4
 
+@numba.jit
 def PhigrosChapterDataAlphaValueTransfrom(p: float):
     if p <= 0.6:
         return 0.0
     return (p - 0.6) / 0.4
 
 @cache
+@numba.jit
 def getDPower(width: float, height: float, deg: float):
     l1 = 0, 0, width, 0
     l2 = 0, height, *rotate_point(0, height, deg, (width ** 2 + height ** 2) ** 0.5)
     return compute_intersection(*l1, *l2)[0] / width
 
+@numba.jit
 def getSizeByRect(rect: tuple[float, float, float, float]):
     return rect[2] - rect[0], rect[3] - rect[1]
 
+@numba.jit
 def getCenterPointByRect(rect: tuple[float, float, float, float]):
     return (rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2
 
@@ -401,6 +399,7 @@ def Get_All_Files(path: str) -> list[str]:
             files += Get_All_Files(f"{path}\\{item}")
     return files
 
+@numba.jit
 def getLineLength(x0: float, y0: float, x1: float, y1: float):
     return ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
 
@@ -409,11 +408,32 @@ def gtpresp(p: str):
     while "//" in result: result = result.replace("//", "/")
     return result
 
+@numba.jit
 def indrect(x: float, y: float, rect: tuple[float, float, float, float], dpower: float):
     x += (1.0 - (y - rect[1]) / (rect[3] - rect[1])) * (dpower * (rect[2] - rect[0]))
     return inrect(x, y, rect)
 
-linear_interpolation(0.5,0.1,0.8,-114.514,314.159)
-is_intersect(((0, 0), (114, 514)), ((0, 0), (114, 514)))
-TextureLine_CanRender(1920, 1080, 50, 0, 0)
-point_in_screen((0, 0), 1920, 1080)
+rotate_point(0.0, 0.0, 90, 1.145)
+unpack_pos(1000 * 11 + 45)
+linear_interpolation(0.5, 0.0, 1.0, 0.0, 1.0)
+is_intersect(((0.0, 0.1), (0.0, 0.2)), ((-0.1, 0.1), (0.0, 0.4)))
+TextureLine_CanRender(1920, 1080, 23.1, 3.1, 4.3)
+point_in_screen((204.2, 1.3), 1920, 1080)
+aconrpepos(*conrpepos(102.4, 30.3))
+inrect(1.3, 13.4, (0.2, 3.1, 0.4, 1.4))
+inDiagonalRectangle(0.0, 0.0, 123.3, 32.2, 3.2, 0.2, 0.4)
+compute_intersection(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8)
+fixorp(2.3)
+PhigrosChapterNameAlphaValueTransfrom(0.7)
+PhigrosChapterPlayButtonAlphaValueTransfrom(0.5)
+PhigrosChapterDataAlphaValueTransfrom(0.1)
+getDPower(24, 42, 75)
+getSizeByRect((0.0, 0.0, 1.0, 4.0))
+getCenterPointByRect((0.0, 0.0, 1.0, 1.0))
+getLineLength(0.0, 0.0, 1.0, 1.0)
+indrect(0.0, 3.0, (0.0, 0.0, 1.0, 4.5), 5.3)
+
+efs = rpe_easing.ease_funcs.copy()
+rpe_easing.ease_funcs.clear()
+rpe_easing.ease_funcs.extend(map(numba.jit, efs))
+(*map(lambda x: x(random.uniform(0.0, 1.0)), rpe_easing.ease_funcs), )
