@@ -29,6 +29,18 @@ def geteasing_func(t: int):
     except Exception as e:
         logging.warning(f"geteasing_func error: {e}")
         return rpe_easing.ease_funcs[0]
+
+def findevent(events: list[LineEvent], t: float) -> LineEvent|None:
+    l, r = 0, len(events) - 1
+    
+    while l <= r:
+        m = (l + r) // 2
+        e = events[m]
+        if e.startTime.value <= t <= e.endTime.value: return e
+        elif e.startTime.value > t: r = m - 1
+        else: l = m + 1
+            
+    return None
         
 @dataclass
 class Beat:
@@ -272,18 +284,18 @@ class JudgeLine:
     effectNotes: list[Note]|None = None
     
     def GetEventValue(self, t: float, es: list[LineEvent], default):
-        for e in es:
-            if e.startTime.value <= t <= e.endTime.value:
-                if isinstance(e.start, float|int):
-                    return tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, e.easingFunc)
-                elif isinstance(e.start, str):
-                    return e.start
-                elif isinstance(e.start, list):
-                    r = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], e.easingFunc)
-                    g = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], e.easingFunc)
-                    b = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], e.easingFunc)
-                    return (r, g, b)
-        return default
+        e = findevent(es, t)
+        if e is None: return default
+        
+        if isinstance(e.start, float|int):
+            return tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, e.easingFunc)
+        elif isinstance(e.start, str):
+            return e.start
+        elif isinstance(e.start, list):
+            r = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], e.easingFunc)
+            g = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], e.easingFunc)
+            b = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], e.easingFunc)
+            return (r, g, b)
     
     @lru_cache
     def GetPos(self, t: float, master: Rpe_Chart) -> list[float, float]:
