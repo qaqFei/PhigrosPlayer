@@ -57,6 +57,11 @@ class Beat:
     def __hash__(self) -> int:
         return self._hash
     
+    def __repr__(self):
+        return f"{self.var1} + {self.var2} / {self.var3} = {self.value}"
+    
+    def __str__(self): return self.__repr__()
+    
 @dataclass
 class Note:
     type: int

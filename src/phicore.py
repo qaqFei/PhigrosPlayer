@@ -871,6 +871,17 @@ def CheckMusicOffsetAndEnd(now_t: float, Task: chartobj_phi.FrameRenderTask):
 def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
     return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}   
 
+def drawDebugText(text: str, x: float, y: float, rotate: float, color: str, Task: chartobj_phi.FrameRenderTask):
+    Task(
+        root.run_js_code,
+        f"ctx.drawRotateText(\
+            {root.string2sctring_hqm(text)},\
+            {",".join(map(str, tool_funcs.rotate_point(x, y, rotate, (w + h) / 75)))},\
+            {90 + rotate}, {(w + h) / 85 / 0.75}, '{color}', 1.0, 1.0\
+        );",
+        add_code_array = True
+    )
+
 def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
     global PlayChart_NowTime
     
@@ -925,16 +936,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
             )
             
             if debug:
-                Task(
-                    root.create_text,
-                    *tool_funcs.rotate_point(*linePos, 90 - lineRotate - 180, (w + h) / 75),
-                    text = f"{lineIndex}",
-                    font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
-                    textAlign = "center",
-                    textBaseline = "middle",
-                    fillStyle = "rgba(255, 255, 170, 0.5)",
-                    wait_execute = True
-                )
+                drawDebugText(f"{lineIndex}", *linePos, - lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
                 
                 Task(
                     root.run_js_code,
@@ -1146,16 +1148,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                         )
                 
                     if debug:
-                        Task(
-                            root.create_text,
-                            *tool_funcs.rotate_point(x, y, judgeLine_to_note_rotate_deg, (w + h) / 75),
-                            text = f"{lineIndex}+{note_item.master_index}",
-                            font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
-                            textAlign = "center",
-                            textBaseline = "middle",
-                            fillStyle = "rgba(0, 255, 255, 0.5)",
-                            wait_execute = True
-                        )
+                        drawDebugText(f"{lineIndex}+{note_item.master_index}", x, y, judgeLine_to_note_rotate_deg, "rgba(0, 255, 255, 0.5)", Task)
                         
                         Task(
                             root.run_js_code,
@@ -1463,16 +1456,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
             )
             
         if debug and line.attachUI is None and tool_funcs.point_in_screen(linePos, w, h):
-            Task(
-                root.create_text,
-                *tool_funcs.rotate_point(*linePos, 90 + lineRotate - 180, (w + h) / 75),
-                text = f"{line_index}",
-                font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
-                textAlign = "center",
-                textBaseline = "middle",
-                fillStyle = "rgba(255, 255, 170, 0.5)",
-                wait_execute = True
-            )
+            drawDebugText(f"{line_index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
             
             Task(
                 root.run_js_code,
@@ -1668,16 +1652,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                     )
                     
                 if debug:
-                    Task(
-                        root.create_text,
-                        *tool_funcs.rotate_point(x, y, lineToNoteRotate, (w + h) / 75),
-                        text = f"{line_index}+{note.master_index}",
-                        font = f"{(w + h) / 85 / 0.75}px PhigrosFont",
-                        textAlign = "center",
-                        textBaseline = "middle",
-                        fillStyle = "rgba(0, 255, 255, 0.5)",
-                        wait_execute = True
-                    )
+                    drawDebugText(f"{line_index}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)", Task)
                     
                     Task(
                         root.run_js_code,
