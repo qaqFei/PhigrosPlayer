@@ -48,7 +48,6 @@ class note:
     clicked: bool = False # this attr mean is "this note click time is <= now time", so if disable autoplay and click time <= now time but user is not click this attr still is true.
     morebets: bool = False
     master: judgeLine|None = None
-    show_effected: bool = False
     effect_times: list[tuple[int]] | tuple = ()
     state: int = const.NOTE_STATE.MISS
     master_index: int|None = None
@@ -66,8 +65,6 @@ class note:
     player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
     player_drag_judge_safe_used: bool = False
     
-    render_skiped: bool = False
-    
     def __post_init__(self):
         self.id = tool_funcs.Get_A_New_NoteId()
         self.effect_random_blocks = tool_funcs.get_effect_random_blocks()
@@ -81,28 +78,40 @@ class note:
         return self.id
     
     def init(self) -> None:
+        self.sec = self.time * self.master.T
         self.hold_length_sec = self.holdTime * self.master.T
         self.hold_length_pgry = self.speed * self.hold_length_sec
-        self.hold_endtime = self.time * self.master.T + self.hold_length_sec
-        self.player_holdjudge_tomanager_time = self.hold_endtime - 0.2 if self.hold_length_sec >= 0.2 else self.time * self.master.T
-        
-        self.effect_times = []
-        hold_starttime = self.time * self.master.T
-        hold_effect_blocktime = (1 / self.master.bpm * 30)
-        while True:
-            hold_starttime += hold_effect_blocktime
-            if hold_starttime >= self.hold_endtime:
-                break
-            self.effect_times.append((hold_starttime, tool_funcs.get_effect_random_blocks()))
+        self.hold_endtime = self.sec + self.hold_length_sec
+        self.player_holdjudge_tomanager_time = max(self.hold_endtime - 0.2, self.sec)
+        self.ishold = self.type == const.Note.HOLD
         
         self.type_string = {
-            const.Note.TAP:"Tap",
-            const.Note.DRAG:"Drag",
-            const.Note.HOLD:"Hold",
-            const.Note.FLICK:"Flick"
+            const.Note.TAP: "Tap",
+            const.Note.DRAG: "Drag",
+            const.Note.HOLD: "Hold",
+            const.Note.FLICK: "Flick"
         }[self.type]
         
         self.floorPosition = getFloorPosition(self.master, self.time)
+        
+        self.effect_times = []
+        self.effect_times.append((
+            self.sec,
+            tool_funcs.get_effect_random_blocks(),
+            self.getNoteClickPos(self.time)
+        ))
+        
+        if self.ishold:
+            bt = 1 / self.master.bpm * 30
+            st = 0.0
+            while True:
+                st += bt
+                if st >= self.hold_endtime - self.sec: break
+                self.effect_times.append((
+                    self.sec + st,
+                    tool_funcs.get_effect_random_blocks(),
+                    self.getNoteClickPos((self.sec + st) / self.master.T)
+                ))
     
     def getNoteClickPos(self, time: float) -> tuple[float, float]:
         linePos = self.master.get_datavar_move(time, 1.0, 1.0)
@@ -170,18 +179,15 @@ class judgeLine:
         for i, n in enumerate(self.notesBelow): n.master_index = i
         self.notesAbove.sort(key = lambda x: x.time)
         self.notesBelow.sort(key = lambda x: x.time)
+        self.renderNotesAbove = self.notesAbove.copy()
+        self.renderNotesBelow = self.notesBelow.copy()
+        self.effectNotes = self.notesAbove + self.notesBelow
     
     def _sort_events(self):
         self.speedEvents.sort(key = lambda x: x.startTime)
         self.judgeLineMoveEvents.sort(key = lambda x: x.startTime)
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
         self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)
-
-    def set_master_to_notes(self):
-        for note in self.notesAbove:
-            note.master = self
-        for note in self.notesBelow:
-            note.master = self
     
     def get_datavar_rotate(self, now_time):
         e = findevent(self.judgeLineRotateEvents, now_time)
@@ -254,20 +260,30 @@ class Phigros_Chart:
             self.offset = 0.0
             
         self.note_num = 0
-        for judgeLine in self.judgeLineList:
-            judgeLine.set_master_to_notes()
-            
-            last_speedEvent_floorPosition = 0.0
-            for speedEvent in judgeLine.speedEvents:
-                speedEvent.floorPosition = last_speedEvent_floorPosition
-                last_speedEvent_floorPosition += (speedEvent.endTime - speedEvent.startTime) * speedEvent.value * judgeLine.T
+        for line in self.judgeLineList:
+            lastfp = 0.0
+            for e in line.speedEvents:
+                e.floorPosition = lastfp
+                lastfp += (e.endTime - e.startTime) * e.value * line.T
 
-            for note in judgeLine.notesAbove + judgeLine.notesBelow:
+            for note in line.notesAbove + line.notesBelow:
                 self.note_num += 1
+                note.master = line
                 note.init()
+                
+        self.combotimes = []
+        for line in self.judgeLineList:
+            for note in line.notesAbove + line.notesBelow:
+                self.combotimes.append(note.sec if not note.ishold else max(note.sec, note.hold_endtime - 0.2))
+        self.combotimes.sort()
     
-    def get_all_note(self) -> list[note]:
-       return [j for i in self.judgeLineList for j in i.notesAbove + i.notesBelow]
+    def getCombo(self, t: float):
+        l, r = 0, len(self.combotimes)
+        while l < r:
+            m = (l + r) // 2
+            if self.combotimes[m] < t: l = m + 1
+            else: r = m
+        return l
     
 @dataclass
 class RenderTask:

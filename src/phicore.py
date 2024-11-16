@@ -355,12 +355,12 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
             can_judge_notes = [(i, offset) for i in notes if (
                 not i.player_clicked and
                 i.type in (const.Note.TAP, const.Note.HOLD) and
-                abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= (0.2 if i.type == const.Note.TAP else 0.16)
+                abs((offset := (i.sec - PlayChart_NowTime))) <= (0.2 if i.type == const.Note.TAP else 0.16)
             )]
             can_use_safedrag = [(i, offset) for i in notes if (
                 i.type == const.Note.DRAG and
                 not i.player_drag_judge_safe_used and
-                abs((offset := (i.time * i.master.T - PlayChart_NowTime))) <= 0.16
+                abs((offset := (i.sec - PlayChart_NowTime))) <= 0.16
             )]
             
             can_judge_notes.sort(key = lambda x: abs(x[1]))
@@ -371,14 +371,14 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
                 abs_offset = abs(offset)
                 if 0.0 <= abs_offset <= 0.08:
                     n.state = const.NOTE_STATE.PERFECT
-                    if n.type == const.Note.HOLD:
+                    if n.ishold:
                         n.player_holdjudged = True
                         n.player_holdclickstate = n.state
                     else: # TAP
                         PhigrosPlayManagerObject.addEvent("P")
                 elif 0.08 < abs_offset <= 0.16:
                     n.state = const.NOTE_STATE.GOOD
-                    if n.type == const.Note.HOLD:
+                    if n.ishold:
                         n.player_holdjudged = True
                         n.player_holdclickstate = n.state
                     else: # TAP
@@ -479,13 +479,11 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
         
         for note in notes:
             if CHART_TYPE == const.CHART_TYPE.PHI:
-                note_time_sec = note.time * note.master.T
-                
                 if ( # (Drag / Flick) judge
                     keydown and
                     not note.player_clicked and
                     note.type in (const.Note.FLICK, const.Note.DRAG) and
-                    abs((cktime := note_time_sec - PlayChart_NowTime)) <= 0.16 # +- 160ms
+                    abs((cktime := note.sec - PlayChart_NowTime)) <= 0.16 # +- 160ms
                 ):
                     note.player_will_click = True
                     
@@ -495,7 +493,7 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
                 if ( # if Drag / Flick it`s time to click and judged, click it and update it.
                     note.player_will_click and 
                     not note.player_clicked and 
-                    note_time_sec <= PlayChart_NowTime
+                    note.sec <= PlayChart_NowTime
                 ):
                     note.player_clicked = True
                     note.state = const.NOTE_STATE.PERFECT
@@ -513,14 +511,14 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
                 if ( # miss judge
                     not note.player_clicked and
                     not note.player_missed and
-                    note_time_sec - PlayChart_NowTime < - 0.2
+                    note.sec - PlayChart_NowTime < - 0.2
                 ):
                     note.player_missed = True
                     PhigrosPlayManagerObject.addEvent("M")
                 
                 if ( # hold judge sustain
                     keydown and
-                    note.type == const.Note.HOLD and 
+                    note.ishold and 
                     note.player_clicked and
                     note.state != const.NOTE_STATE.MISS and
                     note.hold_endtime - 0.2 >= PlayChart_NowTime
@@ -530,7 +528,7 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
                 
                 if ( # hold hold sustain miss judge
                     not keydown and
-                    note.type == const.Note.HOLD and
+                    note.ishold and
                     note.player_clicked and
                     note.state != const.NOTE_STATE.MISS and
                     note.hold_endtime - 0.2 >= PlayChart_NowTime and
@@ -542,7 +540,7 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
                     PhigrosPlayManagerObject.addEvent("M")
                 
                 if ( # hold end add event to manager judge
-                    note.type == const.Note.HOLD and
+                    note.ishold and
                     note.player_holdjudged and # if judged is true, hold state is perfect/good/ miss(miss at clicking)
                     not note.player_holdjudged_tomanager and
                     note.player_holdjudge_tomanager_time <= PlayChart_NowTime
@@ -957,53 +955,50 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                     add_code_array = True
                 )
         
-        def process(notes_list: list[chartobj_phi.note], t: typing.Literal[1, -1]): # above => t = 1, below => t = -1
-            for note_item in notes_list:
-                if note_item.render_skiped: continue
+        def process(notes: list[chartobj_phi.note], t: typing.Literal[1, -1]): # above => t = 1, below => t = -1
+            for note in notes.copy():
+                this_noteitem_clicked = note.sec < now_t
                 
-                this_note_sectime = note_item.time * line.T
-                this_noteitem_clicked = this_note_sectime < now_t
-                this_note_ishold = note_item.type == const.Note.HOLD
-                
-                if this_noteitem_clicked and not note_item.clicked:
-                    note_item.clicked = True
+                if this_noteitem_clicked and not note.clicked:
+                    note.clicked = True
                     if enable_clicksound and not noautoplay:
                         Task.ExTask.append((
                             "call",
-                            f"Resource[\"Note_Click_Audio\"][\"{note_item.type_string}\"].play",
+                            f"Resource[\"Note_Click_Audio\"][\"{note.type_string}\"].play",
                             "()"
                         ))
                 
-                if not this_note_ishold and note_item.clicked:
-                    note_item.render_skiped = True
+                if not note.ishold and note.clicked:
+                    notes.remove(note)
                     continue
-                elif this_note_ishold and now_t > note_item.hold_endtime:
-                    note_item.render_skiped = True
+                elif note.ishold and now_t > note.hold_endtime:
+                    notes.remove(note)
                     continue
-                elif noautoplay and note_item.state == const.NOTE_STATE.BAD:
-                    note_item.render_skiped = True
+                elif noautoplay and note.state == const.NOTE_STATE.BAD:
+                    notes.remove(note)
                     continue
-                elif noautoplay and not this_note_ishold and note_item.player_clicked:
-                    note_item.render_skiped = True
+                elif noautoplay and not note.ishold and note.player_clicked:
+                    notes.remove(note)
                     continue
-                elif not note_item.clicked and (note_item.floorPosition - lineFloorPosition / PHIGROS_Y) < -0.001 and note_item.type != const.Note.HOLD:
+                elif not note.clicked and (note.floorPosition - lineFloorPosition / PHIGROS_Y) < -0.001 and note.type != const.Note.HOLD:
                     continue
-                elif this_note_ishold and note_item.speed == 0.0:
+                elif note.ishold and note.speed == 0.0:
+                    notes.remove(note)
                     continue
                 
-                note_now_floorPosition = note_item.floorPosition * PHIGROS_Y - (
+                note_now_floorPosition = note.floorPosition * PHIGROS_Y - (
                         lineFloorPosition
-                        if not (this_note_ishold and note_item.clicked) else (
+                        if not (note.ishold and note.clicked) else (
                         chartobj_phi.getFloorPosition(
-                            line, note_item.time
-                        ) * PHIGROS_Y + tool_funcs.linear_interpolation(note_item.hold_endtime - now_t, 0, note_item.hold_length_sec, note_item.hold_length_pgry * PHIGROS_Y, 0)
+                            line, note.time
+                        ) * PHIGROS_Y + tool_funcs.linear_interpolation(note.hold_endtime - now_t, 0, note.hold_length_sec, note.hold_length_pgry * PHIGROS_Y, 0)
                     )
                 )
                 
                 if note_now_floorPosition > h * 2 and not render_range_more:
                     continue
                 
-                rotatenote_at_judgeLine_pos = tool_funcs.rotate_point(*linePos, -lineRotate, note_item.positionX * PHIGROS_X)
+                rotatenote_at_judgeLine_pos = tool_funcs.rotate_point(*linePos, -lineRotate, note.positionX * PHIGROS_X)
                 judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) - lineRotate
                 x, y = tool_funcs.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_now_floorPosition)
                 
@@ -1025,11 +1020,11 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                     ) > 0.0:
                         break
                 
-                if this_note_ishold:
-                    note_hold_draw_length = note_now_floorPosition + note_item.hold_length_pgry * PHIGROS_Y
+                if note.ishold:
+                    note_hold_draw_length = note_now_floorPosition + note.hold_length_pgry * PHIGROS_Y
                     holdend_x, holdend_y = tool_funcs.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_hold_draw_length)
                     
-                    if note_item.clicked:
+                    if note.clicked:
                         holdhead_pos = rotatenote_at_judgeLine_pos
                     else:
                         holdhead_pos = x, y
@@ -1044,7 +1039,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                 if not render_range_more:
                     note_iscan_render = (
                         tool_funcs.Note_CanRender(w, h, note_max_size_half, x, y)
-                        if not this_note_ishold
+                        if not note.ishold
                         else tool_funcs.Note_CanRender(w, h, note_max_size_half, x, y, holdbody_range)
                     )
                 else:
@@ -1054,7 +1049,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                             x / render_range_more_scale + fr_x,
                             y / render_range_more_scale + fr_y
                         )
-                        if not this_note_ishold
+                        if not note.ishold
                         else tool_funcs.Note_CanRender(
                             w, h, note_max_size_half,
                             x / render_range_more_scale + fr_x,
@@ -1068,40 +1063,40 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                 
                 if note_iscan_render:
                     noteRotate = judgeLine_to_note_rotate_deg + 90
-                    dub_text = "_dub" if note_item.morebets else ""
-                    if not this_note_ishold:
-                        this_note_img_keyname = f"{note_item.type_string}{dub_text}"
+                    dub_text = "_dub" if note.morebets else ""
+                    if not note.ishold:
+                        this_note_img_keyname = f"{note.type_string}{dub_text}"
                         this_note_img = Resource["Notes"][this_note_img_keyname]
                         this_note_imgname = f"Note_{this_note_img_keyname}"
                     else:
-                        this_note_img_keyname = f"{note_item.type_string}_Head{dub_text}"
+                        this_note_img_keyname = f"{note.type_string}_Head{dub_text}"
                         this_note_img = Resource["Notes"][this_note_img_keyname]
                         this_note_imgname = f"Note_{this_note_img_keyname}"
                         
-                        this_note_img_body_keyname = f"{note_item.type_string}_Body{dub_text}"
+                        this_note_img_body_keyname = f"{note.type_string}_Body{dub_text}"
                         this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
                         
-                        this_note_img_end_keyname = f"{note_item.type_string}_End{dub_text}"
+                        this_note_img_end_keyname = f"{note.type_string}_End{dub_text}"
                         this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
                         this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
                     
-                    fix_scale = const.NOTE_DUB_FIXSCALE if note_item.morebets else 1.0 # because the note img if has morebets frame, the note will be look small, so we will `*` a fix scale to fix the frame size make the note look is small.
+                    fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0 # because the note img if has morebets frame, the note will be look small, so we will `*` a fix scale to fix the frame size make the note look is small.
                     this_note_width = Note_width * fix_scale
                     this_note_height = this_note_width / this_note_img.width * this_note_img.height
                         
-                    if this_note_ishold:
+                    if note.ishold:
                         this_noteend_height = Note_width / this_note_img_end.width * this_note_img_end.height
                         
-                        if note_item.clicked:
+                        if note.clicked:
                             holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
                             holdbody_length = note_hold_draw_length - this_noteend_height / 2
                         else:
                             holdbody_x,holdbody_y = tool_funcs.rotate_point(
                                 *holdhead_pos, judgeLine_to_note_rotate_deg, this_note_height / 2
                             )
-                            holdbody_length = note_item.hold_length_pgry * PHIGROS_Y - (this_note_height + this_noteend_height) / 2
+                            holdbody_length = note.hold_length_pgry * PHIGROS_Y - (this_note_height + this_noteend_height) / 2
                         
-                        miss_alpha_change = 0.5 if noautoplay and note_item.player_missed else 1.0
+                        miss_alpha_change = 0.5 if noautoplay and note.player_missed else 1.0
                         
                         Task(
                             root.run_js_code,
@@ -1132,7 +1127,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                                 add_code_array = True
                             )
                         
-                    if not (this_note_ishold and this_note_sectime < now_t):
+                    if not (note.ishold and note.sec < now_t):
                         Task(
                             root.run_js_code,
                             f"ctx.drawRotateImage(\
@@ -1148,7 +1143,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                         )
                 
                     if debug:
-                        drawDebugText(f"{lineIndex}+{note_item.master_index}", x, y, judgeLine_to_note_rotate_deg, "rgba(0, 255, 255, 0.5)", Task)
+                        drawDebugText(f"{lineIndex}+{note.master_index}", x, y, judgeLine_to_note_rotate_deg, "rgba(0, 255, 255, 0.5)", Task)
                         
                         Task(
                             root.run_js_code,
@@ -1162,31 +1157,28 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                             add_code_array = True
                         )
         
-        process(line.notesAbove, 1)
-        process(line.notesBelow, -1)
+        process(line.renderNotesAbove, 1)
+        process(line.renderNotesBelow, -1)
     
     effect_time = 0.5
     miss_effect_time = 0.2
     bad_effect_time = 0.5
         
     def process_effect(
-        note: chartobj_phi.note,
-        t: float,
-        effect_random_blocks: tuple[tuple[float, float], ...],
-        perfect: bool
+        sec_t: float,
+        effect_random_blocks,
+        perfect: bool,
+        position: tuple[float, float]
     ):
-        p = (now_t - t * note.master.T) / effect_time
+        p = (now_t - sec_t) / effect_time
         if not (0.0 <= p <= 1.0): return
-        will_show_effect_pos = line.get_datavar_move(t, w, h)
-        will_show_effect_rotate = line.get_datavar_rotate(t)
-        pos = tool_funcs.rotate_point(*will_show_effect_pos, -will_show_effect_rotate, note.positionX * PHIGROS_X)
-        process_effect_base(*pos, p, effect_random_blocks, perfect, Task)
+        process_effect_base(position[0] * w, position[1] * h, p, effect_random_blocks, perfect, Task)
     
     def process_miss(
         note:chartobj_phi.note
     ):
         t = now_t / note.master.T
-        p = (now_t - note.time * note.master.T) / miss_effect_time
+        p = (now_t - note.sec) / miss_effect_time
         will_show_effect_pos = line.get_datavar_move(t, w, h)
         will_show_effect_rotate = line.get_datavar_rotate(t)
         pos = tool_funcs.rotate_point(
@@ -1258,68 +1250,28 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
         )
         
     for line in chart_obj.judgeLineList:
-        for note in line.notesAbove + line.notesBelow:
-            note_time = note.time * line.T
-            note_ishold = note.type == const.Note.HOLD
-            
-            if not note_ishold and note.show_effected:
-                continue
+        for note in line.effectNotes.copy():
+            if not noautoplay and not note.clicked: break
             
             if not noautoplay:
-                if note.clicked:
-                    if now_t - note_time <= effect_time:
-                        process_effect(
-                            note,
-                            note.time,
-                            note.effect_random_blocks,
-                            True
-                        )
-                    else:
-                        note.show_effected = True
-                    
-                    if note_ishold:
-                        if note.hold_endtime + effect_time >= now_t:
-                            for temp_time, hold_effect_random_blocks in note.effect_times:
-                                if temp_time < now_t and now_t - temp_time <= effect_time:
-                                    process_effect(
-                                        note,
-                                        temp_time / line.T,
-                                        hold_effect_random_blocks,
-                                        True
-                                    )
-                
+                for eft, erbs, position in note.effect_times:
+                    if eft <= now_t <= eft + effect_time:
+                        process_effect(eft, erbs, True, position)
             else: # noautoplay
                 if note.player_holdjudged or (note.state == const.NOTE_STATE.PERFECT or note.state == const.NOTE_STATE.GOOD and note.player_clicked):
-                    if note_time - note.player_click_offset <= now_t:
-                        if now_t - (note_time - note.player_click_offset) <= effect_time:
-                            process_effect(
-                                note,
-                                note.time - note.player_click_offset / note.master.T,
-                                note.effect_random_blocks,
-                                note.state == const.NOTE_STATE.PERFECT if note.type != const.Note.HOLD else note.player_holdclickstate == const.NOTE_STATE.PERFECT
-                            )
-                        else:
-                            note.show_effected = True
+                    eft, erbs, position = note.effect_times[0]
+                    process_effect(eft, erbs, note.state == const.NOTE_STATE.PERFECT if not note.ishold else note.player_holdclickstate == const.NOTE_STATE.PERFECT, position)
                 elif note.state == const.NOTE_STATE.MISS:
-                    if 0.0 <= now_t - note_time <= miss_effect_time and note.type != const.Note.HOLD:
+                    if 0.0 <= now_t - note.sec <= miss_effect_time and note.type != const.Note.HOLD:
                         process_miss(note)
                 elif note.state == const.NOTE_STATE.BAD:
                     if 0.0 <= now_t - note.player_badtime <= bad_effect_time:
                         process_bad(note)
                         
-                if note_ishold and note.player_holdjudged and note.player_holdclickstate != const.NOTE_STATE.MISS:
-                    efct_et = note.player_holdmiss_time + effect_time
-                    if efct_et >= now_t:
-                        for temp_time, hold_effect_random_blocks in note.effect_times:
-                            if temp_time < now_t:
-                                if now_t - temp_time <= effect_time:
-                                    if temp_time + effect_time <= efct_et:
-                                        process_effect(
-                                            note,
-                                            temp_time / line.T,
-                                            hold_effect_random_blocks,
-                                            note.player_holdclickstate == const.NOTE_STATE.PERFECT
-                                        )
+                if note.ishold and note.player_holdjudged and note.player_holdclickstate != const.NOTE_STATE.MISS:
+                    for eft, erbs, position in note.effect_times[1:]:
+                        if eft <= now_t <= eft + effect_time and eft >= note.secst + note.player_click_offset:
+                            process_effect(eft, erbs, note.player_holdclickstate == const.NOTE_STATE.PERFECT, position)
                     
     if render_range_more:
         Task(
@@ -1360,7 +1312,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
             add_code_array = True
         )
     
-    combo = chartfuncs_phi.Cal_Combo(now_t, chart_obj) if not noautoplay else PhigrosPlayManagerObject.getCombo()
+    combo = chart_obj.getCombo(now_t) if not noautoplay else PhigrosPlayManagerObject.getCombo()
     now_t /= speed
     Task(
         draw_ui,
@@ -1681,7 +1633,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
         process_effect_base(position[0] * w, position[1] * h, p, effect_random_blocks, perfect, Task)
     
     def process_miss(
-        note:chartobj_rpe.Note
+        note: chartobj_rpe.Note
     ):
         t = chart_obj.sec2beat(now_t, note.masterLine.bpmfactor)
         p = (now_t - note.secst) / miss_effect_time

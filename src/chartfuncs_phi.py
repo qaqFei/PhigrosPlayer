@@ -1,22 +1,7 @@
 import logging
 
 import chartobj_phi
-import const
 import tool_funcs
-
-def Cal_Combo(now_time:float, chart_obj: chartobj_phi.Phigros_Chart) -> int:
-    combo = 0
-    for judgeLine in chart_obj.judgeLineList:
-        for note in judgeLine.notesAbove + judgeLine.notesBelow:
-            if note.time * judgeLine.T <= now_time and note.type != const.Note.HOLD:
-                combo += 1
-            elif note.type == const.Note.HOLD:
-                if note.hold_length_sec > 0.2:
-                    if note.hold_endtime - 0.2 <= now_time:
-                        combo += 1
-                elif note.time * judgeLine.T <= now_time:
-                    combo += 1
-    return combo
 
 def FrameData_ProcessExTask(ExTask, eval_func):
     break_flag = False
@@ -114,15 +99,12 @@ def Load_Chart_Object(phigros_chart: dict):
     
     logging.info("Finding Chart More Bets, fmt = phi")
     note_times = {}
-    for note, judgeLine in [(item, judgeLine) for judgeLine in phigros_chart_obj.judgeLineList for item in judgeLine.notesAbove + judgeLine.notesBelow]:
-        t = note.time * (1.875 / judgeLine.bpm)
-        if t not in note_times:
-            note_times[t] = (False, note)
-        else:
-            if not note_times[t][0]:
-                note_times[t][-1].morebets = True
-                note_times[t] = (True, note)
-            note.morebets = True
+    notes = [i for l in phigros_chart_obj.judgeLineList for i in l.notesAbove + l.notesBelow]
+    for n in notes:
+        if n.sec not in note_times: note_times[n.sec] = 0
+        note_times[n.sec] += 1
+    for n in notes:
+        if note_times[n.sec] > 1: n.morebets = True
     
     logging.info("Load Chart Object Successfully, fmt = phi")
     return phigros_chart_obj

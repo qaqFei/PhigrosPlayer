@@ -80,7 +80,6 @@ class Note:
     morebets: bool = False
     floorPosition: float = 0.0
     holdLength: float = 0.0
-    show_effected: bool = False
     masterLine: JudgeLine|None = None
     master_index: int|None = None
     

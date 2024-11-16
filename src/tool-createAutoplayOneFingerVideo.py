@@ -38,7 +38,7 @@ if isinstance(chartObj, chartobj_phi.Phigros_Chart):
                 "pos": note.getNoteClickPos(note.time)
             })
             
-            if note.type == const.Note.HOLD:
+            if note.ishold:
                 dw = 1 / 12.5 / (1.875 / line.bpm)
                 ht = note.time
                 while ht < note.time + note.holdTime:
