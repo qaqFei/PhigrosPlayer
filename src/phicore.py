@@ -1426,9 +1426,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
             )
         
         line.playingFloorPosition = line.GetFloorPosition(0.0, now_t)
-        for note in line.notes:
-            if note.render_skiped: continue
-            
+        for note in line.renderNotes:
             note_clicked = note.startTime.value < beatTime
             
             if note_clicked and not note.clicked:
@@ -1441,16 +1439,16 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True):
                     ))
             
             if not note.ishold and note.clicked:
-                note.render_skiped = True
+                line.renderNotes.remove(note)
                 continue
             elif note.ishold and beatTime > note.endTime.value:
-                note.render_skiped = True
+                line.renderNotes.remove(note)
                 continue
             elif noautoplay and note.state == const.NOTE_STATE.BAD:
-                note.render_skiped = True
+                line.renderNotes.remove(note)
                 continue
             elif noautoplay and not note.ishold and note.player_clicked:
-                note.render_skiped = True
+                line.renderNotes.remove(note)
                 continue
             
             noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h

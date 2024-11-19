@@ -7,11 +7,12 @@ import typing
 import http.server
 import io
 import time
+from os import environ; DISABLE_WEBVIEW = eval(environ.get("DISABLE_WEBVIEW", "False"))
 from ctypes import windll
 from os.path import abspath
 from random import randint
 
-import webview
+if not DISABLE_WEBVIEW: import webview
 from PIL import Image
 
 current_thread = threading.current_thread
@@ -115,7 +116,7 @@ def ban_threadtest_current_thread():
     obj.name = "MainThread"
     return obj
 
-webview.threading.current_thread = ban_threadtest_current_thread
+if not DISABLE_WEBVIEW: webview.threading.current_thread = ban_threadtest_current_thread
 
 class WebCanvas:
     def __init__(
@@ -129,6 +130,14 @@ class WebCanvas:
         html_path: str = ".\\web_canvas.html"
     ):
         self.jsapi = JsApi()
+        self._destroyed = threading.Event()
+        self._regims: dict[str, Image.Image] = {}
+        self._regres: dict[str, bytes] = {}
+        self._is_loadimg: dict[str, bool] = {}
+        self._jscodes: list[str] = []
+        
+        if DISABLE_WEBVIEW: return
+        
         self.web = webview.create_window(
             title = title,
             url = abspath(html_path),
@@ -136,11 +145,6 @@ class WebCanvas:
             js_api = self.jsapi,
             frameless = frameless
         )
-        self._destroyed = threading.Event()
-        self._regims: dict[str, Image.Image] = {}
-        self._regres: dict[str, bytes] = {}
-        self._is_loadimg: dict[str, bool] = {}
-        self._jscodes: list[str] = []
         threading.Thread(target=webview.start, kwargs={"debug": debug}, daemon=True).start()
         
         self.web.resize(width, height)

@@ -2,13 +2,13 @@ import typing
 import math
 import base64
 import random
-from functools import cache
+from os import environ; DISABLE_NUMBA = eval(environ.get("DISABLE_NUMBA", "False"))
 from sys import argv
 from threading import Thread
 from os import listdir
 from os.path import isfile
 
-import numba
+if not DISABLE_NUMBA: import numba
 import numpy
 import cv2
 from PIL import Image, ImageDraw
@@ -20,7 +20,6 @@ random_block_num = 4
 if "--random-block-num" in argv:
     random_block_num = eval(argv[argv.index("--random-block-num") + 1])
 
-@numba.jit
 def rotate_point(x, y, θ, r) -> tuple[float, float]:
     xo = r * math.cos(math.radians(θ))
     yo = r * math.sin(math.radians(θ))
@@ -31,14 +30,12 @@ def Get_A_New_NoteId():
     note_id += 1
     return note_id
 
-@numba.jit
 def unpack_pos(number: int) -> tuple[int, int]:
     return (number - number % 1000) // 1000, number % 1000
 
 def get_effect_random_blocks() -> tuple[tuple[float, float], ...]:
     return tuple(((random.uniform(0.0, 360.0), random.uniform(-0.25, 1.15)) for _ in range(random_block_num)))
 
-@numba.jit
 def linear_interpolation(
     t: float,
     st: float, et: float,
@@ -141,7 +138,6 @@ class finish_animation_eases_class:
 begin_animation_eases = begin_animation_eases_class()
 finish_animation_eases = finish_animation_eases_class()
 
-@numba.jit
 def is_intersect(
     line_1: tuple[
         tuple[float, float],
@@ -219,7 +215,6 @@ def lineInScreen(w: int|float, h: int|float, line: tuple[int|float, ...]):
         ]
     ))
 
-@numba.jit
 def TextureLine_CanRender(
     w: int, h: int,
     texture_max_size_half: float,
@@ -241,7 +236,6 @@ def TextureLine_CanRender(
         (tl <= sr <= tr and tt <= sb <= tb)
     )
     
-@numba.jit
 def point_in_screen(point: tuple[float, float], w: int, h: int) -> bool:
     return 0 < point[0] < w and 0 < point[1] < h
 
@@ -258,11 +252,9 @@ def NoJoinThreadFunc(f):
         t.start()
     return wrapper
 
-@numba.jit
 def conrpepos(x: float, y: float):
     return (x + 675) / 1350, 1.0 - (y + 450) / 900
 
-@numba.jit
 def aconrpepos(x: float, y: float):
     return (x * 1350 - 675), (1.0 - y) * 900 - 450
 
@@ -283,7 +275,6 @@ def DataUrl2MatLike(dataurl: str) -> cv2.typing.MatLike:
         cv2.IMREAD_COLOR
     )
 
-@numba.jit
 def inrect(x: float, y: float, rect: tuple[float, float, float, float]) -> bool:
     return rect[0] <= x <= rect[2] and rect[1] <= y <= rect[3]
 
@@ -295,12 +286,10 @@ def easeAlpha(p: float):
     else:
         return (2.0 - 2.0 * ((p - 0.8) * (0.5 / 0.2) + 0.5)) ** 2
 
-@numba.jit
 def inDiagonalRectangle(x0: float, y0: float, x1: float, y1: float, power: float, x: float, y: float):
     x += (y - y0) / (y1 - y0) * (x1 - x0) * power
     return x0 + (x1 - x0) * power <= x <= x1 and y0 <= y <= y1
 
-@numba.jit
 def compute_intersection(
     x0: float, y0: float,
     x1: float, y1: float,
@@ -315,40 +304,32 @@ def compute_intersection(
     c2 = x3 * y2 - x2 * y3
     return (b2 * c1 - b1 * c2) / (a1 * b2 - a2 * b1), (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1)
 
-@numba.jit
 def fixorp(p: float):
     return max(0.0, min(1.0, p))
 
-@numba.jit
 def PhigrosChapterNameAlphaValueTransfrom(p: float):
     if p >= 0.4:
         return 1.0
     return p / 0.4
 
-@numba.jit
 def PhigrosChapterPlayButtonAlphaValueTransfrom(p: float):
     if p <= 0.6:
         return 0.0
     return (p - 0.6) / 0.4
 
-@numba.jit
 def PhigrosChapterDataAlphaValueTransfrom(p: float):
     if p <= 0.6:
         return 0.0
     return (p - 0.6) / 0.4
 
-@cache
-@numba.jit
 def getDPower(width: float, height: float, deg: float):
     l1 = 0, 0, width, 0
     l2 = 0, height, *rotate_point(0, height, deg, (width ** 2 + height ** 2) ** 0.5)
     return compute_intersection(*l1, *l2)[0] / width
 
-@numba.jit
 def getSizeByRect(rect: tuple[float, float, float, float]):
     return rect[2] - rect[0], rect[3] - rect[1]
 
-@numba.jit
 def getCenterPointByRect(rect: tuple[float, float, float, float]):
     return (rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2
 
@@ -399,7 +380,6 @@ def Get_All_Files(path: str) -> list[str]:
             files += Get_All_Files(f"{path}\\{item}")
     return files
 
-@numba.jit
 def getLineLength(x0: float, y0: float, x1: float, y1: float):
     return ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
 
@@ -408,10 +388,41 @@ def gtpresp(p: str):
     while "//" in result: result = result.replace("//", "/")
     return result
 
-@numba.jit
 def indrect(x: float, y: float, rect: tuple[float, float, float, float], dpower: float):
     x += (1.0 - (y - rect[1]) / (rect[3] - rect[1])) * (dpower * (rect[2] - rect[0]))
     return inrect(x, y, rect)
+
+numbajit_funcs = [
+    rotate_point,
+    unpack_pos,
+    linear_interpolation,
+    is_intersect,
+    TextureLine_CanRender,
+    point_in_screen,
+    conrpepos,
+    aconrpepos,
+    inrect,
+    inDiagonalRectangle,
+    compute_intersection,
+    fixorp,
+    PhigrosChapterNameAlphaValueTransfrom,
+    PhigrosChapterPlayButtonAlphaValueTransfrom,
+    PhigrosChapterDataAlphaValueTransfrom,
+    getDPower,
+    getSizeByRect,
+    getCenterPointByRect,
+    getLineLength,
+    indrect
+]
+
+if not DISABLE_NUMBA:
+    for f in numbajit_funcs:
+        globals()[f.__name__] = numba.jit(f)
+
+    efs = rpe_easing.ease_funcs.copy()
+    rpe_easing.ease_funcs.clear()
+    rpe_easing.ease_funcs.extend(map(numba.jit, efs))
+    (*map(lambda x: x(random.uniform(0.0, 1.0)), rpe_easing.ease_funcs), )
 
 rotate_point(0.0, 0.0, 90, 1.145)
 unpack_pos(1000 * 11 + 45)
@@ -432,8 +443,3 @@ getSizeByRect((0.0, 0.0, 1.0, 4.0))
 getCenterPointByRect((0.0, 0.0, 1.0, 1.0))
 getLineLength(0.0, 0.0, 1.0, 1.0)
 indrect(0.0, 3.0, (0.0, 0.0, 1.0, 4.5), 5.3)
-
-efs = rpe_easing.ease_funcs.copy()
-rpe_easing.ease_funcs.clear()
-rpe_easing.ease_funcs.extend(map(numba.jit, efs))
-(*map(lambda x: x(random.uniform(0.0, 1.0)), rpe_easing.ease_funcs), )

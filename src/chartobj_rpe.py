@@ -4,7 +4,7 @@ import math
 import typing
 import logging
 from dataclasses import dataclass
-from functools import lru_cache, cache
+from functools import lru_cache
 
 import tool_funcs
 import rpe_easing
@@ -100,8 +100,6 @@ class Note:
     
     player_badtime_beat: float = float("nan")
     player_badjudge_floorp: float = float("nan")
-    
-    render_skiped: bool = False
     
     def __post_init__(self):
         self.phitype = {1:1, 2:3, 3:4, 4:2}[self.type]
@@ -286,6 +284,7 @@ class JudgeLine:
     
     playingFloorPosition: float = 0.0
     effectNotes: list[Note]|None = None
+    renderNotes: list[Note]|None = None
     
     def GetEventValue(self, t: float, es: list[LineEvent], default):
         e = findevent(es, t)
@@ -301,7 +300,6 @@ class JudgeLine:
             b = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], e.easingFunc)
             return (r, g, b)
     
-    @lru_cache
     def GetPos(self, t: float, master: Rpe_Chart) -> list[float, float]:
         linePos = [0.0, 0.0]
         for layer in self.eventLayers:
@@ -329,13 +327,15 @@ class JudgeLine:
         linePos = self.GetPos(t, master)
         lineAlpha = 0.0
         lineRotate = 0.0
-        lineColor = defaultColor if not self.extended.textEvents else (255, 255, 255)
+        lineColor = defaultColor
+        if self.extended and self.extended.textEvents:
+            lineColor = (255, 255, 255)
         lineScaleX = 1.0
         lineScaleY = 1.0
         lineText = None
         
         for layer in self.eventLayers:
-            lineAlpha += self.GetEventValue(t, layer.alphaEvents, 0.0 if (t >= 0.0 or self.attachUI is not None) else -255.0)
+            lineAlpha += self.GetEventValue(t, layer.alphaEvents, 0.0)
             lineRotate += self.GetEventValue(t, layer.rotateEvents, 0.0)
         
         if self.extended:
@@ -343,6 +343,9 @@ class JudgeLine:
             lineScaleY = self.GetEventValue(t, self.extended.scaleYEvents, lineScaleY)
             lineColor = self.GetEventValue(t, self.extended.colorEvents, lineColor)
             lineText = self.GetEventValue(t, self.extended.textEvents, lineText)
+        
+        if t < 0.0 and self.attachUI is None:
+            lineAlpha = -255
         
         return tool_funcs.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
@@ -414,6 +417,7 @@ class Rpe_Chart:
             
             line.notes.sort(key=lambda x: x.startTime.value)
             line.effectNotes = [i for i in line.notes if not i.isFake]
+            line.renderNotes = line.notes.copy()
         
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
         self.JudgeLineList.sort(key = lambda x: x.zOrder)
@@ -427,7 +431,6 @@ class Rpe_Chart:
             else: r = m
         return l
     
-    @cache
     def sec2beat(self, t: float, bpmfactor: float):
         beat = 0.0
         for i, e in enumerate(self.BPMList):
@@ -446,7 +449,6 @@ class Rpe_Chart:
                 beat += t / (60 / bpmv)
         return beat
     
-    @cache
     def beat2sec(self, t: float, bpmfactor: float):
         sec = 0.0
         for i, e in enumerate(self.BPMList):

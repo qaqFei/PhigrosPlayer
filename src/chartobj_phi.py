@@ -182,6 +182,7 @@ class judgeLine:
         self.renderNotesAbove = self.notesAbove.copy()
         self.renderNotesBelow = self.notesBelow.copy()
         self.effectNotes = self.notesAbove + self.notesBelow
+        self.effectNotes.sort(key = lambda x: x.time)
     
     def _sort_events(self):
         self.speedEvents.sort(key = lambda x: x.startTime)

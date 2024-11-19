@@ -39,7 +39,7 @@ if "META" in Chart and "formatVersion" not in Chart:
 
 ChartAudio:AudioSegment = AudioSegment.from_file(argv[2])
 ChartAudio_Length = ChartAudio.duration_seconds
-ChartAudio_Split_Audio_Block_Length = 3500 #ms
+ChartAudio_Split_Audio_Block_Length = ChartAudio.duration_seconds * 1000 / 85 #ms
 ChartAudio_Split_Length = int(ChartAudio_Length / (ChartAudio_Split_Audio_Block_Length / 1000)) + 1
 ChartAudio_Split_Audio_List = [AudioSegment.silent(ChartAudio_Split_Audio_Block_Length + 500) for _ in [None] * ChartAudio_Split_Length]
 JudgeLine_cut = 0
