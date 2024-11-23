@@ -19,10 +19,8 @@ jobs:
         run: |
           cd src
           python tool-compile.py -y --zip
-          python tool-createInnoSetupConfig.py 1.9.0-pre ./compile_result main.exe setup-main setup-main.iss
-          python tool-createInnoSetupConfig.py 1.9.0-pre ./compile_result phigros.exe setup-phigros-sim setup-phigros-sim.iss
-          .\iscc\ISCC.exe setup-main.iss
-          .\iscc\ISCC.exe setup-phigros-sim.iss
+          python tool-createInnoSetupConfig.py 1.9.0-pre ./compile_result main.exe ppr-setup setup.iss
+          .\iscc\ISCC.exe setup.iss
           tree .
       
       - name: upload-zip
@@ -31,15 +29,8 @@ jobs:
           name: compile_result
           path: ${{ github.workspace }}\src\compile_result.zip
       
-      - name: upload-setup-main
+      - name: upload-setup
         uses: actions/upload-artifact@v4
         with:
-          name: setup-main
-          path: ${{ github.workspace }}\src\setup-main.exe
-      
-      - name: upload-setup-phigros-sim
-        uses: actions/upload-artifact@v4
-        with:
-          name: setup-phigros-sim
-          path: ${{ github.workspace }}\src\setup-phigros-sim.exe
-        
+          name: setup
+          path: ${{ github.workspace }}\src\ppr-setup.exe

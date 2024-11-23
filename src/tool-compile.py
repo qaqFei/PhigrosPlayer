@@ -41,15 +41,8 @@ system("python -m venv compile_venv")
 py = ".\\compile_venv\\Scripts\\python.exe"
 
 system(f"{py} -m pip install --upgrade pip")
-
-packages = ["pyinstaller", *open(".\\requirements.txt", "r", encoding="utf-8").read().splitlines()]
-pits: list[Thread] = []
-
-for package in packages:
-    pits.append(Thread(target=system, args=(f"{py} -m pip install {package}", )))
-
-for t in pits: t.start()
-for t in pits: t.join()
+system(f"{py} -m pip install -r .\\requirements.txt")
+system(f"{py} -m pip install pyinstaller")
 
 pyinstaller = ".\\compile_venv\\Scripts\\pyinstaller.exe"
 pyi_makespec = ".\\compile_venv\\Scripts\\pyi-makespec.exe"
