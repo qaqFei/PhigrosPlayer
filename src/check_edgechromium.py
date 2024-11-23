@@ -1,3 +1,5 @@
+import fix_workpath as _
+
 import tkinter.messagebox
 from os import system
 
@@ -9,4 +11,4 @@ if webview.platforms.winforms.renderer != "edgechromium":
     if webview.platforms.winforms._is_chromium():
         webview.platforms.winforms.renderer = "edgechromium"
     else:
-        tkinter.messagebox.showwarning("警告", "EdgeChromium渲染器安装失败或取消\n请手动安装\n接下来将继续运行程序, 能不能跑起来全看天意吧...")
+        tkinter.messagebox.showwarning("警告", "EdgeChromium渲染器安装失败或取消")
