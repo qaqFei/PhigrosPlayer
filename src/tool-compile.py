@@ -32,7 +32,8 @@ res_files = [
     "web_canvas.html",
     "7z.exe", "7z.dll",
     "ecwv_installer.exe",
-    "resources", "shaders"
+    "resources", "shaders",
+    "icon.ico"
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 
