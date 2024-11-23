@@ -23,7 +23,6 @@ jobs:
           python tool-createInnoSetupConfig.py 1.9.0-pre ./compile_result phigros.exe setup-phigros-sim setup-phigros-sim.iss
           .\iscc\ISCC.exe setup-main.iss
           .\iscc\ISCC.exe setup-phigros-sim.iss
-          tree .
       
       - name: upload-zip
         uses: actions/upload-artifact@v4
