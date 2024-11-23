@@ -2,13 +2,12 @@ import typing
 import math
 import base64
 import random
-from os import environ; DISABLE_NUMBA = eval(environ.get("DISABLE_NUMBA", "False"))
 from sys import argv
 from threading import Thread
 from os import listdir
 from os.path import isfile
 
-if not DISABLE_NUMBA: import numba
+import numba
 import numpy
 import cv2
 from PIL import Image, ImageDraw
@@ -415,14 +414,12 @@ numbajit_funcs = [
     indrect
 ]
 
-if not DISABLE_NUMBA:
-    for f in numbajit_funcs:
-        globals()[f.__name__] = numba.jit(f)
-
-    efs = rpe_easing.ease_funcs.copy()
-    rpe_easing.ease_funcs.clear()
-    rpe_easing.ease_funcs.extend(map(numba.jit, efs))
-    (*map(lambda x: x(random.uniform(0.0, 1.0)), rpe_easing.ease_funcs), )
+for f in numbajit_funcs:
+    globals()[f.__name__] = numba.jit(f)
+efs = rpe_easing.ease_funcs.copy()
+rpe_easing.ease_funcs.clear()
+rpe_easing.ease_funcs.extend(map(numba.jit, efs))
+(*map(lambda x: x(random.uniform(0.0, 1.0)), rpe_easing.ease_funcs), )
 
 rotate_point(0.0, 0.0, 90, 1.145)
 unpack_pos(1000 * 11 + 45)

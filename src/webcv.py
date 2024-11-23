@@ -7,12 +7,11 @@ import typing
 import http.server
 import io
 import time
-from os import environ; DISABLE_WEBVIEW = eval(environ.get("DISABLE_WEBVIEW", "False"))
 from ctypes import windll
 from os.path import abspath
 from random import randint
 
-if not DISABLE_WEBVIEW: import webview
+import webview
 from PIL import Image
 
 current_thread = threading.current_thread
@@ -116,7 +115,7 @@ def ban_threadtest_current_thread():
     obj.name = "MainThread"
     return obj
 
-if not DISABLE_WEBVIEW: webview.threading.current_thread = ban_threadtest_current_thread
+webview.threading.current_thread = ban_threadtest_current_thread
 
 class WebCanvas:
     def __init__(
@@ -135,8 +134,6 @@ class WebCanvas:
         self._regres: dict[str, bytes] = {}
         self._is_loadimg: dict[str, bool] = {}
         self._jscodes: list[str] = []
-        
-        if DISABLE_WEBVIEW: return
         
         self.web = webview.create_window(
             title = title,
