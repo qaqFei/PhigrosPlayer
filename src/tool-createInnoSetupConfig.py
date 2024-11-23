@@ -37,7 +37,6 @@ SetupIconFile= $$SetupIconFile$$#
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-PrivilegesRequired=admin
 
 [Languages]
 Name: "chinesesimp"; MessagesFile: "compiler:Default.isl"
