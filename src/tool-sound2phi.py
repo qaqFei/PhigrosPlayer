@@ -5,7 +5,7 @@ from random import uniform
 import librosa
 
 if len(argv) < 3:
-    print("Usage: tool-sound2phiChart <soundFile> <outputFile>")
+    print("Usage: tool-sound2phi <soundFile> <outputFile>")
     raise SystemExit
 
 data, sr = librosa.load(argv[1], sr=None)
