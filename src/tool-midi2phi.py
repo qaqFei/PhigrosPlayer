@@ -24,24 +24,19 @@ mid = mido.MidiFile(argv[1])
 
 def pcs():
     onmsgs = []
-    tempo = mido.bpm2tempo(120.0)
     
-    for track in mid.tracks:
-        t = 0
-        for msg in track:
-            t += msg.time
-            match msg.type:
-                case "set_tempo":
-                    tempo = msg.tempo
-                case "note_on":
-                    onmsgs.append((t, msg.note))
-                   
+    t = 0.0
+    for msg in mid:
+        t += msg.time
+        if msg.type == "note_on":
+            onmsgs.append((t, msg.note))
+    
     onmsgs.sort(key = lambda x: x[0])
     min_note, max_note = min(onmsgs, key=lambda x: x[1])[1], max(onmsgs, key=lambda x: x[1])[1]
     
     last = (float("nan"), float("nan"))
     for t, n in onmsgs:
-        r = mido.tick2second(t, mid.ticks_per_beat, tempo), (n + 1 - (max_note - min_note) / 2 - min_note) / (max_note - min_note) / 0.05625 * 0.8
+        r = t, (n + 1 - (max_note - min_note) / 2 - min_note) / (max_note - min_note) / 0.05625 * 0.8
         if r != last:
             yield r
         last = r
