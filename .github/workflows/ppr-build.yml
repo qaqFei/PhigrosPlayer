@@ -19,18 +19,10 @@ jobs:
         run: |
           cd src
           python tool-compile.py -y --zip
-          python tool-createInnoSetupConfig.py 1.9.0-pre ./compile_result main.exe ppr-setup setup.iss
-          .\iscc\ISCC.exe setup.iss
-          tree .
       
       - name: upload-zip
         uses: actions/upload-artifact@v4
         with:
           name: compile_result
           path: ${{ github.workspace }}\src\compile_result.zip
-      
-      - name: upload-setup
-        uses: actions/upload-artifact@v4
-        with:
-          name: setup
-          path: ${{ github.workspace }}\src\ppr-setup.exe
+          
