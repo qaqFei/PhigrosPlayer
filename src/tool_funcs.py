@@ -4,7 +4,7 @@ import base64
 import random
 from sys import argv
 from threading import Thread
-from os import listdir
+from os import listdir, environ
 from os.path import isfile
 
 import numba
@@ -391,35 +391,36 @@ def indrect(x: float, y: float, rect: tuple[float, float, float, float], dpower:
     x += (1.0 - (y - rect[1]) / (rect[3] - rect[1])) * (dpower * (rect[2] - rect[0]))
     return inrect(x, y, rect)
 
-numbajit_funcs = [
-    rotate_point,
-    unpack_pos,
-    linear_interpolation,
-    is_intersect,
-    TextureLine_CanRender,
-    point_in_screen,
-    conrpepos,
-    aconrpepos,
-    inrect,
-    inDiagonalRectangle,
-    compute_intersection,
-    fixorp,
-    PhigrosChapterNameAlphaValueTransfrom,
-    PhigrosChapterPlayButtonAlphaValueTransfrom,
-    PhigrosChapterDataAlphaValueTransfrom,
-    getDPower,
-    getSizeByRect,
-    getCenterPointByRect,
-    getLineLength,
-    indrect
-]
+if environ.get("ENABLE_JIT", ""):
+    numbajit_funcs = [
+        rotate_point,
+        unpack_pos,
+        linear_interpolation,
+        is_intersect,
+        TextureLine_CanRender,
+        point_in_screen,
+        conrpepos,
+        aconrpepos,
+        inrect,
+        inDiagonalRectangle,
+        compute_intersection,
+        fixorp,
+        PhigrosChapterNameAlphaValueTransfrom,
+        PhigrosChapterPlayButtonAlphaValueTransfrom,
+        PhigrosChapterDataAlphaValueTransfrom,
+        getDPower,
+        getSizeByRect,
+        getCenterPointByRect,
+        getLineLength,
+        indrect
+    ]
 
-for f in numbajit_funcs:
-    globals()[f.__name__] = numba.jit(f)
-efs = rpe_easing.ease_funcs.copy()
-rpe_easing.ease_funcs.clear()
-rpe_easing.ease_funcs.extend(map(numba.jit, efs))
-(*map(lambda x: x(random.uniform(0.0, 1.0)), rpe_easing.ease_funcs), )
+    for f in numbajit_funcs:
+        globals()[f.__name__] = numba.jit(f)
+    efs = rpe_easing.ease_funcs.copy()
+    rpe_easing.ease_funcs.clear()
+    rpe_easing.ease_funcs.extend(map(numba.jit, efs))
+    (*map(lambda x: x(random.uniform(0.0, 1.0)), rpe_easing.ease_funcs), )
 
 rotate_point(0.0, 0.0, 90, 1.145)
 unpack_pos(1000 * 11 + 45)

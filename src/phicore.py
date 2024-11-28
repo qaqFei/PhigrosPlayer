@@ -1270,7 +1270,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True):
                         
                 if note.ishold and note.player_holdjudged and note.player_holdclickstate != const.NOTE_STATE.MISS:
                     for eft, erbs, position in note.effect_times[1:]:
-                        if eft <= now_t <= eft + effect_time and eft >= note.secst + note.player_click_offset:
+                        if eft <= now_t <= eft + effect_time and eft >= note.sec + note.player_click_offset:
                             process_effect(eft, erbs, note.player_holdclickstate == const.NOTE_STATE.PERFECT, position)
                     
             if note.effect_times[-1][0] + effect_time + 0.16 < now_t:
