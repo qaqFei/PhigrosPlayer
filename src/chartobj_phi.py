@@ -285,7 +285,7 @@ class Phigros_Chart:
             if self.combotimes[m] < t: l = m + 1
             else: r = m
         return l
-    
+
 @dataclass
 class RenderTask:
     func: typing.Callable

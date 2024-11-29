@@ -391,12 +391,113 @@ def indrect(x: float, y: float, rect: tuple[float, float, float, float], dpower:
     x += (1.0 - (y - rect[1]) / (rect[3] - rect[1])) * (dpower * (rect[2] - rect[0]))
     return inrect(x, y, rect)
 
+class PhigrosPlayPlayStateManager:
+    def __init__(self, noteCount: int):
+        self.events: list[typing.Literal["P", "G", "B", "M"]] = []
+        self.event_offsets: list[float] = [] # the note click offset (s)
+        self.noteCount = noteCount
+    
+    def addEvent(self, event: typing.Literal["P", "G", "B", "M"], offset: float|None = None): # Perfect, Good, Bad, Miss
+        self.events.append(event)
+        if offset is not None: # offset is only good judge.
+            self.event_offsets.append(offset)
+    
+    def getJudgelineColor(self) -> tuple[int]:
+        if "B" in self.events or "M" in self.events:
+            return (255, 255, 255) # White
+        if "G" in self.events:
+            return (162, 238, 255) # FC
+        return (255, 255, 170) # AP
+
+    def getCombo(self) -> int:
+        cut = 0
+        for e in reversed(self.events):
+            if e == "P" or e == "G":
+                cut += 1
+            else:
+                return cut
+        return cut
+    
+    def getAcc(self) -> float: # 实时 Acc
+        if not self.events: return 1.0
+        acc = 0.0
+        allcut = len(self.events)
+        for e in self.events:
+            if e == "P":
+                acc += 1.0 / allcut
+            elif e == "G":
+                acc += 0.65 / allcut
+        return acc
+    
+    def getAccOfAll(self) -> float:
+        acc = 0.0
+        for e in self.events:
+            if e == "P":
+                acc += 1.0 / self.noteCount
+            elif e == "G":
+                acc += 0.65 / self.noteCount
+        return acc
+    
+    def getMaxCombo(self) -> int:
+        r = 0
+        cut = 0
+        for e in reversed(self.events):
+            if e == "P" or e == "G":
+                cut += 1
+            else:
+                r = max(r, cut)
+                cut = 0
+        return max(r, cut)
+    
+    def getScore(self) -> float:
+        return self.getAccOfAll() * 900000 + self.getMaxCombo() / self.noteCount * 100000
+    
+    def getPerfectCount(self) -> int:
+        return self.events.count("P")
+    
+    def getGoodCount(self) -> int:
+        return self.events.count("G")
+    
+    def getBadCount(self) -> int:
+        return self.events.count("B")
+    
+    def getMissCount(self) -> int:
+        return self.events.count("M")
+    
+    def getEarlyCount(self) -> int:
+        return len(list(filter(lambda x: x > 0, self.event_offsets)))
+    
+    def getLateCount(self) -> int:
+        return len(list(filter(lambda x: x < 0, self.event_offsets)))
+    
+    def getLevelString(self) -> typing.Literal["AP", "FC", "V", "S", "A", "B", "C", "F"]:
+        score = self.getScore()
+        if self.getPerfectCount() == self.noteCount: return "AP"
+        elif self.getBadCount() == 0 and self.getMissCount() == 0: return "FC"
+        
+        if 0 <= score < 700000:
+            return "F"
+        elif 700000 <= score < 820000:
+            return "C"
+        elif 820000 <= score < 880000:
+            return "B"
+        elif 880000 <= score < 920000:
+            return "A"
+        elif 920000 <= score < 960000:
+            return "S"
+        elif 960000 <= score < 1000000:
+            return "V"
+        elif 1000000 <= score:
+            return "AP"
+        
 class PPLM_ProxyBase:
     def __init__(self, cobj: typing.Any) -> None: ...
     
     def get_lines(self) -> list[typing.Any]: ...
     def get_all_notes(self) -> list[typing.Any]: ...
+    def get_all_crnotes(self) -> list[typing.Any]: ...
     def get_line_notes(self, line: typing.Any) -> list[typing.Any]: ...
+    def get_line_crnotes(self, line: typing.Any) -> list[typing.Any]: ...
     
     def nproxy_stime(self, note: typing.Any) -> float: ...
     def nproxy_etime(self, note: typing.Any) -> float: ...
@@ -439,17 +540,26 @@ class PPLM_PC_ClickEvent: time: float
 class PPLM_PC_ReleaseEvent: time: float
     
 class PhigrosPlayLogicManager:
-    def __init__(self, pplm_proxy: PPLM_ProxyBase) -> None:
+    def __init__(
+            self,
+            pplm_proxy: PPLM_ProxyBase,
+            ppps: PhigrosPlayPlayStateManager
+        ) -> None:
+        
         self.pp = pplm_proxy
+        self.ppps = ppps
         
         self.pc_clicks: list[PPLM_PC_ClickEvent] = []
         self.pc_releases: list[PPLM_PC_ReleaseEvent] = []
+        self.pc_clickings: int = 0
     
     def pc_click(self, t: float) -> None: self.pc_clicks.append(PPLM_PC_ClickEvent(time=t))
     def pc_release(self, t: float) -> None: self.pc_releases.append(PPLM_PC_ReleaseEvent(time=t))
     
     def pc_update(self, t: float) -> None:
-        pass
+        crnotes = self.pp.get_all_crnotes()
+        self.pc_clickings += len(self.pc_clicks)
+        self.pc_clickings -= len(self.pc_releases)
     
 if environ.get("ENABLE_JIT", ""):
     numbajit_funcs = [

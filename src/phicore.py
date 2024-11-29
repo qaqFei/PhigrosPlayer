@@ -15,7 +15,6 @@ import tool_funcs
 import rpe_easing
 import chartobj_phi
 import chartobj_rpe
-import chartfuncs_phi
 import phi_tips
 
 @dataclass
@@ -185,105 +184,6 @@ drawUI_Default_Kwargs = {
     for k in ("combonumber", "combo", "score", "name", "level", "pause") for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
 }
 lastCallDrawUI = - float("inf")
-
-class PhigrosPlayManager:
-    def __init__(self, noteCount: int):
-        self.events: list[typing.Literal["P", "G", "B", "M"]] = []
-        self.event_offsets: list[float] = [] # the note click offset (s)
-        self.noteCount = noteCount
-    
-    def addEvent(self, event: typing.Literal["P", "G", "B", "M"], offset: float|None = None): # Perfect, Good, Bad, Miss
-        self.events.append(event)
-        if offset is not None: # offset is only good judge.
-            self.event_offsets.append(offset)
-    
-    def getJudgelineColor(self) -> tuple[int]:
-        if "B" in self.events or "M" in self.events:
-            return (255, 255, 255) # White
-        if "G" in self.events:
-            return (162, 238, 255) # FC
-        return (255, 255, 170) # AP
-
-    def getCombo(self) -> int:
-        cut = 0
-        for e in reversed(self.events):
-            if e == "P" or e == "G":
-                cut += 1
-            else:
-                return cut
-        return cut
-    
-    def getAcc(self) -> float: # 实时 Acc
-        if not self.events: return 1.0
-        acc = 0.0
-        allcut = len(self.events)
-        for e in self.events:
-            if e == "P":
-                acc += 1.0 / allcut
-            elif e == "G":
-                acc += 0.65 / allcut
-        return acc
-    
-    def getAccOfAll(self) -> float:
-        acc = 0.0
-        for e in self.events:
-            if e == "P":
-                acc += 1.0 / self.noteCount
-            elif e == "G":
-                acc += 0.65 / self.noteCount
-        return acc
-    
-    def getMaxCombo(self) -> int:
-        r = 0
-        cut = 0
-        for e in reversed(self.events):
-            if e == "P" or e == "G":
-                cut += 1
-            else:
-                r = max(r, cut)
-                cut = 0
-        return max(r, cut)
-    
-    def getScore(self) -> float:
-        return self.getAccOfAll() * 900000 + self.getMaxCombo() / self.noteCount * 100000
-    
-    def getPerfectCount(self) -> int:
-        return self.events.count("P")
-    
-    def getGoodCount(self) -> int:
-        return self.events.count("G")
-    
-    def getBadCount(self) -> int:
-        return self.events.count("B")
-    
-    def getMissCount(self) -> int:
-        return self.events.count("M")
-    
-    def getEarlyCount(self) -> int:
-        return len(list(filter(lambda x: x > 0, self.event_offsets)))
-    
-    def getLateCount(self) -> int:
-        return len(list(filter(lambda x: x < 0, self.event_offsets)))
-    
-    def getLevelString(self) -> typing.Literal["AP", "FC", "V", "S", "A", "B", "C", "F"]:
-        score = self.getScore()
-        if self.getPerfectCount() == self.noteCount: return "AP"
-        elif self.getBadCount() == 0 and self.getMissCount() == 0: return "FC"
-        
-        if 0 <= score < 700000:
-            return "F"
-        elif 700000 <= score < 820000:
-            return "C"
-        elif 820000 <= score < 880000:
-            return "B"
-        elif 880000 <= score < 920000:
-            return "A"
-        elif 920000 <= score < 960000:
-            return "S"
-        elif 960000 <= score < 1000000:
-            return "V"
-        elif 1000000 <= score:
-            return "AP"
     
 def process_effect_base(
     x: float, y: float,
@@ -335,7 +235,7 @@ def PlayChart_ThreadFunction(_t: bool = False, _e: TEvent|None = None, _stope: T
     
     global PhigrosPlayManagerObject, PlayChart_NowTime
     PlayChart_NowTime = - float("inf")
-    PhigrosPlayManagerObject = PhigrosPlayManager(chart_obj.note_num)
+    PhigrosPlayManagerObject = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
     SETTER("PhigrosPlayManagerObject", PhigrosPlayManagerObject)
     KeyDownCount = 0
     keymap = {chr(i): False for i in range(97, 123)}
