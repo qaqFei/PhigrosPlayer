@@ -12,6 +12,7 @@ import numpy
 import cv2
 from PIL import Image, ImageDraw
 
+import const
 import rpe_easing
 
 note_id = -1
@@ -504,38 +505,49 @@ class PPLM_ProxyBase:
     def nproxy_htime(self, note: typing.Any) -> float: ...
     def nproxy_hcetime(self, note: typing.Any) -> float: ...
     
-    def nproxy_istap(self, note: typing.Any) -> bool: ...
-    def nproxy_isdrag(self, note: typing.Any) -> bool: ...
-    def nproxy_ishold(self, note: typing.Any) -> bool: ...
-    def nproxy_isflick(self, note: typing.Any) -> bool: ...
-    def nproxy_typein(self, note: typing.Any, types: tuple[typing.Any]) -> bool: ...
+    def nproxy_typein(self, note: typing.Any, ts: tuple[typing.Any]) -> bool: ...
+    def nproxy_typeis(self, note: typing.Any, t: typing.Any) -> bool: ...
+    def nproxy_tstring(self, note: typing.Any) -> str: ...
     
     def nproxy_nowpos(self, note: typing.Any) -> tuple[float, float]: ...
     
     def nproxy_get_pclicked(self, note: typing.Any) -> bool: ...
-    def nproxy_set_pclicked(self, note: typing.Any, state: bool): ...
+    def nproxy_set_pclicked(self, note: typing.Any, state: bool) -> None: ...
     
     def nproxy_get_wclick(self, note: typing.Any) -> bool: ...
-    def nproxy_set_wclick(self, note: typing.Any, state: bool): ...
+    def nproxy_set_wclick(self, note: typing.Any, state: bool) -> None: ...
     
     def nproxy_get_pclick_offset(self, note: typing.Any) -> float: ...
-    def nproxy_set_pclick_offset(self, note: typing.Any, offset: float): ...
+    def nproxy_set_pclick_offset(self, note: typing.Any, offset: float) -> None: ...
     
     def nproxy_get_ckstate(self, note: typing.Any) -> typing.Any: ...
-    def nproxy_set_ckstate(self, note: typing.Any, state: typing.Any): ...
+    def nproxy_set_ckstate(self, note: typing.Any, state: typing.Any) -> None: ...
+    def nproxy_get_ckstate_ishit(self, note: typing.Any) -> bool: ...
     
     def nproxy_get_cksound_played(self, note: typing.Any) -> bool: ...
-    def nproxy_set_cksound_played(self, note: typing.Any, state: bool): ...
+    def nproxy_set_cksound_played(self, note: typing.Any, state: bool) -> None: ...
     
     def nproxy_get_missed(self, note: typing.Any) -> bool: ...
-    def nproxy_set_missed(self, note: typing.Any, state: bool): ...
+    def nproxy_set_missed(self, note: typing.Any, state: bool) -> None: ...
     
     def nproxy_get_holdjudged(self, note: typing.Any) -> bool: ...
-    def nproxy_set_holdjudged(self, note: typing.Any, state: bool): ...
+    def nproxy_set_holdjudged(self, note: typing.Any, state: bool) -> None: ...
     
     def nproxy_get_holdjudged_tomanager(self, note: typing.Any) -> bool: ...
-    def nproxy_set_holdjudged_tomanager(self, note: typing.Any, state: bool): ...
+    def nproxy_set_holdjudged_tomanager(self, note: typing.Any, state: bool) -> None: ...
     
+    def nproxy_get_last_testholdmiss_time(self, note: typing.Any) -> float: ...
+    def nproxy_set_last_testholdmiss_time(self, note: typing.Any, time: float) -> None: ...
+    
+    def nproxy_get_safe_used(self, note: typing.Any) -> bool: ...
+    def nproxy_set_safe_used(self, note: typing.Any, state: bool) -> None: ...
+    
+    def nproxy_get_holdclickstate(self, note: typing.Any) -> typing.Any: ...
+    def nproxy_set_holdclickstate(self, note: typing.Any, state: typing.Any) -> None: ...
+    
+    def nproxy_get_pbadtime(self, note: typing.Any) -> float: ...
+    def nproxy_set_pbadtime(self, note: typing.Any, time: float) -> None: ...
+
 class PPLM_PC_ClickEvent: time: float
 class PPLM_PC_ReleaseEvent: time: float
     
@@ -543,11 +555,15 @@ class PhigrosPlayLogicManager:
     def __init__(
             self,
             pplm_proxy: PPLM_ProxyBase,
-            ppps: PhigrosPlayPlayStateManager
+            ppps: PhigrosPlayPlayStateManager,
+            enable_cksound: bool,
+            psound: typing.Callable[[str], typing.Any]
         ) -> None:
         
         self.pp = pplm_proxy
         self.ppps = ppps
+        self.enable_cksound = enable_cksound
+        self.psound = psound
         
         self.pc_clicks: list[PPLM_PC_ClickEvent] = []
         self.pc_releases: list[PPLM_PC_ReleaseEvent] = []
@@ -558,9 +574,157 @@ class PhigrosPlayLogicManager:
     
     def pc_update(self, t: float) -> None:
         crnotes = self.pp.get_all_crnotes()
+        
         self.pc_clickings += len(self.pc_clicks)
         self.pc_clickings -= len(self.pc_releases)
-    
+        keydown = self.pc_clickings > 0
+
+        for i in crnotes:
+            if ( # drag / flick range judge
+                keydown and
+                not self.pp.nproxy_get_wclick(i) and
+                self.pp.nproxy_typein(i, (const.Note.DRAG, const.Note.FLICK)) and
+                abs((self.pp.nproxy_stime(i) - t)) <= const.NOTE_JUDGE_RANGE.GOOD
+            ):
+                self.pp.nproxy_set_wclick(i, True)
+            
+            if ( # drag / flick it is time to judge
+                self.pp.nproxy_get_wclick(i) and
+                not self.pp.nproxy_get_pclicked(i) and
+                self.pp.nproxy_stime(i) <= t
+            ):
+                self.pp.nproxy_set_pclicked(i, True)
+                self.pp.nproxy_set_ckstate(i, const.NOTE_STATE.PERFECT)
+                self.ppps.addEvent("P")
+            
+            if ( # play click sound
+                self.pp.nproxy_get_pclicked(i) and
+                not self.pp.nproxy_get_cksound_played(i) and
+                self.pp.nproxy_get_ckstate_ishit(i)
+            ):
+                if self.enable_cksound:
+                    self.psound(self.pp.nproxy_tstring(i))
+                self.pp.nproxy_set_cksound_played(i, True)
+            
+            if ( # miss judge
+                not self.pp.nproxy_get_pclicked(i) and
+                not self.pp.nproxy_get_missed(i) and
+                self.pp.nproxy_stime(i) - t < -const.NOTE_JUDGE_RANGE.MISS
+            ):
+                self.pp.nproxy_set_missed(i, True)
+                self.ppps.addEvent("M")
+            
+            if ( # hold holding judge
+                keydown and
+                self.pp.nproxy_typeis(i, const.Note.HOLD) and
+                self.pp.nproxy_get_pclicked(i) and
+                self.pp.nproxy_get_ckstate_ishit(i) and
+                self.pp.nproxy_etime(i) - 0.2 >= t
+            ):
+                self.pp.nproxy_set_last_testholdmiss_time(i, t)
+            
+            if ( # hold holding miss judge
+                not keydown and
+                self.pp.nproxy_typeis(i, const.Note.HOLD) and
+                self.pp.nproxy_get_pclicked(i) and
+                self.pp.nproxy_get_ckstate_ishit(i) and
+                self.pp.nproxy_etime(i) - 0.2 >= t and
+                self.pp.nproxy_get_last_testholdmiss_time(i) + 0.16 <= t
+            ):
+                self.pp.nproxy_set_ckstate(i, const.NOTE_STATE.MISS)
+                self.pp.nproxy_set_missed(i, True)
+                self.ppps.addEvent("M")
+            
+            if ( # hold add hit event to manager
+                self.pp.nproxy_typeis(i, const.Note.HOLD) and
+                self.pp.nproxy_get_holdjudged(i) and # if judged is true, hold state is perfect/good/ miss(miss at clicking)
+                not self.pp.nproxy_get_holdjudged_tomanager(i) and
+                self.pp.nproxy_hcetime(i) <= t
+            ):
+                self.pp.nproxy_set_holdjudged_tomanager(i, True)
+                state = self.pp.nproxy_get_ckstate(i)
+                if state == const.NOTE_STATE.PERFECT:
+                    self.ppps.addEvent("P")
+                elif state == const.NOTE_STATE.GOOD:
+                    self.ppps.addEvent("G", self.pp.nproxy_get_pclick_offset(i))
+            
+            if self.pp.nproxy_stime(i) > t + const.NOTE_JUDGE_RANGE.BAD * 2:
+                break
+        
+        self.pc_releases.clear()
+        
+        while self.pc_clicks:
+            cke = self.pc_clicks.pop()
+            
+            can_judge_notes = []
+            can_use_safe_notes = []
+            
+            for i in crnotes:
+                if (
+                    not self.pp.nproxy_get_pclicked(i) and
+                    self.pp.nproxy_typein(i, (const.Note.TAP, const.Note.HOLD)) and
+                    abs((offset := (self.pp.nproxy_stime(i) - cke.time))) <= (
+                        const.NOTE_JUDGE_RANGE.BAD \
+                            if self.pp.nproxy_typeis(i, const.Note.TAP) else \
+                                const.NOTE_JUDGE_RANGE.GOOD
+                    )
+                ):
+                    can_judge_notes.append((i, offset))
+                
+                if (
+                    self.pp.nproxy_typein(i, (const.Note.DRAG, const.Note.FLICK)) and
+                    not self.pp.nproxy_get_safe_used(i) and
+                    abs((offset := (self.pp.nproxy_stime(i) - cke.time))) <= const.NOTE_JUDGE_RANGE.GOOD
+                ):
+                    can_use_safe_notes.append((i, offset))
+
+                if self.pp.nproxy_stime(i) > cke.time + const.NOTE_JUDGE_RANGE.BAD * 2:
+                    break
+            
+            can_judge_notes.sort(key = lambda x: abs(x[1]))
+            can_use_safe_notes.sort(key = lambda x: x[1])
+            
+            if not can_judge_notes: continue
+            
+            n, offset = can_judge_notes[0]
+            abs_offset = abs(offset)
+            
+            if 0.0 <= abs_offset <= const.NOTE_JUDGE_RANGE.PERFECT:
+                state = const.NOTE_STATE.PERFECT
+                
+                self.pp.nproxy_set_ckstate(n, state)
+                if self.pp.nproxy_typeis(n, const.Note.HOLD):
+                    self.pp.nproxy_set_holdjudged(n, True)
+                    self.pp.nproxy_set_holdclickstate(n, state)
+                else:
+                    self.ppps.addEvent("P")
+
+            elif const.NOTE_JUDGE_RANGE.PERFECT < abs_offset <= const.NOTE_JUDGE_RANGE.GOOD:
+                state = const.NOTE_STATE.GOOD
+
+                self.pp.nproxy_set_ckstate(n, state)
+                if self.pp.nproxy_typeis(n, const.Note.HOLD):
+                    self.pp.nproxy_set_holdjudged(n, True)
+                    self.pp.nproxy_set_holdclickstate(n, state)
+                else:
+                    self.ppps.addEvent("G", offset)
+            
+            elif const.NOTE_JUDGE_RANGE.GOOD < abs_offset <= const.NOTE_JUDGE_RANGE.BAD: # only tap can goto there
+                if can_use_safe_notes:
+                    drag, _ = can_use_safe_notes[0]
+                    if not self.pp.nproxy_get_wclick(drag):
+                        self.pp.nproxy_set_wclick(drag, True)
+                    self.pp.nproxy_set_safe_used(drag, True)
+                    continue
+                
+                self.pp.nproxy_set_pbadtime(cke.time)
+                self.pp.nproxy_set_ckstate(n, const.NOTE_STATE.BAD)
+                self.ppps.addEvent("B")
+            
+            if self.pp.nproxy_get_ckstate(n) != const.NOTE_STATE.MISS:
+                self.pp.nproxy_set_pclick_offset(n, offset)
+                self.pp.nproxy_set_pclicked(n, True)
+           
 if environ.get("ENABLE_JIT", ""):
     numbajit_funcs = [
         rotate_point,

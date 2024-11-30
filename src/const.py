@@ -7,6 +7,12 @@ class Note:
     HOLD = 3
     FLICK = 4
 
+class NOTE_JUDGE_RANGE:
+    PERFECT = 0.08
+    GOOD = 0.16
+    BAD = 0.2
+    MISS = 0.2
+
 class CHART_TYPE:
     PHI = 1
     RPE = 2
