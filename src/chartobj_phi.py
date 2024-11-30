@@ -48,9 +48,11 @@ class note:
     clicked: bool = False # this attr mean is "this note click time is <= now time", so if disable autoplay and click time <= now time but user is not click this attr still is true.
     morebets: bool = False
     master: judgeLine|None = None
-    effect_times: list[tuple[int]] | tuple = ()
+    effect_times: list[tuple[float, tuple[tuple[float, ...]], tuple[float, float]]] | tuple = ()
     state: int = const.NOTE_STATE.MISS
     master_index: int|None = None
+    nowpos: tuple[float, float] = (-1.0, -1.0)
+    
     player_clicked: bool = False
     player_click_offset: float = 0.0
     player_click_sound_played: bool = False
@@ -63,7 +65,8 @@ class note:
     player_holdclickstate: int = const.NOTE_STATE.MISS
     player_holdjudged_tomanager: bool = False
     player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
-    player_drag_judge_safe_used: bool = False
+    player_judge_safe_used: bool = False
+    player_bad_posandrotate: tuple[tuple[float, float], float]|None = None
     
     def __post_init__(self):
         self.id = tool_funcs.Get_A_New_NoteId()
@@ -112,6 +115,8 @@ class note:
                     tool_funcs.get_effect_random_blocks(),
                     self.getNoteClickPos((self.sec + st) / self.master.T)
                 ))
+        
+        self.player_effect_times = self.effect_times.copy()
     
     def getNoteClickPos(self, time: float) -> tuple[float, float]:
         linePos = self.master.get_datavar_move(time, 1.0, 1.0)
@@ -277,6 +282,8 @@ class Phigros_Chart:
             for note in line.notesAbove + line.notesBelow:
                 self.combotimes.append(note.sec if not note.ishold else max(note.sec, note.hold_endtime - 0.2))
         self.combotimes.sort()
+        
+        self.playerNotes = sorted([i for l in self.judgeLineList for i in l.notesAbove + l.notesBelow], key = lambda n: n.sec)
     
     def getCombo(self, t: float):
         l, r = 0, len(self.combotimes)
@@ -285,6 +292,61 @@ class Phigros_Chart:
             if self.combotimes[m] < t: l = m + 1
             else: r = m
         return l
+
+class PPLMPHI_Proxy(tool_funcs.PPLM_ProxyBase):
+    def __init__(self, cobj: Phigros_Chart): self.cobj = cobj
+    
+    def get_lines(self) -> list[judgeLine]: return self.cobj.judgeLineList
+    def get_all_pnotes(self) -> list[note]: return self.cobj.playerNotes
+    def remove_pnote(self, n: note): self.cobj.playerNotes.remove(n)
+    
+    def nproxy_stime(self, n: note): return n.sec
+    def nproxy_etime(self, n: note): return n.hold_endtime
+    def nproxy_hcetime(self, n: note): return n.player_holdjudge_tomanager_time
+    
+    def nproxy_typein(self, n: note, ts: tuple[int]): return n.type in ts
+    def nproxy_typeis(self, n: note, t: int): return n.type == t
+    def nproxy_tstring(self, n: note): return n.type_string
+    
+    def nproxy_nowpos(self, n: note): return n.nowpos
+    def nproxy_effects(self, n: note): return n.player_effect_times
+    
+    def nproxy_get_pclicked(self, n: note): return n.player_clicked
+    def nproxy_set_pclicked(self, n: note, state: bool): n.player_clicked = state
+    
+    def nproxy_get_wclick(self, n: note): return n.player_will_click
+    def nproxy_set_wclick(self, n: note, state: bool): n.player_will_click = state
+    
+    def nproxy_get_pclick_offset(self, n: note): return n.player_click_offset
+    def nproxy_set_pclick_offset(self, n: note, offset: float): n.player_click_offset = offset
+    
+    def nproxy_get_ckstate(self, n: note): return n.state
+    def nproxy_set_ckstate(self, n: note, state: int): n.state = state
+    def nproxy_get_ckstate_ishit(self, n: note): return n.state in (const.NOTE_STATE.PERFECT, const.NOTE_STATE.GOOD)
+    
+    def nproxy_get_cksound_played(self, n: note): return n.player_click_sound_played
+    def nproxy_set_cksound_played(self, n: note, state: bool): n.player_click_sound_played = state
+    
+    def nproxy_get_missed(self, n: note): return n.player_missed
+    def nproxy_set_missed(self, n: note, state: bool): n.player_missed = state
+    
+    def nproxy_get_holdjudged(self, n: note): return n.player_holdjudged
+    def nproxy_set_holdjudged(self, n: note, state: bool): n.player_holdjudged = state
+
+    def nproxy_get_holdjudged_tomanager(self, n: note) -> bool: return n.player_holdjudged_tomanager
+    def nproxy_set_holdjudged_tomanager(self, n: note, state: bool) -> None: n.player_holdjudged_tomanager = state
+    
+    def nproxy_get_last_testholdmiss_time(self, n: note): return n.player_last_testholdismiss_time
+    def nproxy_set_last_testholdmiss_time(self, n: note, time: float): n.player_last_testholdismiss_time = time
+    
+    def nproxy_get_safe_used(self, n: note): return n.player_judge_safe_used
+    def nproxy_set_safe_used(self, n: note, state: bool): n.player_judge_safe_used = state
+    
+    def nproxy_get_holdclickstate(self, n: note): return n.player_holdclickstate
+    def nproxy_set_holdclickstate(self, n: note, state: int): n.player_holdclickstate = state
+    
+    def nproxy_get_pbadtime(self, n: note): return n.player_badtime
+    def nproxy_set_pbadtime(self, n: note, time: float): n.player_badtime = time
 
 @dataclass
 class RenderTask:

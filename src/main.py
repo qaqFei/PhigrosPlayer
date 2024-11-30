@@ -713,9 +713,20 @@ def PlayerStart():
     
     if not lfdaot:
         if noautoplay:
-            playChartThreadEvent, playChartThreadStopEvent = PlayChart_ThreadFunction()
-            playChartThreadEvent.wait()
-            playChartThreadEvent.clear()
+            if CHART_TYPE == const.CHART_TYPE.PHI:
+                pplm_proxy = chartobj_phi.PPLMPHI_Proxy(chart_obj)
+            elif CHART_TYPE == const.CHART_TYPE.RPE:
+                pplm_proxy = chartobj_rpe.PPLMRPE_Proxy(chart_obj)
+            
+            pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
+            pplm = tool_funcs.PhigrosPlayLogicManager(pplm_proxy, pppsm, enable_clicksound, print)
+            
+            root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t: pplm.pc_click(t - show_start_time))
+            root.jsapi.set_attr("PhigrosPlay_KeyUp", lambda t: pplm.pc_release(t - show_start_time))
+            root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000);});")
+            root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000);});")
+            root.run_js_code("window.addEventListener('keydown', _PhigrosPlay_KeyDown);")
+            root.run_js_code("window.addEventListener('keyup', _PhigrosPlay_KeyUp);")
             
         play_restart_flag = False
         pause_flag = False
@@ -750,9 +761,9 @@ def PlayerStart():
             
             now_t = time.time() - show_start_time
             if CHART_TYPE == const.CHART_TYPE.PHI:
-                Task = GetFrameRenderTask_Phi(now_t)
+                Task = GetFrameRenderTask_Phi(now_t, pplm = pplm if noautoplay else None)
             elif CHART_TYPE == const.CHART_TYPE.RPE:
-                Task = GetFrameRenderTask_Rpe(now_t)
+                Task = GetFrameRenderTask_Rpe(now_t, pplm = pplm if noautoplay else None)
                 
             Task.ExecTask()
             
@@ -766,11 +777,11 @@ def PlayerStart():
             
             if play_restart_flag:
                 break
-            
+        
         if noautoplay:
-            playChartThreadStopEvent.set()
-            playChartThreadEvent.wait()
-            
+            root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
+            root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
+        
         root.run_js_code("window.removeEventListener('keydown', _Noautoplay_Restart);")
         root.run_js_code("window.removeEventListener('keydown', _SpaceClicked);")
             
@@ -940,11 +951,11 @@ def PlayerStart():
                 writer.release()
     
     mixer.music.set_volume(1.0)
-    initFinishAnimation()
+    initFinishAnimation(pplm if noautoplay else None)
     
     def Chart_Finish_Animation():
         animation_1_time = 0.75
-        a1_combo = PhigrosPlayManagerObject.getCombo() if noautoplay else None
+        a1_combo = pplm.ppps.getCombo() if noautoplay else None
         
         animation_1_start_time = time.time()
         while True:

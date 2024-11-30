@@ -4,7 +4,6 @@ import math
 import typing
 import logging
 from dataclasses import dataclass
-from functools import lru_cache
 
 import tool_funcs
 import rpe_easing
@@ -82,6 +81,7 @@ class Note:
     holdLength: float = 0.0
     masterLine: JudgeLine|None = None
     master_index: int|None = None
+    nowpos: tuple[float, float] = (-1.0, -1.0)
     
     state: int = const.NOTE_STATE.MISS
     player_clicked: bool = False
@@ -96,10 +96,8 @@ class Note:
     player_holdclickstate: int = const.NOTE_STATE.MISS
     player_holdjudged_tomanager: bool = False
     player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
-    player_drag_judge_safe_used: bool = False
-    
-    player_badtime_beat: float = float("nan")
-    player_badjudge_floorp: float = float("nan")
+    player_judge_safe_used: bool = False
+    player_bad_posandrotate: tuple[tuple[float, float], float]|None = None
     
     def __post_init__(self):
         self.phitype = {1:1, 2:3, 3:4, 4:2}[self.type]
@@ -139,6 +137,8 @@ class Note:
                     tool_funcs.get_effect_random_blocks(),
                     self.getNoteClickPos(master.sec2beat(self.secst + st, self.masterLine.bpmfactor), master, self.masterLine)
                 ))
+                
+        self.player_effect_times = self.effect_times.copy()
         
     def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> tuple[float, float]:
         return tool_funcs.rotate_point(
@@ -384,6 +384,61 @@ class JudgeLine:
     def __eq__(self, oth) -> bool:
         return self is oth
 
+class PPLMRPE_Proxy(tool_funcs.PPLM_ProxyBase):
+    def __init__(self, cobj: Rpe_Chart): self.cobj = cobj
+    
+    def get_lines(self): return self.cobj.JudgeLineList
+    def get_all_pnotes(self): return self.cobj.playerNotes
+    def remove_pnote(self, n: Note): self.cobj.playerNotes.remove(n)
+    
+    def nproxy_stime(self, n: Note): return n.secst
+    def nproxy_etime(self, n: Note): return n.secet
+    def nproxy_hcetime(self, n: Note): return n.player_holdjudge_tomanager_time
+    
+    def nproxy_typein(self, n: Note, ts: tuple[int]): return n.phitype in ts
+    def nproxy_typeis(self, n: Note, t: int): return n.phitype == t
+    def nproxy_tstring(self, n: Note): return n.type_string
+    
+    def nproxy_nowpos(self, n: Note): return n.nowpos
+    def nproxy_effects(self, n: Note): return n.player_effect_times
+    
+    def nproxy_get_pclicked(self, n: Note): return n.player_clicked
+    def nproxy_set_pclicked(self, n: Note, state: bool): n.player_clicked = state
+    
+    def nproxy_get_wclick(self, n: Note): return n.player_will_click
+    def nproxy_set_wclick(self, n: Note, state: bool): n.player_will_click = state
+    
+    def nproxy_get_pclick_offset(self, n: Note): return n.player_click_offset
+    def nproxy_set_pclick_offset(self, n: Note, offset: float): n.player_click_offset = offset
+    
+    def nproxy_get_ckstate(self, n: Note): return n.state
+    def nproxy_set_ckstate(self, n: Note, state: int): n.state = state
+    def nproxy_get_ckstate_ishit(self, n: Note): return n.state in (const.NOTE_STATE.PERFECT, const.NOTE_STATE.GOOD)
+    
+    def nproxy_get_cksound_played(self, n: Note): return n.player_click_sound_played
+    def nproxy_set_cksound_played(self, n: Note, state: bool): n.player_click_sound_played = state
+    
+    def nproxy_get_missed(self, n: Note): return n.player_missed
+    def nproxy_set_missed(self, n: Note, state: bool): n.player_missed = state
+    
+    def nproxy_get_holdjudged(self, n: Note): return n.player_holdjudged
+    def nproxy_set_holdjudged(self, n: Note, state: bool): n.player_holdjudged = state
+    
+    def nproxy_get_holdjudged_tomanager(self, n: Note): return n.player_holdjudged_tomanager
+    def nproxy_set_holdjudged_tomanager(self, n: Note, state: bool): n.player_holdjudged_tomanager = state
+    
+    def nproxy_get_last_testholdmiss_time(self, n: Note): return n.player_last_testholdismiss_time
+    def nproxy_set_last_testholdmiss_time(self, n: Note, time: float): n.player_last_testholdismiss_time = time
+    
+    def nproxy_get_safe_used(self, n: Note): return n.player_judge_safe_used
+    def nproxy_set_safe_used(self, n: Note, state: bool): n.player_judge_safe_used = state
+    
+    def nproxy_get_holdclickstate(self, n: Note): return n.player_holdclickstate
+    def nproxy_set_holdclickstate(self, n: Note, state: int): n.player_holdclickstate = state
+    
+    def nproxy_get_pbadtime(self, n: Note): return n.player_badtime
+    def nproxy_set_pbadtime(self, n: Note, time: float): n.player_badtime = time
+    
 @dataclass
 class Rpe_Chart:
     META: MetaData
@@ -422,6 +477,7 @@ class Rpe_Chart:
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
         self.JudgeLineList.sort(key = lambda x: x.zOrder)
         self.combotimes.sort()
+        self.playerNotes = sorted([i for line in self.JudgeLineList for i in line.notes], key = lambda x: x.secst)
     
     def getCombo(self, t: float):
         l, r = 0, len(self.combotimes)
