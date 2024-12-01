@@ -719,7 +719,10 @@ def PlayerStart():
                 pplm_proxy = chartobj_rpe.PPLMRPE_Proxy(chart_obj)
             
             pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
-            pplm = tool_funcs.PhigrosPlayLogicManager(pplm_proxy, pppsm, enable_clicksound, print)
+            pplm = tool_funcs.PhigrosPlayLogicManager(
+                pplm_proxy, pppsm,
+                enable_clicksound, lambda ts: Resource["Note_Click_Audio"][ts].play()
+            )
             
             root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t: pplm.pc_click(t - show_start_time))
             root.jsapi.set_attr("PhigrosPlay_KeyUp", lambda t: pplm.pc_release(t - show_start_time))

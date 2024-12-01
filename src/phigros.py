@@ -29,6 +29,8 @@ import tool_funcs
 import phigame_obj
 import rpe_easing
 import phicore
+import chartobj_phi
+import chartobj_rpe
 import chartfuncs_phi
 import chartfuncs_rpe
 import playsound
@@ -3411,9 +3413,23 @@ def chartPlayerRender(
         phicore.Begin_Animation(False, foregroundFrameRender)
     
     if phicore.noautoplay:
-        playChartThreadEvent, playChartThreadStopEvent = phicore.PlayChart_ThreadFunction()
-        playChartThreadEvent.wait()
-        playChartThreadEvent.clear()
+        if CHART_TYPE == const.CHART_TYPE.PHI:
+            pplm_proxy = chartobj_phi.PPLMPHI_Proxy(chart_obj)
+        elif CHART_TYPE == const.CHART_TYPE.RPE:
+            pplm_proxy = chartobj_rpe.PPLMRPE_Proxy(chart_obj)
+        
+        pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
+        pplm = tool_funcs.PhigrosPlayLogicManager(
+            pplm_proxy, pppsm,
+            getUserData("setting-enableClickSound"),
+            lambda ts: Resource["Note_Click_Audio"][ts].play()
+        )
+        
+        root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t: pplm.pc_click(t - show_start_time))
+        root.jsapi.set_attr("PhigrosPlay_KeyUp", lambda t: pplm.pc_release(t - show_start_time))
+        root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000);});")
+        root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000);});")
+        root.run_js_code("window.addEventListener('keydown', _PhigrosPlay_KeyDown);")
         
     show_start_time = time.time()
     coreConfig.show_start_time = show_start_time
@@ -3577,9 +3593,9 @@ def chartPlayerRender(
             if not stoped:
                 now_t = time.time() - show_start_time
                 if CHART_TYPE == const.CHART_TYPE.PHI:
-                    Task = phicore.GetFrameRenderTask_Phi(now_t, False, False)
+                    Task = phicore.GetFrameRenderTask_Phi(now_t, False, False, pplm)
                 elif CHART_TYPE == const.CHART_TYPE.RPE:
-                    Task = phicore.GetFrameRenderTask_Rpe(now_t, False, False)
+                    Task = phicore.GetFrameRenderTask_Rpe(now_t, False, False, pplm)
                     
                 Task.ExecTask()
                 
@@ -3645,9 +3661,9 @@ def chartPlayerRender(
         root.run_js_wait_code()
     
     if phicore.noautoplay:
-        playChartThreadStopEvent.set()
-        playChartThreadEvent.wait()
-    
+        root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
+        root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
+            
     mixer.music.set_volume(1.0)
 
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
