@@ -4,6 +4,8 @@ from PIL import Image
 
 import cv2
 
+import tool_example_rpechart
+
 if len(argv) < 3:
     print("Usage: tool-video2rpe <input video> <output rpe chart>")
     raise SystemExit
@@ -19,34 +21,31 @@ else:
     vwidth = int(h * vp)
     vheight = h
 
-getLine = lambda x, y, o: {"Group":0,"Name":"Untitled","Texture":"line.png","alphaControl":[{"alpha":1.0,"easing":1,"x":0.0},{"alpha":1.0,"easing":1,"x":9999999.0}],"bpmfactor":1.0,"eventLayers":[{"alphaEvents":[{"bezier":0,"bezierPoints":[0.0,0.0,0.0,0.0],"easingLeft":0.0,"easingRight":1.0,"easingType":1,"end":255,"endTime":[1,0,1],"linkgroup":0,"start":255,"startTime":[0,0,1]}],"moveXEvents":[{"bezier":0,"bezierPoints":[0.0,0.0,0.0,0.0],"easingLeft":0.0,"easingRight":1.0,"easingType":1,"end":x,"endTime":[1,0,1],"linkgroup":0,"start":x,"startTime":[0,0,1]}],"moveYEvents":[{"bezier":0,"bezierPoints":[0.0,0.0,0.0,0.0],"easingLeft":0.0,"easingRight":1.0,"easingType":1,"end":y,"endTime":[1,0,1],"linkgroup":0,"start":y,"startTime":[0,0,1]}],"rotateEvents":[{"bezier":0,"bezierPoints":[0.0,0.0,0.0,0.0],"easingLeft":0.0,"easingRight":1.0,"easingType":1,"end":0.0,"endTime":[1,0,1],"linkgroup":0,"start":0.0,"startTime":[0,0,1]}],"speedEvents":[]}],"extended":{"inclineEvents":[{"bezier":0,"bezierPoints":[0.0,0.0,0.0,0.0],"easingLeft":0.0,"easingRight":1.0,"easingType":0,"end":0.0,"endTime":[1,0,1],"linkgroup":0,"start":0.0,"startTime":[0,0,1]}], "textEvents":[{"bezier":0,"bezierPoints":[0.0,0.0,0.0,0.0],"easingLeft":0.0,"easingRight":1.0,"easingType":0,"end":"■","endTime":[1,0,1],"linkgroup":0,"start":"■","startTime":[0,0,1]}], "colorEvents":[]},"father":-1,"isCover":1,"notes":[],"numOfNotes":0,"posControl":[{"easing":1,"pos":1.0,"x":0.0},{"easing":1,"pos":1.0,"x":9999999.0}],"sizeControl":[{"easing":1,"size":1.0,"x":0.0},{"easing":1,"size":1.0,"x":9999999.0}],"skewControl":[{"easing":1,"skew":0.0,"x":0.0},{"easing":1,"skew":0.0,"x":9999999.0}],"yControl":[{"easing":1,"x":0.0,"y":1.0},{"easing":1,"x":9999999.0,"y":1.0}],"zOrder":o}
 tpos = lambda x, y: (1350 * (x - 1 / 2), 900 * (1 / 2 - y))
 getindex = lambda x, y: x * h + y
 
-rpeChart = {
-    "BPMList": [{"bpm": 60 * int(video.get(cv2.CAP_PROP_FPS)), "startTime": [0, 0, 1]}],
-    "META": {"RPEVersion": 140, "background": "bg.png", "charter": "", "composer": "", "id": "0", "level": "", "name": "", "offset": 0, "song": "song.mp3"},
-    "judgeLineGroup": ["Default"],
-    "judgeLineList": []
-}
+def getLine(x: float, y: float, o: int):
+    l = tool_example_rpechart.line.copy()
+    l["zOrder"] = o
+    
+    l["eventLayers"][0]["moveXEvents"]["start"] = x
+    l["eventLayers"][0]["moveXEvents"]["end"] = x
+    l["eventLayers"][0]["moveYEvents"]["end"] = y
+    l["eventLayers"][0]["moveYEvents"]["end"] = y
+    
+    l["extended"]["colorEvents"] = []
+    l["extended"]["textEvents"] = [tool_example_rpechart.ne("■", "■", [0, 0, 1], [1, 0, 1])]
+    return l
+
+rpeChart = tool_example_rpechart.chart.copy()
+rpeChart["BPMList"][0]["bpm"] = 60 * int(video.get(cv2.CAP_PROP_FPS))
 
 for x in range(w):
     for y in range(h):
         rpeChart["judgeLineList"].append(getLine(*tpos(x / w, y / h), getindex(x, y)))
 
 def appendColor(line, color, st, et):
-    line["extended"]["colorEvents"].append({
-        "bezier": 0,
-        "bezierPoints": [0.0, 0.0, 0.0, 0.0],
-        "easingLeft": 0.0,
-        "easingRight": 1.0,
-        "easingType": 1,
-        "end": [*color],
-        "endTime": [et, 0, 1],
-        "linkgroup": 0,
-        "start": [*color],
-        "startTime": [st, 0, 1]
-    })
+    line["extended"]["colorEvents"].append(tool_example_rpechart.ne(color, color, [et, 0, 1], [st, 0, 1]))
 
 fcut = 0
 while True:

@@ -2,7 +2,7 @@ const argv = process.argv.slice(2);
 const fs = require("fs");
 
 if (argv.length < 2) {
-    console.log('Usage: tool-milthm-javascript-2phi <input> <output>');
+    console.log("Usage: tool-milthm-javascript-2phi <input> <output>");
     process.exit(1);
 }
 
@@ -66,7 +66,7 @@ class MilizeBeatmapClass {
     }
 
     line () {
-
+        
     }
 
     save() {
@@ -77,3 +77,5 @@ class MilizeBeatmapClass {
 
 const MilizeBeatmap = new MilizeBeatmapClass();
 eval(milmth_chart);
+const rpeResult = MilizeBeatmap.save();
+fs.writeFileSync(argv[1], JSON.stringify(rpeResult, null, 4));
