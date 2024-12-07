@@ -37,7 +37,7 @@ import playsound
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")
-    windll.kernel32.ExitProcess(1)
+    raise SystemExit
     
 if not exists("./phigros_assets") or not all([
     exists(tool_funcs.gtpresp(i)) for i in [
@@ -47,7 +47,7 @@ if not exists("./phigros_assets") or not all([
 ]):
     logging.error("phigros_assets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
     system("pause")
-    windll.kernel32.ExitProcess(0)
+    raise SystemExit
 
 for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_temp_")]:
     try: rmtree(f"{gettempdir()}\\{item}")

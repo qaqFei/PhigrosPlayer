@@ -9,13 +9,14 @@ import time
 import logging
 from threading import Thread
 from ctypes import windll
-from os import listdir, popen, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
+from os import listdir, popen, mkdir, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
 from os.path import exists, isfile, isdir
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
 
 import cv2
+import requests
 from PIL import Image, ImageFilter, ImageEnhance
 from pygame import mixer
 from pydub import AudioSegment
@@ -35,12 +36,12 @@ from phicore import *
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")
-    windll.kernel32.ExitProcess(1)
+    raise SystemExit
 
 if len(sys.argv) == 1:
     HELP = ppr_help.HELP_EN if windll.kernel32.GetSystemDefaultUILanguage() != 0x804 else ppr_help.HELP_ZH
     print(HELP)
-    windll.kernel32.ExitProcess(0)
+    raise SystemExit
     
 console_window.Hide() if "--hideconsole" in sys.argv else None
 
@@ -54,6 +55,9 @@ for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_
         
 temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time.time()}"
 logging.info(f"Temp Dir: {temp_dir}")
+
+try: mkdir(temp_dir)
+except Exception as e: logging.warning(f"error when create temp dir: {e}")
 
 enable_clicksound = "--noclicksound" not in sys.argv
 debug = "--debug" in sys.argv
@@ -103,6 +107,21 @@ if lfdaot and speed != 1.0:
     logging.warning("if use --lfdaot, you cannot use --speed")
 
 mixer.init()
+
+if "--phira-chart" in sys.argv:
+    logging.info("Downloading phira chart...")
+    pctid = sys.argv[sys.argv.index("--phira-chart") + 1]
+    apiresult = requests.get(f"https://api.phira.cn/chart/{pctid}").json()
+    if "error" in apiresult:
+        logging.error(f"phira api: {apiresult["error"]}")
+        raise SystemExit
+    
+    sys.argv.insert(1, f"{temp_dir}/phira-temp-chart.zip")
+    with open(sys.argv[1], "wb") as f:
+        with requests.get(apiresult["file"], stream=True) as reqs:
+            for content in reqs.iter_content(chunk_size=1024):
+                f.write(content)
+    logging.info("Downloaded phira chart.")
 
 logging.info("Unpack Chart...")
 popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y >> nul").read()
@@ -288,10 +307,10 @@ for item in chart_files:
                     
 if len(chart_files_dict["charts"]) == 0:
     logging.fatal("No Chart File Found")
-    windll.kernel32.ExitProcess(1)
+    raise SystemExit
 if len(chart_files_dict["audio"]) == 0:
     logging.fatal("No Audio File Found")
-    windll.kernel32.ExitProcess(1)
+    raise SystemExit
 if len(chart_files_dict["images"]) == 0:
     chart_files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
 
@@ -316,7 +335,7 @@ elif "META" in chart_json:
     render_range_more = False
 else:
     logging.fatal("This is what format chart???")
-    windll.kernel32.ExitProcess(1)
+    raise SystemExit
 
 def LoadChartObject(first: bool = False):
     global chart_obj

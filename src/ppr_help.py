@@ -47,6 +47,7 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --musicsound-volume <number-value>: Set the music sound volume. (0.0 ~ 1.0) (default: 1.0)
   --lowquality-imjscvscale-x <number-value>: Set the low quality render scale (js call layer). (default: 1.0)
   --lfdaot-video-fourcc <fourcc-string-value>: Set the fourcc of the video file. (default: mp4v)
+  --phira-chart <phira-id-value>: Use phira chart. (when using phira chart, the chart file will not be loaded)
 '''
 
 HELP_ZH = '''\
@@ -95,4 +96,5 @@ HELP_ZH = '''\
   --musicsound-volume <数字>: 设置音乐音量 (0.0 = 无声, 1.0 = 原音), 默认 = 1.0
   --lowquality-imjscvscale-x <数字>: 设置低画质渲染缩放 (js调用层). 默认 = 1.0
   --lfdaot-video-fourcc <字符串>: 设置 *.lfdaot 文件生成的视频编码 默认 = mp4v
+  --phira-chart <谱面ID>: 使用 phira 谱面. (使用 phira 谱面时, 谱面文件将不会被加载)
 '''
