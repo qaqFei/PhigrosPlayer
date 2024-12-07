@@ -1,7 +1,9 @@
 <html>
-    <head></head>
-    <body>
-        <svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+
+<head></head>
+
+<body>
+    <svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
             <filter id="textureLineColorFilter">
                 <feColorMatrix type="matrix" values="
                     1 0 0 0 0
@@ -11,8 +13,9 @@
                 " id="textureLineColorFilterColorMatrix"></feColorMatrix>
             </filter>
         </svg>
-        <div class="mask"></div>
-    </body>
+    <div class="mask"></div>
+</body>
+
 </html>
 
 <style type="text/css">
@@ -24,7 +27,7 @@
         margin: 0;
         background-color: black;
     }
-
+    
     .main-canvas {
         z-index: 1;
         left: 0;
@@ -33,7 +36,7 @@
         height: 100%;
         position: absolute;
     }
-
+    
     .dialog-canvas {
         z-index: 114515;
         position: absolute;
@@ -42,7 +45,7 @@
         width: 100%;
         height: 100%;
     }
-
+    
     .mask {
         background-color: transparent;
         position: absolute;
@@ -66,7 +69,10 @@
     body_ele.appendChild(canvas_ele);
     body_ele.appendChild(dialog_canvas_ele);
     mask = document.querySelector(".mask");
-    ctx = canvas_ele.getContext("2d", {willReadFrequently: true, alpha: false});
+    ctx = canvas_ele.getContext("2d", {
+        willReadFrequently: true,
+        alpha: false
+    });
     dialog_canvas_ctx = dialog_canvas_ele.getContext("2d");
     gl = glcanvas.getContext("webgl");
     jscodes = new Array();
@@ -108,12 +114,20 @@
     }
 
     class Queue {
-        constructor() {this.items = []}
-        put(element) {this.items.push(element)}
-        get() {return this.items.shift()}
-        empty() {return this.items.length === 0}
+        constructor() {
+            this.items = []
+        }
+        put(element) {
+            this.items.push(element)
+        }
+        get() {
+            return this.items.shift()
+        }
+        empty() {
+            return this.items.length === 0
+        }
     }
-    
+
     function resizeCanvas() {
         canvas_ele.width = window.innerWidth / lowquality_scale;
         canvas_ele.height = window.innerHeight / lowquality_scale;
@@ -141,11 +155,10 @@
     async function process_uploadFrame() {
         while (true) {
             await async_sleep(1000 / 60);
-            if (! window.uploadFrame_Queue.empty()) {
+            if (!window.uploadFrame_Queue.empty()) {
                 dataUrl = window.uploadFrame_Queue.get();
                 pywebview.api.call_attr("uploadFrame", dataUrl);
-            }
-            else {
+            } else {
                 if (uploadFrame_addQueue) {
                     uploadFrame_finish = true;
                 }
@@ -154,7 +167,7 @@
     }
 
     function uploadFrame() {
-        if (! window.uploadFrame_Queue) {
+        if (!window.uploadFrame_Queue) {
             window.uploadFrame_Queue = new Queue();
             process_uploadFrame();
         }
@@ -164,7 +177,7 @@
     }
 
     function PhigrosPlay_KeyEvent(callback) {
-        return function (e) {
+        return function(e) {
             if (event.isComposing || event.keyCode === 229) return;
             callback(e);
         }
@@ -215,7 +228,8 @@
 
     function splitText(x0, y0, x1, y1, text, cv) {
         texts = [];
-        function _splitTexts (element) {
+
+        function _splitTexts(element) {
             let width = cv.measureText(element).width;
             if (width >= (x1 - x0) * 0.95) {
                 for (let i = element.length - 1; i >= 0; i--) {
@@ -233,8 +247,7 @@
                     }
                 }
                 texts.push(element);
-            }
-            else {
+            } else {
                 texts.push(element);
             }
         }
@@ -246,7 +259,10 @@
         try {
             return eval(c);
         } catch (e) {
-            console.log({code: c, err: e});
+            console.log({
+                code: c,
+                err: e
+            });
             throw e;
         }
     }
@@ -259,7 +275,7 @@
             let im = args[0];
             if (!lowquality_imweakmap.get(im) && !im._lowquality_pcsing) {
                 im._lowquality_pcsing = true;
-                (async () => {
+                (async() => {
                     let tempcv = document.createElement("canvas");
                     tempcv.width = Math.floor(im.width / lowquality_imjscvscale_x);
                     tempcv.height = Math.floor(im.height / lowquality_imjscvscale_x);
@@ -272,8 +288,7 @@
                     lowquality_imweakmap.set(im, tempcv);
                     // im._lowquality_pcsing = undefined; // this is not necessary
                 })();
-            }
-            else if (lowquality_imweakmap.has(im)) {
+            } else if (lowquality_imweakmap.has(im)) {
                 args[0] = lowquality_imweakmap.get(im);
             }
         }
@@ -289,37 +304,49 @@
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
-        if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
+        if (render_range_more && crc2d_enable_rrm) {
+            x /= render_range_more_scale;
+            y /= render_range_more_scale;
+            width /= render_range_more_scale;
+            height /= render_range_more_scale;
+        }
         this.save();
         this.globalAlpha *= alpha;
-        if (!!deg){
-            this.translate(x,y);
+        if (!!deg) {
+            this.translate(x, y);
             this.rotate(deg * Math.PI / 180);
             this.drawImage(im, -width / 2, -height / 2, width, height);
-        }
-        else {
+        } else {
             this.drawImage(im, x - width / 2, y - height / 2, width, height);
         }
         this.restore();
     }
 
     CanvasRenderingContext2D.prototype.drawAnchorESRotateImage = function(im, x, y, width, height, deg, alpha) {
-        if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; width /= render_range_more_scale; height /= render_range_more_scale;}
+        if (render_range_more && crc2d_enable_rrm) {
+            x /= render_range_more_scale;
+            y /= render_range_more_scale;
+            width /= render_range_more_scale;
+            height /= render_range_more_scale;
+        }
         this.save();
         this.globalAlpha *= alpha;
-        if (!!deg){
-            this.translate(x,y);
+        if (!!deg) {
+            this.translate(x, y);
             this.rotate(deg * Math.PI / 180);
             this.drawImage(im, -width / 2, -height, width, height);
-        }
-        else {
+        } else {
             this.drawImage(im, x - width / 2, y - height, width, height);
         }
         this.restore();
     }
 
     CanvasRenderingContext2D.prototype.drawRotateText = function(text, x, y, deg, fontsize, color, xscale, yscale) {
-        if (render_range_more && crc2d_enable_rrm) {x /= render_range_more_scale; y /= render_range_more_scale; fontsize /= render_range_more_scale;}
+        if (render_range_more && crc2d_enable_rrm) {
+            x /= render_range_more_scale;
+            y /= render_range_more_scale;
+            fontsize /= render_range_more_scale;
+        }
         this.save();
         this.translate(x, y);
         this.rotate(deg * Math.PI / 180);
@@ -362,18 +389,18 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.fillRectEx = function (x, y, w, h, color) {
+    CanvasRenderingContext2D.prototype.fillRectEx = function(x, y, w, h, color) {
         this.save();
         this.fillStyle = color;
         this.fillRect(x, y, w, h);
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.fillRectExByRect = function (x0, y0, x1, y1, color) {
+    CanvasRenderingContext2D.prototype.fillRectExByRect = function(x0, y0, x1, y1, color) {
         return this.fillRectEx(x0, y0, x1 - x0, y1 - y0, color);
     }
 
-    CanvasRenderingContext2D.prototype.strokeRectEx = function (x, y, w, h, color, width) {
+    CanvasRenderingContext2D.prototype.strokeRectEx = function(x, y, w, h, color, width) {
         this.save();
         this.strokeStyle = color;
         this.lineWidth = width;
@@ -381,7 +408,7 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.roundRectEx = function (x, y, w, h, r, color) {
+    CanvasRenderingContext2D.prototype.roundRectEx = function(x, y, w, h, r, color) {
         this.save();
         this.fillStyle = color;
         this.beginPath();
@@ -390,7 +417,7 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.drawLineEx = function (x1, y1, x2, y2, width, color) {
+    CanvasRenderingContext2D.prototype.drawLineEx = function(x1, y1, x2, y2, width, color) {
         this.save();
         this.strokeStyle = color;
         this.lineWidth = width;
@@ -529,8 +556,7 @@
                 this.fillText(texts[i], x0 + dx, y0 + dy);
                 dy += fontsize * lineOffsetScale;
                 dx += lineDiagonal;
-            }
-            else {
+            } else {
                 dx += lineDiagonal * 0.5;
                 dy += fontsize * lineOffsetScale * 0.5;
             }
@@ -567,7 +593,7 @@
         this.clearRect(0, 0, this.canvas.width * lowquality_scale, this.canvas.height * lowquality_scale);
     }
 
-    WebGLRenderingContext.prototype.createShaderEx = function (type, source) {
+    WebGLRenderingContext.prototype.createShaderEx = function(type, source) {
         const shader = this.createShader(type);
         this.shaderSource(shader, source);
         this.compileShader(shader);
@@ -577,7 +603,7 @@
         return null;
     }
 
-    WebGLRenderingContext.prototype.createProgramEx = function (vshader, fshader) {
+    WebGLRenderingContext.prototype.createProgramEx = function(vshader, fshader) {
         const program = this.createProgram();
         this.attachShader(program, vshader);
         this.attachShader(program, fshader);
@@ -588,7 +614,7 @@
         return null;
     }
 
-    WebGLRenderingContext.prototype.drawImage = function (im, vs, fs, fsdata) {
+    WebGLRenderingContext.prototype.drawImage = function(im, vs, fs, fsdata) {
         const program = this.createProgramEx(this.createShaderEx(this.VERTEX_SHADER, vs), this.createShaderEx(this.FRAGMENT_SHADER, fs));
         this.useProgram(program);
 
@@ -603,17 +629,14 @@
                 else if (v.length == 2) this.uniform2f(loc, v[0], v[1]);
                 else if (v.length == 3) this.uniform3f(loc, v[0], v[1], v[2]);
                 else if (v.length == 4) this.uniform4f(loc, v[0], v[1], v[2], v[3]);
-            }
-            else this.uniform1i(loc, v);
+            } else this.uniform1i(loc, v);
         }
 
         setUniformValue("screenSize", [this.canvas.width, this.canvas.height]);
 
         for (n in fsdata) setUniformValue(n, fsdata[n]);
 
-        const verticesTexCoords = new Float32Array([
-            -1.0, 1.0, 0.0, 0.0,
-            -1.0, -1.0, 0.0, 1.0,
+        const verticesTexCoords = new Float32Array([-1.0, 1.0, 0.0, 0.0, -1.0, -1.0, 0.0, 1.0,
             1.0, 1.0, 1.0, 0.0,
             1.0, -1.0, 1.0, 1.0,
         ]);

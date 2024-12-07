@@ -9,15 +9,19 @@ if (argv.length < 2) {
 const milmth_chart = fs.readFileSync(argv[0], "utf-8");
 
 class MilizeBeatmapClass {
-    constructor () {
+    constructor() {
         this.rpe = {
             BPMList: [],
             META: {
-                RPEVersion : 140,
-                background: "", charter: "",
-                composer: "", id: "",
-                level: "", name: "",
-                offset: 0, song: ""
+                RPEVersion: 140,
+                background: "",
+                charter: "",
+                composer: "",
+                id: "",
+                level: "",
+                name: "",
+                offset: 0,
+                song: ""
             },
             judgeLineGroup: ["Default"],
             judgeLineList: [],
@@ -26,23 +30,23 @@ class MilizeBeatmapClass {
         };
     }
 
-    timing () {
+    timing() {
 
     }
 
-    storyboardObject () {
+    storyboardObject() {
 
     }
 
-    note () {
+    note() {
 
     }
 
-    animation () {
+    animation() {
 
     }
 
-    withProperty (key, value) {
+    withProperty(key, value) {
         MilizeBeatmap[key] = value;
 
         switch (key) {
@@ -65,8 +69,8 @@ class MilizeBeatmapClass {
         return MilizeBeatmap;
     }
 
-    line () {
-        
+    line() {
+
     }
 
     save() {
