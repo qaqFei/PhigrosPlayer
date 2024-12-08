@@ -38,7 +38,14 @@ class PHIGROS_LINKS:
     BILIBILI = "https://space.bilibili.com/414149787"
     QQ = "https://pd.qq.com/s/433r43ehu"
     PRIVACYPOLIC = "https://www.pigeongames.cn/news/2"
-
+    
+TYPE_STRING_MAP = {
+    Note.TAP: "Tap",
+    Note.DRAG: "Drag",
+    Note.HOLD: "Hold",
+    Note.FLICK: "Flick"
+}
+        
 INF = float("inf")
 NAN = float("nan")
 JUDGELINE_PERFECT_COLOR = "#feffa9"

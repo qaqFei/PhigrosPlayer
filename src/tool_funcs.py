@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw
 
 import const
 import rpe_easing
+import binfile
 
 note_id = -1
 random_block_num = 4
@@ -505,6 +506,7 @@ class PPLM_ProxyBase:
     
     def nproxy_typein(self, n: typing.Any, ts: tuple[typing.Any]) -> bool: ...
     def nproxy_typeis(self, n: typing.Any, t: typing.Any) -> bool: ...
+    def nproxy_phitype(self, n: typing.Any) -> typing.Any: ...
     def nproxy_tstring(self, n: typing.Any) -> str: ...
     
     def nproxy_nowpos(self, n: typing.Any) -> tuple[float, float]: ...
@@ -558,13 +560,18 @@ class PhigrosPlayLogicManager:
             pplm_proxy: PPLM_ProxyBase,
             ppps: PhigrosPlayPlayStateManager,
             enable_cksound: bool,
-            psound: typing.Callable[[str], typing.Any]
+            psound: typing.Callable[[str], typing.Any],
+            record: bool = False
         ) -> None:
         
         self.pp = pplm_proxy
         self.ppps = ppps
         self.enable_cksound = enable_cksound
         self.psound = psound
+        self.record = record
+        
+        if self.record:
+            self.recorder = binfile.PlayRecorderWriter()
         
         self.pc_clicks: list[PPLM_PC_ClickEvent] = []
         self.pc_clickings: int = 0
@@ -574,8 +581,14 @@ class PhigrosPlayLogicManager:
         self.pc_clickings += 1
         self.pc_clicks.append(PPLM_PC_ClickEvent(time=t))
         
+        if self.record:
+            self.recorder.pc_click(t)
+        
     def pc_release(self, t: float) -> None:
         self.pc_clickings += 1
+        
+        if self.record:
+            self.recorder.pc_release(t)
     
     def pc_update(self, t: float) -> None:
         pnotes = self.pp.get_all_pnotes()
@@ -608,6 +621,8 @@ class PhigrosPlayLogicManager:
             ):
                 if self.enable_cksound:
                     self.psound(self.pp.nproxy_tstring(i))
+                    if self.record:
+                        self.recorder.clicksound(t, self.pp.nproxy_phitype(i))
                 self.pp.nproxy_set_cksound_played(i, True)
             
             if ( # miss judge

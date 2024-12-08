@@ -101,12 +101,7 @@ class Note:
     
     def __post_init__(self):
         self.phitype = {1:1, 2:3, 3:4, 4:2}[self.type]
-        self.type_string = {
-            const.Note.TAP: "Tap",
-            const.Note.DRAG: "Drag",
-            const.Note.HOLD: "Hold",
-            const.Note.FLICK: "Flick"
-        }[self.phitype]
+        self.type_string = const.TYPE_STRING_MAP[self.phitype]
         self.positionX2 = self.positionX / 1350
         self.float_alpha = (255 & int(self.alpha)) / 255
         self.ishold = self.type_string == "Hold"
@@ -400,6 +395,7 @@ class PPLMRPE_Proxy(tool_funcs.PPLM_ProxyBase):
     
     def nproxy_typein(self, n: Note, ts: tuple[int]): return n.phitype in ts
     def nproxy_typeis(self, n: Note, t: int): return n.phitype == t
+    def nproxy_phitype(self, n: Note): return n.phitype
     def nproxy_tstring(self, n: Note): return n.type_string
     
     def nproxy_nowpos(self, n: Note): return n.nowpos

@@ -495,6 +495,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             add_code_array = True
         )
     
+    noautoplay = pplm is not None # reset a global variable
     if noautoplay:
         pplm.pc_update(now_t)
     
@@ -944,7 +945,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     if rjc: Task(root.run_js_wait_code)
     return Task
 
-def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True, pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
+def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
     global PlayChart_NowTime
     
     now_t *= speed
@@ -957,6 +958,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True, pp
     now_t -= chart_obj.META.offset / 1000
     attachUIData = {}
     
+    noautoplay = pplm is not None # reset a global variable
     if noautoplay:
         pplm.pc_update(now_t)
     

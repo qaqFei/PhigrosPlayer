@@ -32,6 +32,7 @@ import tool_funcs
 import dialog
 import info_loader
 import ppr_help
+import binfile
 from phicore import *
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
@@ -82,13 +83,14 @@ lfdaot_start_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-start-frame-
 lfdaot_run_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-run-frame-num") + 1])) if "--lfdaot-run-frame-num" in sys.argv else float("inf")
 speed = float(sys.argv[sys.argv.index("--speed") + 1]) if "--speed" in sys.argv else 1.0
 clickeffect_randomblock_roundn = float(eval(sys.argv[sys.argv.index("--clickeffect-randomblock-roundn") + 1])) if "--clickeffect-randomblock-roundn" in sys.argv else 0.0
-combotips = ("AUTOPLAY" if not noautoplay else "COMBO") if "--combotips" not in sys.argv else sys.argv[sys.argv.index("--combotips") + 1]
 noplaychart = "--noplaychart" in sys.argv
 clicksound_volume = float(sys.argv[sys.argv.index("--clicksound-volume") + 1]) if "--clicksound-volume" in sys.argv else 1.0
 musicsound_volume = float(sys.argv[sys.argv.index("--musicsound-volume") + 1]) if "--musicsound-volume" in sys.argv else 1.0
 lowquality_imjscvscale_x = float(sys.argv[sys.argv.index("--lowquality-imjscvscale-x") + 1]) if "--lowquality-imjscvscale-x" in sys.argv else 1.0
 enable_controls = "--enable-controls" in sys.argv
 lfdaot_video_fourcc = sys.argv[sys.argv.index("--lfdaot-video-fourcc") + 1] if "--lfdaot-video-fourcc" in sys.argv else "mp4v"
+record_play = "--record-play" in sys.argv
+lfdaot_use_recordfile = sys.argv[sys.argv.index("--lfdaot-use-recordfile") + 1] if "--lfdaot-use-recordfile" in sys.argv else None
 respaths = ["./resources"]
 
 if "--res" in sys.argv:
@@ -105,6 +107,26 @@ if showfps and lfdaot and lfdaot_render_video:
 if lfdaot and speed != 1.0:
     speed = 1.0
     logging.warning("if use --lfdaot, you cannot use --speed")
+
+if record_play and not noautoplay:
+    noautoplay = True
+    logging.warning("if use --record-play, you must use --noautoplay")
+
+if record_play and lfdaot:
+    record_play = False
+    logging.warning("if use --lfdaot, you cannot use --record-play")
+
+if lfdaot_use_recordfile and not lfdaot:
+    lfdaot_use_recordfile = None
+    logging.warning("if use --lfdaot-use-recordfile, you must use --lfdaot")
+
+if lfdaot_use_recordfile and lfdoat_file:
+    lfdaot_use_recordfile = None
+    logging.warning("if use --lfdoat-file, you cannot use --lfdaot-use-recordfile")
+
+combotips = ("RECORD" if lfdaot_use_recordfile is not None else (
+    "AUTOPLAY" if not noautoplay else "COMBO"
+)) if "--combotips" not in sys.argv else sys.argv[sys.argv.index("--combotips") + 1]
 
 mixer.init()
 
@@ -740,7 +762,8 @@ def PlayerStart():
             pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
             pplm = tool_funcs.PhigrosPlayLogicManager(
                 pplm_proxy, pppsm,
-                enable_clicksound, lambda ts: Resource["Note_Click_Audio"][ts].play()
+                enable_clicksound, lambda ts: Resource["Note_Click_Audio"][ts].play(),
+                record_play
             )
             
             root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t: pplm.pc_click(t - show_start_time))
@@ -806,7 +829,12 @@ def PlayerStart():
         
         root.run_js_code("window.removeEventListener('keydown', _Noautoplay_Restart);")
         root.run_js_code("window.removeEventListener('keydown', _SpaceClicked);")
-            
+        
+        if record_play:
+            record_fp = dialog.savefile(fn="record.bin")
+            with open(record_fp, "wb") as f:
+                f.write(pplm.recorder.writer.data)
+        
         if play_restart_flag:
             mixer.music.fadeout(250)
             LoadChartObject()
@@ -822,14 +850,56 @@ def PlayerStart():
         allframe_num = int(audio_length / frame_time) + 1
         
         if lfdaot and not lfdoat_file: #eq if not lfdoat_file
+            if lfdaot_use_recordfile is not None:
+                with open(lfdaot_use_recordfile, "rb") as f:
+                    recorder_data = list(binfile.readPlayRecorder(f.read()))
+                
+                if CHART_TYPE == const.CHART_TYPE.PHI:
+                    pplm_proxy = chartobj_phi.PPLMPHI_Proxy(chart_obj)
+                elif CHART_TYPE == const.CHART_TYPE.RPE:
+                    pplm_proxy = chartobj_rpe.PPLMRPE_Proxy(chart_obj)
+                
+                pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
+                pplm = tool_funcs.PhigrosPlayLogicManager(
+                    pplm_proxy, pppsm,
+                    enable_clicksound, lambda ts: Resource["Note_Click_Audio"][ts].play(),
+                    record_play
+                )
+            else:
+                pplm = None
+            
             while True:
                 if frame_count * frame_time > audio_length or frame_count - lfdaot_start_frame_num >= lfdaot_run_frame_num:
                     break
                 
+                now_t = frame_count * frame_time
+                
+                if pplm is not None:
+                    for event in recorder_data.copy():
+                        match event[0]:
+                            case binfile.PlayRecorderBase.PLAY_CLICKSOUND:
+                                continue # emm.?
+                                if event[1] <= now_t:
+                                    Resource["Note_Click_Audio"][const.TYPE_STRING_MAP[event[2]]].play()
+                                    recorder_data.remove(event)
+                            
+                            case binfile.PlayRecorderBase.PC_CLICK:
+                                if event[1] <= now_t:
+                                    pplm.pc_click(event[1])
+                                    recorder_data.remove(event)
+                            
+                            case binfile.PlayRecorderBase.PC_RELEASE:
+                                if event[1] <= now_t:
+                                    pplm.pc_release(event[1])
+                                    recorder_data.remove(event)
+
+                            case _:
+                                logging.warning(f"Unknown event type: {event[0]}")
+                
                 if CHART_TYPE == const.CHART_TYPE.PHI:
-                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Phi(frame_count * frame_time)})
+                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Phi(now_t, pplm=pplm)})
                 elif CHART_TYPE == const.CHART_TYPE.RPE:
-                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Rpe(frame_count * frame_time)})
+                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Rpe(now_t, pplm=pplm)})
                 
                 frame_count += 1
                 
@@ -838,23 +908,21 @@ def PlayerStart():
             if "--lfdaot-file-savefp" in sys.argv:
                 lfdaot_fp = sys.argv[sys.argv.index("--lfdaot-file-savefp") + 1]
             else:
-                lfdaot_fp = dialog.savefile(
-                    fn = "Chart.lfdaot"
-                )
+                lfdaot_fp = dialog.savefile(fn="Chart.lfdaot")
             
-            if lfdaot_fp != "":
-                recorder = chartobj_phi.FrameTaskRecorder(
-                    meta = chartobj_phi.FrameTaskRecorder_Meta(
-                        frame_speed = frame_speed,
-                        frame_num = len(lfdaot_tasks),
-                        render_range_more = render_range_more,
-                        render_range_more_scale = render_range_more_scale,
-                        size = (w, h)
-                    ),
-                    data = lfdaot_tasks.values()
-                )
-                with open(lfdaot_fp, "w", encoding="utf-8") as f:
-                    f.write(recorder.jsonify())
+            recorder = chartobj_phi.FrameTaskRecorder(
+                meta = chartobj_phi.FrameTaskRecorder_Meta(
+                    frame_speed = frame_speed,
+                    frame_num = len(lfdaot_tasks),
+                    render_range_more = render_range_more,
+                    render_range_more_scale = render_range_more_scale,
+                    size = (w, h)
+                ),
+                data = lfdaot_tasks.values()
+            )
+            
+            with open(lfdaot_fp, "w", encoding="utf-8") as f:
+                f.write(recorder.jsonify())
                     
             if "--lfdaot-file-output-autoexit" in sys.argv:
                 root.destroy()

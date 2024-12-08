@@ -87,12 +87,7 @@ class note:
         self.player_holdjudge_tomanager_time = max(self.hold_endtime - 0.2, self.sec)
         self.ishold = self.type == const.Note.HOLD
         
-        self.type_string = {
-            const.Note.TAP: "Tap",
-            const.Note.DRAG: "Drag",
-            const.Note.HOLD: "Hold",
-            const.Note.FLICK: "Flick"
-        }[self.type]
+        self.type_string = const.TYPE_STRING_MAP[self.type]
         
         self.floorPosition = getFloorPosition(self.master, self.time)
         
@@ -310,6 +305,7 @@ class PPLMPHI_Proxy(tool_funcs.PPLM_ProxyBase):
     
     def nproxy_typein(self, n: note, ts: tuple[int]): return n.type in ts
     def nproxy_typeis(self, n: note, t: int): return n.type == t
+    def nproxy_phitype(self, n: note): return n.type
     def nproxy_tstring(self, n: note): return n.type_string
     
     def nproxy_nowpos(self, n: note): return n.nowpos
