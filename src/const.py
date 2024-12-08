@@ -50,6 +50,7 @@ FINISH_UI_BUTTON_SIZE = 0.095
 JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER = 127 / 975
 CHAPTER_DIAGONALRECTANGLEDEG = -75
 PHIGROS_TAPTAP_CLIENT_ID = "rAK3FfdieFob2Nn8Am"
+ClickEffectType = list[tuple[float, tuple[tuple[float, ...]], typing.Callable[[float|int, float|int], tuple[float, float]]]]
 
 DSP_SETTING_TIP = """\
 如果你在游戏中遇到游戏中的音乐无法正常播放的情况，请适当的更改这个设置。\n

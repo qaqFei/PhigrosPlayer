@@ -48,7 +48,7 @@ class note:
     clicked: bool = False # this attr mean is "this note click time is <= now time", so if disable autoplay and click time <= now time but user is not click this attr still is true.
     morebets: bool = False
     master: judgeLine|None = None
-    effect_times: list[tuple[float, tuple[tuple[float, ...]], tuple[float, float]]] | tuple = ()
+    effect_times: const.ClickEffectType | tuple = ()
     state: int = const.NOTE_STATE.MISS
     master_index: int|None = None
     nowpos: tuple[float, float] = (-1.0, -1.0)
@@ -64,7 +64,6 @@ class note:
     player_holdjudged: bool = False
     player_holdclickstate: int = const.NOTE_STATE.MISS
     player_holdjudged_tomanager: bool = False
-    player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
     player_judge_safe_used: bool = False
     player_bad_posandrotate: tuple[tuple[float, float], float]|None = None
     
@@ -118,10 +117,15 @@ class note:
         
         self.player_effect_times = self.effect_times.copy()
     
-    def getNoteClickPos(self, time: float) -> tuple[float, float]:
+    def getNoteClickPos(self, time: float) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
         linePos = self.master.get_datavar_move(time, 1.0, 1.0)
-        lineRotate = self.master.get_datavar_rotate(time)
-        return tool_funcs.rotate_point(*linePos, - lineRotate, self.positionX * 0.05625)
+        lineRotate = -self.master.get_datavar_rotate(time)
+        return lambda w, h: (
+            tool_funcs.rotate_point(
+                linePos[0] * w, linePos[1] * h,
+                lineRotate, self.positionX * 0.05625 * w
+            )
+        )
     
 @dataclass
 class speedEvent:

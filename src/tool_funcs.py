@@ -508,7 +508,7 @@ class PPLM_ProxyBase:
     def nproxy_tstring(self, n: typing.Any) -> str: ...
     
     def nproxy_nowpos(self, n: typing.Any) -> tuple[float, float]: ...
-    def nproxy_effects(self, n: typing.Any) -> list[tuple[float, tuple[tuple[float, ...]], tuple[float, float]]]: ...
+    def nproxy_effects(self, n: typing.Any) -> const.ClickEffectType: ...
     
     def nproxy_get_pclicked(self, n: typing.Any) -> bool: ...
     def nproxy_set_pclicked(self, n: typing.Any, state: bool) -> None: ...
@@ -568,7 +568,7 @@ class PhigrosPlayLogicManager:
         
         self.pc_clicks: list[PPLM_PC_ClickEvent] = []
         self.pc_clickings: int = 0
-        self.clickeffects: list[tuple[float, tuple[tuple[float, ...]], tuple[float, float]]] = []
+        self.clickeffects: const.ClickEffectType = []
     
     def pc_click(self, t: float) -> None:
         self.pc_clickings += 1
@@ -582,7 +582,7 @@ class PhigrosPlayLogicManager:
         
         keydown = self.pc_clickings > 0
         
-        for i in pnotes:
+        for i in pnotes.copy():
             if ( # drag / flick range judge
                 keydown and
                 not self.pp.nproxy_get_wclick(i) and
@@ -745,11 +745,12 @@ class PhigrosPlayLogicManager:
             
             if self.pp.nproxy_get_ckstate_ishit(n):
                 e = self.pp.nproxy_effects(n).pop(0)
+                npos = self.pp.nproxy_nowpos(n)
                 self.clickeffects.append((
                     self.pp.nproxy_get_ckstate(n) == const.NOTE_STATE.PERFECT,
                     t,
                     *e[1:-1],
-                    self.pp.nproxy_nowpos(n) if self.pp.nproxy_typeis(n, const.Note.HOLD) and self.pp.nproxy_stime(n) >= t else e[-1]
+                    eval(f"lambda w, h: ({npos[0]} * w, {npos[1]} * h)") if self.pp.nproxy_typeis(n, const.Note.HOLD) and self.pp.nproxy_stime(n) >= t else e[-1]
                 ))
            
 if environ.get("ENABLE_JIT", ""):

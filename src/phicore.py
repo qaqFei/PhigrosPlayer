@@ -4,7 +4,6 @@ import math
 import logging
 from os import environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
 from dataclasses import dataclass
-from threading import Thread, Event as TEvent
 
 from pygame import mixer
 from PIL import Image
@@ -772,7 +771,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     ):
         p = (now_t - sec_t) / effect_time
         if not (0.0 <= p <= 1.0): return
-        process_effect_base(position[0] * w, position[1] * h, p, effect_random_blocks, perfect, Task)
+        process_effect_base(*position, p, effect_random_blocks, perfect, Task)
     
     def process_miss(
         note:chartobj_phi.note
@@ -858,10 +857,10 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         )
         
     if noautoplay:
-        for pplmckfi in pplm.clickeffects:
+        for pplmckfi in pplm.clickeffects.copy():
             perfect, eft, erbs, position = pplmckfi
             if eft <= now_t <= eft + effect_time:
-                process_effect(eft, erbs, perfect, position)
+                process_effect(eft, erbs, perfect, position(w, h))
             
             if eft + effect_time < now_t:
                 pplm.clickeffects.remove(pplmckfi)
@@ -873,7 +872,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             if not noautoplay:
                 for eft, erbs, position in note.effect_times:
                     if eft <= now_t <= eft + effect_time:
-                        process_effect(eft, erbs, True, position)
+                        process_effect(eft, erbs, True, position(w, h))
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:
                     if 0.0 <= now_t - note.sec <= miss_effect_time and note.type != const.Note.HOLD:
@@ -1042,7 +1041,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True, pp
             )
         
         line.playingFloorPosition = line.GetFloorPosition(0.0, now_t)
-        for note in line.renderNotes:
+        for note in line.renderNotes.copy():
             note_clicked = note.startTime.value < beatTime
             
             if note_clicked and not note.clicked:
@@ -1249,7 +1248,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True, pp
     ):
         p = (now_t - sec_t) / effect_time
         if not (0.0 <= p <= 1.0): return
-        process_effect_base(position[0] * w, position[1] * h, p, effect_random_blocks, perfect, Task)
+        process_effect_base(*position, p, effect_random_blocks, perfect, Task)
     
     def process_miss(
         note: chartobj_rpe.Note
@@ -1325,10 +1324,10 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True, pp
         )
     
     if noautoplay:
-        for pplmckfi in pplm.clickeffects:
+        for pplmckfi in pplm.clickeffects.copy():
             perfect, eft, erbs, position = pplmckfi
             if eft <= now_t <= eft + effect_time:
-                process_effect(eft, erbs, perfect, position)
+                process_effect(eft, erbs, perfect, position(w, h))
             
             if eft + effect_time < now_t:
                 pplm.clickeffects.remove(pplmckfi)
@@ -1340,7 +1339,7 @@ def GetFrameRenderTask_Rpe(now_t:float, clear: bool = True, rjc: bool = True, pp
             if not noautoplay:
                 for eft, erbs, position in note.effect_times:
                     if eft <= now_t <= eft + effect_time:
-                        process_effect(eft, erbs, True, position)
+                        process_effect(eft, erbs, True, position(w, h))
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:
                     if 0.0 <= now_t - note.secst <= miss_effect_time and not note.ishold:

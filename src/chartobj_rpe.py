@@ -140,14 +140,17 @@ class Note:
                 
         self.player_effect_times = self.effect_times.copy()
         
-    def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> tuple[float, float]:
-        return tool_funcs.rotate_point(
-            *tool_funcs.conrpepos(*line.GetPos(time, master)),
-            sum([
-                line.GetEventValue(time, layer.rotateEvents, 0.0)
-                for layer in line.eventLayers
-            ]),
-            self.positionX2
+    def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
+        linePos = tool_funcs.conrpepos(*line.GetPos(time, master))
+        lineRotate = sum([
+            line.GetEventValue(time, layer.rotateEvents, 0.0)
+            for layer in line.eventLayers
+        ])
+        return lambda w, h: (
+            tool_funcs.rotate_point(
+                linePos[0] * w, linePos[1] * h,
+                lineRotate, self.positionX2 * w
+            )
         )
 
     def __eq__(self, value): return self is value
@@ -477,7 +480,7 @@ class Rpe_Chart:
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
         self.JudgeLineList.sort(key = lambda x: x.zOrder)
         self.combotimes.sort()
-        self.playerNotes = sorted([i for line in self.JudgeLineList for i in line.notes], key = lambda x: x.secst)
+        self.playerNotes = sorted([i for line in self.JudgeLineList for i in line.notes if not i.isFake], key = lambda x: x.secst)
     
     def getCombo(self, t: float):
         l, r = 0, len(self.combotimes)
