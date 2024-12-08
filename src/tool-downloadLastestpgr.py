@@ -29,6 +29,9 @@ PHIGROS_APPID = 165287
 if __name__ == "__main__":
     from sys import stderr, argv
     
+    if "--appid" in argv:
+        PHIGROS_APPID = int(argv[argv.index("--appid") + 1])
+        
     print("tip: 请不要多次运行, 以免触发 TapTap 的风控机制\n", file=stderr)
     result = get_download_info(PHIGROS_APPID)
     print(f"Phigros版本: {result["data"]["apk"]["version_name"]}", file=stderr)
