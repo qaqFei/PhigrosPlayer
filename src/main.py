@@ -1030,13 +1030,7 @@ def PlayerStart():
                 
                 for Task in lfdaot_tasks.values():
                     Task.ExecTask()
-                    root.run_js_code("uploadFrame();")
-                
-                root.run_js_code("uploadFrame_addQueue = true;")
-                
-                while not root.run_js_code("uploadFrame_finish;"):
-                    time.sleep(0.1)
-                root.run_js_code("resetUploadFrameFlags();")
+                    root.wait_jspromise("uploadFrame();")
                 
                 writer.release()
     
