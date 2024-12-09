@@ -394,6 +394,230 @@ def indrect(x: float, y: float, rect: tuple[float, float, float, float], dpower:
     x += (1.0 - (y - rect[1]) / (rect[3] - rect[1])) * (dpower * (rect[2] - rect[0]))
     return inrect(x, y, rect)
 
+def pec2rpe(pec: str):
+    errs = []
+    peclines = pec.split("\n")
+    result = { # if some key and value is not exists, in loading rpe chart, it will be set to default value.
+        "META": {},
+        "BPMList": [],
+        "judgeLineList": []
+    }
+    
+    result["META"]["offset"] = float(peclines.pop(0))
+    
+    peclines = list(map(lambda x: x.split(" "), peclines))
+    
+    pecbpms = list(filter(lambda x: x and x[0] == "bp", peclines))
+    pecnotes = list(filter(lambda x: x and x[0] in ("n1", "n2", "n3", "n4"), peclines))
+    pecnotespeeds = list(filter(lambda x: x and x[0] == "#", peclines))
+    pecnotesizes = list(filter(lambda x: x and x[0] == "&", peclines))
+    peccps = list(filter(lambda x: x and x[0] == "cp", peclines))
+    peccds = list(filter(lambda x: x and x[0] == "cd", peclines))
+    peccas = list(filter(lambda x: x and x[0] == "ca", peclines))
+    peccvs = list(filter(lambda x: x and x[0] == "cv", peclines))
+    peccms = list(filter(lambda x: x and x[0] == "cm", peclines))
+    peccrs = list(filter(lambda x: x and x[0] == "cr", peclines))
+    peccfs = list(filter(lambda x: x and x[0] == "cf", peclines))
+    
+    rpex = lambda x: (x / 2048 - 0.5) * 1350
+    rpey = lambda y: (y / 1400 -  0.5) * 900
+    rpes = lambda s: s * 0.5844193793466191 # 1 / 1.7111
+    lines = {}
+                    
+    checkLine = lambda k: [
+        (
+            lines.update({k: {
+                "eventLayers": [{
+                    "speedEvents": [],
+                    "moveXEvents": [],
+                    "moveYEvents": [],
+                    "rotateEvents": [],
+                    "alphaEvents": []
+                }],
+                "notes": []
+            }}),
+            result["judgeLineList"].append(lines[k])
+        ) if k not in lines else None,
+    ]
+    
+    for e in pecbpms:
+        try:
+            result["BPMList"].append({
+                "startTime": [float(e[1]), 0, 1],
+                "bpm": float(e[2])
+            })
+        except Exception as e:
+            errs.append(e)
+    
+    for e, sp, si in zip(pecnotes, pecnotespeeds, pecnotesizes):
+        try:
+            et = None
+            if e[0] == "n2": et = [float(e.pop(3)), 0, 1]
+            ntype = {"n1": 1, "n2": 2, "n3": 3, "n4": 4}[e[0]]
+            k = int(e[1])
+            st = [float(e[2]), 0, 1]
+            x = float(e[3])
+            if et is None: et = st.copy()
+            above = int(e[4])
+            fake = bool(int(e[5]))
+            speed = float(sp[1])
+            size = float(si[1])
+            
+            checkLine(k)
+            lines[k]["notes"].append({
+                "type": ntype,
+                "startTime": st,
+                "endTime": et,
+                "positionX": x / 2048 * 1350,
+                "above": above,
+                "isFake": fake,
+                "speed": speed,
+                "size": size
+            })
+        except Exception as e:
+            errs.append(e)
+    
+    for e in peccps:
+        try:
+            k = int(e[1])
+            t = [float(e[2]), 0, 1]
+            x = float(e[3])
+            y = float(e[4])
+            
+            checkLine(k)
+            lines[k]["eventLayers"][0]["moveXEvents"].append({
+                "startTime": t, "endTime": t,
+                "start": rpex(x), "end": rpex(x),
+                "easingType": 1
+            })
+            lines[k]["eventLayers"][0]["moveYEvents"].append({
+                "startTime": t, "endTime": t,
+                "start": rpey(y), "end": rpey(y),
+                "easingType": 1
+            })
+        except Exception as e:
+            errs.append(e)
+
+    for e in peccds:
+        try:
+            k = int(e[1])
+            t = [float(e[2]), 0, 1]
+            v = float(e[3])
+            
+            checkLine(k)
+            lines[k]["eventLayers"][0]["rotateEvents"].append({
+                "startTime": t, "endTime": t,
+                "start": v, "end": v,
+                "easingType": 1
+            })
+        except Exception as e:
+            errs.append(e)
+    
+    for e in peccas:
+        try:
+            k = int(e[1])
+            t = [float(e[2]), 0, 1]
+            v = float(e[3])
+
+            checkLine(k)
+            lines[k]["eventLayers"][0]["alphaEvents"].append({
+                "startTime": t, "endTime": t,
+                "start": v, "end": v,
+                "easingType": 1
+            })
+        except Exception as e:
+            errs.append(e)
+    
+    for e in peccvs:
+        try:
+            k = int(e[1])
+            t = [float(e[2]), 0, 1]
+            v = float(e[3])
+
+            checkLine(k)
+            lines[k]["eventLayers"][0]["speedEvents"].append({
+                "startTime": t, "endTime": t,
+                "start": rpes(v), "end": rpes(v),
+                "easingType": 1
+            })
+        except Exception as e:
+            errs.append(e)
+    
+    for e in peccms:
+        try:
+            k = int(e[1])
+            st = [float(e[2]), 0, 1]
+            et = [float(e[3]), 0, 1]
+            ex = float(e[4])
+            ey = float(e[5])
+            ease = int(e[6])
+            
+            checkLine(k)
+            mxes = lines[k]["eventLayers"][0]["moveXEvents"]
+            myes = lines[k]["eventLayers"][0]["moveYEvents"]
+            
+            if mxes: sx = mxes[-1]["end"]
+            else: sx = rpex(ex)
+            if myes: sy = myes[-1]["end"]
+            else: sy = rpey(ey)
+
+            mxes.append({
+                "startTime": st, "endTime": et,
+                "start": sx, "end": rpex(ex),
+                "easingType": ease
+            })
+            myes.append({
+                "startTime": st, "endTime": et,
+                "start": sy, "end": rpey(ey),
+                "easingType": ease
+            })
+        except Exception as e:
+            errs.append(e)
+    
+    for e in peccrs:
+        try:
+            k = int(e[1])
+            st = [float(e[2]), 0, 1]
+            et = [float(e[3]), 0, 1]
+            ev = float(e[4])
+            ease = int(e[5])
+
+            checkLine(k)
+            res = lines[k]["eventLayers"][0]["rotateEvents"]
+            if res: sv = res[-1]["end"]
+            else: sv = ev
+
+            res.append({
+                "startTime": st, "endTime": et,
+                "start": sv, "end": ev,
+                "easingType": ease
+            })
+        except Exception as e:
+            errs.append(e)
+    
+    for e in peccfs:
+        try:
+            k = int(e[1])
+            st = [float(e[2]), 0, 1]
+            et = [float(e[3]), 0, 1]
+            ev = float(e[4])
+
+            checkLine(k)
+            aes = lines[k]["eventLayers"][0]["alphaEvents"]
+            
+            if aes: sv = aes[-1]["end"]
+            else: sv = ev
+
+            aes.append({
+                "startTime": st, "endTime": et,
+                "start": sv, "end": ev,
+                "easingType": 1
+            })
+        except Exception as e:
+            errs.append(e)
+    
+    return result, errs
+    
 class PhigrosPlayPlayStateManager:
     def __init__(self, noteCount: int):
         self.events: list[typing.Literal["P", "G", "B", "M"]] = []
