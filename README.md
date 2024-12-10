@@ -79,8 +79,8 @@
     - [x] zOrder
   - [ ] multiLineString (???)
   - [ ] multiScale (???)
-- [ ] pec
-  - 读取转化为`rpe`格式, 实测移动事件存在bug
+- [x] pec
+  - 读取转换为`rpe`格式
 - 补充
   - [ ] rpe格式中的事件
     - [ ] bezier
