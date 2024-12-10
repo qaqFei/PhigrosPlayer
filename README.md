@@ -98,7 +98,7 @@
 
 ## 画面演示
 
-<video src="(https://qaqfei.github.io/PhigrosPlayer/readme-res/readme-video.mp4"></video>
+<video src="https://qaqfei.github.io/PhigrosPlayer/readme-res/readme-video.mp4"></video>
 
 ## 声明
 
