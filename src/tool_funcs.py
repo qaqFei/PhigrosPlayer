@@ -394,7 +394,21 @@ def indrect(x: float, y: float, rect: tuple[float, float, float, float], dpower:
     x += (1.0 - (y - rect[1]) / (rect[3] - rect[1])) * (dpower * (rect[2] - rect[0]))
     return inrect(x, y, rect)
 
+def isfloatable(s: str):
+    try: float(s); return True
+    except: return False
+
+def isallnum(lst: list[str], l: int|None = None):
+    return (len(lst) >= l or l is None) and all(map(lambda x: isfloatable(x), lst))
+
+def pec2rpe_findevent_bytime(es: list[dict], t: float, default: float):
+    if not es: return default
+    
+    ets = list(map(lambda x: abs(x["endTime"][0] - t), es))
+    return es[ets.index(min(ets))]["end"]
+
 def pec2rpe(pec: str):
+    Exception=StopAsyncIteration
     errs = []
     peclines = pec.split("\n")
     result = { # if some key and value is not exists, in loading rpe chart, it will be set to default value.
@@ -403,25 +417,38 @@ def pec2rpe(pec: str):
         "judgeLineList": []
     }
     
-    result["META"]["offset"] = float(peclines.pop(0))
+    result["META"]["offset"] = float(peclines.pop(0)) - 150
     
     peclines = list(map(lambda x: x.split(" "), peclines))
     
-    pecbpms = list(filter(lambda x: x and x[0] == "bp", peclines))
-    pecnotes = list(filter(lambda x: x and x[0] in ("n1", "n2", "n3", "n4"), peclines))
-    pecnotespeeds = list(filter(lambda x: x and x[0] == "#", peclines))
-    pecnotesizes = list(filter(lambda x: x and x[0] == "&", peclines))
-    peccps = list(filter(lambda x: x and x[0] == "cp", peclines))
-    peccds = list(filter(lambda x: x and x[0] == "cd", peclines))
-    peccas = list(filter(lambda x: x and x[0] == "ca", peclines))
-    peccvs = list(filter(lambda x: x and x[0] == "cv", peclines))
-    peccms = list(filter(lambda x: x and x[0] == "cm", peclines))
-    peccrs = list(filter(lambda x: x and x[0] == "cr", peclines))
-    peccfs = list(filter(lambda x: x and x[0] == "cf", peclines))
+    pecbpms = list(filter(lambda x: x and x[0] == "bp" and isallnum(x[1:], 2), peclines))
+    pecnotes = list(filter(lambda x: x and x[0] in ("n1", "n2", "n3", "n4") and isallnum(x[1:], 5 if x[0] != "n2" else 6), peclines))
+    pecnotespeeds = list(filter(lambda x: x and x[0] == "#" and isallnum(x[1:], 1), peclines))
+    pecnotesizes = list(filter(lambda x: x and x[0] == "&" and isallnum(x[1:], 1), peclines))
+    peccps = list(filter(lambda x: x and x[0] == "cp" and isallnum(x[1:], 4), peclines))
+    peccds = list(filter(lambda x: x and x[0] == "cd" and isallnum(x[1:], 3), peclines))
+    peccas = list(filter(lambda x: x and x[0] == "ca" and isallnum(x[1:], 3), peclines))
+    peccvs = list(filter(lambda x: x and x[0] == "cv" and isallnum(x[1:], 3), peclines))
+    peccms = list(filter(lambda x: x and x[0] == "cm" and isallnum(x[1:], 6), peclines))
+    peccrs = list(filter(lambda x: x and x[0] == "cr" and isallnum(x[1:], 5), peclines))
+    peccfs = list(filter(lambda x: x and x[0] == "cf" and isallnum(x[1:], 4), peclines))
+    
+    pecbpms.sort(key = lambda x: float(x[1]))
+    
+    notezip = list(zip(pecnotes, pecnotespeeds, pecnotesizes))
+    notezip.sort(key = lambda x: float(x[0][2]))
+    
+    peccps.sort(key = lambda x: float(x[1]))
+    peccds.sort(key = lambda x: float(x[1]))
+    peccas.sort(key = lambda x: float(x[1]))
+    peccvs.sort(key = lambda x: float(x[1]))
+    peccms.sort(key = lambda x: float(x[1]))
+    peccrs.sort(key = lambda x: float(x[1]))
+    peccfs.sort(key = lambda x: float(x[1]))
     
     rpex = lambda x: (x / 2048 - 0.5) * 1350
     rpey = lambda y: (y / 1400 -  0.5) * 900
-    rpes = lambda s: s * 0.5844193793466191 # 1 / 1.7111
+    rpes = lambda s: s / 1400 * 900
     lines = {}
                     
     checkLine = lambda k: [
@@ -449,7 +476,7 @@ def pec2rpe(pec: str):
         except Exception as e:
             errs.append(e)
     
-    for e, sp, si in zip(pecnotes, pecnotespeeds, pecnotesizes):
+    for e, sp, si in notezip:
         try:
             et = None
             if e[0] == "n2": et = [float(e.pop(3)), 0, 1]
@@ -555,11 +582,8 @@ def pec2rpe(pec: str):
             checkLine(k)
             mxes = lines[k]["eventLayers"][0]["moveXEvents"]
             myes = lines[k]["eventLayers"][0]["moveYEvents"]
-            
-            if mxes: sx = mxes[-1]["end"]
-            else: sx = rpex(ex)
-            if myes: sy = myes[-1]["end"]
-            else: sy = rpey(ey)
+            sx = pec2rpe_findevent_bytime(mxes, st[0], rpex(ex))
+            sy = pec2rpe_findevent_bytime(myes, st[0], rpey(ey))
 
             mxes.append({
                 "startTime": st, "endTime": et,
@@ -584,8 +608,7 @@ def pec2rpe(pec: str):
 
             checkLine(k)
             res = lines[k]["eventLayers"][0]["rotateEvents"]
-            if res: sv = res[-1]["end"]
-            else: sv = ev
+            sv = pec2rpe_findevent_bytime(res, st[0], ev)
 
             res.append({
                 "startTime": st, "endTime": et,
@@ -604,9 +627,7 @@ def pec2rpe(pec: str):
 
             checkLine(k)
             aes = lines[k]["eventLayers"][0]["alphaEvents"]
-            
-            if aes: sv = aes[-1]["end"]
-            else: sv = ev
+            sv = pec2rpe_findevent_bytime(aes, st[0], ev)
 
             aes.append({
                 "startTime": st, "endTime": et,
