@@ -4,7 +4,7 @@
 
 - Python 版本: `3.12.0`
 - Windows 版本需 >= `8.1`
-- 第三方库: [requirements.txt](./requirements.txt)
+- 第三方库: [requirements.txt](./src/requirements.txt)
 
 ## 谱面兼容
 
