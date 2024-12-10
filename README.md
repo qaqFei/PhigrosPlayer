@@ -96,6 +96,10 @@
 
 </details>
 
-### 声明
+## 画面演示
+
+![readme-video](/readme-res/readme-video.mp4)
+
+## 声明
 
 - 此项目仅用于学习交流，请勿用于商业用途
