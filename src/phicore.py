@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import time
 import typing
 import math
 import logging
+import threading
 from os import environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
 from dataclasses import dataclass
+from queue import Queue
 
 from pygame import mixer
 from PIL import Image
@@ -15,6 +19,13 @@ import rpe_easing
 import chartobj_phi
 import chartobj_rpe
 import phi_tips
+import playsound
+
+drawUI_Default_Kwargs = {
+    f"{k}_{k2}": v
+    for k in ("combonumber", "combo", "score", "name", "level", "pause") for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
+}
+lastCallDrawUI = - float("inf")
 
 @dataclass
 class PhiCoreConfigure:
@@ -42,6 +53,7 @@ class PhiCoreConfigure:
     clickeffect_randomblock: bool
     clickeffect_randomblock_roundn: int
     LoadSuccess: mixer.Sound
+    cksmanager: ClickSoundManager
     enable_clicksound: bool
     rtacc: bool
     noautoplay: bool
@@ -94,6 +106,7 @@ def CoreConfig(config: PhiCoreConfigure):
     global raw_audio_length, show_start_time
     global chart_res, clickeffect_randomblock
     global clickeffect_randomblock_roundn, LoadSuccess
+    global cksmanager
     global enable_clicksound, rtacc, noautoplay
     global showfps, lfdaot, no_mixer_reset_chart_time
     global speed, render_range_more
@@ -123,6 +136,7 @@ def CoreConfig(config: PhiCoreConfigure):
     clickeffect_randomblock = config.clickeffect_randomblock
     clickeffect_randomblock_roundn = config.clickeffect_randomblock_roundn
     LoadSuccess = config.LoadSuccess
+    cksmanager = config.cksmanager
     enable_clicksound = config.enable_clicksound
     rtacc = config.rtacc
     noautoplay = config.noautoplay
@@ -178,11 +192,23 @@ def CoreConfigEx(config: PhiCoreConfigureEx):
     
     logging.info("CoreConfigEx Done")
 
-drawUI_Default_Kwargs = {
-    f"{k}_{k2}": v
-    for k in ("combonumber", "combo", "score", "name", "level", "pause") for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
-}
-lastCallDrawUI = - float("inf")
+class ClickSoundManager:
+    def __init__(self, res: dict[int, playsound.directSound]):
+        self.res = res
+        self.queue: Queue[int|None] = Queue()
+        threading.Thread(target=self.runner, daemon=True).start()
+    
+    def play(self, nt: int):
+        self.queue.put(nt)
+    
+    def stop(self):
+        self.queue.put(None)
+    
+    def runner(self):
+        while True:
+            nt = self.queue.get()
+            if nt is None: break
+            self.res[nt].play()
     
 def process_effect_base(
     x: float, y: float,
@@ -560,11 +586,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 if this_noteitem_clicked and not note.clicked:
                     note.clicked = True
                     if enable_clicksound and not noautoplay:
-                        Task.ExTask.append((
-                            "call",
-                            f"Resource[\"Note_Click_Audio\"][\"{note.type_string}\"].play",
-                            "()"
-                        ))
+                        Task.ExTask.append(("psound", note.type))
                 
                 if not note.ishold and note.clicked:
                     notes.remove(note)
@@ -945,6 +967,18 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     if rjc: Task(root.run_js_wait_code)
     return Task
 
+def FrameData_ProcessExTask(ExTask: list[tuple[str, typing.Any]]):
+    break_flag = False
+    
+    for ext in ExTask:
+        match ext[0]:
+            case "break":
+                break_flag = True
+            case "psound":
+                cksmanager.play(ext[1])
+        
+    return break_flag
+
 def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
     global PlayChart_NowTime
     
@@ -1049,11 +1083,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             if note_clicked and not note.clicked:
                 note.clicked = True
                 if enable_clicksound and not note.isFake and not noautoplay:
-                    Task.ExTask.append((
-                        "call",
-                        f"Resource[\"Note_Click_Audio\"][\"{note.type_string}\"].play",
-                        "()"
-                    ))
+                    Task.ExTask.append(("psound", note.phitype))
             
             if not note.ishold and note.clicked:
                 line.renderNotes.remove(note)

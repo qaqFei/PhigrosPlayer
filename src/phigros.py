@@ -234,10 +234,10 @@ def Load_Resource():
             "F": Image.open("./resources/Levels/F.png")
         },
         "Note_Click_Audio":{
-            "Tap": playsound.directSound(loadAudio("./resources/Note_Click_Audio/Tap.wav")),
-            "Drag": playsound.directSound(loadAudio("./resources/Note_Click_Audio/Drag.wav")),
-            "Hold": playsound.directSound(loadAudio("./resources/Note_Click_Audio/Hold.wav")),
-            "Flick": playsound.directSound(loadAudio("./resources/Note_Click_Audio/Flick.wav"))
+            const.Note.TAP: playsound.directSound(loadAudio("./resources/Note_Click_Audio/Tap.wav")),
+            const.Note.DRAG: playsound.directSound(loadAudio("./resources/Note_Click_Audio/Drag.wav")),
+            const.Note.HOLD: playsound.directSound(loadAudio("./resources/Note_Click_Audio/Hold.wav")),
+            const.Note.FLICK: playsound.directSound(loadAudio("./resources/Note_Click_Audio/Flick.wav"))
         },
         "logoipt": Image.open("./resources/logoipt.png"),
         "warning": Image.open("./resources/le_warn.png"),
@@ -3378,6 +3378,7 @@ def chartPlayerRender(
     
     respacker.load(*respacker.pack())
     
+    cksmanager = phicore.ClickSoundManager(Resource["Note_Click_Audio"])
     coreConfig = phicore.PhiCoreConfigure(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
         root = root, w = w, h = h,
@@ -3394,7 +3395,7 @@ def chartPlayerRender(
         show_start_time = float("nan"), chart_res = {},
         clickeffect_randomblock = True,
         clickeffect_randomblock_roundn = 0.0,
-        LoadSuccess = LoadSuccess,
+        LoadSuccess = LoadSuccess, cksmanager = cksmanager,
         enable_clicksound = getUserData("setting-enableClickSound"),
         rtacc = False, noautoplay = "--debug" not in sys.argv, showfps = "--debug" in sys.argv,
         lfdaot = False, no_mixer_reset_chart_time = False,
@@ -3599,10 +3600,7 @@ def chartPlayerRender(
                     
                 Task.ExecTask()
                 
-                break_flag = chartfuncs_phi.FrameData_ProcessExTask(
-                    Task.ExTask,
-                    lambda x: eval(x)
-                )
+                break_flag = phicore.FrameData_ProcessExTask(Task.ExTask)
                 
                 if break_flag and not stoped:
                     phicore.initFinishAnimation()
@@ -3665,6 +3663,7 @@ def chartPlayerRender(
         root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
             
     mixer.music.set_volume(1.0)
+    cksmanager.stop()
 
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
     illrespacker = webcv.PILResourcePacker(root)

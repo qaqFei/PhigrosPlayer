@@ -327,6 +327,7 @@ def Load_Resource():
     global WaitLoading, LoadSuccess
     global chart_res
     global ClickEffectFrameCount
+    global cksmanager
     
     logging.info("Loading Resource...")
     WaitLoading = mixer.Sound(getResPath("/WaitLoading.mp3"))
@@ -370,10 +371,10 @@ def Load_Resource():
             "F": Image.open(getResPath("/Levels/F.png"))
         },
         "Note_Click_Audio":{
-            "Tap": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Tap.wav"))),
-            "Drag": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Drag.wav"))),
-            "Hold": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Hold.wav"))),
-            "Flick": playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Flick.wav")))
+            const.Note.TAP: playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Tap.wav"))),
+            const.Note.DRAG: playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Drag.wav"))),
+            const.Note.HOLD: playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Hold.wav"))),
+            const.Note.FLICK: playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Flick.wav")))
         },
         "le_warn": Image.open(getResPath("/le_warn.png")),
         "Button_Left": Image.open(getResPath("/Button_Left.png")),
@@ -528,6 +529,7 @@ def Load_Resource():
     # how to load shaders to webgl and use them???
     ... # TODO
     
+    cksmanager = ClickSoundManager(Resource["Note_Click_Audio"])
     logging.info("Load Resource Successfully")
     return Resource
 
@@ -574,7 +576,8 @@ def Show_Start():
     Thread(target=PlayerStart, daemon=True).start()
 
 def PlayerStart():
-    global show_start_time
+    global show_start_time, cksmanager
+    
     Resource["Over"].stop()
     
     Begin_Animation()
@@ -599,7 +602,7 @@ def PlayerStart():
             pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
             pplm = tool_funcs.PhigrosPlayLogicManager(
                 pplm_proxy, pppsm,
-                enable_clicksound, lambda ts: Resource["Note_Click_Audio"][ts].play(),
+                enable_clicksound, lambda nt: Resource["Note_Click_Audio"][nt].play(),
                 record_play
             )
             
@@ -649,10 +652,7 @@ def PlayerStart():
                 
             Task.ExecTask()
             
-            break_flag = chartfuncs_phi.FrameData_ProcessExTask(
-                Task.ExTask,
-                lambda x: eval(x)
-            )
+            break_flag = FrameData_ProcessExTask(Task.ExTask)
             
             if break_flag:
                 break
@@ -699,7 +699,7 @@ def PlayerStart():
                 pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
                 pplm = tool_funcs.PhigrosPlayLogicManager(
                     pplm_proxy, pppsm,
-                    enable_clicksound, lambda ts: Resource["Note_Click_Audio"][ts].play(),
+                    enable_clicksound, lambda nt: Resource["Note_Click_Audio"][nt].play(),
                     record_play
                 )
             else:
@@ -717,7 +717,7 @@ def PlayerStart():
                             case binfile.PlayRecorderBase.PLAY_CLICKSOUND:
                                 continue # emm.?
                                 if event[1] <= now_t:
-                                    Resource["Note_Click_Audio"][const.TYPE_STRING_MAP[event[2]]].play()
+                                    Resource["Note_Click_Audio"][event[2]].play()
                                     recorder_data.remove(event)
                             
                             case binfile.PlayRecorderBase.PC_CLICK:
@@ -836,10 +836,7 @@ def PlayerStart():
                     will_process_extask.append(Task.ExTask)
                     Task.ExTask = None
                 for ExTask in will_process_extask:
-                    break_flag = chartfuncs_phi.FrameData_ProcessExTask(
-                        ExTask,
-                        lambda x: eval(x)
-                    )
+                    break_flag = FrameData_ProcessExTask(ExTask)
                     
                     if break_flag:
                         break_flag_top = True
@@ -939,7 +936,7 @@ def PlayerStart():
         
         while not a2_break:
             Chart_Finish_Animation_Frame(1.0)
-            
+    
     mixer.music.fadeout(250)
     Chart_Finish_Animation()
 
@@ -960,7 +957,7 @@ def updateCoreConfigure():
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),
         chart_res = chart_res, clickeffect_randomblock = clickeffect_randomblock,
         clickeffect_randomblock_roundn = clickeffect_randomblock_roundn,
-        LoadSuccess = LoadSuccess,
+        LoadSuccess = LoadSuccess, cksmanager = cksmanager,
         enable_clicksound = enable_clicksound, rtacc = rtacc,
         noautoplay = noautoplay, showfps = showfps, lfdaot = lfdaot,
         no_mixer_reset_chart_time = no_mixer_reset_chart_time,

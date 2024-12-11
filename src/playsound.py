@@ -1,5 +1,4 @@
 import math
-from threading import Thread
 from struct import unpack
 
 import win32comext.directsound.directsound as ds

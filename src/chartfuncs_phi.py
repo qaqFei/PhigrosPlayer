@@ -3,18 +3,6 @@ import logging
 import chartobj_phi
 import tool_funcs
 
-def FrameData_ProcessExTask(ExTask, eval_func):
-    break_flag = False
-    
-    for ext in ExTask:
-        match ext[0]:
-            case "break":
-                break_flag = True
-            case "call":
-                eval_func(ext[1])(*eval_func(ext[2]))
-        
-    return break_flag
-
 def Load_Chart_Object(phigros_chart: dict):
     logging.info("Loading Chart Object, fmt = phi")
     

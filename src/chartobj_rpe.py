@@ -396,7 +396,6 @@ class PPLMRPE_Proxy(tool_funcs.PPLM_ProxyBase):
     def nproxy_typein(self, n: Note, ts: tuple[int]): return n.phitype in ts
     def nproxy_typeis(self, n: Note, t: int): return n.phitype == t
     def nproxy_phitype(self, n: Note): return n.phitype
-    def nproxy_tstring(self, n: Note): return n.type_string
     
     def nproxy_nowpos(self, n: Note): return n.nowpos
     def nproxy_effects(self, n: Note): return n.player_effect_times
