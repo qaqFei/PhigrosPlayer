@@ -244,9 +244,9 @@ if len(chart_files_dict["images"]) > 1:
             name = file[0].split("/")[-1].split("\\")[-1]
             print(f"{index + 1}. {name}")
         chart_image_index = int(input("请选择谱面图片: ")) - 1
-        chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
+        chart_image: Image.Image = chart_files_dict["images"][chart_image_index][1]
 else:
-    chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
+    chart_image: Image.Image = chart_files_dict["images"][chart_image_index][1]
 chart_image_filepath = chart_files_dict["images"][chart_image_index][0]
 
 if len(chart_files_dict["audio"]) > 1:
@@ -280,24 +280,18 @@ logging.info("Loading Chart Information...")
 
 ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
 chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(raw_audio_file), basename(chart_image_filepath))
-    
+
+if CHART_TYPE == const.CHART_TYPE.RPE and chart_information is ChartInfoLoader.default_info:
+    chart_information["Name"] = chart_obj.META.name
+    chart_information["Artist"] = chart_obj.META.composer
+    chart_information["Level"] = chart_obj.META.level
+    chart_information["Charter"] = chart_obj.META.charter
+
 logging.info("Loading Chart Information Successfully")
 logging.info("Inforamtions: ")
 for k,v in chart_information.items():
     logging.info(f"              {k}: {v}")
 del chart_files, chart_files_dict
-
-extraPath = f"{temp_dir}/extra.json"
-extra = {
-    "bpm": [ { "time": [ 0, 0, 1 ], "bpm": 1.0 } ],
-    "effects": []
-}
-if exists(extraPath) and isfile(extraPath):
-    try:
-        with open(extraPath, "r", encoding="utf-8") as f:
-            extra.update(json.load(f))
-    except Exception as e:
-        logging.warning(f"extra.json is not valid, {repr(e)}")
 
 def getResPath(path:str, file: bool = True):
     for rp in reversed(respaths):
@@ -333,7 +327,6 @@ def Load_Resource():
     global WaitLoading, LoadSuccess
     global chart_res
     global ClickEffectFrameCount
-    global shaders
     
     logging.info("Loading Resource...")
     WaitLoading = mixer.Sound(getResPath("/WaitLoading.mp3"))
@@ -519,42 +512,21 @@ def Load_Resource():
     )
     note_max_size_half = (note_max_width ** 2 + note_max_height ** 2) ** 0.5
     
-    logging.info("Loading Shaders...")
-    
-    shaders = {
-        "chromatic": open("./shaders/chromatic.glsl", "r", encoding="utf-8").read(),
-        "circleBlur": open("./shaders/circle_blur.glsl", "r", encoding="utf-8").read(),
-        "fisheye": open("./shaders/fisheye.glsl", "r", encoding="utf-8").read(),
-        "glitch": open("./shaders/glitch.glsl", "r", encoding="utf-8").read(),
-        "grayscale": open("./shaders/grayscale.glsl", "r", encoding="utf-8").read(),
-        "noise": open("./shaders/noise.glsl", "r", encoding="utf-8").read(),
-        "pixel": open("./shaders/pixel.glsl", "r", encoding="utf-8").read(),
-        "radialBlur": open("./shaders/radial_blur.glsl", "r", encoding="utf-8").read(),
-        "shockwave": open("./shaders/shockwave.glsl", "r", encoding="utf-8").read(),
-        "vignette": open("./shaders/vignette.glsl", "r", encoding="utf-8").read()
-    }
-    
-    try:
-        for effect in extra["effects"]:
-            try:
-                shaderName = effect["shader"]
-                if shaderName in shaders: continue
-                shaderPath = f"{temp_dir}/{shaderName}"
-                if exists(shaderPath) and isfile(shaderPath):
-                    shaders[shaderName] = open(shaderPath, "r", encoding="utf-8").read()
-                else:
-                    raise Exception(f"Shader {shaderName} not found")
-            except Exception as e:
-                logging.error(f"Load Shader {shaderName} Failed")
-    except Exception as e:
-        logging.error("Load Other Shaders Failed")
-    
-    extra["effects"] = list(filter(lambda x: x.get("shader", "") in shaders, extra["effects"]))
+    # shaders = {
+    #     "chromatic": open("./shaders/chromatic.glsl", "r", encoding="utf-8").read(),
+    #     "circleBlur": open("./shaders/circle_blur.glsl", "r", encoding="utf-8").read(),
+    #     "fisheye": open("./shaders/fisheye.glsl", "r", encoding="utf-8").read(),
+    #     "glitch": open("./shaders/glitch.glsl", "r", encoding="utf-8").read(),
+    #     "grayscale": open("./shaders/grayscale.glsl", "r", encoding="utf-8").read(),
+    #     "noise": open("./shaders/noise.glsl", "r", encoding="utf-8").read(),
+    #     "pixel": open("./shaders/pixel.glsl", "r", encoding="utf-8").read(),
+    #     "radialBlur": open("./shaders/radial_blur.glsl", "r", encoding="utf-8").read(),
+    #     "shockwave": open("./shaders/shockwave.glsl", "r", encoding="utf-8").read(),
+    #     "vignette": open("./shaders/vignette.glsl", "r", encoding="utf-8").read()
+    # }
     
     # how to load shaders to webgl and use them???
     ... # TODO
-    
-    logging.info("Load Shaders Successfully")
     
     logging.info("Load Resource Successfully")
     return Resource

@@ -27,14 +27,14 @@
     - [x] judgeLineDisappearEvents
 - [ ] rpe
   - [x] BPMList
-  - [ ] META (大部分信息以info文件为准, 不进行读取)
+  - [ ] META (无法获取info文件时读取)
     - [ ] RPEVersion (???, 有影响吗?)
     - [x] background
-    - [ ] charter
-    - [ ] composer
+    - [x] charter
+    - [x] composer
     - [ ] id
-    - [ ] level
-    - [ ] name
+    - [x] level
+    - [x] name
     - [x] offset
     - [x] song
   - [x] judgeLineGroup (谱面播放没用)
