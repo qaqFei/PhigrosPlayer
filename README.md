@@ -44,7 +44,7 @@
     - [x] Texture
     - [x] bpmfactor (?, 按照字母意思: bpm速率进行处理)
     - [x] father
-    - [ ] isCover (???)
+    - [x] isCover
     - [x] eventLayers
       - [x] alphaEvents
       - [x] moveXEvents

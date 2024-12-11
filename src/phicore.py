@@ -1069,7 +1069,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 continue
             
             noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h
-            if noteFloorPosition < 0 and not note.clicked:
+            if line.isCover and noteFloorPosition < 0 and not note.clicked:
                 continue
             
             noteAtJudgeLinePos = tool_funcs.rotate_point(
