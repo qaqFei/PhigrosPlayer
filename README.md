@@ -37,10 +37,10 @@
     - [x] name
     - [x] offset
     - [x] song
-  - [x] judgeLineGroup (谱面播放没用)
+  - [x] judgeLineGroup (谱面播放不使用)
   - [ ] judgeLineList
-    - [x] Group (谱面播放没用)
-    - [x] Name (谱面播放没用)
+    - [x] Group (谱面播放不使用)
+    - [x] Name (谱面播放不使用)
     - [x] Texture
     - [x] bpmfactor (?, 按照字母意思: bpm速率进行处理)
     - [x] father
@@ -77,8 +77,8 @@
     - [ ] skewControl
     - [x] yControl (有bug)
     - [x] zOrder
-  - [ ] multiLineString (???)
-  - [ ] multiScale (???)
+  - [x] multiLineString (谱面播放不使用)
+  - [x] multiScale (谱面播放不使用)
 - [x] pec
   - 读取转换为`rpe`格式
 - 补充
