@@ -155,10 +155,11 @@
         await pywebview.api.call_attr("uploadFrame", dataUrl);
     }
 
-    function PhigrosPlay_KeyEvent(callback) {
-        return function(e) {
-            if (event.isComposing || event.keyCode === 229) return;
-            callback(e);
+    function PhigrosPlay_KeyEvent(cb, rp) {
+        return async function(e) {
+            if (e.isComposing || e.keyCode === 229) return;
+            if (!rp && e.repeat) return;
+            cb(e);
         }
     }
 

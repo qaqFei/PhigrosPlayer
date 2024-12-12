@@ -608,8 +608,8 @@ def PlayerStart():
             
             root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t: pplm.pc_click(t - show_start_time))
             root.jsapi.set_attr("PhigrosPlay_KeyUp", lambda t: pplm.pc_release(t - show_start_time))
-            root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {if (!e.repeat) pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000);});")
-            root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000);});")
+            root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent(() => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000)}, false);")
+            root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent(() => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000)}, false);")
             root.run_js_code("window.addEventListener('keydown', _PhigrosPlay_KeyDown);")
             root.run_js_code("window.addEventListener('keyup', _PhigrosPlay_KeyUp);")
             
@@ -1021,6 +1021,37 @@ EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
 
 updateCoreConfigure()
 
+
+calFps = '''\
+let frameCount = 0;
+let lastShowTime = performance.now();
+let frameShowLabel = document.createElement('p');
+frameShowLabel.style.display = 'absolute';
+frameShowLabel.style.top = '0';
+frameShowLabel.style.left = '0';
+frameShowLabel.style.zIndex = 9999999;
+const maxFrameCount = 10;
+
+document.body.appendChild(frameShowLabel);
+    
+function calFps() {
+    frameCount++;
+    
+    if (frameCount % maxFrameCount === 0) {
+        let useTime = performance.now() - lastShowTime;
+        frameShowLabel.innerText = 'FPS: ' + 1 / (useTime / maxFrameCount) * 1000;
+        lastShowTime = performance.now();
+        frameCount = 0;
+    }
+    
+    requestAnimationFrame(calFps);
+}
+
+requestAnimationFrame(calFps);
+window.addEventListener('keydown', pywebview.api.empty_method);
+'''
+
+root.run_js_code(calFps)
 Thread(target=Show_Start, daemon=True).start()
 root.wait_for_close()
 

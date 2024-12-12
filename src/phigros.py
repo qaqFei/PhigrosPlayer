@@ -3428,9 +3428,10 @@ def chartPlayerRender(
         
         root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t: pplm.pc_click(t - show_start_time))
         root.jsapi.set_attr("PhigrosPlay_KeyUp", lambda t: pplm.pc_release(t - show_start_time))
-        root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000);});")
-        root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000);});")
+        root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent(() => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000)}, false);")
+        root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent(() => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000)}, false);")
         root.run_js_code("window.addEventListener('keydown', _PhigrosPlay_KeyDown);")
+        root.run_js_code("window.addEventListener('keyup', _PhigrosPlay_KeyUp);")
         
     show_start_time = time.time()
     coreConfig.show_start_time = show_start_time
