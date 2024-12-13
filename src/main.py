@@ -91,6 +91,7 @@ enable_controls = "--enable-controls" in sys.argv
 lfdaot_video_fourcc = sys.argv[sys.argv.index("--lfdaot-video-fourcc") + 1] if "--lfdaot-video-fourcc" in sys.argv else "mp4v"
 record_play = "--record-play" in sys.argv
 lfdaot_use_recordfile = sys.argv[sys.argv.index("--lfdaot-use-recordfile") + 1] if "--lfdaot-use-recordfile" in sys.argv else None
+wl_more_chinese = "--wl-more-chinese" in sys.argv
 respaths = ["./resources"]
 
 if "--res" in sys.argv:
@@ -1021,37 +1022,6 @@ EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
 
 updateCoreConfigure()
 
-
-calFps = '''\
-let frameCount = 0;
-let lastShowTime = performance.now();
-let frameShowLabel = document.createElement('p');
-frameShowLabel.style.display = 'absolute';
-frameShowLabel.style.top = '0';
-frameShowLabel.style.left = '0';
-frameShowLabel.style.zIndex = 9999999;
-const maxFrameCount = 10;
-
-document.body.appendChild(frameShowLabel);
-    
-function calFps() {
-    frameCount++;
-    
-    if (frameCount % maxFrameCount === 0) {
-        let useTime = performance.now() - lastShowTime;
-        frameShowLabel.innerText = 'FPS: ' + 1 / (useTime / maxFrameCount) * 1000;
-        lastShowTime = performance.now();
-        frameCount = 0;
-    }
-    
-    requestAnimationFrame(calFps);
-}
-
-requestAnimationFrame(calFps);
-window.addEventListener('keydown', pywebview.api.empty_method);
-'''
-
-root.run_js_code(calFps)
 Thread(target=Show_Start, daemon=True).start()
 root.wait_for_close()
 
