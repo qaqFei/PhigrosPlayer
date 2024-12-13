@@ -21,6 +21,7 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --showfps: Show fps. when using --lfdaot-render-video, it will not be displayed.
   --noplaychart: Do not play the chart, immediately settle.
   --enable-controls: Enable rpe format chart note control fields, with great performance overhead.
+  --wl-more-chinese: Replace texts to chinese. (wl)
 
 <Kwargs>
   --combotips <string-value>: Set the combo tips text.
@@ -68,6 +69,7 @@ HELP_ZH = '''\
   --showfps: 显示帧率
   --noplaychart: 不播放谱面, 立即结算
   --enable-controls: 启用rpe格式谱面中的note control类字段, 有极大的性能开销
+  --wl-more-chinese: 替换文本为中文 (wl)
 
 <关键字参数>
   --combotips <字符串>: 设置连击提示文本
