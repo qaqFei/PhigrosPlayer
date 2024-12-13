@@ -3432,7 +3432,9 @@ def chartPlayerRender(
         root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent(() => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000)}, false);")
         root.run_js_code("window.addEventListener('keydown', _PhigrosPlay_KeyDown);")
         root.run_js_code("window.addEventListener('keyup', _PhigrosPlay_KeyUp);")
-        
+    else:
+        pplm = None
+    
     show_start_time = time.time()
     coreConfig.show_start_time = show_start_time
     phicore.CoreConfig(coreConfig)
