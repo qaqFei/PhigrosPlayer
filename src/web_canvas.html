@@ -242,6 +242,56 @@
         }
     }
 
+    function setWlMoreChinese() {
+        let replaceMap = {
+            "0": "零", 
+            "1": "壹", "2": "贰", "3": "叁", "4": "肆",
+            "5": "伍", "6": "陆", "7": "柒", "8": "捌",
+            "9": "玖",
+
+            "A": "诶", "B": "比", "C": "西", "D": "的",
+            "E": "伊", "F": "阿福", "G": "据", "H": "爱趣",
+            "I": "爱", "J": "杰", "K": "剋", "L": "艾路",
+            "M": "阿姆", "N": "嗯", "O": "欧", "P": "皮",
+            "Q": "可由", "R": "啊", "S": "埃斯", "T": "提",
+            "U": "尤", "V": "维", "W": "打不溜", "X": "埃克斯",
+            "Y": "歪", "Z": "滋",
+
+            "~": "波浪", "!": "感叹号", "@": "艾特", "#": "井号",
+            "$": "美元", "%": "百分号", "^": "脱字符", "&": "和号",
+            "*": "星号", "(": "左括号", ")": "右括号", "+": "加号",
+            "-": "减号", "_": "下划线", "=": "等号", ":": "冒号",
+            ";": "分号", "'": "单引号", "\"": "双引号", ",": "逗号",
+            ".": "点", "/": "斜杠", "\\": "反斜杠", "|": "竖线",
+            "?": "问号", "{": "左花括号", "}": "右花括号", "[": "左方括号",
+            "]": "右方括号", "`": "反引号", "<": "小于号", ">": "大于号"
+        };
+
+        let wlmc_text_processer = (text) => {
+            text = text.toUpperCase();
+            for (k in replaceMap) {
+                text = text.replaceAll(k, replaceMap[k]);
+            }
+            return text;
+        };
+
+        CanvasRenderingContext2D.prototype._wlMoreChinese_fillText = CanvasRenderingContext2D.prototype.fillText;
+        CanvasRenderingContext2D.prototype._wlMoreChinese_strokeText = CanvasRenderingContext2D.prototype.strokeText;
+        CanvasRenderingContext2D.prototype._wlMoreChinese_measureText = CanvasRenderingContext2D.prototype.measureText;
+
+        CanvasRenderingContext2D.prototype.fillText = function(text, ...args) {
+            return this._wlMoreChinese_fillText(wlmc_text_processer(text), ...args);
+        }
+
+        CanvasRenderingContext2D.prototype.strokeText = function(text, ...args) {
+            return this._wlMoreChinese_strokeText(wlmc_text_processer(text), ...args);
+        }
+
+        CanvasRenderingContext2D.prototype.measureText = function(text, ...args) {
+            return this._wlMoreChinese_measureText(wlmc_text_processer(text), ...args);
+        }
+    }
+
     CanvasRenderingContext2D.prototype._fillText = CanvasRenderingContext2D.prototype.fillText;
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 

@@ -1020,6 +1020,9 @@ JUDGELINE_WIDTH = h * 0.0075
 Resource = Load_Resource()
 EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
 
+if wl_more_chinese:
+    root.run_js_code("setWlMoreChinese();")
+
 updateCoreConfigure()
 
 Thread(target=Show_Start, daemon=True).start()

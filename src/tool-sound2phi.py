@@ -12,11 +12,9 @@ data, sr = librosa.load(argv[1], sr=None)
 
 def pcs():
     lv = 0.0
-    i = 0
-    for v in data:
+    for i, v in enumerate(data):
         if (v > 0.0 and lv < 0.0) or (v < 0.0 and lv > 0.0):
             yield i / sr
-        i += 1
         lv = v
 
 result = {
