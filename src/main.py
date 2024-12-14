@@ -220,7 +220,6 @@ if "formatVersion" in chart_json:
     CHART_TYPE = const.CHART_TYPE.PHI
 elif "META" in chart_json:
     CHART_TYPE = const.CHART_TYPE.RPE
-    render_range_more = False
 else:
     logging.fatal("This is what format chart???")
     raise SystemExit
@@ -410,9 +409,6 @@ def Load_Resource():
     tool_funcs.cutAnimationIllImage(finish_animation_image)
     
     const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
-    for k, v in Resource["Notes"].items(): # Resize Notes (if Notes is too big) and reg them
-        if v.width > Note_width:
-            Resource["Notes"][k] = v.resize((int(Note_width),int(Note_width / v.width * v.height)))
     
     # process lowquality images
     for k,v in Resource["Notes"].items():
@@ -752,8 +748,6 @@ def PlayerStart():
                 meta = chartobj_phi.FrameTaskRecorder_Meta(
                     frame_speed = frame_speed,
                     frame_num = len(lfdaot_tasks),
-                    render_range_more = render_range_more,
-                    render_range_more_scale = render_range_more_scale,
                     size = (w, h)
                 ),
                 data = lfdaot_tasks.values()
@@ -769,9 +763,6 @@ def PlayerStart():
             fp = sys.argv[sys.argv.index("--lfdaot-file") + 1]
             with open(fp,"r",encoding="utf-8") as f:
                 data = json.load(f)
-            if data["meta"]["render_range_more"]:
-                root.run_js_code("render_range_more = true;")
-                root.run_js_code(f"render_range_more_scale = {data["meta"]["render_range_more_scale"]};")
             frame_speed = data["meta"]["frame_speed"]
             allframe_num = data["meta"]["frame_num"]
             Task_function_mapping = {
@@ -1008,10 +999,6 @@ else:
     del w_legacy, h_legacy
     root.resize(w + dw_legacy, h + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (w + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (h + dh_legacy) / webdpr / 2))
-
-if render_range_more:
-    root.run_js_code("render_range_more = true;")
-    root.run_js_code(f"render_range_more_scale = {render_range_more_scale};")
 
 root.run_js_code(f"lowquality_imjscvscale_x = {lowquality_imjscvscale_x};")
     

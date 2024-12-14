@@ -500,6 +500,26 @@ def drawDebugText(text: str, x: float, y: float, rotate: float, color: str, Task
         add_code_array = True
     )
 
+def rrm_start(Task: chartobj_phi.FrameRenderTask):
+    if not render_range_more: return
+    lw, lh = w / render_range_more_scale, h / render_range_more_scale
+    lr, lt = w / 2 - lw / 2, h / 2 - lh / 2
+    rms = 1 / render_range_more_scale
+    
+    Task(
+        root.run_js_code,
+        f"ctx.save(); ctx.translate({lr}, {lt}); ctx.scale({rms}, {rms});",
+        add_code_array = True
+    )
+
+def rrm_end(Task: chartobj_phi.FrameRenderTask):
+    if not render_range_more: return
+    Task(
+        root.run_js_code,
+        "ctx.restore();",
+        add_code_array = True
+    )
+
 def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
     global PlayChart_NowTime
     
@@ -507,19 +527,9 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     PlayChart_NowTime = now_t
     Task = chartobj_phi.FrameRenderTask([], [])
     if clear: Task(root.clear_canvas, wait_execute = True)
+    rrm_start(Task)
     Task(draw_background)
     if noplaychart: Task.ExTask.append(("break", ))
-    
-    if render_range_more:
-        fr_x = w / 2 - w / render_range_more_scale / 2
-        fr_y = h / 2 - h / render_range_more_scale / 2
-    
-    if render_range_more:
-        Task(
-            root.run_js_code,
-            f"ctx.translate({fr_x},{fr_y});",
-            add_code_array = True
-        )
     
     noautoplay = pplm is not None # reset a global variable
     if noautoplay:
@@ -534,19 +544,12 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         lineAlpha = line.get_datavar_disappear(lineBTime)
         
         judgeLine_DrawPos = (
-            *tool_funcs.rotate_point(*linePos, -lineRotate, 5.76 * h / 2),
-            *tool_funcs.rotate_point(*linePos, -lineRotate + 180, 5.76 * h / 2)
+            *tool_funcs.rotate_point(*linePos, -lineRotate, h * 5.76 / 2),
+            *tool_funcs.rotate_point(*linePos, -lineRotate + 180, h * 5.76 / 2)
         )
         judgeLine_color = (*((255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor()), lineAlpha if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
-        if (judgeLine_color[-1] > 0.0 and (tool_funcs.lineInScreen(w, h, judgeLine_DrawPos) or render_range_more)) or debug:
-            if render_range_more:
-                Task(
-                    root.run_js_code,
-                    f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
-                    add_code_array = True
-                )
-            
+        if (judgeLine_color[-1] > 0.0 and tool_funcs.lineInScreen(w, h, judgeLine_DrawPos)) or debug:
             Task(
                 root.run_js_code,
                 f"ctx.drawLineEx(\
@@ -569,13 +572,6 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         {(w + h) / 250 * 2},\
                         'rgb(238, 130, 238)'\
                     );",
-                    add_code_array = True
-                )
-                    
-            if render_range_more:
-                Task(
-                    root.run_js_code,
-                    f"ctx.scale({render_range_more_scale},{render_range_more_scale});",
                     add_code_array = True
                 )
         
@@ -615,7 +611,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     )
                 )
                 
-                if note_now_floorPosition > h * 2 and not render_range_more:
+                if note_now_floorPosition > h * 2:
                     continue
                 
                 rotatenote_at_judgeLine_pos = tool_funcs.rotate_point(*linePos, -lineRotate, note.positionX * PHIGROS_X)
@@ -626,8 +622,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 
                 if note_now_floorPosition > note_max_size_half:
                     plpttdllotne_line = (
-                        *tool_funcs.rotate_point(x, y, -lineRotate, (w + h) * 50),
-                        *tool_funcs.rotate_point(x, y, -lineRotate + 180, (w + h) * 50)
+                        *tool_funcs.rotate_point(x, y, -lineRotate, h * 5.76 / 2),
+                        *tool_funcs.rotate_point(x, y, -lineRotate + 180, h * 5.76 / 2)
                     )
                     
                     plpttdllotne_center_point_addsomefp = tool_funcs.rotate_point(
@@ -658,30 +654,11 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         tool_funcs.rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
                     )
                     
-                if not render_range_more:
-                    note_iscan_render = (
-                        tool_funcs.Note_CanRender(w, h, note_max_size_half, x, y)
-                        if not note.ishold
-                        else tool_funcs.Note_CanRender(w, h, note_max_size_half, x, y, holdbody_range)
-                    )
-                else:
-                    note_iscan_render = (
-                        tool_funcs.Note_CanRender(
-                            w, h, note_max_size_half,
-                            x / render_range_more_scale + fr_x,
-                            y / render_range_more_scale + fr_y
-                        )
-                        if not note.ishold
-                        else tool_funcs.Note_CanRender(
-                            w, h, note_max_size_half,
-                            x / render_range_more_scale + fr_x,
-                            y / render_range_more_scale + fr_y,[
-                            (holdbody_range[0][0] / render_range_more_scale + fr_x,holdbody_range[0][1] / render_range_more_scale + fr_y),
-                            (holdbody_range[1][0] / render_range_more_scale + fr_x,holdbody_range[1][1] / render_range_more_scale + fr_y),
-                            (holdbody_range[2][0] / render_range_more_scale + fr_x,holdbody_range[2][1] / render_range_more_scale + fr_y),
-                            (holdbody_range[3][0] / render_range_more_scale + fr_x,holdbody_range[3][1] / render_range_more_scale + fr_y)
-                        ])
-                    )
+                note_iscan_render = (
+                    tool_funcs.Note_CanRender(w, h, note_max_size_half, x, y)
+                    if not note.ishold
+                    else tool_funcs.Note_CanRender(w, h, note_max_size_half, x, y, holdbody_range)
+                )
                 
                 if note_iscan_render:
                     noteRotate = judgeLine_to_note_rotate_deg + 90
@@ -872,13 +849,6 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             add_code_array = True
         )
         
-    if render_range_more:
-        Task(
-            root.run_js_code,
-            f"ctx.scale({1.0 / render_range_more_scale},{1.0 / render_range_more_scale});",
-            add_code_array = True
-        )
-        
     if noautoplay:
         for pplmckfi in pplm.clickeffects.copy():
             perfect, eft, erbs, position = pplmckfi
@@ -910,45 +880,6 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 bad_effect_time
             ) + 0.2 < now_t:
                 line.effectNotes.remove(note)
-                
-    if render_range_more:
-        Task(
-            root.run_js_code,
-            f"ctx.scale({render_range_more_scale},{render_range_more_scale});",
-            add_code_array = True
-        )
-    
-    if render_range_more:
-        Task(
-            root.run_js_code,
-            f"ctx.translate(-{fr_x},-{fr_y});",
-            add_code_array = True
-        )
-    
-    if render_range_more:
-        line_poses = [
-            # (fr_x,fr_y),
-            (fr_x + w / render_range_more_scale,fr_y),
-            (fr_x + w / render_range_more_scale,fr_y + h / render_range_more_scale),
-            (fr_x,fr_y + h / render_range_more_scale),
-            (fr_x,fr_y)
-        ]
-        Task(
-            root.run_js_code,
-            f"ctx.lineWidth = {JUDGELINE_WIDTH / render_range_more_scale}; ctx.strokeStyle = \"{const.RENDER_RANGE_MORE_FRAME_LINE_COLOR}\"; ctx.beginPath(); ctx.moveTo({fr_x},{fr_y});",
-            add_code_array = True
-        )
-        for line_pos in line_poses:
-            Task(
-                root.run_js_code,
-                f"ctx.lineTo({line_pos[0]},{line_pos[1]});",
-                add_code_array = True
-            )
-        Task(
-            root.run_js_code,
-            "ctx.closePath(); ctx.stroke();",
-            add_code_array = True
-        )
     
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     now_t /= speed
@@ -963,6 +894,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         background = False
     )
     
+    rrm_end(Task)
     CheckMusicOffsetAndEnd(now_t, Task)
     if rjc: Task(root.run_js_wait_code)
     return Task
@@ -985,6 +917,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     now_t *= speed
     Task = chartobj_phi.FrameRenderTask([], [])
     if clear: Task(root.clear_canvas, wait_execute = True)
+    rrm_start(Task)
     Task(draw_background)
     PlayChart_NowTime = now_t
     if noplaychart: Task.ExTask.append(("break", ))
@@ -1130,8 +1063,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 
             if noteFloorPosition > note_max_size_half:
                 plpttdllotne_line = (
-                    *tool_funcs.rotate_point(x, y, lineRotate, (w + h) * 50),
-                    *tool_funcs.rotate_point(x, y, lineRotate + 180, (w + h) * 50)
+                    *tool_funcs.rotate_point(x, y, lineRotate, w * 4000 / const.RPE_WIDTH * lineScaleX / 2),
+                    *tool_funcs.rotate_point(x, y, lineRotate + 180, w * 4000 / const.RPE_WIDTH * lineScaleX / 2)
                 )
                 
                 plpttdllotne_center_point_addsomefp = tool_funcs.rotate_point(
@@ -1401,6 +1334,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         **deleteDrwaUIKwargsDefaultValues(attachUIData)
     )
     now_t += chart_obj.META.offset / 1000
+    
+    rrm_end(Task)
     CheckMusicOffsetAndEnd(now_t, Task)
     if rjc: Task(root.run_js_wait_code)
     return Task

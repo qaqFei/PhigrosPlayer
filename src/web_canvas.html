@@ -78,8 +78,6 @@
     jscodes = new Array();
     resize_task = false;
     lfdaot_render_fcount = 0;
-    render_range_more = false;
-    render_range_more_scale = 2.0;
     lowquality_scale = 1.0;
     lowquality_imjscvscale_x = 1.0;
     const textureLineColorFilterColorMatrix = document.getElementById("textureLineColorFilterColorMatrix");
@@ -97,15 +95,6 @@
     ]
     const None = undefined;
     const lowquality_imweakmap = new WeakMap();
-
-    /*
-    (if enable render_range_more)
-    - this value will be change in python.
-    - if call ctx.drawImage in python, this value most be true. because CanvasRenderingContext2D.prototype.drawImage function can`t auto change x, y, width, height.
-    - if call ctx.???Image in python and this value is true, in python: can`t call ctx.translate and ctx.scale function. because if you do it, translate and scale will call twice. one in python, one in js.
-    - if most call ctx.???Image and most call translate and scale in python, python can set this value to false, and at called function, set this value to true;
-    */
-    crc2d_enable_rrm = true;
 
     function setTextureLineColorFilterColorMatrixValueByRgbValue(r, g, b) {
         textureLineColorFilterColorMatrix.setAttribute("values", `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`);
@@ -340,12 +329,6 @@
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
-        if (render_range_more && crc2d_enable_rrm) {
-            x /= render_range_more_scale;
-            y /= render_range_more_scale;
-            width /= render_range_more_scale;
-            height /= render_range_more_scale;
-        }
         this.save();
         this.globalAlpha *= alpha;
         if (!!deg) {
@@ -359,12 +342,6 @@
     }
 
     CanvasRenderingContext2D.prototype.drawAnchorESRotateImage = function(im, x, y, width, height, deg, alpha) {
-        if (render_range_more && crc2d_enable_rrm) {
-            x /= render_range_more_scale;
-            y /= render_range_more_scale;
-            width /= render_range_more_scale;
-            height /= render_range_more_scale;
-        }
         this.save();
         this.globalAlpha *= alpha;
         if (!!deg) {
@@ -378,11 +355,6 @@
     }
 
     CanvasRenderingContext2D.prototype.drawRotateText = function(text, x, y, deg, fontsize, color, xscale, yscale) {
-        if (render_range_more && crc2d_enable_rrm) {
-            x /= render_range_more_scale;
-            y /= render_range_more_scale;
-            fontsize /= render_range_more_scale;
-        }
         this.save();
         this.translate(x, y);
         this.rotate(deg * Math.PI / 180);

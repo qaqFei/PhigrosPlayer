@@ -382,8 +382,6 @@ class judgeLine_Configs:
 class FrameTaskRecorder_Meta:
     frame_speed: int
     frame_num: int
-    render_range_more: bool
-    render_range_more_scale: float
     size: tuple[float, float]
 
 @dataclass
@@ -396,8 +394,6 @@ class FrameTaskRecorder:
             "meta": {
                 "frame_speed": self.meta.frame_speed,
                 "frame_num": self.meta.frame_num,
-                "render_range_more": self.meta.render_range_more,
-                "render_range_more_scale": self.meta.render_range_more_scale,
                 "size": self.meta.size
             },
             "data": []
