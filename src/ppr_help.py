@@ -45,6 +45,7 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --lowquality-imjscvscale-x <number-value>: Set the low quality render scale (js call layer). (default: 1.0)
   --lfdaot-video-fourcc <fourcc-string-value>: Set the fourcc of the video file. (default: mp4v)
   --phira-chart <phira-id-value>: Use phira chart. (when using phira chart, the chart file will not be loaded)
+  --phira-chart-save <string-value>: Save the phira chart. (Front-loaded arg: --phira-chart)
 '''
 
 HELP_ZH = '''\
@@ -92,4 +93,5 @@ HELP_ZH = '''\
   --lowquality-imjscvscale-x <数字>: 设置低画质渲染缩放 (js调用层). 默认 = 1.0
   --lfdaot-video-fourcc <字符串>: 设置 *.lfdaot 文件生成的视频编码 默认 = mp4v
   --phira-chart <谱面ID>: 使用 phira 谱面. (使用 phira 谱面时, 谱面文件将不会被加载)
+  --phira-chart-save <字符串>: 保存 phira 谱面. (前置参数: --phira-chart)
 '''

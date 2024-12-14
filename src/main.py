@@ -139,7 +139,7 @@ if "--phira-chart" in sys.argv:
         logging.error(f"phira api: {apiresult["error"]}")
         raise SystemExit
     
-    sys.argv.insert(1, f"{temp_dir}/phira-temp-chart.zip")
+    sys.argv.insert(1, f"{temp_dir}/phira-temp-chart.zip" if "--phira-chart-save" not in sys.argv else sys.argv[sys.argv.index("--phira-chart-save") + 1])
     with open(sys.argv[1], "wb") as f:
         with requests.get(apiresult["file"], stream=True) as reqs:
             for content in reqs.iter_content(chunk_size=1024):

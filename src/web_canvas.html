@@ -3,6 +3,7 @@
 <head></head>
 
 <body>
+    <script src="https://cdn.bootcss.com/three.js/r83/three.min.js"></script>
     <svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
             <filter id="textureLineColorFilter">
                 <feColorMatrix type="matrix" values="
@@ -240,6 +241,17 @@
             });
             throw e;
         }
+    }
+
+    function THREE_ImportChecker() {
+        return new Promise((resolve, reject) => {
+            let checker = setInterval(() => {
+                if (typeof THREE !== "undefined") {
+                    clearInterval(checker);
+                    resolve();
+                }
+            }, 1000 / 30);
+        });
     }
 
     function setWlMoreChinese() {
