@@ -255,10 +255,16 @@ def NoJoinThreadFunc(f):
     return wrapper
 
 def conrpepos(x: float, y: float):
-    return (x + 675) / 1350, 1.0 - (y + 450) / 900
+    return (
+        (x + const.RPE_WIDTH / 2) / const.RPE_WIDTH,
+        1.0 - (y + const.RPE_HEIGHT / 2) / const.RPE_HEIGHT
+    )
 
 def aconrpepos(x: float, y: float):
-    return (x * 1350 - 675), (1.0 - y) * 900 - 450
+    return (
+        x * const.RPE_WIDTH - const.RPE_WIDTH / 2,
+        (1.0 - y) * const.RPE_HEIGHT - const.RPE_HEIGHT / 2
+    )
 
 def Format_Time(t: int|float) -> str:
     if t < 0.0: t = 0.0
@@ -446,9 +452,9 @@ def pec2rpe(pec: str):
     peccrs.sort(key = lambda x: float(x[1]))
     peccfs.sort(key = lambda x: float(x[1]))
     
-    rpex = lambda x: (x / 2048 - 0.5) * 1350
-    rpey = lambda y: (y / 1400 -  0.5) * 900
-    rpes = lambda s: s / 1400 * 900
+    rpex = lambda x: (x / 2048 - 0.5) * const.RPE_WIDTH
+    rpey = lambda y: (y / 1400 -  0.5) * const.RPE_HEIGHT
+    rpes = lambda s: s / 1400 * const.RPE_HEIGHT
     lines = {}
                     
     checkLine = lambda k: [
@@ -495,7 +501,7 @@ def pec2rpe(pec: str):
                 "type": ntype,
                 "startTime": st,
                 "endTime": et,
-                "positionX": x / 2048 * 1350,
+                "positionX": x / 2048 * const.RPE_WIDTH,
                 "above": above,
                 "isFake": fake,
                 "speed": speed,

@@ -102,7 +102,7 @@ class Note:
     def __post_init__(self):
         self.phitype = {1:1, 2:3, 3:4, 4:2}[self.type]
         self.type_string = const.TYPE_STRING_MAP[self.phitype]
-        self.positionX2 = self.positionX / 1350
+        self.positionX2 = self.positionX / const.RPE_WIDTH
         self.float_alpha = (255 & int(self.alpha)) / 255
         self.ishold = self.type_string == "Hold"
     
@@ -374,7 +374,7 @@ class JudgeLine:
                     s2 = tool_funcs.linear_interpolation(v2, st, et, e.start, e.end)
                     fp += (v2 - v1) * (s1 + s2) / 2
                     
-        return fp * 120 / 900 * (-1.0 if yl > yr else 1.0)
+        return fp * 120 / const.RPE_HEIGHT * (-1.0 if yl > yr else 1.0)
 
     def __hash__(self) -> int:
         return id(self)

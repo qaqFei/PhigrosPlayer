@@ -56,6 +56,8 @@ OTHERSERTTING_RIGHTDOWN_TEXT = "@2019-2024 Pigeon Games. All right Reserverd."
 FINISH_UI_BUTTON_SIZE = 0.095
 JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER = 127 / 975
 CHAPTER_DIAGONALRECTANGLEDEG = -75
+RPE_WIDTH = 1350
+RPE_HEIGHT = 900
 PHIGROS_TAPTAP_CLIENT_ID = "rAK3FfdieFob2Nn8Am"
 ClickEffectType = list[tuple[float, tuple[tuple[float, ...]], typing.Callable[[float|int, float|int], tuple[float, float]]]]
 

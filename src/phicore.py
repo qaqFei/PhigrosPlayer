@@ -1002,15 +1002,15 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         if judgeline_notransparent: lineAlpha = 1.0
         linePos = (linePos[0] * w, linePos[1] * h)
         judgeLine_DrawPos = (
-            *tool_funcs.rotate_point(*linePos, lineRotate, w * 4000 / 1350 * lineScaleX / 2),
-            *tool_funcs.rotate_point(*linePos, lineRotate + 180, w * 4000 / 1350 * lineScaleX / 2)
+            *tool_funcs.rotate_point(*linePos, lineRotate, w * 4000 / const.RPE_WIDTH * lineScaleX / 2),
+            *tool_funcs.rotate_point(*linePos, lineRotate + 180, w * 4000 / const.RPE_WIDTH * lineScaleX / 2)
         )
         negative_alpha = lineAlpha < 0.0
         judgeLine_webCanvas_color = f"rgba{lineColor + (lineAlpha, )}"
         if line.Texture != "line.png" and lineAlpha > 0.0:
             _, texture_size = chart_res[line.Texture]
-            texture_width = texture_size[0] / 1104 * w * 0.75 * lineScaleX
-            texture_height = texture_size[1] / 621 * h * 0.75 * lineScaleY
+            texture_width = texture_size[0] / 1408 * w * lineScaleX
+            texture_height = texture_size[1] / 764 * h * lineScaleY
             if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
                 Task(
                     root.run_js_code,
