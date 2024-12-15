@@ -519,8 +519,8 @@
         }
     }
 
-    function render() {
-
+    function render(chartObject) {
+        requestAnimationFrame(() => render(chartObject));
     }
 
     function hex2str(hex) {
