@@ -386,7 +386,7 @@ def draw_ui(
                 {combonumberUI_scaleX},\
                 {combonumberUI_scaleY},\
                 '{combonumberUI_color}',\
-                {(w + h) / 75 / 0.75},\
+                {(w + h) / 64.51 / 0.75},\
                 'center',\
             );",
             add_code_array = True
@@ -401,7 +401,7 @@ def draw_ui(
                 {comboUI_scaleX},\
                 {comboUI_scaleY},\
                 '{comboUI_color}',\
-                {(w + h) / 125 / 0.75},\
+                {(w + h) / 142 / 0.75},\
                 'center',\
             );",
             add_code_array = True
