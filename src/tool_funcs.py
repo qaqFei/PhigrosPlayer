@@ -171,7 +171,7 @@ def batch_is_intersect(
         for j in lines_group_2:
             yield is_intersect(i, j)
 
-def Note_CanRender(
+def Note_CanRender( # 有bug!!
     w: int, h: int,
     note_max_size_half: float,
     x: float, y: float,
@@ -181,14 +181,16 @@ def Note_CanRender(
         tuple[float, float],
         tuple[float, float]
     ] | None = None
-) -> bool: # note 宽度不会比窗口大的... 一定不会的... 相信我...!!                                                    好吧, 其实我就是想~~偷懒和~~节约性能...  note当线看能简单一些
-    if hold_points is None: # type != HOLD                                                                                         ↑↑↑↑↑↑↑↑↑ (划掉... (markdown))
+) -> bool:
+    return True # 有 break 的优化应该不会有太大的性能损失, 判定线也不会放那么远吧 ((
+
+    if hold_points is None: # type != hold
         return (
-            (0 < x < w and 0 < y < h) or
-            (0 < x - note_max_size_half < w and 0 < y - note_max_size_half < h) or 
-            (0 < x - note_max_size_half < w and 0 < y + note_max_size_half < h) or
-            (0 < x + note_max_size_half < w and 0 < y - note_max_size_half < h) or
-            (0 < x + note_max_size_half < w and 0 < y + note_max_size_half < h)
+            (0 <= x <= w and 0 <= y <= h) or
+            (0 <= x - note_max_size_half <= w and 0 <= y - note_max_size_half <= h) or 
+            (0 <= x - note_max_size_half <= w and 0 <= y + note_max_size_half <= h) or
+            (0 <= x + note_max_size_half <= w and 0 <= y - note_max_size_half <= h) or
+            (0 <= x + note_max_size_half <= w and 0 <= y + note_max_size_half <= h)
         )
     else:
         if any((point_in_screen(point, w, h) for point in hold_points)):

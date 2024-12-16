@@ -619,15 +619,21 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 note.nowpos = (x / w, y / h)
                 
                 if note_now_floorPosition > note_max_size_half:
+                    plpttdllotne_np = tool_funcs.rotate_point(
+                        *rotatenote_at_judgeLine_pos,
+                        judgeLine_to_note_rotate_deg,
+                        note_now_floorPosition + note_max_size_half
+                    )
+                    
                     plpttdllotne_line = (
-                        *tool_funcs.rotate_point(x, y, -lineRotate, h * 5.76 / 2),
-                        *tool_funcs.rotate_point(x, y, -lineRotate + 180, h * 5.76 / 2)
+                        *tool_funcs.rotate_point(*plpttdllotne_np, -lineRotate, h * 5.76 / 2),
+                        *tool_funcs.rotate_point(*plpttdllotne_np, -lineRotate + 180, h * 5.76 / 2)
                     )
                     
                     plpttdllotne_center_point_addsomefp = tool_funcs.rotate_point(
                         *rotatenote_at_judgeLine_pos,
                         judgeLine_to_note_rotate_deg,
-                        note_now_floorPosition + 1.0 # add 1.0 px
+                        note_now_floorPosition + note_max_size_half + 1.0 # add 1.0 px
                     )
                     
                     if not tool_funcs.lineInScreen(w, h, plpttdllotne_line) and (
@@ -1060,15 +1066,21 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             note.nowpos = (x / w, y / h)
                 
             if noteFloorPosition > note_max_size_half:
+                plpttdllotne_np = tool_funcs.rotate_point(
+                    *noteAtJudgeLinePos,
+                    lineToNoteRotate,
+                    noteFloorPosition + note_max_size_half
+                )
+                    
                 plpttdllotne_line = (
-                    *tool_funcs.rotate_point(x, y, lineRotate, w * 4000 / const.RPE_WIDTH * lineScaleX / 2),
-                    *tool_funcs.rotate_point(x, y, lineRotate + 180, w * 4000 / const.RPE_WIDTH * lineScaleX / 2)
+                    *tool_funcs.rotate_point(*plpttdllotne_np, lineRotate, w * 4000 / const.RPE_WIDTH * lineScaleX / 2),
+                    *tool_funcs.rotate_point(*plpttdllotne_np, lineRotate + 180, w * 4000 / const.RPE_WIDTH * lineScaleX / 2)
                 )
                 
                 plpttdllotne_center_point_addsomefp = tool_funcs.rotate_point(
                     *noteAtJudgeLinePos,
                     lineToNoteRotate,
-                    noteFloorPosition + 1.0 # add 1.0 px
+                    noteFloorPosition + note_max_size_half + 1.0 # add 1.0 px
                 )
                 
                 if not tool_funcs.lineInScreen(w, h, plpttdllotne_line) and (
