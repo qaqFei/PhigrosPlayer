@@ -326,7 +326,7 @@ class JudgeLine:
         lineAlpha = 0.0
         lineRotate = 0.0
         lineColor = defaultColor
-        if self.extended and self.extended.textEvents:
+        if (self.extended and self.extended.textEvents) or self.attachUI:
             lineColor = (255, 255, 255)
         lineScaleX = 1.0
         lineScaleY = 1.0
