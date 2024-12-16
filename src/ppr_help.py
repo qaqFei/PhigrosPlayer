@@ -13,7 +13,6 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --render-range-more: Render range more, can render out of the screen, and display at screen.
   --lfdaot-render-video: Output a video file when using --lfdaot and --lfdaot-file.
   --frameless: Make the window frameless.
-  --no-mixer-reset-chart-time: If there is a large discrepancy between the mixer's time and the chart's playback time, it will not be corrected.
   --noautoplay: Disable auto play.
   --rtacc: Enable real-time accuracy.
   --lfdaot-file-output-autoexit: when using --lfdaot and saved lfdaot file, noplay, and auto exit. (Front-loaded arg: --lfdaot)
@@ -46,6 +45,7 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --lfdaot-video-fourcc <fourcc-string-value>: Set the fourcc of the video file. (default: mp4v)
   --phira-chart <phira-id-value>: Use phira chart. (when using phira chart, the chart file will not be loaded)
   --phira-chart-save <string-value>: Save the phira chart. (Front-loaded arg: --phira-chart)
+  --skip-time <number-value>: Skip time on playing chart. (default: 0.0)
 '''
 
 HELP_ZH = '''\
@@ -62,7 +62,6 @@ HELP_ZH = '''\
   --render-range-more: 渲染范围更多, 可以渲染出屏幕外, 并显示在屏幕上
   --lfdaot-render-video: 使用 --lfdaot 和 --lfdaot-file 时输出一个视频文件
   --frameless: 使窗口无边框
-  --no-mixer-reset-chart-time: 如果音频的时间和谱面的播放时间有较大的偏差, 不会进行修正
   --noautoplay: 禁用自动播放
   --rtacc: 启用实时准度
   --lfdaot-file-output-autoexit: 使用 --lfdaot 和保存的 lfdaot 文件, 自动退出. (前置参数: --lfdaot)
@@ -94,4 +93,5 @@ HELP_ZH = '''\
   --lfdaot-video-fourcc <字符串>: 设置 *.lfdaot 文件生成的视频编码 默认 = mp4v
   --phira-chart <谱面ID>: 使用 phira 谱面. (使用 phira 谱面时, 谱面文件将不会被加载)
   --phira-chart-save <字符串>: 保存 phira 谱面. (前置参数: --phira-chart)
+  --skip-time <数字>: 播放时跳过的时间. 默认 = 0.0
 '''

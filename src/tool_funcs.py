@@ -166,7 +166,7 @@ def batch_is_intersect(
         tuple[float, float],
         tuple[float, float]
     ]]
-) -> typing.Generator[bool, None, None]:
+):
     for i in lines_group_1:
         for j in lines_group_2:
             yield is_intersect(i, j)
@@ -193,6 +193,7 @@ def Note_CanRender(
     else:
         if any((point_in_screen(point, w, h) for point in hold_points)):
             return True
+        
         return any(batch_is_intersect(
             [
                 (hold_points[0], hold_points[1]),
@@ -206,7 +207,7 @@ def Note_CanRender(
             ]
         ))
 
-def lineInScreen(w: int|float, h: int|float, line: tuple[int|float, ...]):
+def lineInScreen(w: int|float, h: int|float, line: tuple[int|float]):
     return any(batch_is_intersect(
         [
             ((line[0], line[1]), (line[2], line[3]))
@@ -226,16 +227,12 @@ def TextureLine_CanRender(
     tr = x + texture_max_size_half
     tt = y - texture_max_size_half
     tb = y + texture_max_size_half
-    sl, sr, st, sb = 0, w, 0, h
     return (
-        (sl <= tl <= sr and st <= tt <= sb) or
-        (sl <= tl <= sr and st <= tb <= sb) or
-        (sl <= tr <= sr and st <= tt <= sb) or
-        (sl <= tr <= sr and st <= tb <= sb) or
-        (tl <= sl <= tr and tt <= st <= tb) or
-        (tl <= sl <= tr and tt <= sb <= tb) or
-        (tl <= sr <= tr and tt <= st <= tb) or
-        (tl <= sr <= tr and tt <= sb <= tb)
+        (0 <= x <= w and 0 <= y <= h)
+        or (0 <= tl <= w and 0 <= tt <= h)
+        or (0 <= tl <= w and 0 <= tb <= h)
+        or (0 <= tr <= w and 0 <= tt <= h)
+        or (0 <= tr <= w and 0 <= tb <= h)
     )
     
 def point_in_screen(point: tuple[float, float], w: int, h: int) -> bool:

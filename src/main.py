@@ -72,7 +72,6 @@ lfdoat_file = "--lfdaot-file" in sys.argv
 render_range_more = "--render-range-more" in sys.argv
 render_range_more_scale = 2.0 if "--render-range-more-scale" not in sys.argv else eval(sys.argv[sys.argv.index("--render-range-more-scale") + 1])
 lfdaot_render_video = "--lfdaot-render-video" in sys.argv
-no_mixer_reset_chart_time = "--no-mixer-reset-chart-time" in sys.argv
 noautoplay = "--noautoplay" in sys.argv
 rtacc = "--rtacc" in sys.argv
 lowquality = "--lowquality" in sys.argv
@@ -92,6 +91,7 @@ lfdaot_video_fourcc = sys.argv[sys.argv.index("--lfdaot-video-fourcc") + 1] if "
 record_play = "--record-play" in sys.argv
 lfdaot_use_recordfile = sys.argv[sys.argv.index("--lfdaot-use-recordfile") + 1] if "--lfdaot-use-recordfile" in sys.argv else None
 wl_more_chinese = "--wl-more-chinese" in sys.argv
+skip_time = float(sys.argv[sys.argv.index("--skip-time") + 1]) if "--skip-time" in sys.argv else 0.0
 respaths = ["./resources"]
 
 if "--res" in sys.argv:
@@ -124,6 +124,10 @@ if lfdaot_use_recordfile and not lfdaot:
 if lfdaot_use_recordfile and lfdoat_file:
     lfdaot_use_recordfile = None
     logging.warning("if use --lfdoat-file, you cannot use --lfdaot-use-recordfile")
+
+if lfdaot and skip_time != 0.0:
+    skip_time = 0.0
+    logging.warning("if use --lfdaot, you cannot use --skip-time")
 
 combotips = ("RECORD" if lfdaot_use_recordfile is not None else (
     "AUTOPLAY" if not noautoplay else "COMBO"
@@ -580,13 +584,14 @@ def PlayerStart():
     Begin_Animation()
     ChartStart_Animation()
 
-    show_start_time = time.time()
+    show_start_time = time.time() - skip_time
     PhiCoreConfigureObject.show_start_time = show_start_time
     updateCoreConfigure()
     now_t = 0
     
     if not lfdaot:
         mixer.music.play()
+        mixer.music.set_pos(skip_time)
         while not mixer.music.get_busy(): pass
     
     if not lfdaot:
@@ -800,6 +805,7 @@ def PlayerStart():
                 now_t = mixer.music.get_pos() / 1000
                 music_play_fcount = int(now_t / frame_time)
                 will_process_extask = []
+                
                 try:
                     Task: chartobj_phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
                 except KeyError:
@@ -952,7 +958,6 @@ def updateCoreConfigure():
         LoadSuccess = LoadSuccess, cksmanager = cksmanager,
         enable_clicksound = enable_clicksound, rtacc = rtacc,
         noautoplay = noautoplay, showfps = showfps, lfdaot = lfdaot,
-        no_mixer_reset_chart_time = no_mixer_reset_chart_time,
         speed = speed, render_range_more = render_range_more,
         render_range_more_scale = render_range_more_scale,
         judgeline_notransparent = judgeline_notransparent,

@@ -59,7 +59,6 @@ class PhiCoreConfigure:
     noautoplay: bool
     showfps: bool
     lfdaot: bool
-    no_mixer_reset_chart_time: bool
     speed: float
     render_range_more: bool
     render_range_more_scale: float
@@ -108,7 +107,7 @@ def CoreConfig(config: PhiCoreConfigure):
     global clickeffect_randomblock_roundn, LoadSuccess
     global cksmanager
     global enable_clicksound, rtacc, noautoplay
-    global showfps, lfdaot, no_mixer_reset_chart_time
+    global showfps, lfdaot
     global speed, render_range_more
     global render_range_more_scale
     global judgeline_notransparent
@@ -142,7 +141,6 @@ def CoreConfig(config: PhiCoreConfigure):
     noautoplay = config.noautoplay
     showfps = config.showfps
     lfdaot = config.lfdaot
-    no_mixer_reset_chart_time = config.no_mixer_reset_chart_time
     speed = config.speed
     render_range_more = config.render_range_more
     render_range_more_scale = config.render_range_more_scale
@@ -477,14 +475,14 @@ def CheckMusicOffsetAndEnd(now_t: float, Task: chartobj_phi.FrameRenderTask):
     if now_t >= raw_audio_length:
         Task.ExTask.append(("break", ))
     
-    if not lfdaot and not no_mixer_reset_chart_time and mixer.music.get_busy():
-        this_music_pos = mixer.music.get_pos() % (raw_audio_length * 1000)
-        offset_judge_range = (1000 / 60) * 4
-        if abs(music_offset := this_music_pos - (time.time() - show_start_time) * 1000) >= offset_judge_range:
-            if abs(music_offset) < raw_audio_length * 1000 * 0.75:
-                show_start_time -= music_offset / 1000
-                SETTER("show_start_time", show_start_time)
-                logging.warning(f"mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
+    # if not lfdaot and mixer.music.get_busy():
+    #     this_music_pos = (mixer.music.get_pos() % (raw_audio_length * 1000)) / 1000
+    #     offset_judge_range = (1000 / 60) * 4
+    #     if abs(music_offset := this_music_pos - (time.time() - show_start_time) * 1000) >= offset_judge_range:
+    #         if abs(music_offset) < raw_audio_length * 1000 * 0.75:
+    #             show_start_time -= music_offset / 1000
+    #             SETTER("show_start_time", show_start_time)
+    #             logging.warning(f"mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
              
 def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
     return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}   

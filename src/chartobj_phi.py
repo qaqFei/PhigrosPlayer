@@ -291,7 +291,7 @@ class Phigros_Chart:
             if self.combotimes[m] < t: l = m + 1
             else: r = m
         return l
-
+    
 class PPLMPHI_Proxy(tool_funcs.PPLM_ProxyBase):
     def __init__(self, cobj: Phigros_Chart): self.cobj = cobj
     
