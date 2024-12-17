@@ -217,6 +217,33 @@ def TextureLine_CanRender(
 def pointInScreen(point: tuple[float, float], w: int, h: int) -> bool:
     return 0 <= point[0] <= w and 0 <= point[1] <= h
 
+def noteLineOutOfScreen(
+    x: float, y: float,
+    noteAtJudgeLinePos: tuple[float, float],
+    fp: float,
+    lineRotate: float,
+    lineLength: float,
+    lineToNoteRotate: float,
+    w: int, h: int
+):
+    plpttdllotne_line = (
+        *rotate_point(x, y, lineRotate, lineLength / 2),
+        *rotate_point(x, y, lineRotate + 180, lineLength / 2)
+    )
+    
+    plpttdllotne_cpoint_addfp = rotate_point(
+        *noteAtJudgeLinePos,
+        lineToNoteRotate,
+        fp + 1.0 # add 1.0 px
+    )
+    
+    return (
+        not lineInScreen(w, h, plpttdllotne_line) and (
+            getLineLength(*plpttdllotne_cpoint_addfp, w / 2, h / 2)
+            - getLineLength(x, y, w / 2, h / 2)
+        ) > 0.0
+    )
+
 def ThreadFunc(f):
     def wrapper(*args, **kwargs):
         t = Thread(target=f, args=args, kwargs=kwargs, daemon=True)

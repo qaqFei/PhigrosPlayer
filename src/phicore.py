@@ -542,11 +542,12 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         lineAlpha = line.get_datavar_disappear(lineBTime)
         
         judgeLine_DrawPos = (
-            *tool_funcs.rotate_point(*linePos, -lineRotate, h * 5.76 / 2),
-            *tool_funcs.rotate_point(*linePos, -lineRotate + 180, h * 5.76 / 2)
+            *tool_funcs.rotate_point(*linePos, lineRotate, h * 5.76 / 2),
+            *tool_funcs.rotate_point(*linePos, lineRotate + 180, h * 5.76 / 2)
         )
         judgeLine_color = (*((255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor()), lineAlpha if not judgeline_notransparent else 1.0)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
+        
         if (judgeLine_color[-1] > 0.0 and tool_funcs.lineInScreen(w, h, judgeLine_DrawPos)) or debug:
             Task(
                 root.run_js_code,
@@ -559,7 +560,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             )
             
             if debug:
-                drawDebugText(f"{lineIndex}", *linePos, - lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
+                drawDebugText(f"{lineIndex}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
                 
                 Task(
                     root.run_js_code,
@@ -612,29 +613,11 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 if note_now_floorPosition > h * 2:
                     continue
                 
-                rotatenote_at_judgeLine_pos = tool_funcs.rotate_point(*linePos, -lineRotate, note.positionX * PHIGROS_X)
-                judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) - lineRotate
+                rotatenote_at_judgeLine_pos = tool_funcs.rotate_point(*linePos, lineRotate, note.positionX * PHIGROS_X)
+                judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) + lineRotate
                 x, y = tool_funcs.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_now_floorPosition)
                 
                 note.nowpos = (x / w, y / h)
-                
-                if note_now_floorPosition > note_max_size_half:
-                    plpttdllotne_line = (
-                        *tool_funcs.rotate_point(x, y, -lineRotate, h * 5.76 / 2),
-                        *tool_funcs.rotate_point(x, y, -lineRotate + 180, h * 5.76 / 2)
-                    )
-                    
-                    plpttdllotne_center_point_addsomefp = tool_funcs.rotate_point(
-                        *rotatenote_at_judgeLine_pos,
-                        judgeLine_to_note_rotate_deg,
-                        note_now_floorPosition + 1.0 # add 1.0 px
-                    )
-                    
-                    if not tool_funcs.lineInScreen(w, h, plpttdllotne_line) and (
-                        tool_funcs.getLineLength(*plpttdllotne_center_point_addsomefp, w / 2, h / 2)
-                        - tool_funcs.getLineLength(x, y, w / 2, h / 2)
-                    ) > 0.0:
-                        break
                 
                 if note.ishold:
                     note_hold_draw_length = note_now_floorPosition + note.hold_length_pgry * PHIGROS_Y
@@ -651,6 +634,26 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         tool_funcs.rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
                         tool_funcs.rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
                     )
+                    
+                if note_now_floorPosition > note_max_size_half:
+                    plp_lineLength = h * 5.76
+                    
+                    nlOutOfScreen_nohold = tool_funcs.noteLineOutOfScreen(
+                        x, y, rotatenote_at_judgeLine_pos,
+                        note_now_floorPosition,
+                        lineRotate, plp_lineLength,
+                        judgeLine_to_note_rotate_deg,
+                        w, h
+                    )
+                    
+                    nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
+                        holdend_x, holdend_y, rotatenote_at_judgeLine_pos,
+                        note_hold_draw_length, lineRotate, plp_lineLength,
+                        judgeLine_to_note_rotate_deg, w, h
+                    )
+                    
+                    if nlOutOfScreen_nohold and nlOutOfScreen_hold:
+                        break
                     
                 note_iscan_render = (
                     tool_funcs.noteCanRender(w, h, note_max_size_half, x, y)
@@ -938,6 +941,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         )
         negative_alpha = lineAlpha < 0.0
         judgeLine_webCanvas_color = f"rgba{lineColor + (lineAlpha, )}"
+        
         if line.Texture != "line.png" and lineAlpha > 0.0:
             _, texture_size = chart_res[line.Texture]
             texture_width = texture_size[0] / 1408 * w * lineScaleX
@@ -1030,7 +1034,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 continue
             
             noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h
-            if line.isCover and noteFloorPosition < 0 and not note.clicked:
+            if line.isCover and noteFloorPosition < 0 and not note.clicked and not note.ishold:
                 continue
             
             noteAtJudgeLinePos = tool_funcs.rotate_point(
@@ -1059,40 +1063,48 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             
             note.nowpos = (x / w, y / h)
                 
-            if noteFloorPosition > note_max_size_half:
-                plpttdllotne_line = (
-                    *tool_funcs.rotate_point(x, y, lineRotate, w * 4000 / const.RPE_WIDTH * lineScaleX / 2),
-                    *tool_funcs.rotate_point(x, y, lineRotate + 180, w * 4000 / const.RPE_WIDTH * lineScaleX / 2)
-                )
-                
-                plpttdllotne_center_point_addsomefp = tool_funcs.rotate_point(
-                    *noteAtJudgeLinePos,
-                    lineToNoteRotate,
-                    noteFloorPosition + 1.0 # add 1.0 px
-                )
-                
-                if not tool_funcs.lineInScreen(w, h, plpttdllotne_line) and (
-                    tool_funcs.getLineLength(*plpttdllotne_center_point_addsomefp, w / 2, h / 2)
-                    - tool_funcs.getLineLength(x, y, w / 2, h / 2)
-                ) > 0.0:
-                    break
-            
             if note.ishold:
                 holdLength = note.holdLength * h
                 noteHoldDrawLength = noteFloorPosition + holdLength
+                
+                if line.isCover and noteHoldDrawLength < 0 and not note.clicked:
+                    continue
+                
                 holdend_x, holdend_y = tool_funcs.rotate_point(
                     *noteAtJudgeLinePos, lineToNoteRotate, noteHoldDrawLength
                 )
+                
                 if note.clicked:
                     holdhead_pos = noteAtJudgeLinePos
                 else:
                     holdhead_pos = x, y
+                    
                 holdbody_range = (
                     tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate - 90, Note_width / 2),
                     tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate - 90, Note_width / 2),
                     tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate + 90, Note_width / 2),
                     tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate + 90, Note_width / 2),
                 )
+                
+            if noteFloorPosition > note_max_size_half:
+                plp_lineLength = w * 4000 / const.RPE_WIDTH * lineScaleX
+                
+                nlOutOfScreen_nohold = tool_funcs.noteLineOutOfScreen(
+                    x, y, noteAtJudgeLinePos,
+                    noteFloorPosition,
+                    lineRotate, plp_lineLength,
+                    lineToNoteRotate,
+                    w, h
+                )
+                
+                nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
+                    holdend_x, holdend_y, noteAtJudgeLinePos,
+                    noteHoldDrawLength, lineRotate, plp_lineLength,
+                    lineToNoteRotate, w, h
+                )
+                
+                if nlOutOfScreen_nohold and nlOutOfScreen_hold:
+                    break
             
             canRender = (
                 tool_funcs.noteCanRender(w, h, note_max_size_half, x, y)

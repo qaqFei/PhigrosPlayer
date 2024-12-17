@@ -196,7 +196,7 @@ class judgeLine:
     
     def get_datavar_rotate(self, now_time):
         e = findevent(self.judgeLineRotateEvents, now_time)
-        return tool_funcs.linear_interpolation(
+        return -tool_funcs.linear_interpolation(
             now_time,
             e.startTime,
             e.endTime,
