@@ -8,7 +8,6 @@ from os import listdir, environ
 from os.path import isfile
 from dataclasses import dataclass
 
-import numba
 import numpy
 import cv2
 from PIL import Image, ImageDraw
@@ -171,7 +170,15 @@ def batch_is_intersect(
         for j in lines_group_2:
             yield is_intersect(i, j)
 
-def Note_CanRender( # 有bug!!
+def linesInScreen(w: int, h: int, lines: list[tuple[float, float]]):
+    return any(batch_is_intersect(
+        lines, [
+            ((0, 0), (w, 0)), ((0, 0), (0, h)),
+            ((w, 0), (w, h)), ((0, h), (w, h))
+        ]
+    )) or any(pointInScreen(j, w, h) for i in lines for j in i)
+
+def noteCanRender(
     w: int, h: int,
     note_max_size_half: float,
     x: float, y: float,
@@ -181,64 +188,34 @@ def Note_CanRender( # 有bug!!
         tuple[float, float],
         tuple[float, float]
     ] | None = None
-) -> bool:
-    return True # 有 break 的优化应该不会有太大的性能损失, 判定线也不会放那么远吧 ((
-
+) -> bool: # is type == hold, note_max_size_half is useless
     if hold_points is None: # type != hold
-        return (
-            (0 <= x <= w and 0 <= y <= h) or
-            (0 <= x - note_max_size_half <= w and 0 <= y - note_max_size_half <= h) or 
-            (0 <= x - note_max_size_half <= w and 0 <= y + note_max_size_half <= h) or
-            (0 <= x + note_max_size_half <= w and 0 <= y - note_max_size_half <= h) or
-            (0 <= x + note_max_size_half <= w and 0 <= y + note_max_size_half <= h)
-        )
+        lt = (x - note_max_size_half, y - note_max_size_half)
+        rt = (x + note_max_size_half, y - note_max_size_half)
+        rb = (x + note_max_size_half, y + note_max_size_half)
+        lb = (x - note_max_size_half, y + note_max_size_half)
     else:
-        if any((point_in_screen(point, w, h) for point in hold_points)):
-            return True
-        
-        return any(batch_is_intersect(
-            [
-                (hold_points[0], hold_points[1]),
-                (hold_points[1], hold_points[2]),
-                (hold_points[2], hold_points[3]),
-                (hold_points[3], hold_points[0])
-            ],
-            [
-                ((0, 0), (w, 0)), ((0, 0), (0, h)),
-                ((w, 0), (w, h)), ((0, h), (w, h))
-            ]
-        ))
+        lt, rt, rb, lb = hold_points
+    
+    return linesInScreen(w, h, [(lt, rt), (rt, rb), (rb, lb), (lb, lt)])
 
-def lineInScreen(w: int|float, h: int|float, line: tuple[int|float]):
-    return any(batch_is_intersect(
-        [
-            ((line[0], line[1]), (line[2], line[3]))
-        ],
-        [
-            ((0, 0), (w, 0)), ((0, 0), (0, h)),
-            ((w, 0), (w, h)), ((0, h), (w, h))
-        ]
-    ))
+def lineInScreen(w: int|float, h: int|float, line: tuple[float]):
+    return linesInScreen(w, h, [((*line[:2], ), (*line[2:], ), )])
 
 def TextureLine_CanRender(
     w: int, h: int,
     texture_max_size_half: float,
     x: float, y: float
 ) -> bool:
-    tl = x - texture_max_size_half
-    tr = x + texture_max_size_half
-    tt = y - texture_max_size_half
-    tb = y + texture_max_size_half
-    return (
-        (0 <= x <= w and 0 <= y <= h)
-        or (0 <= tl <= w and 0 <= tt <= h)
-        or (0 <= tl <= w and 0 <= tb <= h)
-        or (0 <= tr <= w and 0 <= tt <= h)
-        or (0 <= tr <= w and 0 <= tb <= h)
-    )
+    return noteCanRender(w, h, -1, x, y, [
+        (x - texture_max_size_half, y - texture_max_size_half),
+        (x + texture_max_size_half, y - texture_max_size_half),
+        (x + texture_max_size_half, y + texture_max_size_half),
+        (x - texture_max_size_half, y + texture_max_size_half)
+    ])
     
-def point_in_screen(point: tuple[float, float], w: int, h: int) -> bool:
-    return 0 < point[0] < w and 0 < point[1] < h
+def pointInScreen(point: tuple[float, float], w: int, h: int) -> bool:
+    return 0 <= point[0] <= w and 0 <= point[1] <= h
 
 def ThreadFunc(f):
     def wrapper(*args, **kwargs):
@@ -1018,13 +995,15 @@ class PhigrosPlayLogicManager:
                 ))
            
 if environ.get("ENABLE_JIT", ""):
+    import numba
+    
     numbajit_funcs = [
         rotate_point,
         unpack_pos,
         linear_interpolation,
         is_intersect,
         TextureLine_CanRender,
-        point_in_screen,
+        pointInScreen,
         conrpepos,
         aconrpepos,
         inrect,
@@ -1053,7 +1032,7 @@ if environ.get("ENABLE_JIT", ""):
     linear_interpolation(0.5, 0.0, 1.0, 0.0, 1.0)
     is_intersect(((0.0, 0.1), (0.0, 0.2)), ((-0.1, 0.1), (0.0, 0.4)))
     TextureLine_CanRender(1920, 1080, 23.1, 3.1, 4.3)
-    point_in_screen((204.2, 1.3), 1920, 1080)
+    pointInScreen((204.2, 1.3), 1920, 1080)
     aconrpepos(*conrpepos(102.4, 30.3))
     inrect(1.3, 13.4, (0.2, 3.1, 0.4, 1.4))
     inDiagonalRectangle(0.0, 0.0, 123.3, 32.2, 3.2, 0.2, 0.4)
@@ -1067,3 +1046,4 @@ if environ.get("ENABLE_JIT", ""):
     getCenterPointByRect((0.0, 0.0, 1.0, 1.0))
     getLineLength(0.0, 0.0, 1.0, 1.0)
     indrect(0.0, 3.0, (0.0, 0.0, 1.0, 4.5), 5.3)
+    

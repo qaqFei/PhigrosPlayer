@@ -486,33 +486,21 @@ def Load_Resource():
     root.unreg_res("PhigrosFont")
     
     root.file_server.shutdown()
-    note_max_width = max(
-        [
-            Resource["Notes"]["Tap"].width,
-            Resource["Notes"]["Tap_dub"].width,
-            Resource["Notes"]["Drag"].width,
-            Resource["Notes"]["Drag_dub"].width,
-            Resource["Notes"]["Flick"].width,
-            Resource["Notes"]["Flick_dub"].width,
-            Resource["Notes"]["Hold_Head"].width,
-            Resource["Notes"]["Hold_Head_dub"].width,
-            Resource["Notes"]["Hold_End"].width
-        ]
-    )
+    note_max_width = Note_width * const.NOTE_DUB_FIXSCALE
     note_max_height = max(
         [
-            Resource["Notes"]["Tap"].height,
-            Resource["Notes"]["Tap_dub"].height,
-            Resource["Notes"]["Drag"].height,
-            Resource["Notes"]["Drag_dub"].height,
-            Resource["Notes"]["Flick"].height,
-            Resource["Notes"]["Flick_dub"].height,
-            Resource["Notes"]["Hold_Head"].height,
-            Resource["Notes"]["Hold_Head_dub"].height,
-            Resource["Notes"]["Hold_End"].height
+            note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,
+            note_max_width / Resource["Notes"]["Tap_dub"].width * Resource["Notes"]["Tap_dub"].height,
+            note_max_width / Resource["Notes"]["Drag"].width * Resource["Notes"]["Drag"].height,
+            note_max_width / Resource["Notes"]["Drag_dub"].width * Resource["Notes"]["Drag_dub"].height,
+            note_max_width / Resource["Notes"]["Flick"].width * Resource["Notes"]["Flick"].height,
+            note_max_width / Resource["Notes"]["Flick_dub"].width * Resource["Notes"]["Flick_dub"].height,
+            note_max_width / Resource["Notes"]["Hold_Head"].width * Resource["Notes"]["Hold_Head"].height,
+            note_max_width / Resource["Notes"]["Hold_Head_dub"].width * Resource["Notes"]["Hold_Head_dub"].height,
+            note_max_width / Resource["Notes"]["Hold_End"].width * Resource["Notes"]["Hold_End"].height
         ]
     )
-    note_max_size_half = (note_max_width ** 2 + note_max_height ** 2) ** 0.5
+    note_max_size_half = ((note_max_width ** 2 + note_max_height ** 2) ** 0.5) / 2
     
     # shaders = {
     #     "chromatic": open("./shaders/chromatic.glsl", "r", encoding="utf-8").read(),

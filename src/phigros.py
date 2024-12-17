@@ -184,7 +184,6 @@ def updateUserAvatar():
 
 def Load_Resource():
     global note_max_width, note_max_height
-    global note_max_width_half, note_max_height_half
     global note_max_size_half
     global ButtonWidth, ButtonHeight
     global ClickEffectFrameCount
@@ -371,36 +370,6 @@ def Load_Resource():
     updateUserAvatar()
     root._regims.clear()
     root.run_js_code(f"createChapterBlackGrd({h * (140 / 1080)}, {h * (1.0 - 140 / 1080)});")
-    
-    note_max_width = max(
-        [
-            Resource["Notes"]["Tap"].width,
-            Resource["Notes"]["Tap_dub"].width,
-            Resource["Notes"]["Drag"].width,
-            Resource["Notes"]["Drag_dub"].width,
-            Resource["Notes"]["Flick"].width,
-            Resource["Notes"]["Flick_dub"].width,
-            Resource["Notes"]["Hold_Head"].width,
-            Resource["Notes"]["Hold_Head_dub"].width,
-            Resource["Notes"]["Hold_End"].width
-        ]
-    )
-    note_max_height = max(
-        [
-            Resource["Notes"]["Tap"].height,
-            Resource["Notes"]["Tap_dub"].height,
-            Resource["Notes"]["Drag"].height,
-            Resource["Notes"]["Drag_dub"].height,
-            Resource["Notes"]["Flick"].height,
-            Resource["Notes"]["Flick_dub"].height,
-            Resource["Notes"]["Hold_Head"].height,
-            Resource["Notes"]["Hold_Head_dub"].height,
-            Resource["Notes"]["Hold_End"].height
-        ]
-    )
-    note_max_width_half = note_max_width / 2
-    note_max_height_half = note_max_height / 2
-    note_max_size_half = (note_max_width ** 2 + note_max_height ** 2) ** 0.5
     
     logging.info("Load Resource Successfully")
     return Resource
@@ -3341,6 +3310,25 @@ def chartPlayerRender(
     nextUI: typing.Callable[[], typing.Any]
 ):
     global show_start_time
+    global note_max_width, note_max_height
+    global note_max_size_half
+    
+    Note_width = w * 0.1234375 * getUserData("setting-noteScale")
+    note_max_width = Note_width * const.NOTE_DUB_FIXSCALE
+    note_max_height = max(
+        [
+            note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,
+            note_max_width / Resource["Notes"]["Tap_dub"].width * Resource["Notes"]["Tap_dub"].height,
+            note_max_width / Resource["Notes"]["Drag"].width * Resource["Notes"]["Drag"].height,
+            note_max_width / Resource["Notes"]["Drag_dub"].width * Resource["Notes"]["Drag_dub"].height,
+            note_max_width / Resource["Notes"]["Flick"].width * Resource["Notes"]["Flick"].height,
+            note_max_width / Resource["Notes"]["Flick_dub"].width * Resource["Notes"]["Flick_dub"].height,
+            note_max_width / Resource["Notes"]["Hold_Head"].width * Resource["Notes"]["Hold_Head"].height,
+            note_max_width / Resource["Notes"]["Hold_Head_dub"].width * Resource["Notes"]["Hold_Head_dub"].height,
+            note_max_width / Resource["Notes"]["Hold_End"].width * Resource["Notes"]["Hold_End"].height
+        ]
+    )
+    note_max_size_half = ((note_max_width ** 2 + note_max_height ** 2) ** 0.5) / 2
     
     chart_information["BackgroundDim"] = getUserData("setting-backgroundDim")
     chartJsonData: dict = json.loads(open(chartFile, "r", encoding="utf-8").read())
@@ -3385,11 +3373,11 @@ def chartPlayerRender(
         chart_information = chart_information,
         chart_obj = chart_obj,
         CHART_TYPE = CHART_TYPE, Resource = Resource,
-        ClickEffect_Size = w * 0.1234375 * getUserData("setting-noteScale") * 1.375,
-        EFFECT_RANDOM_BLOCK_SIZE = w * 0.1234375 * getUserData("setting-noteScale") / 5.5,
+        ClickEffect_Size = Note_width * 1.375,
+        EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5,
         ClickEffectFrameCount = ClickEffectFrameCount,
         PHIGROS_X = w * 0.05625, PHIGROS_Y = h * 0.6,
-        Note_width = w * 0.1234375 * getUserData("setting-noteScale"),
+        Note_width = Note_width,
         JUDGELINE_WIDTH = h * 0.0075, note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,
         show_start_time = float("nan"), chart_res = {},
