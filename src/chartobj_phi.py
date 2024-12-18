@@ -8,21 +8,14 @@ from dataclasses import dataclass
 import const
 import tool_funcs
 
-def getFloorPosition(line: judgeLine, t: float) -> float:
-    if not line.speedEvents: return 0.0
-    for speed_event in line.speedEvents:
-        if speed_event.startTime <= t <= speed_event.endTime:
-            return speed_event.floorPosition + (t - speed_event.startTime) * line.T * speed_event.value
-    last_speed_event = line.speedEvents[-1]
-    return last_speed_event.floorPosition + (t - last_speed_event.endTime) * line.T * last_speed_event.value
-
 def findevent(
     events: list[
         judgeLineDisappearEvent
         |judgeLineMoveEvent
         |judgeLineRotateEvent
+        |speedEvent
     ], t: float
-) -> judgeLineDisappearEvent|judgeLineMoveEvent|judgeLineRotateEvent|None:
+) -> judgeLineDisappearEvent|judgeLineMoveEvent|judgeLineRotateEvent|speedEvent|None:
     l, r = 0, len(events) - 1
     
     while l <= r:
@@ -33,6 +26,17 @@ def findevent(
         else: l = m + 1
             
     return None
+
+def getFloorPosition(line: judgeLine, t: float) -> float:
+    if not line.speedEvents: return 0.0
+    
+    e: speedEvent = findevent(line.speedEvents, t)
+    
+    if e is None and t >= line.speedEvents[-1].endTime:
+        e = line.speedEvents[-1]
+        t = e.endTime
+    
+    return e.floorPosition + (t - e.startTime) * line.T * e.value
 
 @dataclass
 class note:
@@ -114,7 +118,7 @@ class note:
     
     def getNoteClickPos(self, time: float) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
         linePos = self.master.get_datavar_move(time, 1.0, 1.0)
-        lineRotate = -self.master.get_datavar_rotate(time)
+        lineRotate = self.master.get_datavar_rotate(time)
         return lambda w, h: (
             tool_funcs.rotate_point(
                 linePos[0] * w, linePos[1] * h,
@@ -265,11 +269,13 @@ class Phigros_Chart:
             self.offset = 0.0
             
         self.note_num = 0
+        
         for line in self.judgeLineList:
-            lastfp = 0.0
+            fp = 0.0
+            
             for e in line.speedEvents:
-                e.floorPosition = lastfp
-                lastfp += (e.endTime - e.startTime) * e.value * line.T
+                e.floorPosition = fp
+                fp += (e.endTime - e.startTime) * e.value * line.T
 
             for note in line.notesAbove + line.notesBelow:
                 self.note_num += 1

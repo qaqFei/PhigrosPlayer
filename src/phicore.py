@@ -1011,7 +1011,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 add_code_array = True
             )
         
-        line.playingFloorPosition = line.GetFloorPosition(0.0, now_t)
+        line.playingFloorPosition = line.GetFloorPositionByTime(now_t)
         for note in line.renderNotes.copy():
             note_clicked = note.startTime.value < beatTime
             
@@ -1277,7 +1277,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             x, y = tool_funcs.rotate_point(
                 *pos,
                 (-90 if note.above == 1 else 90) + lineRotate,
-                note.masterLine.GetFloorPosition(t, note.startTime.value) * h
+                note.masterLine.GetFloorPositionRange(t, note.startTime.value) * h
             )
             note.player_bad_posandrotate = ((x, y), lineRotate)
         

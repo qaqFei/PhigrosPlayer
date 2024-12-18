@@ -29,14 +29,15 @@ def geteasing_func(t: int):
         logging.warning(f"geteasing_func error: {e}")
         return rpe_easing.ease_funcs[0]
 
-def findevent(events: list[LineEvent], t: float) -> LineEvent|None:
+def findevent(events: list[LineEvent], t: float, timeattr: str = "value") -> LineEvent|None:
     l, r = 0, len(events) - 1
     
     while l <= r:
         m = (l + r) // 2
         e = events[m]
-        if e.startTime.value <= t <= e.endTime.value: return e
-        elif e.startTime.value > t: r = m - 1
+        st, et = getattr(e.startTime, timeattr), getattr(e.endTime, timeattr)
+        if st <= t <= et: return e
+        elif st > t: r = m - 1
         else: l = m + 1
             
     return None
@@ -111,8 +112,8 @@ class Note:
         self.secet = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
         self.player_holdjudge_tomanager_time = max(self.secst, self.secet - 0.2)
         
-        self.floorPosition = self.masterLine.GetFloorPosition(0.0, self.secst)
-        if self.ishold: self.holdLength = self.masterLine.GetFloorPosition(self.secst, self.secet)
+        self.floorPosition = self.masterLine.GetFloorPositionByTime(self.secst)
+        if self.ishold: self.holdLength = self.masterLine.GetFloorPositionRange(self.secst, self.secet)
 
         self.effect_times = []
         self.effect_times.append((
@@ -158,6 +159,8 @@ class LineEvent:
     end: float|str|list[int]
     easingType: int
     easingFunc: typing.Callable[[float], float] = rpe_easing.ease_funcs[0]
+    
+    floorPosition: float|None = None # only speed events have this
     
     def __post_init__(self):
         self.easingFunc = geteasing_func(self.easingType)
@@ -347,34 +350,50 @@ class JudgeLine:
         
         return tool_funcs.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
-    def GetFloorPosition(self, l: float, r: float):
+    def GetEventRawFloorPosition(self, e: LineEvent, l: float, r: float) -> float:
+        st, et = e.startTime.secvar, e.endTime.secvar
+        
+        if l <= st <= r <= et:
+            v1, v2 = st, r
+        elif st <= l <= et <= r:
+            v1, v2 = l, et
+        elif l <= st <= et <= r:
+            v1, v2 = st, et
+        elif st <= l <= r <= et:
+            v1, v2 = l, r
+        else:
+            return 0.0
+        
+        if e.start == e.end:
+            return (v2 - v1) * e.start
+        else:
+            s1 = tool_funcs.linear_interpolation(v1, st, et, e.start, e.end)
+            s2 = tool_funcs.linear_interpolation(v2, st, et, e.start, e.end)
+            return (v2 - v1) * (s1 + s2) / 2
+    
+    def GetFloorPositionRange(self, l: float, r: float):
         yl, yr = l, r
         l, r = sorted((l, r))
+                    
+        return (self.GetFloorPositionByTime(r) - self.GetFloorPositionByTime(l)) * (-1.0 if yl > yr else 1.0)
+    
+    def GetFloorPositionByTime(self, t: float):
         fp = 0.0
         
         for layer in self.eventLayers:
-            for e in layer.speedEvents:
-                st, et = e.startTime.secvar, e.endTime.secvar
-                
-                if l <= st <= r <= et:
-                    v1, v2 = st, r
-                elif st <= l <= et <= r:
-                    v1, v2 = l, et
-                elif l <= st <= et <= r:
-                    v1, v2 = st, et
-                elif st <= l <= r <= et:
-                    v1, v2 = l, r
-                elif st > r: break
-                else: continue
-                
-                if e.start == e.end:
-                    fp += (v2 - v1) * e.start
+            if not layer.speedEvents: continue
+            e = findevent(layer.speedEvents, t, "secvar")
+            
+            if e is None:
+                if t >= layer.speedEvents[-1].endTime.secvar:
+                    e = layer.speedEvents[-1]
+                    t = e.endTime.secvar
                 else:
-                    s1 = tool_funcs.linear_interpolation(v1, st, et, e.start, e.end)
-                    s2 = tool_funcs.linear_interpolation(v2, st, et, e.start, e.end)
-                    fp += (v2 - v1) * (s1 + s2) / 2
-                    
-        return fp * 120 / const.RPE_HEIGHT * (-1.0 if yl > yr else 1.0)
+                    continue
+                
+            fp += e.floorPosition + self.GetEventRawFloorPosition(e, e.startTime.secvar, t)
+        
+        return fp * 120 / const.RPE_HEIGHT
 
     def __hash__(self) -> int:
         return id(self)
@@ -457,9 +476,12 @@ class Rpe_Chart:
                 line.father = self.JudgeLineList[line.father]
                 
             for layer in line.eventLayers:
+                fp = 0.0
                 for e in layer.speedEvents:
                     e.startTime.secvar = self.beat2sec(e.startTime.value, line.bpmfactor)
                     e.endTime.secvar = self.beat2sec(e.endTime.value, line.bpmfactor)
+                    e.floorPosition = fp
+                    fp += line.GetEventRawFloorPosition(e, e.startTime.secvar, e.endTime.secvar)
             
             for i, note in enumerate(line.notes):
                 note.master_index = i
