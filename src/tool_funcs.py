@@ -197,7 +197,7 @@ def noteCanRender(
     else:
         lt, rt, rb, lb = hold_points
     
-    return linesInScreen(w, h, [(lt, rt), (rt, rb), (rb, lb), (lb, lt)])
+    return linesInScreen(w, h, [(lt, rt), (rt, rb), (rb, lb), (lb, lt), (lt, rb), (rt, lb)])
 
 def lineInScreen(w: int|float, h: int|float, line: tuple[float]):
     return linesInScreen(w, h, [((*line[:2], ), (*line[2:], ), )])
@@ -207,12 +207,12 @@ def TextureLine_CanRender(
     texture_max_size_half: float,
     x: float, y: float
 ) -> bool:
-    return noteCanRender(w, h, -1, x, y, [
-        (x - texture_max_size_half, y - texture_max_size_half),
-        (x + texture_max_size_half, y - texture_max_size_half),
-        (x + texture_max_size_half, y + texture_max_size_half),
-        (x - texture_max_size_half, y + texture_max_size_half)
-    ])
+    lt = (x - texture_max_size_half, y - texture_max_size_half)
+    rt = (x + texture_max_size_half, y - texture_max_size_half)
+    rb = (x + texture_max_size_half, y + texture_max_size_half)
+    lb = (x - texture_max_size_half, y + texture_max_size_half)
+    
+    return linesInScreen(w, h, [(lt, rt), (rt, rb), (rb, lb), (lb, lt), (lt, rb), (rt, lb)])
     
 def pointInScreen(point: tuple[float, float], w: int, h: int) -> bool:
     return 0 <= point[0] <= w and 0 <= point[1] <= h
