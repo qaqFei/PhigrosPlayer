@@ -297,7 +297,6 @@
         }
     }
 
-    CanvasRenderingContext2D.prototype._fillText = CanvasRenderingContext2D.prototype.fillText;
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
@@ -325,12 +324,6 @@
 
         if (!this.globalAlpha) return;
         return this._drawImage(...args);
-    }
-
-    CanvasRenderingContext2D.prototype.fillText = function(text, x, y) {
-        x = Math.floor(x);
-        y = Math.floor(y);
-        return this._fillText(text, x, y);
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center

@@ -3593,7 +3593,7 @@ def chartPlayerRender(
                 break_flag = phicore.FrameData_ProcessExTask(Task.ExTask)
                 
                 if break_flag and not stoped:
-                    phicore.initFinishAnimation()
+                    phicore.initFinishAnimation(pplm)
                     rendingAnimationSt = time.time()
                     stoped = True
             else:
@@ -3880,7 +3880,6 @@ root = webcv.WebCanvas(
 )
 webdpr = root.run_js_code("window.devicePixelRatio;")
 root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
-root.run_js_code(f"resizeCanvas({w}, {h});")
 
 if "--fullscreen" in sys.argv:
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
@@ -3903,6 +3902,7 @@ else:
     root.move(int(root.winfo_screenwidth() / 2 - (winw + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (winh + dh_legacy) / webdpr / 2))
 
 root.reg_event("resized", resize)
+root.run_js_code(f"resizeCanvas({w}, {h});")
 
 if "--window-host" in sys.argv:
     windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))

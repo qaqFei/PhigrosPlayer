@@ -216,10 +216,11 @@ class WebCanvas:
         fillStyle: str|None = None,
         strokeStyle: str|None = None,
         method: typing.Literal["fill", "stroke"] = "fill",
+        maxwidth: float|None = None,
         wait_execute: bool = False
     ) -> None:
         text = self.string2sctring_hqm(text)
-        self.run_js_code(f"ctx.save(); ctx.font = \"{font}\"; ctx.textAlign = \"{textAlign}\"; ctx.textBaseline = \"{textBaseline}\"; ctx.fillStyle = \"{fillStyle}\"; ctx.strokeStyle = \"{strokeStyle}\"; ctx.{method}Text({text},{x},{y}); ctx.restore();", wait_execute)
+        self.run_js_code(f"ctx.save(); ctx.font = \"{font}\"; ctx.textAlign = \"{textAlign}\"; ctx.textBaseline = \"{textBaseline}\"; ctx.fillStyle = \"{fillStyle}\"; ctx.strokeStyle = \"{strokeStyle}\"; ctx.{method}Text({text}, {x}, {y}, {maxwidth if maxwidth is not None else "undefined"}); ctx.restore();", wait_execute)
     
     def create_polygon(
         self, points: typing.Iterator[tuple[int|float, int|float]],
