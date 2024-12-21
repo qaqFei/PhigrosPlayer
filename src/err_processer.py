@@ -30,12 +30,3 @@ def excepthook(etype, value, tb):
 
 sys.excepthook = excepthook
 threading.excepthook = lambda x: excepthook(x.exc_type, x.exc_value, x.exc_traceback)
-
-class FakeEvent(threading.Event):
-    def wait(self, timeout = None):
-        st = time.time()
-        while not self.is_set() and (timeout is None or time.time() - st < timeout):
-            time.sleep(1 / 60)
-        return self.is_set()
-
-threading.Event = FakeEvent

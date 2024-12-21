@@ -1029,7 +1029,6 @@ if environ.get("ENABLE_JIT", ""):
         unpack_pos,
         linear_interpolation,
         is_intersect,
-        TextureLine_CanRender,
         pointInScreen,
         conrpepos,
         aconrpepos,
@@ -1058,7 +1057,6 @@ if environ.get("ENABLE_JIT", ""):
     unpack_pos(1000 * 11 + 45)
     linear_interpolation(0.5, 0.0, 1.0, 0.0, 1.0)
     is_intersect(((0.0, 0.1), (0.0, 0.2)), ((-0.1, 0.1), (0.0, 0.4)))
-    TextureLine_CanRender(1920, 1080, 23.1, 3.1, 4.3)
     pointInScreen((204.2, 1.3), 1920, 1080)
     aconrpepos(*conrpepos(102.4, 30.3))
     inrect(1.3, 13.4, (0.2, 3.1, 0.4, 1.4))
