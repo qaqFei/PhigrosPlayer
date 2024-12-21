@@ -115,11 +115,16 @@
         }
     }
 
-    function resizeCanvas() {
-        canvas_ele.width = window.innerWidth / lowquality_scale;
-        canvas_ele.height = window.innerHeight / lowquality_scale;
-        dialog_canvas_ele.width = window.innerWidth / lowquality_scale;
-        dialog_canvas_ele.height = window.innerHeight / lowquality_scale;
+    function resizeCanvas(w, h) {
+        if (w === undefined || h === undefined) {
+            w = window.innerWidth;
+            h = window.innerHeight;
+        }
+
+        canvas_ele.width = w / lowquality_scale;
+        canvas_ele.height = h / lowquality_scale;
+        dialog_canvas_ele.width = w / lowquality_scale;
+        dialog_canvas_ele.height = h / lowquality_scale;
         ctx.reset();
         dialog_canvas_ctx.reset();
         ctx.scale(1 / lowquality_scale, 1 / lowquality_scale);
@@ -668,8 +673,4 @@
         this.uniform1i(screenTexture, 0);
         this.drawArrays(this.TRIANGLE_STRIP, 0, 4);
     }
-
-    resizeCanvas();
-
-    window.addEventListener("resize", resizeCanvas);
 </script>
