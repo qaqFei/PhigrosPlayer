@@ -29,7 +29,7 @@ def geteasing_func(t: int):
         logging.warning(f"geteasing_func error: {e}")
         return rpe_easing.ease_funcs[0]
 
-def findevent(events: list[LineEvent], t: float, timeattr: str = "value") -> LineEvent|None:
+def findevent(events: list[LineEvent|ExtraVar], t: float, timeattr: str = "value") -> LineEvent|ExtraVar|None:
     l, r = 0, len(events) - 1
     
     while l <= r:
@@ -288,8 +288,14 @@ class JudgeLine:
     renderNotes: list[Note]|None = None
     
     def GetEventValue(self, t: float, es: list[LineEvent], default):
+        if not es: return default
+        
         e = findevent(es, t)
-        if e is None: return default
+        
+        if e is None:
+            if t >= es[-1].endTime.value:
+                return es[-1].end
+            return default
         
         if isinstance(e.start, float|int):
             return tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, e.easingFunc)
@@ -549,5 +555,56 @@ class Rpe_Chart:
         if isinstance(oth, JudgeLine):
             return self is oth
         return False
+
+@dataclass
+class ExtraVar:
+    startTime: Beat
+    endTime: Beat
+    easingType: int
+    start: float|list[float]
+    end: float|list[float]
     
-del typing, dataclass
+    def __post_init__(self):
+        self.easingFunc = geteasing_func(self.easingType)
+    
+@dataclass
+class ExtraEffect:
+    start: Beat
+    end: Beat
+    shader: str
+    vars: dict[str, list[ExtraVar]]
+    
+@dataclass
+class Extra:
+    enable: bool
+    bpm: list[BPMEvent]
+    effects: list[ExtraEffect]
+    
+    def getValues(self, t: float):
+        beat = 0.0
+        for i, e in enumerate(self.bpm):
+            if i != len(self.bpm) - 1:
+                et_beat = self.bpm[i + 1].startTime.value - e.startTime.value
+                et_sec = et_beat * (60 / e.bpm)
+                
+                if t >= et_sec:
+                    beat += et_beat
+                    t -= et_sec
+                else:
+                    beat += t / (60 / e.bpm)
+                    break
+            else:
+                beat += t / (60 / e.bpm)
+        
+        result = []
+        
+        for e in self.effects:
+            if e.start.value <= beat <= e.end.value:
+                values = {}
+                for k, v in e.vars.items():
+                    ev = JudgeLine.GetEventValue(None, beat, v, v[0].start if v else None)
+                    if ev is not None: values.update({k: ev})
+                result.append((e.shader, values))
+                
+        return result
+    

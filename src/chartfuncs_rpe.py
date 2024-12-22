@@ -1,6 +1,7 @@
 import logging
 
 import chartobj_rpe
+import shader
 
 def _controlevents(line: dict, controlName: str, svalName: str, tvalName: str):
     controlList: list[dict] = line.get(controlName, [])
@@ -134,3 +135,51 @@ def Load_Chart_Object(chart: dict):
     logging.info("Load Chart Object Successfully, fmt = rpe")
     
     return rpe_chart_obj
+
+def loadextra(extra_json: dict, enable: bool):
+    extra = chartobj_rpe.Extra(
+        enable = enable,
+        bpm = [
+            chartobj_rpe.BPMEvent(
+                startTime = chartobj_rpe.Beat(*bpme.get("startTime", [0, 0, 1])),
+                bpm = bpme.get("bpm", 140)
+            )
+            for bpme in extra_json.get("bpm", [])
+        ],
+        effects = [
+            chartobj_rpe.ExtraEffect(
+                start = chartobj_rpe.Beat(*ete.get("start", [0, 0, 1])),
+                end = chartobj_rpe.Beat(*ete.get("end", [0, 0, 1])),
+                shader = ete.get("shader", "default"),
+                vars = {
+                    k: [
+                        (
+                            chartobj_rpe.ExtraVar(
+                                startTime = chartobj_rpe.Beat(*v.get("startTime", [0, 0, 1])),
+                                endTime = chartobj_rpe.Beat(*v.get("endTime", [0, 0, 1])),
+                                easingType = v.get("easingType", 1),
+                                start = v.get("start", 0),
+                                end = v.get("end", 0)
+                            ) 
+                        )
+                        for v in vars
+                    ] if isinstance(vars, list) else chartobj_rpe.ExtraVar(
+                        startTime = chartobj_rpe.Beat(*ete.get("start", [0, 0, 1])),
+                        endTime = chartobj_rpe.Beat(*ete.get("end", [0, 0, 1])),
+                        easingType = 1,
+                        start = vars,
+                        end = vars
+                    )
+                    for k, vars in ete.get("vars", {}).items()
+                }
+            )
+            for ete in extra_json.get("effects", [])
+        ]
+    )
+    
+    for i in extra.effects.copy():
+        if i.shader not in shader.shaderMethodMap:
+            logging.warning(f"Shader {i.shader} is not supported, only can use builtin shader.")
+            extra.effects.remove(i)
+    
+    return extra

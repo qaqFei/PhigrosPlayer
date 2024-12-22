@@ -425,5 +425,3 @@ class FrameTaskRecorder:
             data["data"].append(task_data)
         
         return json.dumps(data)
-
-del typing, dataclass

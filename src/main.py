@@ -33,6 +33,7 @@ import dialog
 import info_loader
 import ppr_help
 import binfile
+import shader
 from phicore import *
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
@@ -179,23 +180,26 @@ for item in chart_files:
                     chart_files_dict["charts"].append([item, json.loads(chart_text)])
                     logging.info(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
             except Exception as e:
-                if isinstance(e, json.decoder.JSONDecodeError): # pec chart
-                    pec2rpeResult, p2r_errs = tool_funcs.pec2rpe(chart_text)
-                    
-                    if p2r_errs:
-                        for e in p2r_errs:
-                            logging.warning(f"pec2rpe: {repr(e)}")
-                    
-                    for line in pec2rpeResult["judgeLineList"]:
-                        for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):
-                            if i != len(line["eventLayers"][0]["speedEvents"]) - 1:
-                                e["endTime"] = line["eventLayers"][0]["speedEvents"][i + 1]["startTime"]
-                            else:
-                                e["endTime"] = [e["startTime"][0] + 31250000, 0, 1]
-                    
-                    chart_files_dict["charts"].append([item, pec2rpeResult])
+                if isinstance(e, json.decoder.JSONDecodeError): # pec chart (?)
+                    try:
+                        pec2rpeResult, p2r_errs = tool_funcs.pec2rpe(chart_text)
+                        
+                        if p2r_errs:
+                            for e in p2r_errs:
+                                logging.warning(f"pec2rpe: {repr(e)}")
+                        
+                        for line in pec2rpeResult["judgeLineList"]:
+                            for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):
+                                if i != len(line["eventLayers"][0]["speedEvents"]) - 1:
+                                    e["endTime"] = line["eventLayers"][0]["speedEvents"][i + 1]["startTime"]
+                                else:
+                                    e["endTime"] = [e["startTime"][0] + 31250000, 0, 1]
+                        
+                        chart_files_dict["charts"].append([item, pec2rpeResult])
+                    except Exception as e:
+                        logging.warning(f"pec2rpe failed, unknown resource type. path = {item.replace(f"{temp_dir}\\", "")}, Error = {e}")
                 else:
-                    logging.warning(f"Unknown Resource Type. Path = {item.replace(f"{temp_dir}\\", "")}, Error = {e}")
+                    logging.warning(f"Unknown resource type. path = {item.replace(f"{temp_dir}\\", "")}, Error = {e}")
                     
 if len(chart_files_dict["charts"]) == 0:
     logging.fatal("No Chart File Found")
@@ -296,6 +300,26 @@ logging.info("Inforamtions: ")
 for k,v in chart_information.items():
     logging.info(f"              {k}: {v}")
 del chart_files, chart_files_dict
+
+if exists(f"{temp_dir}\\extra.json"):
+    try:
+        logging.info("found extra.json, loading...")
+        extra = chartfuncs_rpe.loadextra(json.load(open(f"{temp_dir}\\extra.json", "r", encoding="utf-8")), "--enable-shader" in sys.argv)
+        logging.info("loading extra.json successfully")
+    except SystemExit as e:
+        logging.error("loading extra.json failed")
+        
+if "extra" not in globals():
+    extra = chartfuncs_rpe.loadextra({}, False)
+
+if extra.enable and not (lfdaot and lfdaot_render_video):
+    logging.warning(f"if you want to enable shader, please render a video.")
+    extra.enable = False
+    
+if extra.enable:
+    logging.warning("extra effect item`s global value is also true, false value is not supported.")
+
+logging.info(f"enable_shader: {extra.enable}")
 
 def getResPath(path:str, file: bool = True):
     for rp in reversed(respaths):
@@ -846,11 +870,30 @@ def PlayerStart():
             )
             
             if video_fp != "":
-                root.jsapi.uploadFrame = lambda dataUrl: writer.write(tool_funcs.DataUrl2MatLike(dataUrl))
+                frameCount = 0
+                
+                @tool_funcs.ThreadFunc
+                def uploadFrame(dataUrl: str):
+                    nonlocal frameCount
+                    matlike = tool_funcs.DataUrl2MatLike(dataUrl)
+                    
+                    if extra.enable:
+                        now_t = frameCount / frame_speed
+                        shader.time = now_t
+                        shader.screenSize = shader.vec2(w, h)
+                        matlike = shader.processFrame(matlike, extra.getValues(now_t))
+                        
+                    writer.write(matlike)
+                    frameCount += 1
+                    
+                root.jsapi.uploadFrame = uploadFrame
                 
                 for Task in lfdaot_tasks.values():
                     Task.ExecTask()
                     root.wait_jspromise("uploadFrame();")
+                    
+                    if root.run_js_code("lfdaot_render_video_stop;"):
+                        break
                 
                 writer.release()
     
