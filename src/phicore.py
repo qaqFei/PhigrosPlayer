@@ -216,6 +216,7 @@ def process_effect_base(
     color = (255, 236, 160) if perfect else (180, 225, 255)
     alphas = (225 if perfect else 235) / 255
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
+    
     if clickeffect_randomblock:
         randomblock_r = ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.2
         block_size = EFFECT_RANDOM_BLOCK_SIZE * (0.4 * math.sin(p * math.pi) + 0.6)
@@ -227,16 +228,18 @@ def process_effect_base(
             point = tool_funcs.rotate_point(x, y, deg, pointr)
             Task(
                 root.run_js_code,
-                f"ctx.roundRectEx(\
+                f"ctx.addRoundRectData(\
                     {point[0] - block_size / 2},\
                     {point[1] - block_size / 2},\
                     {block_size},\
                     {block_size},\
-                    {block_size * clickeffect_randomblock_roundn},\
-                    'rgba{color + ((1.0 - p) * alphas, )}'\
+                    {block_size * clickeffect_randomblock_roundn}\
                 );",
                 add_code_array = True
             )
+    
+        Task(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + ((1.0 - p) * alphas, )}');", add_code_array = True)
+            
     Task(
         root.run_js_code,
         f"ctx.drawAlphaImage(\

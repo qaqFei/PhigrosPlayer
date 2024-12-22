@@ -415,11 +415,25 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.roundRectEx = function(x, y, w, h, r, color) {
+    CanvasRenderingContext2D.prototype.addRoundRectData = function(x, y, w, h, r) {
+        if (this._roundDatas == undefined) this._roundDatas = [];
+        this._roundDatas.push({ x: x, y: y, w: w, h: h, r: r });
+    }
+
+    CanvasRenderingContext2D.prototype.drawRoundDatas = function(color) {
+        if (this._roundDatas) {
+            this.roundRectsEx(color, this._roundDatas);
+            this._roundDatas = undefined;
+        }
+    }
+
+    CanvasRenderingContext2D.prototype.roundRectsEx = function(color, datas) {
         this.save();
         this.fillStyle = color;
         this.beginPath();
-        this.roundRect(x, y, w, h, r);
+        for (let i of datas) {
+            this.roundRect(i.x, i.y, i.w, i.h, i.r);
+        }
         this.fill();
         this.restore();
     }
