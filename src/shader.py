@@ -307,7 +307,7 @@ def _shaderMethod_vignette(values: dict[str, float|list[float]]):
     color = values.get("color", vec4(0.0, 0.0, 0.0, 1.0))
     extend = values.get("extend", 0.25)
     radius = values.get("radius", 15.0)
-    new_uv = uv * (1.0 - uv.yx)
+    new_uv = uv * (uv.yx * -1 + 1.0)
     vig = new_uv.x * new_uv.y * radius
     vig = pow(vig, extend)
     return mix(color, texture2D(screenTexture, uv), vig)
