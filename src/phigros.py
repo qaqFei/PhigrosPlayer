@@ -3877,6 +3877,7 @@ root = webcv.WebCanvas(
     title = "PhigrosPlayer - Phigros Simulator",
     debug = "--debug" in sys.argv,
     resizable = "--resizeable" in sys.argv,
+    frameless = "--frameless" in sys.argv
 )
 webdpr = root.run_js_code("window.devicePixelRatio;")
 root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
