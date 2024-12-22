@@ -3888,7 +3888,10 @@ if "--fullscreen" in sys.argv:
     root.web.toggle_fullscreen()
     dw_legacy, dh_legacy = 0, 0
 else:
-    w, h = int(root.winfo_screenwidth() * 0.6), int(root.winfo_screenheight() * 0.6)
+    if "--size" not in sys.argv:
+        w, h = int(root.winfo_screenwidth() * 0.6), int(root.winfo_screenheight() * 0.6)
+    else:
+        w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
     winw, winh = (
         w if w <= root.winfo_screenwidth() else int(root.winfo_screenwidth() * 0.75),
         h if h <= root.winfo_screenheight() else int(root.winfo_screenheight() * 0.75)
