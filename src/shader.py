@@ -45,28 +45,34 @@ class baseVec:
         return type(self)(*[self.values[i] / (other.values[i] if isinstance(other, baseVec) else other) for i in range(self.dimension)])
     
     def __getattribute__(self, name: str):
-        match name:
-            case "x" | "r": return self.values[0]
-            case "y" | "g": return self.values[1]
-            case "z" | "b": return self.values[2]
-            case "w" | "a": return self.values[3]
-            case "xyz": return vec3(*self.values[:3])
-            case "xy": return vec2(*self.values[:2])
-            case "rgb": return vec3(*self.values[:3])
-            case "rgba": return vec4(*self.values[:4])
-            case _: return object.__getattribute__(self, name)
+        nameset = set(name)
+        if len(nameset & set("xyzwrgba")) == len(nameset):
+            indexmap = {
+                "x": 0, "y": 1, "z": 2, "w": 3,
+                "r": 0, "g": 1, "b": 2, "a": 3
+            }
+            if len(name) == 1: return self.values[indexmap[name]]
+            else: vs = [self.values[indexmap[n]] for n in name]
+            if len(vs) == 2: return vec2(*vs)
+            elif len(vs) == 3: return vec3(*vs)
+            elif len(vs) == 4: return vec4(*vs)
+            else:
+                class vecN(baseVec): dimension: int = len(vs)
+                return vecN(*vs)
+        else:
+            return object.__getattribute__(self, name)
     
     def __setattr__(self, name: str, value: typing.Any):
-        match name:
-            case "x" | "r": self.values[0] = value
-            case "y" | "g": self.values[1] = value
-            case "z" | "b": self.values[2] = value
-            case "w" | "a": self.values[3] = value
-            case "xyz": self.values[:3] = value.values
-            case "xy": self.values[:2] = value.values
-            case "rgb": self.values[:3] = value.values
-            case "rgba": self.values[:4] = value.values
-            case _: object.__setattr__(self, name, value)
+        nameset = set(name)
+        if len(nameset & set("xyzwrgba")) == len(nameset):
+            indexmap = {
+                "x": 0, "y": 1, "z": 2, "w": 3,
+                "r": 0, "g": 1, "b": 2, "a": 3
+            }
+            for i, n in enumerate(name):
+                self.values[indexmap[n]] = value[i]
+        else:
+            return object.__setattr__(self, name, value)
 
     def __iter__(self):
         return iter(self.values)

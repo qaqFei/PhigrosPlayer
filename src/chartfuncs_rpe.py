@@ -163,13 +163,13 @@ def loadextra(extra_json: dict, enable: bool):
                             ) 
                         )
                         for v in vars
-                    ] if isinstance(vars, list) else chartobj_rpe.ExtraVar(
+                    ] if isinstance(vars, list) else [chartobj_rpe.ExtraVar(
                         startTime = chartobj_rpe.Beat(*ete.get("start", [0, 0, 1])),
                         endTime = chartobj_rpe.Beat(*ete.get("end", [0, 0, 1])),
                         easingType = 1,
                         start = vars,
                         end = vars
-                    )
+                    )]
                     for k, vars in ete.get("vars", {}).items()
                 }
             )
