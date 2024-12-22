@@ -881,7 +881,12 @@ def PlayerStart():
                         now_t = frameCount / frame_speed
                         shader.time = now_t
                         shader.screenSize = shader.vec2(w, h)
-                        matlike = shader.processFrame(matlike, extra.getValues(now_t))
+                        try:
+                            matlike = shader.processFrame(matlike, extra.getValues(now_t))
+                        except Exception as e:
+                            logging.fatal(f"Shader error: {repr(e)}")
+                            writer.release()
+                            raise e from e
                         
                     writer.write(matlike)
                     frameCount += 1
