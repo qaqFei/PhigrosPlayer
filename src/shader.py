@@ -115,8 +115,15 @@ def normalize(vec: baseVec) -> baseVec:
 def fract(x: float) -> float:
     return x - math.floor(x)
 
-def mix(x: float, y: float, a: float) -> float:
+def _mix(x: float, y: float, a: float) -> float:
     return x * (1.0 - a) + y * a
+
+def mix(x: float|baseVec, y: float|baseVec, a: float) -> float|baseVec:
+    if isinstance(x, float): x = vec1(x)
+    if isinstance(y, float): y = vec1(y)
+    x = x.copy()
+    x.values = [_mix(x.values[i], y.values[i], a) for i in range(x.dimension)]
+    return x
 
 def addMathFunctionHook(name: str):
     f = getattr(math, name)
@@ -247,7 +254,7 @@ def _shaderMethod_grayscale(values: dict[str, float|list[float]]):
     color = texture2D(screenTexture, uv).xyz
     lum = vec3(0.299, 0.587, 0.114)
     gray = vec3(dot(lum, color))
-    return vec4(mix(color, gray, factor), 1.0)
+    return mix(color, gray, factor)
 
 def _noise_random(pos: vec2):
     return fract(math.sin(vec2(dot(pos, vec2(12.9898,78.233)), dot(pos, vec2(-148.998,-65.233)))) * 43758.5453)
