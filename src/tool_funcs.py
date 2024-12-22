@@ -170,13 +170,41 @@ def batch_is_intersect(
         for j in lines_group_2:
             yield is_intersect(i, j)
 
+def pointInPolygon(ploygon: list[tuple[float, float]], point: tuple[float, float]):
+    n = len(ploygon)
+    j = n - 1
+    res = False
+    for i in range(n):
+        if (
+            (ploygon[i][1] > point[1]) != (ploygon[j][1] > point[1])
+            and point[0] < (ploygon[j][0] - ploygon[i][0]) * (point[1] - ploygon[i][1]) / (ploygon[j][1] - ploygon[i][1]) + ploygon[i][0]
+        ):
+            res = not res
+        j = i
+    return res
+
+def getScreenRect(w: int, h: int):
+    return [
+        ((0, 0), (w, 0)), ((0, 0), (0, h)),
+        ((w, 0), (w, h)), ((0, h), (w, h))
+    ]
+
+def getScreenPoints(w: int, h: int):
+    return [(0, 0), (w, 0), (w, h), (0, h)]
+
+def polygonIntersect(p1: list[tuple[float, float]], p2: list[tuple[float, float]]):
+    return (
+        any(pointInPolygon(p1, i) for i in p2)
+        or any(pointInPolygon(p2, i) for i in p1)
+    )
+
 def linesInScreen(w: int, h: int, lines: list[tuple[float, float]]):
     return any(batch_is_intersect(
-        lines, [
-            ((0, 0), (w, 0)), ((0, 0), (0, h)),
-            ((w, 0), (w, h)), ((0, h), (w, h))
-        ]
+        lines, getScreenRect(w, h)
     )) or any(pointInScreen(j, w, h) for i in lines for j in i)
+
+def polygonInScreen(w: int, h: int, polygon: list[tuple[float, float]]):
+    return polygonIntersect(getScreenPoints(w, h), polygon)
 
 def noteCanRender(
     w: int, h: int,
@@ -197,7 +225,7 @@ def noteCanRender(
     else:
         lt, rt, rb, lb = hold_points
     
-    return linesInScreen(w, h, [(lt, rt), (rt, rb), (rb, lb), (lb, lt), (lt, rb), (rt, lb)])
+    return polygonInScreen(w, h, [lt, rt, rb, lb])
 
 def lineInScreen(w: int|float, h: int|float, line: tuple[float]):
     return linesInScreen(w, h, [((*line[:2], ), (*line[2:], ), )])
@@ -212,7 +240,7 @@ def TextureLine_CanRender(
     rb = (x + texture_max_size_half, y + texture_max_size_half)
     lb = (x - texture_max_size_half, y + texture_max_size_half)
     
-    return linesInScreen(w, h, [(lt, rt), (rt, rb), (rb, lb), (lb, lt), (lt, rb), (rt, lb)])
+    return polygonInScreen(w, h, [lt, rt, rb, lb])
     
 def pointInScreen(point: tuple[float, float], w: int, h: int) -> bool:
     return 0 <= point[0] <= w and 0 <= point[1] <= h
@@ -224,7 +252,8 @@ def noteLineOutOfScreen(
     lineRotate: float,
     lineLength: float,
     lineToNoteRotate: float,
-    w: int, h: int
+    w: int, h: int,
+    note_max_size_half: float
 ):
     plpttdllotne_line = (
         *rotate_point(x, y, lineRotate, lineLength / 2),
@@ -237,8 +266,14 @@ def noteLineOutOfScreen(
         fp + 1.0 # add 1.0 px
     )
     
+    moved_line = tuple(map(lambda x, y: x + y, plpttdllotne_line, (note_max_size_half, ) * 4))
+    
     return (
-        not lineInScreen(w, h, plpttdllotne_line) and (
+        not lineInScreen(
+            w + note_max_size_half * 2,
+            h + note_max_size_half * 2,
+            moved_line
+        ) and (
             getLineLength(*plpttdllotne_cpoint_addfp, w / 2, h / 2)
             - getLineLength(x, y, w / 2, h / 2)
         ) > 0.0

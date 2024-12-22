@@ -646,13 +646,13 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         note_now_floorPosition,
                         lineRotate, plp_lineLength,
                         judgeLine_to_note_rotate_deg,
-                        w, h
+                        w, h, note_max_size_half
                     )
                     
                     nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
                         holdend_x, holdend_y, rotatenote_at_judgeLine_pos,
                         note_hold_draw_length, lineRotate, plp_lineLength,
-                        judgeLine_to_note_rotate_deg, w, h
+                        judgeLine_to_note_rotate_deg, w, h, note_max_size_half
                     )
                     
                     if nlOutOfScreen_nohold and nlOutOfScreen_hold:
@@ -1097,13 +1097,13 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     noteFloorPosition,
                     lineRotate, plp_lineLength,
                     lineToNoteRotate,
-                    w, h
+                    w, h, note_max_size_half
                 )
                 
                 nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
                     holdend_x, holdend_y, noteAtJudgeLinePos,
                     noteHoldDrawLength, lineRotate, plp_lineLength,
-                    lineToNoteRotate, w, h
+                    lineToNoteRotate, w, h, note_max_size_half
                 )
                 
                 if nlOutOfScreen_nohold and nlOutOfScreen_hold:
