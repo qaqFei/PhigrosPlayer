@@ -192,9 +192,13 @@ def getScreenRect(w: int, h: int):
 def getScreenPoints(w: int, h: int):
     return [(0, 0), (w, 0), (w, h), (0, h)]
 
+def polygon2lines(p: list[tuple[float, float]]):
+    return [(p[i], p[i + 1]) for i in range(-1, len(p) - 1)]
+
 def polygonIntersect(p1: list[tuple[float, float]], p2: list[tuple[float, float]]):
     return (
-        any(pointInPolygon(p1, i) for i in p2)
+        any(batch_is_intersect(polygon2lines(p1), polygon2lines(p2)))
+        or any(pointInPolygon(p1, i) for i in p2)
         or any(pointInPolygon(p2, i) for i in p1)
     )
 
@@ -302,6 +306,12 @@ def aconrpepos(x: float, y: float):
     return (
         x * const.RPE_WIDTH - const.RPE_WIDTH / 2,
         (1.0 - y) * const.RPE_HEIGHT - const.RPE_HEIGHT / 2
+    )
+
+def conimgsize(w: int, h: int, sw: int, sh: int):
+    return (
+        w / const.RPE_WIDTH * sw,
+        h / const.RPE_HEIGHT * sh
     )
 
 def Format_Time(t: int|float) -> str:
