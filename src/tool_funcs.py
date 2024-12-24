@@ -1069,7 +1069,7 @@ class PhigrosPlayLogicManager:
                     eval(f"lambda w, h: ({npos[0]} * w, {npos[1]} * h)") if self.pp.nproxy_typeis(n, const.Note.HOLD) and self.pp.nproxy_stime(n) >= t else e[-1]
                 ))
            
-if environ.get("ENABLE_JIT", ""):
+if environ.get("ENABLE_JIT", "0") == "1":
     import numba
     
     numbajit_funcs = [

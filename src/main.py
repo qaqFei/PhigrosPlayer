@@ -321,7 +321,7 @@ if extra.enable:
 
 logging.info(f"enable_shader: {extra.enable}")
 
-def getResPath(path:str, file: bool = True):
+def getResPath(path: str, file: bool = True):
     for rp in reversed(respaths):
         fp = f"{rp}{path}"
         if exists(fp) and (isfile(fp) if file else isdir(fp)):

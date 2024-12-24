@@ -21,6 +21,7 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --noplaychart: Do not play the chart, immediately settle.
   --enable-controls: Enable rpe format chart note control fields, with great performance overhead.
   --wl-more-chinese: Replace texts to chinese. (wl)
+  --enable-shader: Enable shader, WARNING: Use soft rendering, so it will be very very very very very slow. (Front-loaded arg: --lfdaot-render-video)
 
 <Kwargs>
   --combotips <string-value>: Set the combo tips text.
@@ -46,6 +47,9 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --phira-chart <phira-id-value>: Use phira chart. (when using phira chart, the chart file will not be loaded)
   --phira-chart-save <string-value>: Save the phira chart. (Front-loaded arg: --phira-chart)
   --skip-time <number-value>: Skip time on playing chart. (default: 0.0)
+
+<Environment Variables>
+  ENABLE_JIT: Enable JIT, WARNING: it will make start slowly. (default: 0, env values: ["0", "1"])
 '''
 
 HELP_ZH = '''\
@@ -70,6 +74,7 @@ HELP_ZH = '''\
   --noplaychart: 不播放谱面, 立即结算
   --enable-controls: 启用rpe格式谱面中的note control类字段, 有极大的性能开销
   --wl-more-chinese: 替换文本为中文 (wl)
+  --enable-shader: 启用 shader, 警告: 使用软渲染, 所以会非常非常非常非常非常慢 (前置参数: --lfdaot-render-video)
 
 <关键字参数>
   --combotips <字符串>: 设置连击提示文本
@@ -94,4 +99,7 @@ HELP_ZH = '''\
   --phira-chart <谱面ID>: 使用 phira 谱面. (使用 phira 谱面时, 谱面文件将不会被加载)
   --phira-chart-save <字符串>: 保存 phira 谱面. (前置参数: --phira-chart)
   --skip-time <数字>: 播放时跳过的时间. 默认 = 0.0
+
+<环境变量>
+  ENABLE_JIT: 启用 JIT, 警告: 这会使启动慢 (默认: 0, 环境变量值: ["0", "1"])
 '''
