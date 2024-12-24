@@ -805,6 +805,7 @@ class PPLM_ProxyBase:
     
     def nproxy_typein(self, n: typing.Any, ts: tuple[typing.Any]) -> bool: ...
     def nproxy_typeis(self, n: typing.Any, t: typing.Any) -> bool: ...
+    def nproxy_typeisnot(self, n: typing.Any, t: typing.Any) -> bool: return not self.nproxy_typeis(n, t)
     def nproxy_phitype(self, n: typing.Any) -> typing.Any: ...
     
     def nproxy_nowpos(self, n: typing.Any) -> tuple[float, float]: ...
@@ -977,7 +978,9 @@ class PhigrosPlayLogicManager:
                     else:
                         break
             
-            if self.pp.nproxy_stime(i) - t < - const.NOTE_JUDGE_RANGE.MISS * 2:
+            if self.pp.nproxy_typeisnot(i, const.Note.HOLD) and self.pp.nproxy_stime(i) - t < - const.NOTE_JUDGE_RANGE.MISS * 2:
+                self.pp.remove_pnote(i)
+            elif self.pp.nproxy_typeis(i, const.Note.HOLD) and self.pp.nproxy_etime(i) - t < - const.NOTE_JUDGE_RANGE.MISS * 2:
                 self.pp.remove_pnote(i)
             elif self.pp.nproxy_stime(i) > t + const.NOTE_JUDGE_RANGE.BAD * 2:
                 break
