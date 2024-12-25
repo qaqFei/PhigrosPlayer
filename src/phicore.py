@@ -1077,7 +1077,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 )
                 
             if noteFloorPosition > note_max_size_half:
-                plp_lineLength = w * 4000 / const.RPE_WIDTH * lineScaleX
+                plp_lineLength = w * 4000 / const.RPE_WIDTH
                 
                 nlOutOfScreen_nohold = tool_funcs.noteLineOutOfScreen(
                     x, y, noteAtJudgeLinePos,
