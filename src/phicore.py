@@ -28,7 +28,7 @@ drawUI_Default_Kwargs = {
 lastCallDrawUI = - float("inf")
 
 @dataclass
-class PhiCoreConfigure:
+class PhiCoreConfig:
     SETTER: typing.Callable[[str, typing.Any], typing.Any]
     
     root: webcv.WebCanvas
@@ -71,7 +71,7 @@ class PhiCoreConfigure:
     enable_controls: bool
 
 @dataclass
-class PhiCoreConfigureEx:
+class PhiCoreConfigure:
     infoframe_x: float
     infoframe_y: float
     infoframe_width: float
@@ -92,7 +92,7 @@ class PhiCoreConfigureEx:
     chart_illustrator_text: str
     chart_illustrator_text_font_size: float
     
-def CoreConfig(config: PhiCoreConfigure):
+def CoreConfigure(config: PhiCoreConfig):
     global SETTER
     global root, w, h, chart_information
     global chart_obj, CHART_TYPE
@@ -155,9 +155,9 @@ def CoreConfig(config: PhiCoreConfigure):
         for i in Resource["Note_Click_Audio"].values():
             i.set_volume(config.clicksound_volume)
     
-    logging.info("CoreConfig Done")
+    logging.info("CoreConfigure Done")
 
-def CoreConfigEx(config: PhiCoreConfigureEx):
+def CoreConfigureEx(config: PhiCoreConfigure):
     global infoframe_x, infoframe_y
     global infoframe_width, infoframe_height, infoframe_ltr
     global chart_name_text, chart_name_font_text_size
@@ -188,7 +188,7 @@ def CoreConfigEx(config: PhiCoreConfigureEx):
     chart_illustrator_text = config.chart_illustrator_text
     chart_illustrator_text_font_size = config.chart_illustrator_text_font_size
     
-    logging.info("CoreConfigEx Done")
+    logging.info("CoreConfigureEx Done")
 
 class ClickSoundManager:
     def __init__(self, res: dict[int, playsound.directSound]):
@@ -471,21 +471,6 @@ def draw_ui(
         root.run_js_code(f"ctx.translate(0, {- h / 7 + dy});", add_code_array = True)
     
     lastCallDrawUI = time.time()
-
-def CheckMusicOffsetAndEnd(now_t: float, Task: chartobj_phi.FrameRenderTask):
-    global show_start_time
-    
-    if now_t >= raw_audio_length:
-        Task.ExTask.append(("break", ))
-    
-    # if not lfdaot and mixer.music.get_busy():
-    #     this_music_pos = (mixer.music.get_pos() % (raw_audio_length * 1000)) / 1000
-    #     offset_judge_range = (1000 / 60) * 4
-    #     if abs(music_offset := this_music_pos - (time.time() - show_start_time) * 1000) >= offset_judge_range:
-    #         if abs(music_offset) < raw_audio_length * 1000 * 0.75:
-    #             show_start_time -= music_offset / 1000
-    #             SETTER("show_start_time", show_start_time)
-    #             logging.warning(f"mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset)}ms)")
              
 def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
     return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}   
@@ -520,6 +505,18 @@ def rrm_end(Task: chartobj_phi.FrameRenderTask):
         "ctx.restore();",
         add_code_array = True
     )
+
+def FrameData_ProcessExTask(ExTask: list[tuple[str, typing.Any]]):
+    break_flag = False
+    
+    for ext in ExTask:
+        match ext[0]:
+            case "break":
+                break_flag = True
+            case "psound":
+                cksmanager.play(ext[1])
+        
+    return break_flag
 
 def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
     global PlayChart_NowTime
@@ -899,21 +896,12 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     )
     
     rrm_end(Task)
-    CheckMusicOffsetAndEnd(now_t, Task)
     if rjc: Task(root.run_js_wait_code)
-    return Task
-
-def FrameData_ProcessExTask(ExTask: list[tuple[str, typing.Any]]):
-    break_flag = False
     
-    for ext in ExTask:
-        match ext[0]:
-            case "break":
-                break_flag = True
-            case "psound":
-                cksmanager.play(ext[1])
-        
-    return break_flag
+    if now_t >= raw_audio_length:
+        Task.ExTask.append(("break", ))
+    
+    return Task
 
 def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
     global PlayChart_NowTime
@@ -1348,8 +1336,11 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     now_t += chart_obj.META.offset / 1000
     
     rrm_end(Task)
-    CheckMusicOffsetAndEnd(now_t, Task)
     if rjc: Task(root.run_js_wait_code)
+    
+    if now_t >= raw_audio_length:
+        Task.ExTask.append(("break", ))
+    
     return Task
 
 def Get_LevelNumber() -> str:
@@ -1605,7 +1596,7 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
     if chart_illustrator_text_font_size > w * 0.020833 * 0.65:
         chart_illustrator_text_font_size = w * 0.020833 * 0.65
     
-    CoreConfigEx(PhiCoreConfigureEx(
+    CoreConfigureEx(PhiCoreConfigure(
         infoframe_x = infoframe_x,
         infoframe_y = infoframe_y,
         infoframe_width = infoframe_width,

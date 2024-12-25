@@ -82,7 +82,7 @@ showfps = "--showfps" in sys.argv
 lfdaot_start_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-start-frame-num") + 1])) if "--lfdaot-start-frame-num" in sys.argv else 0
 lfdaot_run_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-run-frame-num") + 1])) if "--lfdaot-run-frame-num" in sys.argv else float("inf")
 speed = float(sys.argv[sys.argv.index("--speed") + 1]) if "--speed" in sys.argv else 1.0
-clickeffect_randomblock_roundn = float(eval(sys.argv[sys.argv.index("--clickeffect-randomblock-roundn") + 1])) if "--clickeffect-randomblock-roundn" in sys.argv else 0.0
+clickeffect_randomblock_roundn = eval(sys.argv[sys.argv.index("--clickeffect-randomblock-roundn") + 1]) if "--clickeffect-randomblock-roundn" in sys.argv else 0.0
 noplaychart = "--noplaychart" in sys.argv
 clicksound_volume = float(sys.argv[sys.argv.index("--clicksound-volume") + 1]) if "--clicksound-volume" in sys.argv else 1.0
 musicsound_volume = float(sys.argv[sys.argv.index("--musicsound-volume") + 1]) if "--musicsound-volume" in sys.argv else 1.0
@@ -240,7 +240,7 @@ def LoadChartObject(first: bool = False):
         chart_obj = chartfuncs_rpe.Load_Chart_Object(chart_json)
     
     if not first:
-        updateCoreConfigure()
+        updateCoreConfig()
 LoadChartObject(True)
 
 if len(chart_files_dict["images"]) > 1:
@@ -588,6 +588,14 @@ def Show_Start():
     root.run_js_wait_code()
     Thread(target=PlayerStart, daemon=True).start()
 
+def checkOffset(now_t: float):
+    global show_start_time
+    
+    dt = tool_funcs.checkOffset(now_t, raw_audio_length, mixer)
+    if dt != 0.0:
+        show_start_time += dt
+        updateCoreConfig()
+                
 def PlayerStart():
     global show_start_time, cksmanager
     
@@ -597,8 +605,8 @@ def PlayerStart():
     ChartStart_Animation()
 
     show_start_time = time.time() - skip_time
-    PhiCoreConfigureObject.show_start_time = show_start_time
-    updateCoreConfigure()
+    PhiCoreConfigObject.show_start_time = show_start_time
+    updateCoreConfig()
     now_t = 0
     
     if not lfdaot:
@@ -659,6 +667,7 @@ def PlayerStart():
             while pause_flag: time.sleep(1 / 30)
             
             now_t = time.time() - show_start_time
+            checkOffset(now_t - skip_time)
             if CHART_TYPE == const.CHART_TYPE.PHI:
                 Task = GetFrameRenderTask_Phi(now_t, pplm = pplm if noautoplay else None)
             elif CHART_TYPE == const.CHART_TYPE.RPE:
@@ -974,10 +983,10 @@ def PlayerStart():
     mixer.music.fadeout(250)
     Chart_Finish_Animation()
 
-def updateCoreConfigure():
-    global PhiCoreConfigureObject
+def updateCoreConfig():
+    global PhiCoreConfigObject
     
-    PhiCoreConfigureObject = PhiCoreConfigure(
+    PhiCoreConfigObject = PhiCoreConfig(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
         root = root, w = w, h = h,
         chart_information = chart_information,
@@ -1002,7 +1011,7 @@ def updateCoreConfigure():
         musicsound_volume = musicsound_volume,
         enable_controls = enable_controls
     )
-    CoreConfig(PhiCoreConfigureObject)
+    CoreConfigure(PhiCoreConfigObject)
 
 logging.info("Loading Window...")
 root = webcv.WebCanvas(
@@ -1057,7 +1066,7 @@ EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
 if wl_more_chinese:
     root.run_js_code("setWlMoreChinese();")
 
-updateCoreConfigure()
+updateCoreConfig()
 
 Thread(target=Show_Start, daemon=True).start()
 root.wait_for_close()

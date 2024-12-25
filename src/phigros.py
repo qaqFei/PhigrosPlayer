@@ -1090,7 +1090,16 @@ def changeChapterMouseUp(x, y):
                 Resource["UISound_3"].play()
             break
         chapterX += getChapterToNextWidth(p)
-
+        
+def checkOffset(now_t: float):
+    global show_start_time
+    
+    dt = tool_funcs.checkOffset(now_t, raw_audio_length, mixer)
+    if dt != 0.0:
+        show_start_time += dt
+        coreConfig.show_start_time = show_start_time
+        phicore.CoreConfigure(coreConfig)
+        
 def mainRender():
     global inMainUI
     inMainUI = True
@@ -3312,6 +3321,8 @@ def chartPlayerRender(
     global show_start_time
     global note_max_width, note_max_height
     global note_max_size_half
+    global raw_audio_length
+    global coreConfig
     
     Note_width = w * 0.1234375 * getUserData("setting-noteScale")
     note_max_width = Note_width * const.NOTE_DUB_FIXSCALE
@@ -3367,7 +3378,7 @@ def chartPlayerRender(
     respacker.load(*respacker.pack())
     
     cksmanager = phicore.ClickSoundManager(Resource["Note_Click_Audio"])
-    coreConfig = phicore.PhiCoreConfigure(
+    coreConfig = phicore.PhiCoreConfig(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
         root = root, w = w, h = h,
         chart_information = chart_information,
@@ -3395,7 +3406,7 @@ def chartPlayerRender(
         musicsound_volume = getUserData("setting-musicVolume"),
         enable_controls = False
     )
-    phicore.CoreConfig(coreConfig)
+    phicore.CoreConfigure(coreConfig)
     
     if startAnimation:
         phicore.Begin_Animation(False, foregroundFrameRender)
@@ -3424,7 +3435,7 @@ def chartPlayerRender(
     
     show_start_time = time.time()
     coreConfig.show_start_time = show_start_time
-    phicore.CoreConfig(coreConfig)
+    phicore.CoreConfigure(coreConfig)
     
     def clickEventCallback(x, y):
         global show_start_time
@@ -3575,7 +3586,7 @@ def chartPlayerRender(
             mixer.music.unpause()
             show_start_time += time.time() - pauseSt
             coreConfig.show_start_time = show_start_time
-            phicore.CoreConfig(coreConfig)
+            phicore.CoreConfigure(coreConfig)
             pauseSt = float("nan")
         
         if not paused and pauseP == 1.0:
@@ -3583,6 +3594,7 @@ def chartPlayerRender(
         
             if not stoped:
                 now_t = time.time() - show_start_time
+                checkOffset(now_t)
                 if CHART_TYPE == const.CHART_TYPE.PHI:
                     Task = phicore.GetFrameRenderTask_Phi(now_t, False, False, pplm)
                 elif CHART_TYPE == const.CHART_TYPE.RPE:
