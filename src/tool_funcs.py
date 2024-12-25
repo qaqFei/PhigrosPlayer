@@ -698,7 +698,7 @@ def checkOffset(now_t: float, raw_audio_length: float, mixer):
     # must not use set_pos to reset music
     offset_judge_range = (1 / 60) * 4
     
-    if abs(music_offset := now_t - (mixer.music.get_pos() / 1000)) >= offset_judge_range:
+    if mixer.music.get_busy() and abs(music_offset := now_t - (mixer.music.get_pos() / 1000)) >= offset_judge_range:
         if abs(music_offset) < raw_audio_length * 1000 * 0.75:
             logging.warning(f"mixer offset > {offset_judge_range}ms, reseted chart time. (offset = {int(music_offset * 1000)}ms)")
             return music_offset
