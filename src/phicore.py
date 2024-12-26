@@ -456,8 +456,14 @@ def draw_ui(
     try: fps = (1.0 / (time.time() - lastCallDrawUI))
     except ZeroDivisionError: fps = float("inf")
     
+    grap_fps = root.get_framerate()
+    
     root.create_text(
-        text = (f"fps {fps:.0f} - " if showfps else "") + "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License",
+        text = (
+            (f"fps {fps:.0f} - " if showfps else "")
+            + (f"grap fps {grap_fps:.0f} - " if showfps else "")
+            + "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License"
+        ),
         x = w * 0.9875,
         y = h * 0.995,
         textAlign = "right",

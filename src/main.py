@@ -1020,7 +1020,8 @@ root = webcv.WebCanvas(
     title = "PhigrosPlayer - Simulator",
     debug = "--debug" in sys.argv,
     resizable = False,
-    frameless = "--frameless" in sys.argv
+    frameless = "--frameless" in sys.argv,
+    renderdemand = "--renderdemand" in sys.argv
 )
         
 webdpr = root.run_js_code("window.devicePixelRatio;")

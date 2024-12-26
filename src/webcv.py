@@ -18,6 +18,30 @@ current_thread = threading.current_thread
 screen_width = windll.user32.GetSystemMetrics(0)
 screen_height = windll.user32.GetSystemMetrics(1)
 
+framerate_counter = '''\
+(() => {
+
+_frame_count = 0;
+_frame_lastreftime = performance.now();
+framerate = -1;
+framerate_ckeck_limit = 25;
+
+_frame_counter = () => {
+    _frame_count++;
+    if (_frame_count >= framerate_ckeck_limit) {
+        framerate = _frame_count / ((performance.now() - _frame_lastreftime) / 1000);
+        _frame_lastreftime = performance.now();
+        _frame_count = 0;
+    }
+    
+    requestAnimationFrame(_frame_counter);
+}
+
+requestAnimationFrame(_frame_counter);
+
+})();
+'''
+    
 class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
     _canvas: WebCanvas
     
@@ -126,7 +150,8 @@ class WebCanvas:
         title: str = "WebCanvas",
         resizable: bool = True,
         frameless: bool = False,
-        html_path: str = ".\\web_canvas.html"
+        html_path: str = ".\\web_canvas.html",
+        renderdemand: bool = False
     ):
         self.jsapi = JsApi()
         self._destroyed = threading.Event()
@@ -134,6 +159,9 @@ class WebCanvas:
         self._regres: dict[str, bytes] = {}
         self._is_loadimg: dict[str, bool] = {}
         self._jscodes: list[str] = []
+        self._rdevent = threading.Event()
+        self._framerate: int|float = -1
+        self.renderdemand = renderdemand
         
         self.web = webview.create_window(
             title = title,
@@ -162,6 +190,8 @@ class WebCanvas:
         WebCanvas_FileServerHandler._canvas = self
         self.file_server = http.server.HTTPServer(("localhost", self.web_port + 1), WebCanvas_FileServerHandler)
         threading.Thread(target=self.file_server.serve_forever, daemon=True).start()
+        
+        self.jsapi.set_attr("_rdcallback", self._rdevent.set)
     
     def title(self, title: str) -> str: self.web.set_title(title)
     def winfo_screenwidth(self) -> int: return screen_width
@@ -178,11 +208,20 @@ class WebCanvas:
         return self._jscodes.append(code) if add_code_array else self.web.evaluate_js(code)
     
     def run_js_wait_code(self):
-        self.web.evaluate_js(f"{self._jscodes}.forEach(r2eval);")
+        self.run_js_code("requestAnimationFrame(() => pywebview.api.call_attr('_rdcallback'));", add_code_array=True)
+        self.run_js_code("if (!('_frame_counter' in window)) {&FRAMERATE_CODE&};".replace("&FRAMERATE_CODE&", framerate_counter), add_code_array=True)
+        framerate: int|float = self.web.evaluate_js(f"{self._jscodes}.forEach(r2eval);\nframerate;")
         self._jscodes.clear()
+        
+        if self.renderdemand:
+            self._rdevent.wait()
+            self._rdevent.clear()
+        
+        self._framerate = framerate
     
     def string2cstring(self, code: str): return code.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"").replace("`", "\\`").replace("\n", "\\n")
     def string2sctring_hqm(self, code: str): return f"'{self.string2cstring(code)}'"
+    def get_framerate(self) -> int|float: return self._framerate
     
     def create_line(
         self,
