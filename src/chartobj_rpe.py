@@ -285,7 +285,8 @@ class JudgeLine:
     
     playingFloorPosition: float = 0.0
     effectNotes: list[Note]|None = None
-    renderNotes: list[Note]|None = None
+    renderNotesAbove: list[Note]|None = None
+    renderNotesBelow: list[Note]|None = None
     
     def GetEventValue(self, t: float, es: list[LineEvent], default):
         if not es: return default
@@ -498,7 +499,8 @@ class Rpe_Chart:
             
             line.notes.sort(key=lambda x: x.startTime.value)
             line.effectNotes = [i for i in line.notes if not i.isFake]
-            line.renderNotes = line.notes.copy()
+            line.renderNotesAbove = [i for i in line.notes if i.above == 1]
+            line.renderNotesBelow = [i for i in line.notes if i.above != 1]
         
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
         self.JudgeLineList.sort(key = lambda x: x.zOrder)

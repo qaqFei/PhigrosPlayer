@@ -921,88 +921,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     if noautoplay:
         pplm.pc_update(now_t)
     
-    for line_index, line in enumerate(chart_obj.JudgeLineList):
-        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t, line.bpmfactor), (255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor(), chart_obj)
-        beatTime = chart_obj.sec2beat(now_t, line.bpmfactor)
-        if judgeline_notransparent: lineAlpha = 1.0
-        linePos = (linePos[0] * w, linePos[1] * h)
-        judgeLine_DrawPos = (
-            *tool_funcs.rotate_point(*linePos, lineRotate, w * 4000 / const.RPE_WIDTH * lineScaleX / 2),
-            *tool_funcs.rotate_point(*linePos, lineRotate + 180, w * 4000 / const.RPE_WIDTH * lineScaleX / 2)
-        )
-        negative_alpha = lineAlpha < 0.0
-        judgeLine_webCanvas_color = f"rgba{lineColor + (lineAlpha, )}"
-        
-        if line.Texture != "line.png" and lineAlpha > 0.0:
-            _, texture_size = chart_res[line.Texture]
-            texture_width, texture_height = tool_funcs.conimgsize(*texture_size, w * lineScaleX, h * lineScaleY)
-            if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
-                Task(
-                    root.run_js_code,
-                    f"{f"setTextureLineColorFilterColorMatrixValueByRgbValue{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}ctx.drawRotateImage(\
-                        {root.get_img_jsvarname(f"lineTexture_{line_index}")},\
-                        {linePos[0]},\
-                        {linePos[1]},\
-                        {texture_width},\
-                        {texture_height},\
-                        {lineRotate},\
-                        {lineAlpha}\
-                    ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",
-                    add_code_array = True
-                )
-        elif lineText is not None and lineAlpha > 0.0:
-            Task(
-                root.run_js_code,
-                f"ctx.drawRotateText(\
-                    '{root.string2cstring(lineText)}',\
-                    {linePos[0]},\
-                    {linePos[1]},\
-                    {lineRotate},\
-                    {(w + h) / 75 * 1.35},\
-                    '{judgeLine_webCanvas_color}',\
-                    {lineScaleX},\
-                    {lineScaleY}\
-                );",
-                add_code_array = True
-            )
-        elif line.attachUI is not None:
-            if line.attachUI in ("combonumber", "combo", "score", "name", "level", "pause"):
-                attachUIData.update({
-                    f"{line.attachUI}UI_dx": linePos[0] - w / 2,
-                    f"{line.attachUI}UI_dy": linePos[1] - h / 2,
-                    f"{line.attachUI}UI_scaleX": lineScaleX,
-                    f"{line.attachUI}UI_scaleY": lineScaleY,
-                    f"{line.attachUI}UI_color": judgeLine_webCanvas_color,
-                    f"{line.attachUI}UI_rotate": lineRotate
-                })
-        elif lineAlpha > 0.0 and tool_funcs.lineInScreen(w, h, judgeLine_DrawPos):
-            Task(
-                root.run_js_code,
-                f"ctx.drawLineEx(\
-                    {",".join(map(str, judgeLine_DrawPos))},\
-                    {JUDGELINE_WIDTH * lineScaleY},\
-                    '{judgeLine_webCanvas_color}'\
-                );",
-                add_code_array = True
-            )
-            
-        if debug and line.attachUI is None and tool_funcs.pointInScreen(linePos, w, h):
-            drawDebugText(f"{line_index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
-            
-            Task(
-                root.run_js_code,
-                f"ctx.fillRectEx(\
-                    {linePos[0] - (w + h) / 250},\
-                    {linePos[1] - (w + h) / 250},\
-                    {(w + h) / 250 * 2},\
-                    {(w + h) / 250 * 2},\
-                    'rgb(238, 130, 238)'\
-                );",
-                add_code_array = True
-            )
-        
-        line.playingFloorPosition = line.GetFloorPositionByTime(now_t)
-        for note in line.renderNotes.copy():
+    def process(notes: list[chartobj_rpe.Note]):
+        for note in notes.copy():
             note_clicked = note.startTime.value < beatTime
             
             if note_clicked and not note.clicked:
@@ -1011,16 +931,16 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     Task.ExTask.append(("psound", note.phitype))
             
             if not note.ishold and note.clicked:
-                line.renderNotes.remove(note)
+                notes.remove(note)
                 continue
             elif note.ishold and beatTime > note.endTime.value:
-                line.renderNotes.remove(note)
+                notes.remove(note)
                 continue
             elif noautoplay and note.state == const.NOTE_STATE.BAD:
-                line.renderNotes.remove(note)
+                notes.remove(note)
                 continue
             elif noautoplay and not note.ishold and note.player_clicked:
-                line.renderNotes.remove(note)
+                notes.remove(note)
                 continue
             
             noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h
@@ -1200,7 +1120,92 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         );",
                         add_code_array = True
                     )
-               
+    
+    for line_index, line in enumerate(chart_obj.JudgeLineList):
+        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t, line.bpmfactor), (255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor(), chart_obj)
+        beatTime = chart_obj.sec2beat(now_t, line.bpmfactor)
+        if judgeline_notransparent: lineAlpha = 1.0
+        linePos = (linePos[0] * w, linePos[1] * h)
+        judgeLine_DrawPos = (
+            *tool_funcs.rotate_point(*linePos, lineRotate, w * 4000 / const.RPE_WIDTH * lineScaleX / 2),
+            *tool_funcs.rotate_point(*linePos, lineRotate + 180, w * 4000 / const.RPE_WIDTH * lineScaleX / 2)
+        )
+        negative_alpha = lineAlpha < 0.0
+        judgeLine_webCanvas_color = f"rgba{lineColor + (lineAlpha, )}"
+        
+        if line.Texture != "line.png" and lineAlpha > 0.0:
+            _, texture_size = chart_res[line.Texture]
+            texture_width, texture_height = tool_funcs.conimgsize(*texture_size, w * lineScaleX, h * lineScaleY)
+            if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
+                Task(
+                    root.run_js_code,
+                    f"{f"setTextureLineColorFilterColorMatrixValueByRgbValue{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}ctx.drawRotateImage(\
+                        {root.get_img_jsvarname(f"lineTexture_{line_index}")},\
+                        {linePos[0]},\
+                        {linePos[1]},\
+                        {texture_width},\
+                        {texture_height},\
+                        {lineRotate},\
+                        {lineAlpha}\
+                    ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",
+                    add_code_array = True
+                )
+        elif lineText is not None and lineAlpha > 0.0:
+            Task(
+                root.run_js_code,
+                f"ctx.drawRotateText(\
+                    '{root.string2cstring(lineText)}',\
+                    {linePos[0]},\
+                    {linePos[1]},\
+                    {lineRotate},\
+                    {(w + h) / 75 * 1.35},\
+                    '{judgeLine_webCanvas_color}',\
+                    {lineScaleX},\
+                    {lineScaleY}\
+                );",
+                add_code_array = True
+            )
+        elif line.attachUI is not None:
+            if line.attachUI in ("combonumber", "combo", "score", "name", "level", "pause"):
+                attachUIData.update({
+                    f"{line.attachUI}UI_dx": linePos[0] - w / 2,
+                    f"{line.attachUI}UI_dy": linePos[1] - h / 2,
+                    f"{line.attachUI}UI_scaleX": lineScaleX,
+                    f"{line.attachUI}UI_scaleY": lineScaleY,
+                    f"{line.attachUI}UI_color": judgeLine_webCanvas_color,
+                    f"{line.attachUI}UI_rotate": lineRotate
+                })
+        elif lineAlpha > 0.0 and tool_funcs.lineInScreen(w, h, judgeLine_DrawPos):
+            Task(
+                root.run_js_code,
+                f"ctx.drawLineEx(\
+                    {",".join(map(str, judgeLine_DrawPos))},\
+                    {JUDGELINE_WIDTH * lineScaleY},\
+                    '{judgeLine_webCanvas_color}'\
+                );",
+                add_code_array = True
+            )
+            
+        if debug and line.attachUI is None and tool_funcs.pointInScreen(linePos, w, h):
+            drawDebugText(f"{line_index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
+            
+            Task(
+                root.run_js_code,
+                f"ctx.fillRectEx(\
+                    {linePos[0] - (w + h) / 250},\
+                    {linePos[1] - (w + h) / 250},\
+                    {(w + h) / 250 * 2},\
+                    {(w + h) / 250 * 2},\
+                    'rgb(238, 130, 238)'\
+                );",
+                add_code_array = True
+            )
+        
+        line.playingFloorPosition = line.GetFloorPositionByTime(now_t)
+        
+        process(line.renderNotesAbove)
+        process(line.renderNotesBelow)
+        
     effect_time = 0.5
     miss_effect_time = 0.2
     bad_effect_time = 0.5
