@@ -310,10 +310,8 @@ def aconrpepos(x: float, y: float):
     )
 
 def conimgsize(w: int, h: int, sw: int, sh: int):
-    return (
-        w / const.RPE_WIDTH * sw,
-        h / const.RPE_HEIGHT * sh
-    )
+    rw = w / const.RPE_WIDTH * sw
+    return rw, rw / w * h
 
 def Format_Time(t: int|float) -> str:
     if t < 0.0: t = 0.0
