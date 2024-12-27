@@ -1021,9 +1021,12 @@ root = webcv.WebCanvas(
     debug = "--debug" in sys.argv,
     resizable = False,
     frameless = "--frameless" in sys.argv,
-    renderdemand = "--renderdemand" in sys.argv
+    renderdemand = "--renderdemand" in sys.argv,
+    renderasync = "--renderasync" in sys.argv,
+    jslog = "--enable-jslog" in sys.argv,
+    jslog_path = sys.argv[sys.argv.index("--jslog-path")] if "--jslog-path" in sys.argv else "./ppr-jslog-nofmt.js"
 )
-        
+
 webdpr = root.run_js_code("window.devicePixelRatio;")
 if webdpr != 1.0:
     lowquality = True

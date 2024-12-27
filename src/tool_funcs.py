@@ -3,6 +3,7 @@ import math
 import base64
 import random
 import logging
+import time
 from sys import argv
 from threading import Thread
 from os import listdir, environ
@@ -1078,7 +1079,26 @@ class PhigrosPlayLogicManager:
                     *e[1:-1],
                     eval(f"lambda w, h: ({npos[0]} * w, {npos[1]} * h)") if self.pp.nproxy_typeis(n, const.Note.HOLD) and self.pp.nproxy_stime(n) >= t else e[-1]
                 ))
-           
+
+class FramerateCalculator:
+    def __init__(self):
+        self._frame_count = 0
+        self._frame_lastt = time.perf_counter()
+        self._frame_checklimit = 25
+        self.framerate = -1
+    
+    def frame(self):
+        self._frame_count += 1
+        
+        if self._frame_count >= self._frame_checklimit:
+            uset = time.perf_counter() - self._frame_lastt
+            self.framerate = (self._frame_count / uset) if uset else float("inf")
+            self._frame_count = 0
+            self._frame_lastt = time.perf_counter()
+            
+            if self.framerate != float("inf"):
+                self._frame_checklimit = self.framerate * 0.1
+
 if environ.get("ENABLE_JIT", "0") == "1":
     import numba
     

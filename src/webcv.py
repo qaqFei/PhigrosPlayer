@@ -23,15 +23,21 @@ framerate_counter = '''\
 
 _frame_count = 0;
 _frame_lastreftime = performance.now();
+_framerate_ckeck_limit = 25;
 framerate = -1;
-framerate_ckeck_limit = 25;
 
 _frame_counter = () => {
     _frame_count++;
-    if (_frame_count >= framerate_ckeck_limit) {
-        framerate = _frame_count / ((performance.now() - _frame_lastreftime) / 1000);
-        _frame_lastreftime = performance.now();
+    
+    if (_frame_count >= _framerate_ckeck_limit) {
+        const uset = performance.now() - _frame_lastreftime;
+        framerate = uset != 0.0 ? _frame_count / (uset / 1000) : Infinity;
         _frame_count = 0;
+        _frame_lastreftime = performance.now();
+        
+        if (framerate != Infinity) {
+            _framerate_ckeck_limit = framerate * 0.25;
+        }
     }
     
     requestAnimationFrame(_frame_counter);
@@ -151,7 +157,10 @@ class WebCanvas:
         resizable: bool = True,
         frameless: bool = False,
         html_path: str = ".\\web_canvas.html",
-        renderdemand: bool = False
+        renderdemand: bool = False,
+        renderasync: bool = False,
+        jslog: bool = False,
+        jslog_path: str = ".\\web_canvas.jslog.txt"
     ):
         self.jsapi = JsApi()
         self._destroyed = threading.Event()
@@ -159,9 +168,16 @@ class WebCanvas:
         self._regres: dict[str, bytes] = {}
         self._is_loadimg: dict[str, bool] = {}
         self._jscodes: list[str] = []
-        self._rdevent = threading.Event()
         self._framerate: int|float = -1
+        
+        self._rdevent = threading.Event()
+        self._raevent = threading.Event()
         self.renderdemand = renderdemand
+        self.renderasync = renderasync
+        
+        self.jslog = jslog
+        self.jslog_path = jslog_path
+        self.jslog_f = open(jslog_path, "w", encoding="utf-8") if self.jslog else None
         
         self.web = webview.create_window(
             title = title,
@@ -192,6 +208,7 @@ class WebCanvas:
         threading.Thread(target=self.file_server.serve_forever, daemon=True).start()
         
         self.jsapi.set_attr("_rdcallback", self._rdevent.set)
+        self._raevent.set()
     
     def title(self, title: str) -> str: self.web.set_title(title)
     def winfo_screenwidth(self) -> int: return screen_width
@@ -205,19 +222,39 @@ class WebCanvas:
     def move(self, x: int, y:int): self.web.move(x, y)
     
     def run_js_code(self, code: str, add_code_array: bool = False):
+        if self.jslog and not code.endswith(";"): code += ";"
         return self._jscodes.append(code) if add_code_array else self.web.evaluate_js(code)
     
-    def run_js_wait_code(self):
-        self.run_js_code("requestAnimationFrame(() => pywebview.api.call_attr('_rdcallback'));", add_code_array=True)
-        self.run_js_code("if (!('_frame_counter' in window)) {&FRAMERATE_CODE&};".replace("&FRAMERATE_CODE&", framerate_counter), add_code_array=True)
-        framerate: int|float = self.web.evaluate_js(f"{self._jscodes}.forEach(r2eval);\nframerate;")
-        self._jscodes.clear()
+    def _rjwc(self, codes: list[str]):
+        framerate: int|float = self.web.evaluate_js(f"{codes}.forEach(r2eval);\nframerate;")
         
         if self.renderdemand:
             self._rdevent.wait()
             self._rdevent.clear()
         
         self._framerate = framerate
+        
+        if self.renderasync:
+            self._raevent.set()
+    
+    def run_js_wait_code(self):
+        self.run_js_code("requestAnimationFrame(() => pywebview.api.call_attr('_rdcallback'));", add_code_array=True)
+        self.run_js_code("if (!('_frame_counter' in window)) {&FRAMERATE_CODE&};".replace("&FRAMERATE_CODE&", framerate_counter), add_code_array=True)
+        
+        codes = self._jscodes.copy()
+        self._jscodes.clear()
+        
+        if self.jslog:
+            self.jslog_f.write("\n// JSCODE - FRAME - START //\n")
+            self.jslog_f.writelines(codes)
+            self.jslog_f.write("\n// JSCODE - FRAME - END //\n")
+        
+        if not self.renderasync:
+            return self._rjwc(codes)
+        else:
+            self._raevent.wait()
+            self._raevent.clear()
+            threading.Thread(target=self._rjwc, args=(codes, ), daemon=True).start()
     
     def string2cstring(self, code: str): return code.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"").replace("`", "\\`").replace("\n", "\\n")
     def string2sctring_hqm(self, code: str): return f"'{self.string2cstring(code)}'"
@@ -325,6 +362,11 @@ class WebCanvas:
     
     def wait_for_close(self) -> None:
         self._destroyed.wait()
+        
+        if self.jslog:
+            self.jslog_f.write(f"\n\n// Webview closed.\n")
+            self.jslog_f.flush()
+            self.jslog_f.close()
     
     def get_resource_path(self, name: str) -> str:
         return f"http://127.0.0.1:{self.web_port + 1}/{name}"

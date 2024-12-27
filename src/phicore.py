@@ -25,7 +25,7 @@ drawUI_Default_Kwargs = {
     f"{k}_{k2}": v
     for k in ("combonumber", "combo", "score", "name", "level", "pause") for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
 }
-lastCallDrawUI = - float("inf")
+mainFramerateCalculator = tool_funcs.FramerateCalculator()
 
 @dataclass
 class PhiCoreConfig:
@@ -264,7 +264,7 @@ def draw_background():
         add_code_array = True
     )
 
-# color一定要传rgba的
+# color 一定要传 rgba 的
 def draw_ui(
     process:float = 0.0,
     score:str = "0000000",
@@ -318,8 +318,6 @@ def draw_ui(
     pauseUI_color: str = "rgba(255, 255, 255, 1.0)",
     pauseUI_rotate: float = 0.0
 ):
-    global lastCallDrawUI
-    
     if clear:
         root.clear_canvas(wait_execute = True)
     if background:
@@ -453,9 +451,8 @@ def draw_ui(
         add_code_array = True
     )
     
-    try: fps = (1.0 / (time.time() - lastCallDrawUI))
-    except ZeroDivisionError: fps = float("inf")
     
+    fps = mainFramerateCalculator.framerate
     grap_fps = root.get_framerate()
     
     root.create_text(
@@ -476,7 +473,7 @@ def draw_ui(
     if animationing:
         root.run_js_code(f"ctx.translate(0, {- h / 7 + dy});", add_code_array = True)
     
-    lastCallDrawUI = time.time()
+    mainFramerateCalculator.frame()
              
 def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
     return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}   
