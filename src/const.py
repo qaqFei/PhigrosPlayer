@@ -38,12 +38,25 @@ class PHIGROS_LINKS:
     BILIBILI = "https://space.bilibili.com/414149787"
     QQ = "https://pd.qq.com/s/433r43ehu"
     PRIVACYPOLIC = "https://www.pigeongames.cn/news/2"
+
+class PHI_SORTMETHOD:
+    DEFAULT = 1
+    SONG_NAME = 2
+    DIFFICULTY = 3
+    SCORE = 4
     
 TYPE_STRING_MAP = {
     Note.TAP: "Tap",
     Note.DRAG: "Drag",
     Note.HOLD: "Hold",
     Note.FLICK: "Flick"
+}
+
+PHI_SORTMETHOD_STRING_MAP = {
+    PHI_SORTMETHOD.DEFAULT: "默认",
+    PHI_SORTMETHOD.SONG_NAME: "曲名",
+    PHI_SORTMETHOD.DIFFICULTY: "难度",
+    PHI_SORTMETHOD.SCORE: "成绩"
 }
         
 INF = float("inf")

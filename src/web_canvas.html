@@ -353,6 +353,15 @@
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawScaleImage = function(im, x, y, width, height, xs, ys) {
+        x += width / 2; y += height / 2;
+        this.save();
+        this.translate(x, y);
+        this.scale(xs, ys);
+        this.drawImage(im, -width / 2, -height / 2, width, height);
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.drawRotateText = function(text, x, y, deg, fontsize, color, xscale, yscale) {
         this.save();
         this.translate(x, y);

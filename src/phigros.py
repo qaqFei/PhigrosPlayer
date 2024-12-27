@@ -196,6 +196,7 @@ def Load_Resource():
     global SettingUIOtherDownIconHeight_Twitter, SettingUIOtherDownIconHeight_QQ, SettingUIOtherDownIconHeight_Bilibili
     global TapTapIconWidth, TapTapIconHeight
     global CheckedIconWidth, CheckedIconHeight
+    global SortIconWidth, SortIconHeight
     global LoadSuccess
     
     logging.info("Loading Resource...")
@@ -272,6 +273,7 @@ def Load_Resource():
         "PUIResume": Image.open("./resources/PUIResume.png"),
         "edit": Image.open("./resources/edit.png"),
         "close": Image.open("./resources/close.png"),
+        "sort": Image.open("./resources/sort.png"),
     }
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
@@ -319,6 +321,7 @@ def Load_Resource():
     respacker.reg_img(Resource["PUIResume"], "PUIResume")
     respacker.reg_img(Resource["edit"], "edit")
     respacker.reg_img(Resource["close"], "close")
+    respacker.reg_img(Resource["sort"], "sort")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -339,6 +342,8 @@ def Load_Resource():
     TapTapIconHeight = TapTapIconWidth / Resource["taptap"].width * Resource["taptap"].height
     CheckedIconWidth = w * 0.0140625
     CheckedIconHeight = CheckedIconWidth / Resource["checked"].width * Resource["checked"].height
+    SortIconWidth = w * 0.0171875
+    SortIconHeight = SortIconWidth / Resource["sort"].width * Resource["sort"].height
     
     for k,v in Resource["Levels"].items():
         respacker.reg_img(v, f"Level_{k}")
@@ -3681,6 +3686,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     clickedBackButton = False
+    choose_state = phigame_obj.ChartChooseUI_State()
     
     def clickBackButtonCallback(*args):
         nonlocal clickedBackButton
@@ -3688,6 +3694,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
         if not clickedBackButton:
             eventManager.unregEvent(clickBackButtonEvent)
+            eventManager.unregEvent(clickEvent)
             nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
             mixer.music.fadeout(500)
             Resource["UISound_4"].play()
@@ -3698,6 +3705,23 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         once = False
     )
     eventManager.regClickEvent(clickBackButtonEvent)
+    
+    def clickEventCallback(x, y):
+        # 反转排序
+        if tool_funcs.inrect(x, y, (
+            w * 0.14843750, h * (72 / 1080),
+            w * 0.14843750 + SortIconWidth, h * (72 / 1080) + SortIconHeight
+        )):
+            choose_state.sort_reverse = not choose_state.sort_reverse
+        
+        # 下一个排序方法
+        if tool_funcs.inrect(x, y, (
+            w * 0.16875, h * (69 / 1080),
+            w * 0.1953125, h * (96 / 1080)
+        )):
+            choose_state.next_sort_method()
+    
+    clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
     while True:
         root.clear_canvas(wait_execute = True)
@@ -3786,7 +3810,27 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             font = f"{(w + h) / 135}px PhigrosFont",
             textAlign = "left",
             textBaseline = "top",
-            fillStyle = f"rgb(255, 255, 255)", # ease again
+            fillStyle = f"rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawScaleImage(\
+                {root.get_img_jsvarname("sort")},\
+                {w * 0.14843750}, {h * (72 / 1080)},\
+                {SortIconWidth}, {SortIconHeight},\
+                1, {-1 if choose_state.sort_reverse else 1}\
+            );",
+            add_code_array = True
+        )
+        
+        root.create_text(
+            w * 0.16875, h * (69 / 1080),
+            const.PHI_SORTMETHOD_STRING_MAP[choose_state.sort_method],
+            font = f"{(w + h) / 100}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = f"rgb(255, 255, 255)",
             wait_execute = True
         )
         

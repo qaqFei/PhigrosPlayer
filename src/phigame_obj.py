@@ -682,3 +682,18 @@ class ChooseChartControl:
     
     def _slide_setfunc(self, x: float, y: float):
         print(y)
+
+@dataclass
+class ChartChooseUI_State:
+    sliding_index: int = 0
+    song_index: int = 0
+    sort_reverse: bool = False
+    sort_method: int = const.PHI_SORTMETHOD.DEFAULT
+
+    def next_sort_method(self):
+        tempmethod = self.sort_method + 1
+        
+        if tempmethod > const.PHI_SORTMETHOD.SCORE:
+            tempmethod = const.PHI_SORTMETHOD.DEFAULT
+            
+        self.sort_method = tempmethod
