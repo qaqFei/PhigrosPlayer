@@ -458,7 +458,7 @@ def Load_Resource():
         respacker.reg_img(v, f"Level_{k}")
         
     respacker.reg_img(Resource["le_warn"], "le_warn")
-    respacker.reg_img(animation_image, "begin_animation_image")
+    respacker.reg_img(chart_image, "begin_animation_image")
     respacker.reg_img(finish_animation_image, "finish_animation_image")
     respacker.reg_img(Resource["Button_Left"], "Button_Left")
     respacker.reg_img(Resource["Button_Right"], "Button_Right")

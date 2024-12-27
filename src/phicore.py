@@ -1530,13 +1530,18 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
         wait_execute = True
     )
     
+    baimg_w = w * im_size
+    baimg_h = h * im_size
+    dpower = tool_funcs.getDPower(baimg_w, baimg_h, 75)
     Task(
-        root.create_image,
-        "begin_animation_image",
-        w * 0.65 - w * im_size * 0.5, h * 0.5 - h * im_size * 0.5,
-        width = w * im_size,
-        height = h * im_size,
-        wait_execute = True
+        root.run_js_code,
+        f"ctx.drawDiagonalRectangleClipImage(\
+            {w * 0.65 - baimg_w / 2}, {h * 0.5 - baimg_h / 2},\
+            {w * 0.65 + baimg_w / 2}, {h * 0.5 + baimg_h / 2},\
+            {root.get_img_jsvarname("begin_animation_image")},\
+            0, 0, {baimg_w}, {baimg_h}, {dpower}, 1.0\
+        );",
+        add_code_array = True
     )
     
     Task(

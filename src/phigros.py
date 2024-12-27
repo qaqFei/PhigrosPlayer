@@ -3074,7 +3074,7 @@ def audioQARender():
     dspSettingWidgets.clear()
     dspSettingWidgets.update({
         "ValueLabel": phigame_obj.PhiLabel(
-            left_text = "DSP Buffer",
+            left_text = "Audio Mixer Buffer",
             right_text = "",
             fontsize = (w + h) / 75,
             color = "#FFFFFF"
@@ -3372,7 +3372,7 @@ def chartPlayerRender(
     finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
     tool_funcs.cutAnimationIllImage(finish_animation_image)
     
-    respacker.reg_img(animation_image, "begin_animation_image")
+    respacker.reg_img(chart_image, "begin_animation_image")
     respacker.reg_img(finish_animation_image, "finish_animation_image")
     
     respacker.load(*respacker.pack())
@@ -3778,6 +3778,16 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 'rgb(0, 0, 0)', {(w + h) * 0.001}\
             );",
             add_code_array = True
+        )
+        
+        root.create_text(
+            w * 0.1484375, h * (34 / 1080),
+            "排序方式",
+            font = f"{(w + h) / 135}px PhigrosFont",
+            textAlign = "left",
+            textBaseline = "top",
+            fillStyle = f"rgb(255, 255, 255)", # ease again
+            wait_execute = True
         )
         
         drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
