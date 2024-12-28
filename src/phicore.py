@@ -318,161 +318,120 @@ def draw_ui(
     pauseUI_color: str = "rgba(255, 255, 255, 1.0)",
     pauseUI_rotate: float = 0.0
 ):
-    if clear:
-        root.clear_canvas(wait_execute = True)
-    if background:
-        draw_background()
-    
-    if animationing:
-        root.run_js_code(f"ctx.translate(0,{- h / 7 + dy});",add_code_array=True)
-    
-    root.run_js_code(
-        f"ctx.fillRectEx(\
-            0, 0,\
-            {w * process}, {h / 125},\
-            'rgba(145, 145, 145, 0.85)',\
-        )",
-        add_code_array = True
-    )
-    
-    root.run_js_code(
-        f"ctx.fillRectEx(\
-            {w * process - w * 0.002}, 0,\
-            {w * 0.002}, {h / 125},\
-            'rgba(255, 255, 255, 0.9)',\
-        )",
-        add_code_array = True
-    )
-    
-    root.run_js_code(
-        f"ctx.drawUIText(\
-            '{root.string2cstring(score)}',\
-            {w * 0.988 + scoreUI_dx},\
-            {h * (58 / 1080) + scoreUI_dy},\
-            {scoreUI_rotate},\
-            {scoreUI_scaleX},\
-            {scoreUI_scaleY},\
-            '{scoreUI_color}',\
-            {(w + h) / 75 / 0.75},\
-            'right',\
-        );",
-        add_code_array = True
-    )
-    
-    if rtacc:
-        root.run_js_code(
-            f"ctx.drawUIText(\
-                '{root.string2cstring(acc)}',\
-                {w * 0.988 + scoreUI_dx},\
-                {h * (58 / 1080) + (w + h) / 145 / 0.75 * 1.5 + scoreUI_dy},\
-                {scoreUI_rotate},\
-                {scoreUI_scaleX},\
-                {scoreUI_scaleY},\
-                '{scoreUI_color}',\
-                {(w + h) / 145 / 0.75},\
-                'right',\
-            );",
-            add_code_array = True
-        )
-    
-    if combo_state:
-        root.run_js_code(
-            f"ctx.drawUIText(\
-                '{root.string2cstring(f"{combo}")}',\
-                {w / 2 + combonumberUI_dx},\
-                {h * 0.05 + combonumberUI_dy},\
-                {combonumberUI_rotate},\
-                {combonumberUI_scaleX},\
-                {combonumberUI_scaleY},\
-                '{combonumberUI_color}',\
-                {(w + h) / 64.51 / 0.75},\
-                'center',\
-            );",
-            add_code_array = True
-        )
-        
-        root.run_js_code(
-            f"ctx.drawUIText(\
-                '{root.string2cstring(combotips)}',\
-                {w / 2 + comboUI_dx},\
-                {h * 0.095 + comboUI_dy},\
-                {comboUI_rotate},\
-                {comboUI_scaleX},\
-                {comboUI_scaleY},\
-                '{comboUI_color}',\
-                {(w + h) / 142 / 0.75},\
-                'center',\
-            );",
-            add_code_array = True
-        )
+    if clear: root.clear_canvas(wait_execute = True)
+    if background: draw_background()
     
     pauseImgWidth, pauseImgHeight = w * (36 / 1920) * pauseUI_scaleX, h * (41 / 1080) * pauseUI_scaleY
     pauseImgAlpha = pauseUI_color.split(")")[-2].split(",")[-1].replace(" ", "")
-    root.run_js_code(
-        f"ctx.drawRotateImage(\
-            {root.get_img_jsvarname("PauseImg")},\
-            {w * (36 / 1920) + pauseImgWidth / 2 + pauseUI_dx}, {h * (41 / 1080) + pauseImgHeight / 2 + pauseUI_dy},\
-            {pauseImgWidth}, {pauseImgHeight},\
-            {pauseUI_rotate}, {pauseImgAlpha}\
-        );",
-        add_code_array = True
-    )
-    
-    if animationing:
-        root.run_js_code(f"ctx.translate(0,-2 * {- h / 7 + dy});",add_code_array=True)
-        
-    root.run_js_code(
-        f"ctx.drawUIText(\
-            '{root.string2cstring(chart_information["Name"])}',\
-            {w * 0.0125 + nameUI_dx},\
-            {h * 0.976 - (w + h) / 125 / 0.75 / 2 + nameUI_dy},\
-            {nameUI_rotate},\
-            {nameUI_scaleX},\
-            {nameUI_scaleY},\
-            '{nameUI_color}',\
-            {(w + h) / 125 / 0.75},\
-            'left',\
-        );",
-        add_code_array = True
-    )
-        
-    root.run_js_code(
-        f"ctx.drawUIText(\
-            '{root.string2cstring(chart_information["Level"])}',\
-            {w * 0.9875 + levelUI_dx},\
-            {h * 0.976 - (w + h) / 125 / 0.75 / 2 + levelUI_dy},\
-            {levelUI_rotate},\
-            {levelUI_scaleX},\
-            {levelUI_scaleY},\
-            '{levelUI_color}',\
-            {(w + h) / 125 / 0.75},\
-            'right',\
-        );",
-        add_code_array = True
-    )
-    
-    
     fps = mainFramerateCalculator.framerate
     reqaf_fps = root.get_framerate()
     
-    root.create_text(
-        text = (
-            (f"fps {fps:.0f} - " if showfps else "")
-            + (f"reqaf fps {reqaf_fps:.0f} - " if showfps else "")
-            + "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License"
-        ),
-        x = w * 0.9875,
-        y = h * 0.995,
-        textAlign = "right",
-        textBaseline = "bottom",
-        fillStyle = "rgba(255, 255, 255, 0.5)",
-        font = f"{((w + h) / 275 / 0.75)}px PhigrosFont",
-        wait_execute = True
-    )
+    uidata = [
+        {
+            "type": "call",
+            "name": "translate", "args": [0, - h / 7  + dy]
+        } if animationing else None,
+        {
+            "type": "call",
+            "name": "fillRectEx", "args": [
+                0, 0, w * process, h / 125,
+                "rgba(145, 145, 145, 0.85)"
+            ]
+        },
+        {
+            "type": "call",
+            "name": "fillRectEx", "args": [
+                w * process - w * 0.002, 0,
+                w * 0.002, h / 125,
+                "rgba(255, 255, 255, 0.9)"
+            ]
+        },
+        {
+            "type": "text",
+            "text": f"{score}", "fontsize": (w + h) / 75 / 0.75,
+            "textBaseline": "middle", "textAlign": "right",
+            "x": w * 0.988, "y": h * (58 / 1080),
+            "dx": scoreUI_dx, "dy": scoreUI_dy,
+            "sx": scoreUI_scaleX, "sy": scoreUI_scaleY,
+            "color": scoreUI_color, "rotate": scoreUI_rotate
+        },
+        {
+            "type": "text",
+            "text": f"{acc}", "fontsize": (w + h) / 145 / 0.75,
+            "textBaseline": "middle", "textAlign": "right",
+            "x": w * 0.988, "y": h * (58 / 1080) + (w + h) / 145 / 0.75 * 1.5,
+            "dx": scoreUI_dx, "dy": scoreUI_dy,
+            "sx": scoreUI_scaleX, "sy": scoreUI_scaleY,
+            "color": scoreUI_color, "rotate": scoreUI_rotate
+        } if rtacc else None,
+        {
+            "type": "text",
+            "text": f"{combo}", "fontsize": (w + h) / 64.51 / 0.75,
+            "textBaseline": "middle", "textAlign": "center",
+            "x": w / 2, "y": h * 0.05,
+            "dx": combonumberUI_dx, "dy": combonumberUI_dy,
+            "sx": combonumberUI_scaleX, "sy": combonumberUI_scaleY,
+            "color": combonumberUI_color, "rotate": combonumberUI_rotate
+        } if combo_state else None,
+        {
+            "type": "text",
+            "text": f"{combotips}", "fontsize": (w + h) / 142 / 0.75,
+            "textBaseline": "middle", "textAlign": "center",
+            "x": w / 2, "y": h * 0.095,
+            "dx": comboUI_dx, "dy": comboUI_dy,
+            "sx": comboUI_scaleX, "sy": comboUI_scaleY,
+            "color": comboUI_color, "rotate": comboUI_rotate
+        } if combo_state else None,
+        {
+            "type": "image",
+            "image": root.get_img_jsvarname("PauseImg"),
+            "x": w * (36 / 1920), "y": h * (41 / 1080),
+            "dx": pauseUI_dx, "dy": pauseUI_dy,
+            "width": pauseImgWidth, "height": pauseImgHeight,
+            "rotate": pauseUI_rotate, "alpha": pauseImgAlpha
+        },
+        {
+            "type": "call",
+            "name": "translate", "args": [0, -2 * (- h / 7 + dy)]
+        } if animationing else None,
+        {
+            "type": "text",
+            "text": chart_information["Name"], "fontsize": (w + h) / 125 / 0.75,
+            "textBaseline": "middle", "textAlign": "left",
+            "x": w * 0.0125, "y": h * 0.976 - (w + h) / 125 / 0.75 / 2,
+            "dx": nameUI_dx, "dy": nameUI_dy,
+            "sx": nameUI_scaleX, "sy": nameUI_scaleY,
+            "color": nameUI_color, "rotate": nameUI_rotate
+        },
+        {
+            "type": "text",
+            "text": chart_information["Level"], "fontsize": (w + h) / 125 / 0.75,
+            "textBaseline": "middle", "textAlign": "right",
+            "x": w * 0.9875, "y": h * 0.976 - (w + h) / 125 / 0.75 / 2,
+            "dx": levelUI_dx, "dy": levelUI_dy,
+            "sx": levelUI_scaleX, "sy": levelUI_scaleY,
+            "color": levelUI_color, "rotate": levelUI_rotate
+        },
+        {
+            "type": "text",
+            "text": (
+                (f"fps {fps:.0f} - " if showfps else "")
+                + (f"reqaf fps {reqaf_fps:.0f} - " if showfps else "")
+                + "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License"
+            ), "fontsize": (w + h) / 275 / 0.75,
+            "textBaseline": "bottom", "textAlign": "right",
+            "x": w * 0.9875, "y": h * 0.995,
+            "dx": 0.0, "dy": 0.0,
+            "sx": 1.0, "sy": 1.0,
+            "color": "rgba(255, 255, 255, 0.5)", "rotate": 0.0
+        },
+        {
+            "type": "call",
+            "name": "translate", "args": [0, - h / 7 + dy]
+        } if animationing else None
+    ]
     
-    if animationing:
-        root.run_js_code(f"ctx.translate(0, {- h / 7 + dy});", add_code_array = True)
-    
+    root.run_js_code(f"ctx.drawUIItems({uidata});", add_code_array = True)
     mainFramerateCalculator.frame()
              
 def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
