@@ -608,36 +608,16 @@
     }
 
     CanvasRenderingContext2D.prototype.drawUIItems = function(datas) {
-        this.save();
-        this.textBaseline = "top";
-        this.textAlign = "left";
-
         for (let i of datas) {
             if (i == null) continue;
 
             if (i.type == "text") {
                 this.save();
                 this.font = `${i.fontsize}px PhigrosFont`;
-
-                if (i.textBaseline != "top" || i.textAlign != "left") {
-                    measureText = this.measureText(i.text);
-
-                    if (i.textBaseline != "top") {
-                        let textheight = measureText.fontBoundingBoxDescent;
-                        if (i.textBaseline == "middle") i.y -= textheight / 2;
-                        else i.y -= textheight;
-                    }
-
-                    if (i.textAlign != "left") {
-                        let textwidth = measureText.width;
-                        if (i.textAlign == "center") i.x -= textwidth / 2;
-                        else i.x -= textwidth;
-                    }
-                }
-
+                this.textBaseline = i.textBaseline;
+                this.textAlign = i.textAlign;
                 this.fillStyle = i.color;
-                i.x += i.dx; i.y += i.dy;
-                this.translate(i.x, i.y);
+                this.translate(i.x + i.dx, i.y + i.dy);
                 if (i.sx != 1.0 || i.sy != 1.0) this.scale(i.sx, i.sy);
                 if (i.rotate != 0.0) this.rotate(i.rotate * Math.PI / 180);
                 this.fillText(i.text, 0, 0);
@@ -646,19 +626,16 @@
             else if (i.type == "image") {
                 this.save();
                 let img = eval(i.image);
-                i.x += i.dx; i.y += i.dy;
-                this.translate(i.x, i.y);
+                this.translate(i.x + i.dx + i.width / 2, i.y + i.dy + i.height / 2);
                 if (i.rotate != 0.0) this.rotate(i.rotate * Math.PI / 180);
                 if (i.alpha != 1.0) this.globalAlpha = i.alpha;
-                this.drawImage(img, 0, 0, i.width, i.height);
+                this.drawImage(img, -i.width / 2, -i.height / 2, i.width, i.height);
                 this.restore();
             }
             else if (i.type == "call") {
                 this[i.name](...i.args);
             }
         }
-
-        this.restore();
     }
 
     CanvasRenderingContext2D.prototype.clear = function() {
