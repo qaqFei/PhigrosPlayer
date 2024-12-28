@@ -72,10 +72,15 @@ class ByteReaderB:
         self.position += 4
         return int.from_bytes(self.data[self.position - 4 : self.position], "little")
 
-def run(pgrapk: str, rpe: bool):
-    print("unpack apk...")
-    unpack_apk(pgrapk)
-    print("unpacked apk")
+def getZipItem(path: str) -> str:
+    popen(f".\\7z.exe x \"{pgrapk}\" \"{path}\" -o.\\unpack-temp -y >> nul").read()
+    return f".\\unpack-temp\\{path}"
+
+def run(rpe: bool):
+    try: rmtree("unpack-temp")
+    except Exception: pass
+    try: mkdir("unpack-temp")
+    except FileExistsError: pass
     
     print("generate info.json...")
     infoResult = generate_info()
@@ -92,14 +97,6 @@ def run(pgrapk: str, rpe: bool):
     try: rmtree("unpack-temp")
     except Exception: pass
 
-def unpack_apk(pgrapk: str):
-    try: rmtree("unpack-temp")
-    except Exception: pass
-    try: mkdir("unpack-temp")
-    except FileExistsError: pass
-    
-    popen(f".\\7z.exe x \"{pgrapk}\" -o.\\unpack-temp -y >> nul").read()
-
 def generate_info():
     try: rmtree("unpack-result")
     except Exception: pass
@@ -108,10 +105,10 @@ def generate_info():
     
     env = UnityPy.Environment()
     env.load_file(
-        open("./unpack-temp/assets/bin/Data/globalgamemanagers.assets", "rb").read(),
+        open(getZipItem("/assets/bin/Data/globalgamemanagers.assets"), "rb").read(),
         name = "assets/bin/Data/globalgamemanagers.assets"
     )
-    env.load_file(open("./unpack-temp/assets/bin/Data/level0", "rb").read())
+    env.load_file(open(getZipItem("/assets/bin/Data/level0"), "rb").read())
             
     for obj in env.objects:
         if obj.type.name != "MonoBehaviour": continue
@@ -185,7 +182,7 @@ def generate_info():
     return chartItems
 
 def generate_resources():
-    with open("./unpack-temp/assets/aa/catalog.json", "r", encoding="utf-8") as f:
+    with open(getZipItem("/assets/aa/catalog.json"), "r", encoding="utf-8") as f:
         catalog = json.load(f)
     
     for i in [
@@ -281,7 +278,7 @@ def generate_resources():
                 match item[0]:
                     case "ke-unpack":
                         env = UnityPy.Environment()
-                        env.load_file(open(f"./unpack-temp/assets/aa/Android/{item[2]}", "rb").read(), name = item[1])
+                        env.load_file(open(getZipItem(f"/assets/aa/Android/{item[2]}"), "rb").read(), name = item[1])
                         for ikey, ientry in env.files.items():
                             save(ikey, ientry)
                         keunpack_count += 1
@@ -436,4 +433,5 @@ if __name__ == "__main__":
         print("Usage: tool-unpack <apk>")
         raise SystemExit
     
-    run(argv[1], "--rpe" in argv)
+    pgrapk = argv[1]
+    run("--rpe" in argv)
