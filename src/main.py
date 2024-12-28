@@ -87,6 +87,7 @@ noplaychart = "--noplaychart" in sys.argv
 clicksound_volume = float(sys.argv[sys.argv.index("--clicksound-volume") + 1]) if "--clicksound-volume" in sys.argv else 1.0
 musicsound_volume = float(sys.argv[sys.argv.index("--musicsound-volume") + 1]) if "--musicsound-volume" in sys.argv else 1.0
 lowquality_imjscvscale_x = float(sys.argv[sys.argv.index("--lowquality-imjscvscale-x") + 1]) if "--lowquality-imjscvscale-x" in sys.argv else 1.0
+lowquality_imjs_maxsize = float(sys.argv[sys.argv.index("--lowquality-imjs-maxsize") + 1]) if "--lowquality-imjs-maxsize" in sys.argv else 256
 enable_controls = "--enable-controls" in sys.argv
 lfdaot_video_fourcc = sys.argv[sys.argv.index("--lfdaot-video-fourcc") + 1] if "--lfdaot-video-fourcc" in sys.argv else "mp4v"
 record_play = "--record-play" in sys.argv
@@ -1060,6 +1061,7 @@ else:
     root.move(int(root.winfo_screenwidth() / 2 - (winw + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (winh + dh_legacy) / webdpr / 2))
 
 root.run_js_code(f"lowquality_imjscvscale_x = {lowquality_imjscvscale_x};")
+root.run_js_code(f"lowquality_imjs_maxsize = {lowquality_imjs_maxsize};")
 root.run_js_code(f"resizeCanvas({w}, {h});")
     
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h

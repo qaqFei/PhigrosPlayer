@@ -51,6 +51,7 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --phira-chart-save <string-value>: Save the phira chart. (Front-loaded arg: --phira-chart)
   --skip-time <number-value>: Skip time on playing chart. (default: 0.0)
   --jslog-path <filepath-string-value>: Set the js log file path. (Front-loaded arg: --enable-jslog)
+  --lowquality-imjs-maxsize <number-value>: Set the max size of low quality render (js call layer). (default: 256)
 
 <Environment Variables>
   ENABLE_JIT: Enable JIT, WARNING: it will make start slowly. (default: 0, env values: ["0", "1"])
@@ -107,6 +108,7 @@ HELP_ZH = '''\
   --phira-chart-save <字符串>: 保存 phira 谱面. (前置参数: --phira-chart)
   --skip-time <数字>: 播放时跳过的时间. 默认 = 0.0
   --jslog-path <文件路径字符串>: 设置 JavaScript 代码输出路径 (前置参数: --enable-jslog)
+  --lowquality-imjs-maxsize <数字>: 设置低画质渲染最大尺寸 (js调用层). 默认 = 256
 
 <环境变量>
   ENABLE_JIT: 启用 JIT, 警告: 这会使启动慢 (默认: 0, 环境变量值: ["0", "1"])

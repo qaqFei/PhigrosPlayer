@@ -453,12 +453,12 @@ def draw_ui(
     
     
     fps = mainFramerateCalculator.framerate
-    grap_fps = root.get_framerate()
+    reqaf_fps = root.get_framerate()
     
     root.create_text(
         text = (
             (f"fps {fps:.0f} - " if showfps else "")
-            + (f"grap fps {grap_fps:.0f} - " if showfps else "")
+            + (f"reqaf fps {reqaf_fps:.0f} - " if showfps else "")
             + "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License"
         ),
         x = w * 0.9875,

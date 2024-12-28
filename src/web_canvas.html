@@ -80,6 +80,7 @@
     lfdaot_render_fcount = 0;
     lowquality_scale = 1.0;
     lowquality_imjscvscale_x = 1.0;
+    lowquality_imjs_maxsize = 256;
     lfdaot_render_video_stop = false;
     const textureLineColorFilterColorMatrix = document.getElementById("textureLineColorFilterColorMatrix");
     const letters = [
@@ -301,7 +302,7 @@
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
-        if (lowquality_imjscvscale_x != 1.0) {
+        if (lowquality_imjscvscale_x != 1.0 && args[0].width > lowquality_imjs_maxsize && args[0].height > lowquality_imjs_maxsize) {
             let im = args[0];
             if (!lowquality_imweakmap.get(im) && !im._lowquality_pcsing) {
                 im._lowquality_pcsing = true;
