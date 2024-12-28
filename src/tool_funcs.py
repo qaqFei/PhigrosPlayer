@@ -4,9 +4,8 @@ import base64
 import random
 import logging
 import time
-import threading
-from queue import Queue
 from sys import argv
+from threading import Thread
 from os import listdir, environ
 from os.path import isfile
 from dataclasses import dataclass
@@ -288,14 +287,14 @@ def noteLineOutOfScreen(
 
 def ThreadFunc(f):
     def wrapper(*args, **kwargs):
-        t = threading.Thread(target=f, args=args, kwargs=kwargs, daemon=True)
+        t = Thread(target=f, args=args, kwargs=kwargs, daemon=True)
         t.start()
         t.join()
     return wrapper
 
 def NoJoinThreadFunc(f):
     def wrapper(*args, **kwargs):
-        t = threading.Thread(target=f, args=args, kwargs=kwargs, daemon=True)
+        t = Thread(target=f, args=args, kwargs=kwargs, daemon=True)
         t.start()
     return wrapper
 
@@ -1099,21 +1098,6 @@ class FramerateCalculator:
             
             if self.framerate != float("inf"):
                 self._frame_checklimit = self.framerate * 0.1
-
-class DebugPrinter:
-    def __init__(self):
-        self.q = Queue()
-    
-    def print(self, *args, **kwargs):
-        self.q.put((args, kwargs))
-    
-    def _main(self):
-        while True:
-            args, kwargs = self.q.get()
-            print(*args, **kwargs)
-    
-    def start(self):
-        threading.Thread(target=self._main, daemon=True).start()
 
 if environ.get("ENABLE_JIT", "0") == "1":
     import numba
