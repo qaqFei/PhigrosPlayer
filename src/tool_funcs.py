@@ -314,6 +314,34 @@ def conimgsize(w: int, h: int, sw: int, sh: int):
     rw = w / const.RPE_WIDTH * sw
     return rw, rw / w * h
 
+# thanks for HLMC (https://github.com/2278535805)
+def rpe_text_tween(sv: str, ev: str, t: float, isfill: bool) -> str:
+    if "%P%" in sv and "%P%" in ev:
+        sv, ev = sv.replace("%P%", ""), ev.replace("%P%", "")
+        if isfill: return sv
+        
+        try: sv, ev = float(sv), float(ev)
+        except ValueError: return "0"
+        
+        v = sv + t * (ev - sv)
+        return f"{v:.0f}" if int(sv) == sv and int(ev) == ev else f"{v:.3f}"
+            
+    elif not sv and not ev:
+        return ""
+    elif not ev:
+        return rpe_text_tween(ev, sv.replace("%P%", ""), 1.0 - t, isfill)
+    elif not sv:
+        return ev[:int(t * len(ev))]
+    
+    else:
+        xl, yl = len(sv), len(ev)
+        ml = min(xl, yl)
+        if sv[:ml] == ev[:ml]:
+            take_num = int(round((yl - xl) * t)) + xl
+            return sv + ev[xl:take_num]
+        else:
+            return sv.replace("%P%", "")
+        
 def Format_Time(t: int|float) -> str:
     if t < 0.0: t = 0.0
     m, s = t // 60, t % 60

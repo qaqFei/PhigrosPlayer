@@ -15,10 +15,10 @@ def _init_events(es: list[LineEvent]):
         if i != len(es) - 1:
             ne = es[i + 1]
             if e.endTime.value < ne.startTime.value:
-                aes.append(LineEvent(e.endTime, ne.startTime, e.end, e.end, 1))
+                aes.append(LineEvent(e.endTime, ne.startTime, e.end, e.end, 1, isfill=True))
     es.extend(aes)
     es.sort(key = lambda x: x.startTime.value)
-    if es: es.append(LineEvent(es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, 1))
+    if es: es.append(LineEvent(es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, 1, isfill=True))
 
 def geteasing_func(t: int):
     try:
@@ -161,6 +161,7 @@ class LineEvent:
     easingFunc: typing.Callable[[float], float] = rpe_easing.ease_funcs[0]
     
     floorPosition: float|None = None # only speed events have this
+    isfill: bool = False
     
     def __post_init__(self):
         self.easingFunc = geteasing_func(self.easingType)
@@ -301,7 +302,7 @@ class JudgeLine:
         if isinstance(e.start, float|int):
             return tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start, e.end, e.easingFunc)
         elif isinstance(e.start, str):
-            return e.start
+            return tool_funcs.rpe_text_tween(e.start, e.end, tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, 0.0, 1.0, e.easingFunc), e.isfill)
         elif isinstance(e.start, list):
             r = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], e.easingFunc)
             g = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], e.easingFunc)
