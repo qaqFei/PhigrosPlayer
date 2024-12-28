@@ -306,7 +306,7 @@
             let im = args[0];
             if (!lowquality_imweakmap.get(im) && !im._lowquality_pcsing) {
                 im._lowquality_pcsing = true;
-                (async() => {
+                (async () => {
                     let tempcv = document.createElement("canvas");
                     tempcv.width = Math.floor(im.width / lowquality_imjscvscale_x);
                     tempcv.height = Math.floor(im.height / lowquality_imjscvscale_x);
