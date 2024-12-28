@@ -878,7 +878,6 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     
     now_t -= chart_obj.META.offset / 1000
     attachUIData = {}
-    chart_obj.flushFrameCache()
     
     noautoplay = pplm is not None # reset a global variable
     if noautoplay:

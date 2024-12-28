@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import tool_funcs
 import rpe_easing
 import const
-        
+
 def _init_events(es: list[LineEvent]):
     aes = []
     for i, e in enumerate(es):
