@@ -73,6 +73,7 @@ class ByteReaderB:
         return int.from_bytes(self.data[self.position - 4 : self.position], "little")
 
 def getZipItem(path: str) -> str:
+    while path[0] in ("/", "\\"): path = path[1:]
     popen(f".\\7z.exe x \"{pgrapk}\" \"{path}\" -o.\\unpack-temp -y >> nul").read()
     return f".\\unpack-temp\\{path}"
 
