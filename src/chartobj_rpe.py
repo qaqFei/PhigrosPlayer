@@ -472,7 +472,9 @@ class Rpe_Chart:
     combotimes: list[float]|None = None
     
     def __post_init__(self):
+        self.BPMList = list(filter(lambda x: x.bpm != 0.0, self.BPMList))
         self.BPMList.sort(key=lambda x: x.startTime.value)
+        self.JudgeLineList = list(filter(lambda x: x.bpmfactor != 0.0, self.JudgeLineList))
         self.combotimes = []
         
         try: avgBpm = sum([e.bpm for e in self.BPMList]) / len(self.BPMList)
