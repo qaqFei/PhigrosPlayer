@@ -383,19 +383,6 @@
         this.restore();
     }
 
-    CanvasRenderingContext2D.prototype.drawUIText = function(text, x, y, deg, xscale, yscale, color, fontsize, align) {
-        this.save();
-        this.translate(x, y);
-        this.rotate(deg * Math.PI / 180);
-        this.scale(xscale, yscale);
-        this.fillStyle = color;
-        this.textAlign = align;
-        this.textBaseline = "middle";
-        this.font = `${fontsize}px PhigrosFont`;
-        this.fillText(text, 0, 0);
-        this.restore();
-    }
-
     CanvasRenderingContext2D.prototype.drawTextEx = function(text, x, y, font, color, align, baseline) {
         this.save();
         this.fillStyle = color;
@@ -652,7 +639,7 @@
                 i.x += i.dx; i.y += i.dy;
                 this.translate(i.x, i.y);
                 if (i.sx != 1.0 || i.sy != 1.0) this.scale(i.sx, i.sy);
-                if (i.rotate != 0.0) this.rotate(i.rotate);
+                if (i.rotate != 0.0) this.rotate(i.rotate * Math.PI / 180);
                 this.fillText(i.text, 0, 0);
                 this.restore();
             }
@@ -661,7 +648,7 @@
                 let img = eval(i.image);
                 i.x += i.dx; i.y += i.dy;
                 this.translate(i.x, i.y);
-                if (i.rotate != 0.0) this.rotate(i.rotate);
+                if (i.rotate != 0.0) this.rotate(i.rotate * Math.PI / 180);
                 if (i.alpha != 1.0) this.globalAlpha = i.alpha;
                 this.drawImage(img, 0, 0, i.width, i.height);
                 this.restore();
