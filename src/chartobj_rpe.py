@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import typing
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import tool_funcs
 import rpe_easing
@@ -309,14 +309,10 @@ class JudgeLine:
             return (r, g, b)
     
     def GetPos(self, t: float, master: Rpe_Chart) -> list[float, float]:
-        if self in master.positionCache: return master.positionCache[self]
-        
         linePos = [0.0, 0.0]
         for layer in self.eventLayers:
             linePos[0] += self.GetEventValue(t, layer.moveXEvents, 0.0)
             linePos[1] += self.GetEventValue(t, layer.moveYEvents, 0.0)
-        
-        result = linePos
             
         if self.father != -1:
             try:
@@ -328,12 +324,11 @@ class JudgeLine:
                     math.degrees(math.atan2(*linePos))
                     + sum([self.father.GetEventValue(fatherBeat, layer.rotateEvents, 0.0) for layer in self.father.eventLayers])
                 )
-                result = list(map(lambda v1, v2: v1 + v2, fatherPos, tool_funcs.rotate_point(0.0, 0.0, 90 - possitaValue, posabsValue)))
+                return list(map(lambda v1, v2: v1 + v2, fatherPos, tool_funcs.rotate_point(0.0, 0.0, 90 - possitaValue, posabsValue)))
             except IndexError:
                 pass
-        
-        master.positionCache[self] = result
-        return result
+            
+        return linePos
     
     def GetState(self, t: float, defaultColor: tuple[int, int, int], master: Rpe_Chart) -> tuple[tuple[float, float], float, float, tuple[int, int, int], float, float, str|None]:
         "linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText"
@@ -475,7 +470,6 @@ class Rpe_Chart:
     JudgeLineList: list[JudgeLine]
     
     combotimes: list[float]|None = None
-    positionCache: dict[JudgeLine, tuple[float, float]] = field(default_factory=dict)
     
     def __post_init__(self):
         self.BPMList = list(filter(lambda x: x.bpm != 0.0, self.BPMList))
@@ -557,9 +551,6 @@ class Rpe_Chart:
             else:
                 sec += t * (60 / bpmv)
         return sec
-
-    def flushFrameCache(self):
-        self.positionCache.clear()
 
     def __hash__(self) -> int:
         return id(self)
