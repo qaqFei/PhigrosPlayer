@@ -1097,7 +1097,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         
         if line.Texture != "line.png" and lineAlpha > 0.0:
             _, texture_size = chart_res[line.Texture]
-            texture_width, texture_height = tool_funcs.conimgsize(*texture_size, w * lineScaleX, h * lineScaleY)
+            texture_width, texture_height = tool_funcs.conimgsize(*texture_size, w, h)
+            texture_width *= lineScaleX; texture_height *= lineScaleY
             if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
                 Task(
                     root.run_js_code,
