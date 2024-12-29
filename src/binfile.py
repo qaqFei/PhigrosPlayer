@@ -110,7 +110,7 @@ class FilesPackWriter(FilesPackBase):
             for fn, offset in tagfiles[tag]:
                 temp.write_string(fn)
                 temp.write_int(offset)
-            tagdata.append(len(temp.data).to_bytes(self.INTSIZE, byteorder="little"), temp.data)
+            tagdata.append(len(temp.data).to_bytes(self.INTSIZE, byteorder="little") + temp.data)
         
         self.writer.write_int(sum(len(i) for i in tagdata))
         for i in tagdata: self.writer.write(i)
