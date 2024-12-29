@@ -14,6 +14,8 @@ import UnityPy
 from UnityPy.enums import ClassIDType
 from fsb5 import FSB5
 
+from binfile import FilesPackWriter
+
 if not exists("./7z.exe") or not exists("./7z.dll"):
     print("7z.exe or 7z.dll Not Found")
     raise SystemExit
@@ -77,7 +79,7 @@ def getZipItem(path: str) -> str:
     popen(f".\\7z.exe x \"{pgrapk}\" \"{path}\" -o.\\unpack-temp -y >> nul").read()
     return f".\\unpack-temp\\{path}"
 
-def run(rpe: bool):
+def run(rpe: bool, pack: bool):
     try: rmtree("unpack-temp")
     except Exception: pass
     try: mkdir("unpack-temp")
@@ -92,7 +94,7 @@ def run(rpe: bool):
     print("unpacked")
     
     print("pack charts...")
-    pack_charts(infoResult, rpe)
+    pack_charts(infoResult, rpe, pack)
     print("packed charts")
     
     try: rmtree("unpack-temp")
@@ -320,7 +322,7 @@ def generate_resources():
         
     print()
 
-def pack_charts(infos: list[dict], rpe: bool):
+def pack_charts(infos: list[dict], rpe: bool, pack: bool):
     try: rmtree(f"./unpack-result/packed")
     except Exception: pass
     try: mkdir(f"./unpack-result/packed")
@@ -364,11 +366,10 @@ def pack_charts(infos: list[dict], rpe: bool):
                 break
             
             try:
-                rid = uuid4()
-                mkdir(f"./unpack-temp/pack-{rid}")
-                with open(f"./unpack-temp/pack-{rid}/info.csv", "w", encoding="utf-8") as f:
+                mkdir(f"./unpack-temp/pack-{item[0]}")
+                with open(f"./unpack-temp/pack-{item[0]}/info.csv", "w", encoding="utf-8") as f:
                     f.write(item[5])
-                popen(f".\\7z.exe a .\\unpack-result\\packed\\{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip {" ".join(map(lambda x: f"\"{x}\"", (item[2], item[3], item[4], f"./unpack-temp/pack-{rid}/info.csv")))} -y >> nul").read()
+                popen(f".\\7z.exe a .\\unpack-result\\packed\\{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip {" ".join(map(lambda x: f"\"{x}\"", (item[2], item[3], item[4], f"./unpack-temp/pack-{item[0]}/info.csv")))} -y >> nul").read()
                 packed_num += 1
             except Exception:
                 pass
@@ -383,50 +384,63 @@ def pack_charts(infos: list[dict], rpe: bool):
         sleep(0.1)
     print(f"\r{packed_num} / {allcount}")
     
-    if not rpe: return
-    
-    p2r = "tool-phi2rpe.py" if exists("tool-phi2rpe.py") and isfile("tool-phi2rpe.py") else "tool-phi2rpe.exe"
-    phicharts = [f"./unpack-result/Chart_{l}/{i}" for l in ["EZ", "HD", "IN", "AT", "Legacy"] for i in listdir(f"./unpack-result/Chart_{l}")]
-    p2rthread_num = 4
-    p2red_num = 0
-    stopthread_count = 0
-    
-    def p2rworker():
-        nonlocal p2red_num, stopthread_count
+    if rpe:
+        p2r = "tool-phi2rpe.py" if exists("tool-phi2rpe.py") and isfile("tool-phi2rpe.py") else "tool-phi2rpe.exe"
+        phicharts = [f"./unpack-result/Chart_{l}/{i}" for l in ["EZ", "HD", "IN", "AT", "Legacy"] for i in listdir(f"./unpack-result/Chart_{l}")]
+        p2rthread_num = 4
+        p2red_num = 0
+        stopthread_count = 0
         
-        while phicharts:
-            try:
-                item = phicharts.pop()
-            except IndexError:
-                break
+        def p2rworker():
+            nonlocal p2red_num, stopthread_count
             
-            try:
-                popen(f"{p2r} {item} {item}").read()
-                p2red_num += 1
-            except Exception:
-                pass
+            while phicharts:
+                try:
+                    item = phicharts.pop()
+                except IndexError:
+                    break
+                
+                try:
+                    popen(f"{p2r} {item} {item}").read()
+                    p2red_num += 1
+                except Exception:
+                    pass
+            
+            stopthread_count += 1
         
-        stopthread_count += 1
+        ts = [Thread(target=p2rworker, daemon=True) for _ in range(p2rthread_num)]
+        (*map(lambda x: x.start(), ts),)
+        
+        while stopthread_count != p2rthread_num:
+            print(f"\rp2r: {p2red_num} / {allcount}", end="")
+            sleep(0.1)
+        print(f"\rp2r: {p2red_num} / {allcount}")
+        
+        stopthread_count = 0
+        packed_num = 0
+        charts = charts_bak.copy()
+        
+        ts = [Thread(target=packworker, daemon=True, args=(True, )) for _ in range(packthread_num)]
+        (*map(lambda x: x.start(), ts),)
+        
+        while stopthread_count != packthread_num:
+            print(f"\rp2r pack: {packed_num} / {allcount}", end="")
+            sleep(0.1)
+        print(f"\rp2r pack: {packed_num} / {allcount}")
     
-    ts = [Thread(target=p2rworker, daemon=True) for _ in range(p2rthread_num)]
-    (*map(lambda x: x.start(), ts),)
-    
-    while stopthread_count != p2rthread_num:
-        print(f"\rp2r: {p2red_num} / {allcount}", end="")
-        sleep(0.1)
-    print(f"\rp2r: {p2red_num} / {allcount}")
-    
-    stopthread_count = 0
-    packed_num = 0
-    charts = charts_bak
-    
-    ts = [Thread(target=packworker, daemon=True, args=(True, )) for _ in range(packthread_num)]
-    (*map(lambda x: x.start(), ts),)
-    
-    while stopthread_count != packthread_num:
-        print(f"\rp2r pack: {packed_num} / {allcount}", end="")
-        sleep(0.1)
-    print(f"\rp2r pack: {packed_num} / {allcount}")
+    if pack:
+        charts = charts_bak.copy()
+        io = open("./unpack-result/pack.bin", "wb")
+        writer = FilesPackWriter(io)
+        getfilename = lambda x: x.split("/")[-1].split("\\")[-1]
+        for item in charts:
+            writer.addfile(getfilename(item[2]), item[2], "Chart")
+            writer.addfile(getfilename(item[3]), item[3], "Audio")
+            writer.addfile(getfilename(item[4]), item[4], "Image")
+            csvfn = f"./unpack-temp/pack-{item[0]}/info.csv"
+            writer.addfile(f"info.csv-{item[0]}", csvfn, "Info")
+        writer.write()
+        io.close()
 
 if __name__ == "__main__":
     from sys import argv
@@ -435,4 +449,4 @@ if __name__ == "__main__":
         raise SystemExit
     
     pgrapk = argv[1]
-    run("--rpe" in argv)
+    run("--rpe" in argv, "--pack" in argv)

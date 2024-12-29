@@ -17,16 +17,13 @@ jobs:
 
       - name: unpack
         run: |
-          exit # if phigros update, please remove this line
-
           cd src
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          python tool-downloadFile.py pgr.apk "https://github.com/SteveZMTstudios/Phigros-history/releases/download/v3.10.0/Phigros_3.10.0.apk"
-          python tool-unpack.py pgr.apk --rpe
-          .\7z a unpack_result.zip unpack-result\*
+          python tool-downloadFile.py pgr.apk "https://github.com/SteveZMTstudios/Phigros-history/releases/download/v3.10.2/Phigros_3.10.2.apk"
+          python tool-unpack.py pgr.apk
       
       - name: upload
         uses: actions/upload-artifact@v4
         with:
-          path: ${{ github.workspace }}\src\unpack_result.zip
+          path: ${{ github.workspace }}\src\unpack-result\pack.bin
