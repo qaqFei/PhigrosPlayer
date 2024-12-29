@@ -44,7 +44,7 @@ class ByteWriter:
         self.write_int(len(value))
         self.write(value.encode("utf-8"))
 
-class ByteFileWriter:
+class ByteFileWriter(ByteWriter):
     def __init__(self, intsize: int, magic: bytes, io: typing.IO):
         super().__init__(intsize, magic)
         self.io = io
