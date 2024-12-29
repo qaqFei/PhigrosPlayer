@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import fix_workpath as _
+import imageload_hook as _
 
 import threading
 import typing
@@ -60,12 +61,16 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         
         if self.path[1:] in self._canvas._regims:
-            im:Image.Image = self._canvas._regims[self.path[1:]]
-            temp_btyeio = io.BytesIO()
-            im.save(temp_btyeio, "png")
-            self.wfile.write(temp_btyeio.getvalue())
+            im: Image.Image = self._canvas._regims[self.path[1:]]
+            if hasattr(im, "byteData"):
+                self.wfile.write(im.byteData)
+            else:
+                temp_btyeio = io.BytesIO()
+                im.save(temp_btyeio, "png")
+                self.wfile.write(temp_btyeio.getvalue())
+                
         elif self.path[1:] in self._canvas._regres:
-            data:bytes = self._canvas._regres[self.path[1:]]
+            data: bytes = self._canvas._regres[self.path[1:]]
             self.wfile.write(data)
     
     def log_request(self, *args, **kwargs) -> None: ...
@@ -93,6 +98,7 @@ class PILResourcePacker:
     def __init__(self, cv: WebCanvas):
         self.cv = cv
         self.imgs: list[tuple[str, Image.Image|bytes]] = []
+        self._imgopted: dict[str, threading.Event] = {}
     
     def reg_img(self, img: Image.Image|bytes, name: str):
         self.imgs.append((name, img))
@@ -103,9 +109,12 @@ class PILResourcePacker:
         datacount = 0
         for name, img in self.imgs:
             if isinstance(img, Image.Image):
-                btio = io.BytesIO()
-                img.save(btio, "png") # toooooooooooooo slow
-                data = btio.getvalue()
+                if hasattr(img, "byteData"):
+                    data = img.byteData
+                else:
+                    btio = io.BytesIO()
+                    img.save(btio, "png") # toooooooooooooo slow
+                    data = btio.getvalue()
             else:
                 data = img
                 
@@ -122,7 +131,7 @@ class PILResourcePacker:
         self.cv.unreg_res(rid)
         self.cv.run_js_code(f"[{",".join(map(self.cv.get_img_jsvarname, imnames))}].forEach(im => URL.revokeObjectURL(im.src));")
         
-        def createcache():
+        def optimize():
             codes = []
             codes.append(f"cachecv = document.createElement('canvas');")
             codes.append(f"cachecv.width = cachecv.height = 1;")
@@ -132,12 +141,20 @@ class PILResourcePacker:
             codes.append(f"delete cachecv; delete cachectx;")
             self.cv.run_js_code("".join(codes))
             
-        threading.Thread(target=createcache, daemon=True).start()
+            for im in imnames:
+                self._imgopted[im].set()
+            
+        self._imgopted.update({im: threading.Event() for im in imnames})
+        threading.Thread(target=optimize, daemon=True).start()
     
     def getnames(self):
         return [name for name, _ in self.imgs]
 
     def unload(self, names: list[str]):
+        for name in names:
+            self._imgopted[name].wait()
+            self._imgopted.pop(name)
+            
         self.cv.run_js_code(f"{";".join(map(lambda x: f"delete {self.cv.get_img_jsvarname(x)}", names))};")
 
 def ban_threadtest_current_thread():

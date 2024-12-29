@@ -299,31 +299,48 @@
         }
     }
 
+    function toLowQualityImage(im) {
+        if (lowquality_imweakmap.has(im)) return lowquality_imweakmap.get(im);
+
+        if (
+            lowquality_imjscvscale_x != 1.0
+            && im.width > lowquality_imjs_maxsize
+            && im.height > lowquality_imjs_maxsize
+            && !im._lowquality_pcsing
+        ) {
+            im._lowquality_pcsing = true;
+            (async () => {
+                let tempcv = document.createElement("canvas");
+                tempcv.width = Math.floor(im.width / lowquality_imjscvscale_x);
+                tempcv.height = Math.floor(im.height / lowquality_imjscvscale_x);
+                if (tempcv.width < 1 || tempcv.height < 1) {
+                    tempcv.width = im.width;
+                    tempcv.height = im.height;
+                }
+                tempctx = tempcv.getContext("2d").drawImage(im, 0, 0, tempcv.width, tempcv.height);
+                lowquality_imweakmap.set(im, await createImageBitmap(tempcv));
+                im._lowquality_pcsing = undefined;
+            })();
+        }
+        else if ((!(im instanceof ImageBitmap)) && !im._lowquality_pcsing) {
+            im._lowquality_pcsing = true;
+            (async () => {
+                let tempcv = document.createElement("canvas");
+                tempcv.width = im.width;
+                tempcv.height = im.height;
+                tempctx = tempcv.getContext("2d").drawImage(im, 0, 0, tempcv.width, tempcv.height);
+                lowquality_imweakmap.set(im, await createImageBitmap(tempcv));
+                im._lowquality_pcsing = undefined;
+            })();
+        }
+
+        return im;
+    }
+
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
-        if (lowquality_imjscvscale_x != 1.0 && args[0].width > lowquality_imjs_maxsize && args[0].height > lowquality_imjs_maxsize) {
-            let im = args[0];
-            if (!lowquality_imweakmap.get(im) && !im._lowquality_pcsing) {
-                im._lowquality_pcsing = true;
-                (async () => {
-                    let tempcv = document.createElement("canvas");
-                    tempcv.width = Math.floor(im.width / lowquality_imjscvscale_x);
-                    tempcv.height = Math.floor(im.height / lowquality_imjscvscale_x);
-                    if (tempcv.width < 1 || tempcv.height < 1) {
-                        tempcv.width = im.width;
-                        tempcv.height = im.height;
-                    }
-                    let tempctx = tempcv.getContext("2d");
-                    tempctx.drawImage(im, 0, 0, tempcv.width, tempcv.height);
-                    lowquality_imweakmap.set(im, tempcv);
-                    // im._lowquality_pcsing = undefined; // this is not necessary
-                })();
-            } else if (lowquality_imweakmap.has(im)) {
-                args[0] = lowquality_imweakmap.get(im);
-            }
-        }
-
+        args[0] = toLowQualityImage(args[0]);
         if (!this.globalAlpha) return;
         return this._drawImage(...args);
     }
