@@ -138,10 +138,20 @@ class LineEventLayer:
     rotateEvents: list[RpexEvent] = field(default_factory=list)
     moveXEvents: list[RpexEvent] = field(default_factory=list)
     moveYEvents: list[RpexEvent] = field(default_factory=list)
-    scaleXEvents: list[RpexEvent] = field(default_factory=list)
-    scaleYEvents: list[RpexEvent] = field(default_factory=list)
-    textEvents: list[RpexEvent] = field(default_factory=list)
-    colorEvents: list[RpexEvent] = field(default_factory=list)
+
+    scaleXEvents: list[RpexEvent] = field(default_factory=list) # only first layer
+    scaleYEvents: list[RpexEvent] = field(default_factory=list) # only first layer
+    textEvents: list[RpexEvent] = field(default_factory=list) # only first layer
+    colorEvents: list[RpexEvent] = field(default_factory=list) # only first layer
+
+    alphaDefault: number = 0.0
+    rotateDefault: number = 0.0
+    moveXDefault: number = 0.0
+    moveYDefault: number = 0.0
+    scaleXDefault: number = 1.0
+    scaleYDefault: number = 1.0
+    textDefault: str = ""
+    colorDefault: list[number, number, number] = field(default_factory=lambda: list([1.0, 1.0, 1.0]))
 
 EASING_FUNCS: list[typing.Callable[[number], number]] = [
     lambda t: t, # linear - 1
