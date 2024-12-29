@@ -1,5 +1,4 @@
 import struct
-import typing
 
 class ByteReader:
     def __init__(self, data: bytes, intsize: int, magic: bytes):
@@ -31,7 +30,7 @@ class ByteWriter:
         self.data = bytearray()
         self.write(magic)
 
-    def write(self, data: bytes|bytearray):
+    def write(self, data: bytes):
         self.data.extend(data)
 
     def write_int(self, value: int):
@@ -43,14 +42,6 @@ class ByteWriter:
     def write_string(self, value: str):
         self.write_int(len(value))
         self.write(value.encode("utf-8"))
-
-class ByteFileWriter(ByteWriter):
-    def __init__(self, intsize: int, magic: bytes, io: typing.IO):
-        self.io = io
-        super().__init__(intsize, magic)
-    
-    def write(self, data: bytes|bytearray):
-        self.io.write(data)
 
 class PlayRecorderBase:
     INTSIZE = 16
@@ -75,46 +66,6 @@ class PlayRecorderWriter(PlayRecorderBase):
     def pc_release(self, t: float):
         self.writer.write_int(self.PC_RELEASE)
         self.writer.write_float(t)
-
-class FilesPackBase:
-    INTSIZE = 16
-    MAGIC = b""
-
-class FilesPackWriter(FilesPackBase):
-    def __init__(self, io: typing.IO):
-        self.writer = ByteFileWriter(self.INTSIZE, self.MAGIC, io)
-        self.files = []
-    
-    def addfile(self, filename: str, filepath: str, tag: str):
-        self.files.append((filename, filepath, tag))
-    
-    def write(self):
-        tags = set(i[2] for i in self.files)
-        tagfiles = {t: [] for t in tags}
-        datas: list[bytearray] = []
-        datasize = 0
-        
-        for fn, fp, tag in self.files:
-            with open(fp, "rb") as f:
-                byteData = f.read()
-                datas.append(bytearray())
-                datas[-1].extend(len(byteData).to_bytes(self.INTSIZE, byteorder="little"))
-                datas[-1].extend(byteData)
-                tagfiles[tag].append((fn, datasize))
-                datasize += len(datas[-1])
-        
-        tagdata = []
-        for tag in tags:
-            temp = ByteWriter(self.INTSIZE, b"")
-            temp.write_string(tag)
-            for fn, offset in tagfiles[tag]:
-                temp.write_string(fn)
-                temp.write_int(offset)
-            tagdata.append(len(temp.data).to_bytes(self.INTSIZE, byteorder="little") + temp.data)
-        
-        self.writer.write_int(sum(len(i) for i in tagdata))
-        for i in tagdata: self.writer.write(i)
-        for i in datas: self.writer.write(i)
 
 def readPlayRecorder(data: bytes):
     reader = ByteReader(data, PlayRecorderBase.INTSIZE, PlayRecorderBase.MAGIC)

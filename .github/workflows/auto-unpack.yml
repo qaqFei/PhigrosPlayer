@@ -25,9 +25,10 @@ jobs:
           pip install fsb5==1.0
 
           python tool-downloadFile.py pgr.apk "https://github.com/SteveZMTstudios/Phigros-history/releases/download/v3.10.2/Phigros_3.10.2.apk"
-          python tool-unpack.py pgr.apk --pack
+          python tool-unpack.py pgr.apk 
+          .\7z a unpack_result.zip unpack-result\*
       
       - name: upload
         uses: actions/upload-artifact@v4
         with:
-          path: ${{ github.workspace }}\src\unpack-result\pack.bin
+          path: ${{ github.workspace }}\src\unpack_result.zip
