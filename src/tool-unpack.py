@@ -8,7 +8,6 @@ from os.path import exists, isfile
 from shutil import rmtree
 from threading import Thread
 from time import sleep
-from uuid import uuid4
 
 import UnityPy
 from UnityPy.enums import ClassIDType
@@ -351,7 +350,7 @@ def pack_charts(infos: list[dict], rpe: bool, pack: bool):
             charts.append((info["soundIdBak"], l, chartFile, audioFile, imageFile, csvData))
             allcount += 1
     
-    packthread_num = 64
+    packthread_num = 32
     stopthread_count = 0
     packed_num = 0
     charts_bak = charts.copy()
