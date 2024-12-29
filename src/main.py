@@ -319,6 +319,8 @@ if extra.enable and not (lfdaot and lfdaot_render_video):
     
 if extra.enable:
     logging.warning("extra effect item`s global value is also true, false value is not supported.")
+    logging.warning("if you want to enable shader, you cannot use jit.")
+    shader.hookMathFuncs()
 
 logging.info(f"enable_shader: {extra.enable}")
 

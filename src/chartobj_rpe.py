@@ -310,22 +310,29 @@ class JudgeLine:
             return (r, g, b)
     
     def GetPos(self, t: float, master: Rpe_Chart) -> list[float, float]:
-        linePos = [0.0, 0.0]
-        for layer in self.eventLayers:
-            linePos[0] += self.GetEventValue(t, layer.moveXEvents, 0.0)
-            linePos[1] += self.GetEventValue(t, layer.moveYEvents, 0.0)
+        linePos = [
+            sum(self.GetEventValue(t, layer.moveXEvents, 0.0) for layer in self.eventLayers),
+            sum(self.GetEventValue(t, layer.moveYEvents, 0.0) for layer in self.eventLayers)
+        ]
             
         if self.father != -1:
             try:
                 sec = master.beat2sec(t, self.bpmfactor)
+                
                 fatherBeat = master.sec2beat(sec, self.father.bpmfactor)
                 fatherPos = self.father.GetPos(fatherBeat, master)
-                posabsValue = tool_funcs.getLineLength(*linePos, 0.0, 0.0)
-                possitaValue = (
-                    math.degrees(math.atan2(*linePos))
-                    + sum([self.father.GetEventValue(fatherBeat, layer.rotateEvents, 0.0) for layer in self.father.eventLayers])
-                )
-                return list(map(lambda v1, v2: v1 + v2, fatherPos, tool_funcs.rotate_point(0.0, 0.0, 90 - possitaValue, posabsValue)))
+                fatherRotate = sum(self.father.GetEventValue(fatherBeat, layer.rotateEvents, 0.0) for layer in self.father.eventLayers)
+                
+                if fatherRotate == 0.0:
+                    return list(map(lambda v1, v2: v1 + v2, fatherPos, linePos))
+                
+                return list(map(lambda v1, v2: v1 + v2, fatherPos, 
+                    tool_funcs.rotate_point(
+                        0.0, 0.0,
+                        90 - (math.degrees(math.atan2(*linePos)) + fatherRotate),
+                        tool_funcs.getLineLength(*linePos, 0.0, 0.0)
+                    )
+                ))
             except IndexError:
                 pass
             

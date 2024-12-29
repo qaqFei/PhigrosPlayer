@@ -356,12 +356,13 @@ def processFrame(frame: cv2.typing.MatLike, shaders: list[tuple[shaderType, dict
     
     return newFrame
 
-for hname in (
-    "sqrt", "floor",
-    "tan", "atan", "sin",
-    "dist"
-):
-    addMathFunctionHook(hname)
+def hookMathFuncs():
+    for hname in (
+        "sqrt", "floor",
+        "tan", "atan", "sin",
+        "dist"
+    ):
+        addMathFunctionHook(hname)
 
 time: float = 0.0 # chart play time
 screenSize: vec2 # screen size

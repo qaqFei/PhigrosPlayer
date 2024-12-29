@@ -321,7 +321,7 @@ def draw_ui(
     if clear: root.clear_canvas(wait_execute = True)
     if background: draw_background()
     
-    pauseImgWidth, pauseImgHeight = w * (36 / 1920) * pauseUI_scaleX, h * (41 / 1080) * pauseUI_scaleY
+    pauseImgWidth, pauseImgHeight = w * (36 / 1920) * pauseUI_scaleX, w * (36 / 1920) / 35 * 41 * pauseUI_scaleY
     pauseImgAlpha = pauseUI_color.split(")")[-2].split(",")[-1].replace(" ", "")
     fps = mainFramerateCalculator.framerate
     reqaf_fps = root.get_framerate()
