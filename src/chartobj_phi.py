@@ -107,7 +107,7 @@ class note:
             st = 0.0
             while True:
                 st += bt
-                if st >= self.hold_endtime - self.sec: break
+                if st >= self.hold_length_sec: break
                 self.effect_times.append((
                     self.sec + st,
                     tool_funcs.get_effect_random_blocks(),

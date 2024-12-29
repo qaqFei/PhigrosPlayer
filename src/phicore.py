@@ -725,6 +725,10 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     effect_time = 0.5
     miss_effect_time = 0.2
     bad_effect_time = 0.5
+    
+    effect_time *= speed
+    miss_effect_time *= speed
+    bad_effect_time *= speed
         
     def process_effect(
         sec_t: float,
@@ -1172,6 +1176,10 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     effect_time = 0.5
     miss_effect_time = 0.2
     bad_effect_time = 0.5
+    
+    effect_time *= speed
+    miss_effect_time *= speed
+    bad_effect_time *= speed
         
     def process_effect(
         sec_t: float,
