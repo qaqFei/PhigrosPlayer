@@ -46,8 +46,8 @@ class ByteWriter:
 
 class ByteFileWriter(ByteWriter):
     def __init__(self, intsize: int, magic: bytes, io: typing.IO):
-        super().__init__(intsize, magic)
         self.io = io
+        super().__init__(intsize, magic)
     
     def write(self, data: bytes|bytearray):
         self.io.write(data)
