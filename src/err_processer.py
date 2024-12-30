@@ -19,6 +19,7 @@ def excepthook(etype, value, tb):
         with open(errorfile, "w", encoding="utf-8") as f:
             f.write(errortext)
         
+        print(errortext, end="")
         windll.user32.MessageBoxW(
             0, f"很抱歉, PhigrosPlayer 发生了错误\n已生成错误文件到: {os.path.abspath(errorfile)}\n请将错误文件发送给开发者以获得帮助\nhttps://github.com/qaqFei/PhigrosPlayer\n\n\n{errortext}",
             "PhigrosPlayer 发生错误", 0x00000010 | 0x00010000

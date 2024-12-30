@@ -94,6 +94,7 @@ record_play = "--record-play" in sys.argv
 lfdaot_use_recordfile = sys.argv[sys.argv.index("--lfdaot-use-recordfile") + 1] if "--lfdaot-use-recordfile" in sys.argv else None
 wl_more_chinese = "--wl-more-chinese" in sys.argv
 skip_time = float(sys.argv[sys.argv.index("--skip-time") + 1]) if "--skip-time" in sys.argv else 0.0
+enable_jscanvas_bitmap = "--enable-jscanvas-bitmap" in sys.argv
 respaths = ["./resources"]
 
 if "--res" in sys.argv:
@@ -1064,6 +1065,7 @@ else:
 
 root.run_js_code(f"lowquality_imjscvscale_x = {lowquality_imjscvscale_x};")
 root.run_js_code(f"lowquality_imjs_maxsize = {lowquality_imjs_maxsize};")
+root.run_js_code(f"enable_jscanvas_bitmap = {enable_jscanvas_bitmap};")
 root.run_js_code(f"resizeCanvas({w}, {h});")
     
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h

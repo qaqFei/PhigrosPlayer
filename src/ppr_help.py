@@ -25,6 +25,7 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --renderdemand: Render demand, use requestAnimationFrame to limit the frame rate.
   --renderasync: Render async, rendering also calculates beatmap data.
   --enable-jslog: Keep the rendered JavaScript code and output it to file. (path is --jslog-path value)
+  --enable-jscanvas-bitmap: Enable BitmapImage when rendering, this will improve many drawing performance, but will lose anti-aliasing
 
 <Kwargs>
   --combotips <string-value>: Set the combo tips text.
@@ -83,7 +84,8 @@ HELP_ZH = '''\
   --renderdemand: 按需渲染, 使用 requestAnimationFrame 限制帧率
   --renderasync: 异步渲染, 渲染同时可计算谱面数据
   --enable-jslog: 保留渲染的 JavaScript 代码并输出到文件 (路径为 --jslog-path 参数值)
-
+  --enable-jscanvas-bitmap: 启用渲染时的 BitmapImage, 这会提升许多绘图性能, 但会失去抗锯齿
+  
 <关键字参数>
   --combotips <字符串>: 设置连击提示文本
   --random-block-num <整数>: 设置随机块点击效果数量

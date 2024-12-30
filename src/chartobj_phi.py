@@ -119,12 +119,22 @@ class note:
     def getNoteClickPos(self, time: float) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
         linePos = self.master.get_datavar_move(time, 1.0, 1.0)
         lineRotate = self.master.get_datavar_rotate(time)
-        return lambda w, h: (
-            tool_funcs.rotate_point(
+        
+        cached: bool = False
+        cachedata: tuple[float, float]|None = None
+        
+        def callback(w: int, h: int):
+            nonlocal cached, cachedata
+            
+            if cached: return cachedata
+            cached, cachedata = True, tool_funcs.rotate_point(
                 linePos[0] * w, linePos[1] * h,
                 lineRotate, self.positionX * 0.05625 * w
             )
-        )
+            
+            return cachedata
+        
+        return callback
     
 @dataclass
 class speedEvent:

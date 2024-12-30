@@ -142,12 +142,22 @@ class Note:
             line.GetEventValue(time, layer.rotateEvents, 0.0)
             for layer in line.eventLayers
         ])
-        return lambda w, h: (
-            tool_funcs.rotate_point(
+        
+        cached: bool = False
+        cachedata: tuple[float, float]|None = None
+        
+        def callback(w: int, h: int):
+            nonlocal cached, cachedata
+            
+            if cached: return cachedata
+            cached, cachedata = True, tool_funcs.rotate_point(
                 linePos[0] * w, linePos[1] * h,
                 lineRotate, self.positionX2 * w
             )
-        )
+            
+            return cachedata
+        
+        return callback
 
     def __eq__(self, value): return self is value
 
