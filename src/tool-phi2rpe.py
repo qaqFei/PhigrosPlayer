@@ -206,19 +206,20 @@ def transform_line(line: dict):
         else:
             hnl = deepcopy(rpel)
             
-            for e in hnl["eventLayers"][0]["speedEvents"]:
-                pts, pte = f2n(e["startTime"]), f2n(e["endTime"])
-                if (
-                    pts <= n["time"] <= n["holdTime"] <= pte
-                    or pts <= n["time"] <= pte <= n["holdTime"]
-                    or n["time"] <= pts <= n["holdTime"] <= pte
-                    or n["time"] <= pts <= pte <= n["holdTime"]
-                ):
-                    if pts >= n["time"]:
-                        hnl["eventLayers"][0]["speedEvents"].remove(e)
-                    elif pte >= n["time"]:
-                        e["endTime"] = n2f(n["time"])
-            
+            ses = hnl["eventLayers"][0]["speedEvents"]
+            for e in ses:
+                e_st, e_et = f2n(e["startTime"]), f2n(e["endTime"])
+                n_st, n_et = n["time"], n["time"] + n["holdTime"]
+                
+                if n_st <= e_st <= n_et <= e_et:
+                    ses.remove(e)
+                elif e_st <= n_st <= n_et <= e_et:
+                    e["endTime"] = n2f(n_st)
+                elif e_st <= n_st <= e_et <= n_et:
+                    e["endTime"] = n2f(n_et)
+                elif e_st <= e_et <= n_st <= n_et:
+                    pass
+                
             hnl["notes"].clear()
             hnl["eventLayers"][0]["alphaEvents"].clear()
             hnl["eventLayers"][0]["alphaEvents"].append({
