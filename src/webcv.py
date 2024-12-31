@@ -121,6 +121,7 @@ class PILResourcePacker:
             datas.append(data)
             dataindexs.append([name, [datacount, len(data)]])
             datacount += len(data)
+            
         return b"".join(datas), dataindexs
 
     def load(self, data: bytes, indexs: list[list[str, list[int, int]]]):

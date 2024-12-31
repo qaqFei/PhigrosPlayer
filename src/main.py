@@ -34,6 +34,7 @@ import info_loader
 import ppr_help
 import binfile
 import shader
+import file_loader
 from phicore import *
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
@@ -76,7 +77,6 @@ lfdaot_render_video = "--lfdaot-render-video" in sys.argv
 noautoplay = "--noautoplay" in sys.argv
 rtacc = "--rtacc" in sys.argv
 lowquality = "--lowquality" in sys.argv
-user_lowquality = lowquality
 lowquality_scale = float(sys.argv[sys.argv.index("--lowquality-scale") + 1]) ** 0.5 if "--lowquality-scale" in sys.argv else 2.0 ** 0.5
 showfps = "--showfps" in sys.argv
 lfdaot_start_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-start-frame-num") + 1])) if "--lfdaot-start-frame-num" in sys.argv else 0
@@ -157,81 +157,65 @@ logging.info("Unpack Chart...")
 popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y >> nul").read()
 
 logging.info("Loading All Files of Chart...")
-chart_files = tool_funcs.Get_All_Files(temp_dir)
-chart_files_dict = {
+files_dict = {
     "charts": [],
     "images": [],
     "audio": [],
 }
-for item in chart_files:
+chartimages = {}
+cfrfp_procer: typing.Callable[[str], str] = lambda x: x.replace(f"{temp_dir}\\", "")
+
+for item in tool_funcs.Get_All_Files(temp_dir):
     if item.endswith("info.txt") or item.endswith("info.csv") or item.endswith("info.yml") or item.endswith("extra.json"):
         continue
     
-    try:
-        chart_files_dict["images"].append([item, Image.open(item).convert("RGB")])
-        logging.info(f"Add Resource (image): {item.replace(f"{temp_dir}\\", "")}")
-    except Exception:
-        try:
-            mixer.music.load(item)
-            chart_files_dict["audio"].append(item)
-            logging.info(f"Add Resource (audio): {item.replace(f"{temp_dir}\\", "")}")
-        except Exception:
-            try:
-                with open(item, "r", encoding="utf-8") as f:
-                    chart_text = f.read()
-                    chart_files_dict["charts"].append([item, json.loads(chart_text)])
-                    logging.info(f"Add Resource (chart): {item.replace(f"{temp_dir}\\", "")}")
-            except Exception as e:
-                if isinstance(e, json.decoder.JSONDecodeError): # pec chart (?)
-                    try:
-                        pec2rpeResult, p2r_errs = tool_funcs.pec2rpe(chart_text)
-                        
-                        if p2r_errs:
-                            for e in p2r_errs:
-                                logging.warning(f"pec2rpe: {repr(e)}")
-                        
-                        for line in pec2rpeResult["judgeLineList"]:
-                            for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):
-                                if i != len(line["eventLayers"][0]["speedEvents"]) - 1:
-                                    e["endTime"] = line["eventLayers"][0]["speedEvents"][i + 1]["startTime"]
-                                else:
-                                    e["endTime"] = [e["startTime"][0] + 31250000, 0, 1]
-                        
-                        chart_files_dict["charts"].append([item, pec2rpeResult])
-                    except Exception as e:
-                        logging.warning(f"pec2rpe failed, unknown resource type. path = {item.replace(f"{temp_dir}\\", "")}, Error = {e}")
-                else:
-                    logging.warning(f"Unknown resource type. path = {item.replace(f"{temp_dir}\\", "")}, Error = {e}")
+    item_rawname = cfrfp_procer(item)
+    loadres = file_loader.loadfile(item)
+    
+    match loadres.filetype:
+        case file_loader.FILE_TYPE.CHART:
+            files_dict["charts"].append([item, loadres.data])
+            
+        case file_loader.FILE_TYPE.IMAGE:
+            files_dict["images"].append([item, loadres.data])
+            
+        case file_loader.FILE_TYPE.SONG:
+            files_dict["audio"].append(item)
+        
+        case file_loader.FILE_TYPE.UNKNOW:
+            logging.warning(f"\nUnknow resource type. path = {item_rawname} errors: ")
+            for e in loadres.errs: logging.warning(f"\t{repr(e)}")
                     
-if len(chart_files_dict["charts"]) == 0:
+if not files_dict["charts"]:
     logging.fatal("No Chart File Found")
     raise SystemExit
-if len(chart_files_dict["audio"]) == 0:
+
+if not files_dict["audio"]:
     logging.fatal("No Audio File Found")
     raise SystemExit
-if len(chart_files_dict["images"]) == 0:
-    chart_files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
 
-phigros_chart_index = 0
-chart_image_index = 0
-audio_file_index = 0
+if not files_dict["images"]:
+    logging.warning("No Image File Found")
+    files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
 
-if len(chart_files_dict["charts"]) > 1:
-    for index,chart_file in enumerate(chart_files_dict["charts"]):
-        name = chart_file[0].split("/")[-1].split("\\")[-1]
-        print(f"{index + 1}. {name}")
-    phigros_chart_index = int(input("请选择谱面文件: ")) - 1
-    chart_json = chart_files_dict["charts"][phigros_chart_index][1]
-else:
-    chart_json = chart_files_dict["charts"][phigros_chart_index][1]
-phigros_chart_filepath = chart_files_dict["charts"][phigros_chart_index][0]
+chart_fp: str
+chart_json: dict
+cimg_fp: str
+chart_image: Image.Image
+audio_fp: str
+
+chart_index = file_loader.choosefile(
+    fns = map(lambda x: x[0], files_dict["charts"]),
+    prompt = "请选择谱面文件: ", rawprocer = cfrfp_procer
+)
+chart_fp, chart_json = files_dict["charts"][chart_index]
 
 if "formatVersion" in chart_json:
     CHART_TYPE = const.CHART_TYPE.PHI
 elif "META" in chart_json:
     CHART_TYPE = const.CHART_TYPE.RPE
 else:
-    logging.fatal("This is what format chart???")
+    logging.fatal("This is what format chart ???")
     raise SystemExit
 
 def LoadChartObject(first: bool = False):
@@ -243,53 +227,42 @@ def LoadChartObject(first: bool = False):
     
     if not first:
         updateCoreConfig()
+        
 LoadChartObject(True)
 
-if len(chart_files_dict["images"]) > 1:
-    if CHART_TYPE == const.CHART_TYPE.RPE and chart_obj.META.background in [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]]:
-        chart_image_index = [i[0].split("/")[-1].split("\\")[-1] for i in chart_files_dict["images"]].index(chart_obj.META.background)
-        chart_image:Image.Image = chart_files_dict["images"][chart_image_index][1]
-    else:
-        for index, file in enumerate(chart_files_dict["images"]):
-            name = file[0].split("/")[-1].split("\\")[-1]
-            print(f"{index + 1}. {name}")
-        chart_image_index = int(input("请选择谱面图片: ")) - 1
-        chart_image: Image.Image = chart_files_dict["images"][chart_image_index][1]
-else:
-    chart_image: Image.Image = chart_files_dict["images"][chart_image_index][1]
-chart_image_filepath = chart_files_dict["images"][chart_image_index][0]
+cimg_index = file_loader.choosefile(
+    fns = map(lambda x: x[0], files_dict["images"]),
+    prompt = "请选择背景图片: ", rawprocer = cfrfp_procer,
+    default = chart_obj.META.background if CHART_TYPE == const.CHART_TYPE.RPE else None
+)
+cimg_fp, chart_image = files_dict["images"][cimg_index]
+chart_image = chart_image.convert("RGB")
 
-if len(chart_files_dict["audio"]) > 1:
-    if CHART_TYPE == const.CHART_TYPE.RPE and chart_obj.META.song in [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]]:
-        audio_file_index = [i.split("/")[-1].split("\\")[-1] for i in chart_files_dict["audio"]].index(chart_obj.META.song)
-        audio_file = chart_files_dict["audio"][audio_file_index]
-    else:
-        for index, file in enumerate(chart_files_dict["audio"]):
-            name = file.split("/")[-1].split("\\")[-1]
-            print(f"{index + 1}. {name}")
-        audio_file_index = int(input("请选择音频文件: ")) - 1
-        audio_file = chart_files_dict["audio"][audio_file_index]
-else:
-    audio_file = chart_files_dict["audio"][audio_file_index]
+audio_index = file_loader.choosefile(
+    fns = files_dict["audio"],
+    prompt = "请选择音频文件: ", rawprocer = cfrfp_procer,
+    default = chart_obj.META.song if CHART_TYPE == const.CHART_TYPE.RPE else None
+)
+audio_fp = files_dict["audio"][audio_index]
 
-raw_audio_file = audio_file
+raw_audio_fp = audio_fp
 if speed != 1.0:
     logging.info(f"Processing audio, rate = {speed}")
-    seg: AudioSegment = AudioSegment.from_file(audio_file)
+    seg: AudioSegment = AudioSegment.from_file(audio_fp)
     seg = seg._spawn(seg.raw_data, overrides = {
         "frame_rate": int(seg.frame_rate * speed)
     }).set_frame_rate(seg.frame_rate)
-    audio_file = f"{temp_dir}/ppr_temp_audio_{time.time()}.mp3"
-    seg.export(audio_file, format="mp3")
+    audio_fp = f"{temp_dir}/ppr_temp_audio_{time.time()}.mp3"
+    seg.export(audio_fp, format="mp3")
 
-mixer.music.load(audio_file)
-raw_audio_length = mixer.Sound(audio_file).get_length()
+mixer.music.load(audio_fp)
+raw_audio_length = mixer.Sound(audio_fp).get_length()
 audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
 all_inforamtion = {}
 logging.info("Loading Chart Information...")
 
 ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])
-chart_information = ChartInfoLoader.get(basename(phigros_chart_filepath), basename(raw_audio_file), basename(chart_image_filepath))
+chart_information = ChartInfoLoader.get(basename(chart_fp), basename(raw_audio_fp), basename(cimg_fp))
 
 if CHART_TYPE == const.CHART_TYPE.RPE and chart_information is ChartInfoLoader.default_info:
     chart_information["Name"] = chart_obj.META.name
@@ -301,7 +274,6 @@ logging.info("Loading Chart Information Successfully")
 logging.info("Inforamtions: ")
 for k,v in chart_information.items():
     logging.info(f"              {k}: {v}")
-del chart_files, chart_files_dict
 
 if exists(f"{temp_dir}\\extra.json"):
     try:
@@ -343,13 +315,6 @@ def loadAudio(path: str):
     fp = f"{temp_dir}/{hash(path)}.wav"
     seg.export(fp, format="wav")
     return open(fp, "rb").read()
-
-def getLowqualityImage(im: Image.Image):
-    if user_lowquality and lowquality_scale >= 1.0:
-        uw, uh = int(im.width / lowquality_scale / 2), int(im.height / lowquality_scale / 2)
-        if uw > 8 and uh > 8:
-            return im.resize((uw, uh))
-    return im
 
 def Load_Resource():
     global ClickEffect_Size, Note_width
@@ -442,15 +407,6 @@ def Load_Resource():
     
     const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     
-    # process lowquality images
-    for k,v in Resource["Notes"].items():
-        Resource["Notes"][k] = getLowqualityImage(v)
-    for k, v in Resource["Note_Click_Effect"].items():
-        for i, im in enumerate(v):
-            Resource["Note_Click_Effect"][k][i] = getLowqualityImage(im)
-    for k, v in Resource["Levels"].items():
-        Resource["Levels"][k] = getLowqualityImage(v)
-    
     for k, v in Resource["Notes"].items():
         respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
     
@@ -471,39 +427,31 @@ def Load_Resource():
     respacker.reg_img(Resource["PauseImg"], "PauseImg")
     
     chart_res = {}
+    
     if CHART_TYPE == const.CHART_TYPE.RPE:
+        imfns: list[str] = list(map(lambda x: x[0], files_dict["images"]))
+        imobjs: list[Image.Image] = list(map(lambda x: x[1], files_dict["images"]))
+        
         for line in chart_obj.JudgeLineList:
             if line.Texture != "line.png":
                 paths = [
                     f"{temp_dir}\\{line.Texture}",
                     f"{temp_dir}\\{line.Texture}.png",
                     f"{temp_dir}\\{line.Texture}.jpg",
-                    f"{temp_dir}\\{line.Texture}.jpeg",
-                    f"./Resource/{line.Texture}",
-                    f"./Resource/{line.Texture}.png",
-                    f"./Resource/{line.Texture}.jpg",
-                    f"./Resource/{line.Texture}.jpeg"
+                    f"{temp_dir}\\{line.Texture}.jpeg"
                 ]
+                
                 for p in paths:
-                    if exists(p) and isfile(p):
-                        try:
-                            texture = Image.open(p).convert("RGBA")
-                            size = texture.size
-                            if user_lowquality and lowquality_scale >= 1.0:
-                                textureWidth, textureHeight = texture.size
-                                textureWidth /= lowquality_scale * 2; textureHeight /= lowquality_scale * 2
-                                textureWidth, textureHeight = int(textureWidth), int(textureHeight)
-                                if textureWidth > 32 and textureHeight > 32:
-                                    texture = texture.resize((textureWidth, textureHeight))
-                            chart_res[line.Texture] = (texture, size)
-                        except Exception as e:
-                            logging.error(f"Can't open texture {p} : {e}")
-                            continue
+                    if tool_funcs.fileinlist(p, imfns):
+                        texture_index = tool_funcs.findfileinlist(p, imfns)
+                        texture: Image.Image = imobjs[texture_index]
+                        chart_res[line.Texture] = (texture.convert("RGBA"), texture.size)
                         break
                 else:
-                    logging.error(f"Can't find texture {line.Texture}")
+                    logging.warning(f"Cannot find texture {line.Texture}")
                     texture = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
                     chart_res[line.Texture] = (texture, texture.size)
+                    
                 respacker.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
     
     with open(getResPath("/font.ttf"), "rb") as f:

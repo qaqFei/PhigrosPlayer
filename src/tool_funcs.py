@@ -7,7 +7,7 @@ import time
 from sys import argv
 from threading import Thread
 from os import listdir, environ
-from os.path import isfile
+from os.path import isfile, abspath
 from dataclasses import dataclass
 
 import numpy
@@ -731,6 +731,22 @@ def checkOffset(now_t: float, raw_audio_length: float, mixer):
             return music_offset
         
     return 0.0
+
+def samefile(a: str, b: str):
+    a, b = abspath(a), abspath(b)
+    a, b = a.replace("\\", "/"), b.replace("\\", "/")
+    while "//" in a: a = a.replace("//", "/")
+    while "//" in b: b = b.replace("//", "/")
+    return a == b
+
+def findfileinlist(fn: str, lst: list[str]):
+    for i, f in enumerate(lst):
+        if samefile(fn, f):
+            return i
+    return None
+
+def fileinlist(fn: str, lst: list[str]):
+    return findfileinlist(fn, lst) is not None
 
 class PhigrosPlayPlayStateManager:
     def __init__(self, noteCount: int):
