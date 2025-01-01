@@ -189,7 +189,7 @@ for item in tool_funcs.Get_All_Files(temp_dir):
         
         case file_loader.FILE_TYPE.UNKNOW:
             logging.warning(f"\nUnknow resource type. path = {item_rawname} errors: ")
-            for e in loadres.errs: logging.warning(f"\t{repr(e)}")
+            # for e in loadres.errs: logging.warning(f"\t{repr(e)}")
                     
 if not files_dict["charts"]:
     logging.fatal("No Chart File Found")
