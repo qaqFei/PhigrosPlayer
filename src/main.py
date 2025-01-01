@@ -7,6 +7,7 @@ import json
 import sys
 import time
 import logging
+import typing
 from threading import Thread
 from ctypes import windll
 from os import listdir, popen, mkdir, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
@@ -24,6 +25,7 @@ from pydub import AudioSegment
 import webcv
 import playsound
 import chartobj_phi
+import chartobj_rpe
 import chartfuncs_phi
 import chartfuncs_rpe
 import const
@@ -35,7 +37,7 @@ import ppr_help
 import binfile
 import shader
 import file_loader
-from phicore import *
+import phicore
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")
@@ -131,6 +133,9 @@ if lfdaot_use_recordfile and lfdoat_file:
 if lfdaot and skip_time != 0.0:
     skip_time = 0.0
     logging.warning("if use --lfdaot, you cannot use --skip-time")
+
+if "--clickeffect-easing" in sys.argv:
+    phicore.clickEffectEasingType = int(sys.argv[sys.argv.index("--clickeffect-easing") + 1])
 
 combotips = ("RECORD" if lfdaot_use_recordfile is not None else (
     "AUTOPLAY" if not noautoplay else "COMBO"
@@ -317,7 +322,7 @@ def loadAudio(path: str):
     return open(fp, "rb").read()
 
 def Load_Resource():
-    global ClickEffect_Size, Note_width
+    global noteWidth
     global note_max_width, note_max_height
     global note_max_size_half
     global animation_image
@@ -332,9 +337,8 @@ def Load_Resource():
     Thread(target=WaitLoading_FadeIn, daemon = True).start()
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
-    Note_width_raw = (0.125 * w + 0.2 * h) / 2
-    Note_width = (Note_width_raw) * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
-    ClickEffect_Size = Note_width * 1.375
+    noteWidth_raw = (0.125 * w + 0.2 * h) / 2
+    noteWidth = (noteWidth_raw) * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
     ClickEffectFrameCount = len(listdir(getResPath("/Note_Click_Effect/Frames", False)))
     ClickEffectImages = [Image.open(getResPath(f"/Note_Click_Effect/Frames/{i + 1}.png")) for i in range(ClickEffectFrameCount)]
     Resource = {
@@ -462,7 +466,7 @@ def Load_Resource():
     root.unreg_res("PhigrosFont")
     
     root.file_server.shutdown()
-    note_max_width = Note_width * const.NOTE_DUB_FIXSCALE
+    note_max_width = noteWidth * const.NOTE_DUB_FIXSCALE
     note_max_height = max(
         [
             note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,
@@ -494,7 +498,7 @@ def Load_Resource():
     # how to load shaders to webgl and use them???
     ... # TODO
     
-    cksmanager = ClickSoundManager(Resource["Note_Click_Audio"])
+    cksmanager = phicore.ClickSoundManager(Resource["Note_Click_Audio"])
     logging.info("Load Resource Successfully")
     return Resource
 
@@ -527,16 +531,16 @@ def Show_Start():
     animationst = time.time()
     while time.time() - animationst < 1.0:
         root.clear_canvas(wait_execute=True)
-        draw_background()
-        draw_ui(animationing=True)
+        phicore.draw_background()
+        phicore.draw_ui(animationing=True)
         p = (time.time() - animationst) / 1.0
         dle_warn((tool_funcs.fixorp(p) - 1.0) ** 4)
         root.run_js_wait_code()
     
     time.sleep(0.25)
     root.clear_canvas(wait_execute=True)
-    draw_background()
-    draw_ui(animationing=True)
+    phicore.draw_background()
+    phicore.draw_ui(animationing=True)
     root.run_js_wait_code()
     Thread(target=PlayerStart, daemon=True).start()
 
@@ -553,8 +557,8 @@ def PlayerStart():
     
     Resource["Over"].stop()
     
-    Begin_Animation()
-    ChartStart_Animation()
+    phicore.Begin_Animation()
+    phicore.ChartStart_Animation()
 
     show_start_time = time.time() - skip_time
     PhiCoreConfigObject.show_start_time = show_start_time
@@ -621,13 +625,13 @@ def PlayerStart():
             now_t = time.time() - show_start_time
             checkOffset(now_t - skip_time)
             if CHART_TYPE == const.CHART_TYPE.PHI:
-                Task = GetFrameRenderTask_Phi(now_t, pplm = pplm if noautoplay else None)
+                Task = phicore.GetFrameRenderTask_Phi(now_t, pplm = pplm if noautoplay else None)
             elif CHART_TYPE == const.CHART_TYPE.RPE:
-                Task = GetFrameRenderTask_Rpe(now_t, pplm = pplm if noautoplay else None)
+                Task = phicore.GetFrameRenderTask_Rpe(now_t, pplm = pplm if noautoplay else None)
                 
             Task.ExecTask()
             
-            break_flag = FrameData_ProcessExTask(Task.ExTask)
+            break_flag = phicore.FrameData_ProcessExTask(Task.ExTask)
             
             if break_flag:
                 break
@@ -709,9 +713,9 @@ def PlayerStart():
                                 logging.warning(f"Unknown event type: {event[0]}")
                 
                 if CHART_TYPE == const.CHART_TYPE.PHI:
-                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Phi(now_t, pplm=pplm)})
+                    lfdaot_tasks.update({frame_count: phicore.GetFrameRenderTask_Phi(now_t, pplm=pplm)})
                 elif CHART_TYPE == const.CHART_TYPE.RPE:
-                    lfdaot_tasks.update({frame_count: GetFrameRenderTask_Rpe(now_t, pplm=pplm)})
+                    lfdaot_tasks.update({frame_count: phicore.GetFrameRenderTask_Rpe(now_t, pplm=pplm)})
                 
                 frame_count += 1
                 
@@ -748,8 +752,8 @@ def PlayerStart():
                 for func_name in dir(root)
             }
             Task_function_mapping.update({
-                "draw_background": draw_background,
-                "draw_ui": draw_ui
+                "draw_background": phicore.draw_background,
+                "draw_ui": phicore.draw_ui
             })
             for index,Task_data in enumerate(data["data"]):
                 lfdaot_tasks.update({
@@ -807,7 +811,7 @@ def PlayerStart():
                     will_process_extask.append(Task.ExTask)
                     Task.ExTask = None
                 for ExTask in will_process_extask:
-                    break_flag = FrameData_ProcessExTask(ExTask)
+                    break_flag = phicore.FrameData_ProcessExTask(ExTask)
                     
                     if break_flag:
                         break_flag_top = True
@@ -864,7 +868,7 @@ def PlayerStart():
                 writer.release()
     
     mixer.music.set_volume(1.0)
-    initFinishAnimation(pplm if noautoplay else None)
+    phicore.initFinishAnimation(pplm if noautoplay else None)
     
     def Chart_Finish_Animation():
         animation_1_time = 0.75
@@ -874,7 +878,7 @@ def PlayerStart():
         while True:
             p = (time.time() - animation_1_start_time) / animation_1_time
             if p > 1.0: break
-            Chart_BeforeFinish_Animation_Frame(p, a1_combo)
+            phicore.Chart_BeforeFinish_Animation_Frame(p, a1_combo)
         
         time.sleep(0.25)
         Resource["Over"].play(-1)
@@ -927,10 +931,10 @@ def PlayerStart():
         while not a2_break:
             p = (time.time() - animation_2_start_time) / animation_2_time
             if p > 1.0: break
-            Chart_Finish_Animation_Frame(p)
+            phicore.Chart_Finish_Animation_Frame(p)
         
         while not a2_break:
-            Chart_Finish_Animation_Frame(1.0)
+            phicore.Chart_Finish_Animation_Frame(1.0)
     
     mixer.music.fadeout(250)
     Chart_Finish_Animation()
@@ -938,16 +942,15 @@ def PlayerStart():
 def updateCoreConfig():
     global PhiCoreConfigObject
     
-    PhiCoreConfigObject = PhiCoreConfig(
+    PhiCoreConfigObject = phicore.PhiCoreConfig(
         SETTER = lambda vn, vv: globals().update({vn: vv}),
         root = root, w = w, h = h,
         chart_information = chart_information,
         chart_obj = chart_obj, CHART_TYPE = CHART_TYPE,
-        Resource = Resource, ClickEffect_Size = ClickEffect_Size,
-        EFFECT_RANDOM_BLOCK_SIZE = EFFECT_RANDOM_BLOCK_SIZE,
+        Resource = Resource,
         ClickEffectFrameCount = ClickEffectFrameCount,
         PHIGROS_X = PHIGROS_X, PHIGROS_Y = PHIGROS_Y,
-        Note_width = Note_width, JUDGELINE_WIDTH = JUDGELINE_WIDTH,
+        noteWidth = noteWidth, JUDGELINE_WIDTH = JUDGELINE_WIDTH,
         note_max_size_half = note_max_size_half, audio_length = audio_length,
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),
         chart_res = chart_res, clickeffect_randomblock = clickeffect_randomblock,
@@ -963,7 +966,7 @@ def updateCoreConfig():
         musicsound_volume = musicsound_volume,
         enable_controls = enable_controls
     )
-    CoreConfigure(PhiCoreConfigObject)
+    phicore.CoreConfigure(PhiCoreConfigObject)
 
 logging.info("Loading Window...")
 root = webcv.WebCanvas(
@@ -1019,7 +1022,6 @@ root.run_js_code(f"resizeCanvas({w}, {h});")
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
 JUDGELINE_WIDTH = h * 0.0075
 Resource = Load_Resource()
-EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5
 
 if wl_more_chinese:
     root.run_js_code("setWlMoreChinese();")

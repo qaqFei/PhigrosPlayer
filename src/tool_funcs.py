@@ -37,7 +37,10 @@ def unpack_pos(number: int) -> tuple[int, int]:
     return (number - number % 1000) // 1000, number % 1000
 
 def get_effect_random_blocks() -> tuple[tuple[float, float], ...]:
-    return tuple(((random.uniform(0.0, 360.0), random.uniform(-0.25, 1.15)) for _ in range(random_block_num)))
+    return tuple(
+        (random.uniform(0.0, 360.0), random.uniform(-0.15, 0.3))
+        for _ in range(random_block_num)
+    )
 
 def linear_interpolation(
     t: float,

@@ -26,6 +26,7 @@ drawUI_Default_Kwargs = {
     for k in ("combonumber", "combo", "score", "name", "level", "pause") for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
 }
 mainFramerateCalculator = tool_funcs.FramerateCalculator()
+clickEffectEasingType = 16
 
 @dataclass
 class PhiCoreConfig:
@@ -38,12 +39,10 @@ class PhiCoreConfig:
     chart_obj: chartobj_phi.Phigros_Chart | chartobj_rpe.Rpe_Chart
     CHART_TYPE: int
     Resource: dict
-    ClickEffect_Size: float
-    EFFECT_RANDOM_BLOCK_SIZE: float
     ClickEffectFrameCount: int
     PHIGROS_X: float
     PHIGROS_Y: float
-    Note_width: float
+    noteWidth: float
     JUDGELINE_WIDTH: float
     note_max_size_half: float
     audio_length: float
@@ -96,11 +95,10 @@ def CoreConfigure(config: PhiCoreConfig):
     global SETTER
     global root, w, h, chart_information
     global chart_obj, CHART_TYPE
-    global Resource, ClickEffect_Size
-    global EFFECT_RANDOM_BLOCK_SIZE
+    global Resource
     global ClickEffectFrameCount
     global PHIGROS_X, PHIGROS_Y
-    global Note_width, JUDGELINE_WIDTH
+    global noteWidth, JUDGELINE_WIDTH
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
     global chart_res, clickeffect_randomblock
@@ -121,11 +119,9 @@ def CoreConfigure(config: PhiCoreConfig):
     chart_obj = config.chart_obj
     CHART_TYPE = config.CHART_TYPE
     Resource = config.Resource
-    ClickEffect_Size = config.ClickEffect_Size
-    EFFECT_RANDOM_BLOCK_SIZE = config.EFFECT_RANDOM_BLOCK_SIZE
     ClickEffectFrameCount = config.ClickEffectFrameCount
     PHIGROS_X, PHIGROS_Y = config.PHIGROS_X, config.PHIGROS_Y
-    Note_width = config.Note_width
+    noteWidth = config.noteWidth
     JUDGELINE_WIDTH = config.JUDGELINE_WIDTH
     note_max_size_half = config.note_max_size_half
     audio_length = config.audio_length
@@ -207,50 +203,77 @@ class ClickSoundManager:
             nt = self.queue.get()
             if nt is None: break
             self.res[nt].play()
-    
-def process_effect_base(
+
+def processClickEffectBase(
     x: float, y: float,
-    p: float, effect_random_blocks: tuple[tuple[float, float], ...],
-    perfect: bool, Task: chartobj_phi.FrameRenderTask
+    p: float, rblocks: tuple[tuple[float, float]]|None,
+    perfect: bool, noteWidth: float,
+    root: webcv.WebCanvas,
+    framecount: int,
+    enable_rblocks: bool = True,
+    rblocks_roundn: float = 0.0,
+    caller: typing.Callable[[typing.Callable, typing.Any], typing.Any] = lambda f, *args, **kwargs: f(*args, **kwargs)
 ):
+    if rblocks is None: rblocks = tool_funcs.get_effect_random_blocks()
+    
     color = (255, 236, 160) if perfect else (180, 225, 255)
     alphas = (225 if perfect else 235) / 255
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
+    effectSize = noteWidth * 1.375
+    blockSize = noteWidth / 5.5
     
-    if clickeffect_randomblock:
-        randomblock_r = ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.2
-        block_size = EFFECT_RANDOM_BLOCK_SIZE * (0.4 * math.sin(p * math.pi) + 0.6)
+    if enable_rblocks:
+        randomblock_r = effectSize * rpe_easing.ease_funcs[clickEffectEasingType + 1](p) / 1.2
+        nowBlockSize = blockSize * (0.4 * math.sin(p * math.pi) + 0.6)
         
-        for deg, randdr in effect_random_blocks:
-            pointr = randomblock_r + EFFECT_RANDOM_BLOCK_SIZE * 2 * randdr * p
+        for deg, randdr in rblocks:
+            pointr = randomblock_r + randdr * blockSize
+            
             if pointr < 0.0: continue
             
             point = tool_funcs.rotate_point(x, y, deg, pointr)
-            Task(
+            caller(
                 root.run_js_code,
                 f"ctx.addRoundRectData(\
-                    {point[0] - block_size / 2},\
-                    {point[1] - block_size / 2},\
-                    {block_size},\
-                    {block_size},\
-                    {block_size * clickeffect_randomblock_roundn}\
+                    {point[0] - nowBlockSize / 2},\
+                    {point[1] - nowBlockSize / 2},\
+                    {nowBlockSize},\
+                    {nowBlockSize},\
+                    {nowBlockSize * rblocks_roundn}\
                 );",
                 add_code_array = True
             )
     
-        Task(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + ((1.0 - p) * alphas, )}');", add_code_array = True)
+        caller(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + ((1.0 - p) * alphas, )}');", add_code_array = True)
             
-    Task(
+    caller(
         root.run_js_code,
         f"ctx.drawAlphaImage(\
-            {root.get_img_jsvarname(f"{imn}_{int(p * (ClickEffectFrameCount - 1)) + 1}")},\
-            {x - ClickEffect_Size / 2}, {y - ClickEffect_Size / 2},\
-            {ClickEffect_Size}, {ClickEffect_Size}, {alphas}\
+            {root.get_img_jsvarname(f"{imn}_{int(p * (framecount - 1)) + 1}")},\
+            {x - effectSize / 2}, {y - effectSize / 2},\
+            {effectSize}, {effectSize}, {alphas}\
         );",
         add_code_array = True
     )
-     
-    
+
+def processClickEffect(
+    x: float, y: float,
+    p: float, rblocks: tuple[tuple[float, float]],
+    perfect: bool,
+    caller: typing.Callable[[typing.Callable, typing.Any], typing.Any] = lambda f, *args, **kwargs: f(*args, **kwargs)
+):
+    return processClickEffectBase(
+        x = x, y = y, p = p,
+        rblocks = rblocks,
+        perfect = perfect,
+        noteWidth = noteWidth,
+        root = root,
+        framecount = ClickEffectFrameCount,
+        caller = caller,
+        enable_rblocks = clickeffect_randomblock,
+        rblocks_roundn = clickeffect_randomblock_roundn
+    )
+
 def get_stringscore(score:float) -> str:
     score_integer = int(score + 0.5)
     return f"{score_integer:>7}".replace(" ","0")
@@ -591,10 +614,10 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         holdhead_pos = x, y
                         
                     holdbody_range = (
-                        tool_funcs.rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg - 90, Note_width / 2),
-                        tool_funcs.rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg - 90, Note_width / 2),
-                        tool_funcs.rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
-                        tool_funcs.rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg + 90, Note_width / 2),
+                        tool_funcs.rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg - 90, noteWidth / 2),
+                        tool_funcs.rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg - 90, noteWidth / 2),
+                        tool_funcs.rotate_point(holdend_x, holdend_y, judgeLine_to_note_rotate_deg + 90, noteWidth / 2),
+                        tool_funcs.rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg + 90, noteWidth / 2),
                     )
                     
                 if note_now_floorPosition > note_max_size_half:
@@ -643,11 +666,11 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
                     
                     fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0 # because the note img if has morebets frame, the note will be look small, so we will `*` a fix scale to fix the frame size make the note look is small.
-                    this_note_width = Note_width * fix_scale
+                    this_note_width = noteWidth * fix_scale
                     this_note_height = this_note_width / this_note_img.width * this_note_img.height
                         
                     if note.ishold:
-                        this_noteend_height = Note_width / this_note_img_end.width * this_note_img_end.height
+                        this_noteend_height = noteWidth / this_note_img_end.width * this_note_img_end.height
                         
                         if note.clicked:
                             holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
@@ -732,13 +755,13 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         
     def process_effect(
         sec_t: float,
-        effect_random_blocks,
+        rblocks: tuple[tuple[float, float]],
         perfect: bool,
         position: tuple[float, float]
     ):
         p = (now_t - sec_t) / effect_time
         if not (0.0 <= p <= 1.0): return
-        process_effect_base(*position, p, effect_random_blocks, perfect, Task)
+        processClickEffect(*position, p, rblocks, perfect, Task)
     
     def process_miss(
         note:chartobj_phi.note
@@ -767,8 +790,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 {root.get_img_jsvarname(this_note_imgname)},\
                 {x},\
                 {y},\
-                {Note_width},\
-                {Note_width / this_note_img.width * this_note_img.height},\
+                {noteWidth},\
+                {noteWidth / this_note_img.width * this_note_img.height},\
                 {- will_show_effect_rotate},\
                 {1 - p ** 0.5}\
             ); crc2d_enable_rrm = true;",
@@ -808,8 +831,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 {root.get_img_jsvarname("Note_Bad")},\
                 {x},\
                 {y},\
-                {Note_width * (const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
-                {Note_width / this_note_img.width * this_note_img.height},\
+                {noteWidth * (const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
+                {noteWidth / this_note_img.width * this_note_img.height},\
                 {nr},\
                 {1 - p ** 3}\
             ); crc2d_enable_rrm = true;",
@@ -956,10 +979,10 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     holdhead_pos = x, y
                     
                 holdbody_range = (
-                    tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate - 90, Note_width / 2),
-                    tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate - 90, Note_width / 2),
-                    tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate + 90, Note_width / 2),
-                    tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate + 90, Note_width / 2),
+                    tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate - 90, noteWidth / 2),
+                    tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate - 90, noteWidth / 2),
+                    tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate + 90, noteWidth / 2),
+                    tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate + 90, noteWidth / 2),
                 )
                 
             if noteFloorPosition > note_max_size_half:
@@ -1008,11 +1031,11 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
                     
                 fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
-                this_note_width = Note_width * fix_scale
-                this_note_height = Note_width / this_note_img.width * this_note_img.height
+                this_note_width = noteWidth * fix_scale
+                this_note_height = noteWidth / this_note_img.width * this_note_img.height
                 
                 if note.ishold:
-                    this_noteend_height = Note_width / this_note_img_end.width * this_note_img_end.height
+                    this_noteend_height = noteWidth / this_note_img_end.width * this_note_img_end.height
                     
                     if note.clicked:
                         holdbody_x, holdbody_y = noteAtJudgeLinePos
@@ -1183,13 +1206,13 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         
     def process_effect(
         sec_t: float,
-        effect_random_blocks,
+        rblocks: tuple[tuple[float, float]],
         perfect: bool,
         position: tuple[float, float]
     ):
         p = (now_t - sec_t) / effect_time
         if not (0.0 <= p <= 1.0): return
-        process_effect_base(*position, p, effect_random_blocks, perfect, Task)
+        processClickEffect(*position, p, rblocks, perfect, Task)
     
     def process_miss(
         note: chartobj_rpe.Note
@@ -1218,8 +1241,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 {root.get_img_jsvarname(this_note_imgname)},\
                 {x},\
                 {y},\
-                {Note_width * note.width},\
-                {Note_width / this_note_img.width * this_note_img.height},\
+                {noteWidth * note.width},\
+                {noteWidth / this_note_img.width * this_note_img.height},\
                 {lineRotate},\
                 {note.float_alpha * (1 - p ** 0.5)}\
             );",
@@ -1256,8 +1279,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 {root.get_img_jsvarname("Note_Bad")},\
                 {x},\
                 {y},\
-                {Note_width * note.width * (const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
-                {Note_width / this_note_img.width * this_note_img.height},\
+                {noteWidth * note.width * (const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)},\
+                {noteWidth / this_note_img.width * this_note_img.height},\
                 {nr},\
                 {note.float_alpha * (1 - p ** 3)}\
             );",

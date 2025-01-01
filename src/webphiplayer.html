@@ -129,8 +129,8 @@
         cv.height = window.innerHeight * window.devicePixelRatio;
         w = cv.width;
         h = cv.height;
-        Note_width = w * 0.1234375;
-        Note_MaxSize = Math.sqrt(Note_width ** 2 * 2);
+        noteWidth = w * 0.1234375;
+        Note_MaxSize = Math.sqrt(noteWidth ** 2 * 2);
     }
 
     function linearInterpolation(sv, ev, st, et, t) {
@@ -220,7 +220,7 @@
         let effectImg = ClickEffects[parseInt(p * (ClickEffectNum - 1)) + 1];
         let beforedeg = 0;
         let blockAlpha = (1.0 - p) * 0.85;
-        let randomBlockR = Note_width * 1.375 * (1.0 - 2 ** (-10 * p)) / 1.35;
+        let randomBlockR = noteWidth * 1.375 * (1.0 - 2 ** (-10 * p)) / 1.35;
         let blockSize = w * 0.1234375 / 5.5 * (0.4 * Math.sin(p * Math.PI) + 0.6)
         for (let deg of effectRandomBlocks) {
             let [effectRandomX, effectRandomY] = rotatePoint(effectX, effectY, beforedeg + deg, randomBlockR);
@@ -237,9 +237,9 @@
         }
         ctx.drawImage(
             effectImg,
-            effectX - Note_width * 1.375 / 2,
-            effectY - Note_width * 1.375 / 2,
-            Note_width * 1.375, Note_width * 1.375
+            effectX - noteWidth * 1.375 / 2,
+            effectY - noteWidth * 1.375 / 2,
+            noteWidth * 1.375, noteWidth * 1.375
         );
 
         requestAnimationFrame(phiRender);

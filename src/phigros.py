@@ -2012,39 +2012,22 @@ def settingRender():
                     if getUserData("setting-enableClickSound"):
                         Resource["CalibrationHit"].play()
                     CalibrationClickEffects.append((time.time(), getUserData("setting-noteScale")))
-                    
+            
             for st, size in CalibrationClickEffects:
-                noteWidth = w * 0.1234375 * size
-                ClickEffect_Size = noteWidth * 1.375
                 p = (time.time() - st) / 0.5
-                if p <= 1.0:
-                    root.run_js_code(
-                        f"ctx.drawImage(\
-                            {root.get_img_jsvarname(f"Note_Click_Effect_Perfect_{int(p * (ClickEffectFrameCount - 1)) + 1}")},\
-                            {w * 0.75 - ClickEffect_Size / 2}, {h * 0.8 - ClickEffect_Size / 2},\
-                            {ClickEffect_Size}, {ClickEffect_Size}\
-                        );",
-                        add_code_array = True
-                    )
+                if p > 1.0: continue
                     
-                    random.seed(st)
-                    random.seed(random.uniform(-st, st))
-                    block_size = noteWidth / 5.5 * (0.4 * math.sin(p * math.pi) + 0.6)
-                    for deg, randdr in tool_funcs.get_effect_random_blocks():
-                        effect_random_point = tool_funcs.rotate_point(
-                            w * 0.75, h * 0.85, deg ,
-                            ClickEffect_Size * rpe_easing.ease_funcs[17](p) / 1.2 + noteWidth / 5.5 * 2 * randdr * p
-                        )
-                        root.run_js_code(
-                            f"ctx.fillRectEx(\
-                                {effect_random_point[0] - block_size / 2},\
-                                {effect_random_point[1] - block_size / 2},\
-                                {block_size}, {block_size},\
-                                'rgba(255, 255, 170, {(1.0 - p) * 0.85})'\
-                            );",
-                            add_code_array = True
-                        )
-                    random.seed(time.time())
+                random.seed(st)
+                random.seed(random.uniform(-st, st))
+                phicore.processClickEffectBase(
+                    x = w * 0.75,
+                    y = h * 0.8,
+                    p = p, rblocks = None,
+                    perfect = True,
+                    noteWidth = w * 0.1234375 * size,
+                    root = root,
+                    framecount = ClickEffectFrameCount
+                )
         
         for t, p in CalibrationClickEffectLines: # vn, ? (time, mixer_pos)
             ap = (time.time() - t) / 1.1
@@ -3329,8 +3312,8 @@ def chartPlayerRender(
     global raw_audio_length
     global coreConfig
     
-    Note_width = w * 0.1234375 * getUserData("setting-noteScale")
-    note_max_width = Note_width * const.NOTE_DUB_FIXSCALE
+    noteWidth = w * 0.1234375 * getUserData("setting-noteScale")
+    note_max_width = noteWidth * const.NOTE_DUB_FIXSCALE
     note_max_height = max(
         [
             note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,
@@ -3389,11 +3372,10 @@ def chartPlayerRender(
         chart_information = chart_information,
         chart_obj = chart_obj,
         CHART_TYPE = CHART_TYPE, Resource = Resource,
-        ClickEffect_Size = Note_width * 1.375,
-        EFFECT_RANDOM_BLOCK_SIZE = Note_width / 5.5,
+        ClickEffect_Size = noteWidth * 1.375,
         ClickEffectFrameCount = ClickEffectFrameCount,
         PHIGROS_X = w * 0.05625, PHIGROS_Y = h * 0.6,
-        Note_width = Note_width,
+        noteWidth = noteWidth,
         JUDGELINE_WIDTH = h * 0.0075, note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,
         show_start_time = float("nan"), chart_res = {},

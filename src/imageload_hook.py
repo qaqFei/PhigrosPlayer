@@ -1,14 +1,16 @@
 import io
-import typing
 
 from PIL import Image
 
 _open = Image.open
 
+def _isio(obj: object):
+    return hasattr(obj, "read") and hasattr(obj, "seek")
+
 def open_hook(*args, **kwargs):
     args = list(args)
     
-    if isinstance(args[0], typing.IO):
+    if _isio(args[0]):
         byteData = args[0].read()
         args[0] = io.BytesIO(byteData)
         
@@ -22,7 +24,7 @@ def open_hook(*args, **kwargs):
         args[0] = io.BytesIO(byteData)
     
     else:
-        raise TypeError("Unsupported type for image loading")
+        raise TypeError(f"Unsupported type for image loading: {type(args[0])}")
 
     im = _open(*args, **kwargs)
     im.byteData = byteData
