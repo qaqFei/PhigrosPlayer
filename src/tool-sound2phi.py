@@ -1,6 +1,6 @@
 import json
+import math
 from sys import argv
-from random import uniform
 
 import librosa
 
@@ -14,7 +14,14 @@ def pcs():
     lv = 0.0
     for i, v in enumerate(data):
         if (v > 0.0 and lv < 0.0) or (v < 0.0 and lv > 0.0):
-            yield i / sr
+            t = i / sr
+            yield (
+                t,
+                (math.sin(
+                    t * 0.2
+                ) + 0.5) * 0.8 - 0.4
+            )
+            
         lv = v
 
 result = {
@@ -28,11 +35,11 @@ result = {
                     "type": 1,
                     "time": t,
                     "holdTime": 0.0,
-                    "positionX": uniform(-0.5 / 0.05625, 0.5 / 0.05625),
+                    "positionX": px / 0.05625,
                     "speed": 1.0,
                     "floorPosition": 2.2 * t
                 }
-                for t in pcs()
+                for t, px in pcs()
             ],
             "notesBelow": [],
             "speedEvents": [
