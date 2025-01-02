@@ -486,6 +486,12 @@ def isfloatable(s: str):
 def isallnum(lst: list[str], l: int|None = None):
     return (len(lst) >= l or l is None) and all(map(lambda x: isfloatable(x), lst))
 
+def createBezierFunction(ps: list[float]) -> typing.Callable[[float], float]:
+    return lambda t: sum([ps[i] * (1 - t) ** (len(ps) - i - 1) * t ** i for i in range(len(ps))])
+
+def createCuttingEasingFunction(f: typing.Callable[[float], float], l: float, r: float):
+    return lambda t: f(t * (r - l) + l)
+
 def pec2rpe_findevent_bytime(es: list[dict], t: float, default: float):
     if not es: return default
     

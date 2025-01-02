@@ -82,17 +82,17 @@
 - [x] pec
   - 读取转换为`rpe`格式
 - 补充
-  - [ ] rpe格式中的事件
-    - [ ] bezier
-    - [ ] bezierPoints (???)
-    - [ ] easingLeft (???)
-    - [ ] easingRight (???)
+  - [x] rpe格式中的事件
+    - [x] bezier
+    - [x] bezierPoints
+    - [x] easingLeft
+    - [x] easingRight
     - [x] easingType
     - [x] start
     - [x] end
     - [x] startTime
     - [x] endTime
-    - [ ] linkgroup (???)
+    - [x] linkgroup (谱面播放不使用)
 
 </details>
 

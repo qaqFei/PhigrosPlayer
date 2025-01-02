@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import typing
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import tool_funcs
 import rpe_easing
@@ -167,14 +167,25 @@ class LineEvent:
     endTime: Beat
     start: float|str|list[int]
     end: float|str|list[int]
-    easingType: int
+    easingType: int = 1
+    easingLeft: float = 0.0
+    easingRight: float = 1.0
+    
+    bezier: int = 0
+    bezierPoints: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0, 0.0])
+    
     easingFunc: typing.Callable[[float], float] = rpe_easing.ease_funcs[0]
     
     floorPosition: float|None = None # only speed events have this
     isfill: bool = False
     
     def __post_init__(self):
-        self.easingFunc = geteasing_func(self.easingType)
+        self.easingFunc = geteasing_func(self.easingType) if not self.bezier else tool_funcs.createBezierFunction(self.bezierPoints)
+        self.easingLeft = max(0.0, min(1.0, self.easingLeft))
+        self.easingRight = max(0.0, min(1.0, self.easingRight))
+        
+        if self.easingLeft != 0.0 or self.easingRight != 1.0:
+            self.easingFunc = tool_funcs.createCuttingEasingFunction(self.easingFunc, self.easingLeft, self.easingRight)
     
 @dataclass
 class EventLayer:

@@ -21,7 +21,10 @@ def _lineevents(layer: dict|None, name: str):
             startTime = chartobj_rpe.Beat(*e.get("startTime", [0, 0, 1])),
             endTime = chartobj_rpe.Beat(*e.get("endTime", [0, 0, 1])),
             start = e.get("start", 0.0), end = e.get("end", 0.0),
-            easingType = e.get("easingType", 1)
+            easingType = e.get("easingType", 1),
+            easingLeft = e.get("easingLeft", 0.0), easingRight = e.get("easingRight", 1.0),
+            bezier = e.get("bezier", 0.0),
+            bezierPoints = e.get("bezierPoints", [0.0, 0.0, 0.0, 0.0])
         ) for e in es
     ]
 
@@ -32,7 +35,10 @@ def _extendedevents(extended: dict, name: str, default: int|float|str|list[int])
             startTime = chartobj_rpe.Beat(*e.get("startTime", [0, 0, 1])),
             endTime = chartobj_rpe.Beat(*e.get("endTime", [0, 0, 1])),
             start = e.get("start", default), end = e.get("end", default),
-            easingType = e.get("easingType", 1)
+            easingType = e.get("easingType", 1),
+            easingLeft = e.get("easingLeft", 0.0), easingRight = e.get("easingRight", 1.0),
+            bezier = e.get("bezier", 0.0),
+            bezierPoints = e.get("bezierPoints", [0.0, 0.0, 0.0, 0.0])
         ) for e in es
     ]
 
