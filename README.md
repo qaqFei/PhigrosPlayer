@@ -69,8 +69,7 @@
       - [ ] speed (???)
       - [x] type
       - [x] visibleTime
-      - [ ] yOffset
-    - [x] numOfNotes (未使用)
+      - [x] yOffset (可能有bug)
     - [x] alphaControl (有bug)
     - [x] posControl (有bug)
     - [x] sizeControl (有bug)
