@@ -932,7 +932,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 notes.remove(note)
                 continue
             
-            noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h + note.yOffset / const.RPE_HEIGHT * h
+            noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h
             if line.isCover and noteFloorPosition < 0 and not note.clicked and not note.ishold:
                 continue
             
