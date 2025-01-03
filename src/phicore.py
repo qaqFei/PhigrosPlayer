@@ -910,7 +910,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     if noautoplay:
         pplm.pc_update(now_t)
     
-    for line_index, line in enumerate(chart_obj.JudgeLineList):
+    for line_index, line in enumerate(chart_obj.judgeLineList):
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t, line.bpmfactor), (255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor(), chart_obj)
         beatTime = chart_obj.sec2beat(now_t, line.bpmfactor)
         if judgeline_notransparent: lineAlpha = 1.0
@@ -1000,7 +1000,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 if note_clicked and not note.clicked:
                     note.clicked = True
                     if enable_clicksound and not note.isFake and not noautoplay:
-                        Task.ExTask.append(("psound", note.phitype))
+                        Task.ExTask.append(("psound", note.hitsound_reskey))
                 
                 if not note.ishold and note.clicked:
                     notesChildren.remove(note)
@@ -1296,7 +1296,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             if eft + effect_time < now_t:
                 pplm.clickeffects.remove(pplmckfi)
                 
-    for line in chart_obj.JudgeLineList:
+    for line in chart_obj.judgeLineList:
         for note in line.effectNotes.copy():
             if not noautoplay and not note.clicked: break
             

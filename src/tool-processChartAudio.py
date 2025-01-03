@@ -33,7 +33,7 @@ if "META" in Chart and "formatVersion" not in Chart:
                 ],
                 "notesBelow": []
             }
-            for line in rpeobj.JudgeLineList
+            for line in rpeobj.judgeLineList
         ]
     }
 

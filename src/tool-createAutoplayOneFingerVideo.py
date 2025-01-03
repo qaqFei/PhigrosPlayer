@@ -55,7 +55,7 @@ if isinstance(chartObj, chartobj_phi.Phigros_Chart):
                     "pos": (e["pos"][0], e["pos"][1] - 0.1)
                 })
 elif isinstance(chartObj, chartobj_rpe.Rpe_Chart): # eq else
-    for line in chartObj.JudgeLineList:
+    for line in chartObj.judgeLineList:
         for note in line.notes:
             moveDatas.append({
                 "time": note.secst,

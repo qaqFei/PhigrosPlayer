@@ -75,7 +75,7 @@ def Load_Chart_Object(chart: dict):
             )
             for bpme in chart.get("BPMList", [])
         ],
-        JudgeLineList = [
+        judgeLineList = [
             chartobj_rpe.JudgeLine(
                 isCover = line.get("isCover", 1),
                 Texture = line.get("Texture", "line.png"),
@@ -83,6 +83,7 @@ def Load_Chart_Object(chart: dict):
                 bpmfactor = line.get("bpmfactor", 1.0),
                 father = line.get("father", -1),
                 zOrder = line.get("zOrder", 0),
+                isGif = line.get("isGif", False),
                 eventLayers = [
                     chartobj_rpe.EventLayer(
                         speedEvents = _lineevents(layer, "speedEvents"),
@@ -107,6 +108,7 @@ def Load_Chart_Object(chart: dict):
                         visibleTime = n.get("visibleTime", 999999.0),
                         width = n.get("size", 1.0),
                         alpha = n.get("alpha", 255),
+                        hitsound = n.get("hitsound", None),
                     )
                     for n in line.get("notes", [])
                 ],
@@ -134,7 +136,7 @@ def Load_Chart_Object(chart: dict):
             if times[i.startTime.value] > 1:
                 i.morebets = True
 
-    all_notes = [note for line in rpe_chart_obj.JudgeLineList for note in line.notes]
+    all_notes = [note for line in rpe_chart_obj.judgeLineList for note in line.notes]
     morebets_note([i for i in all_notes if not i.isFake])
     morebets_note([i for i in all_notes if i.isFake])
                 

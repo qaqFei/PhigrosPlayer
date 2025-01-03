@@ -9,6 +9,8 @@ import tool_funcs
 import rpe_easing
 import const
 
+HITSOUND_UNSET = object()
+
 def _init_events(es: list[LineEvent]):
     aes = []
     for i, e in enumerate(es):
@@ -90,6 +92,7 @@ class Note:
     visibleTime: float
     width: float
     alpha: int
+    hitsound: str|None
     
     clicked: bool = False
     morebets: bool = False
@@ -121,6 +124,7 @@ class Note:
         self.positionX2 = self.positionX / const.RPE_WIDTH
         self.float_alpha = (255 & int(self.alpha)) / 255
         self.ishold = self.type_string == "Hold"
+        self.hitsound_reskey = self.phitype if self.hitsound is None else hash(tuple(map(ord, self.hitsound)))
     
     def _init(self, master: Rpe_Chart, avgBpm: float):
         self.secst = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
@@ -318,6 +322,8 @@ class JudgeLine:
     bpmfactor: float
     father: int|JudgeLine # in other object, __post_init__ change this value to a line
     zOrder: int
+    isGif: bool
+    
     controlEvents: ControlEvents
     
     playingFloorPosition: float = 0.0
@@ -454,7 +460,7 @@ class JudgeLine:
 class PPLMRPE_Proxy(tool_funcs.PPLM_ProxyBase):
     def __init__(self, cobj: Rpe_Chart): self.cobj = cobj
     
-    def get_lines(self): return self.cobj.JudgeLineList
+    def get_lines(self): return self.cobj.judgeLineList
     def get_all_pnotes(self): return self.cobj.playerNotes
     def remove_pnote(self, n: Note): self.cobj.playerNotes.remove(n)
     
@@ -510,22 +516,22 @@ class PPLMRPE_Proxy(tool_funcs.PPLM_ProxyBase):
 class Rpe_Chart:
     META: MetaData
     BPMList: list[BPMEvent]
-    JudgeLineList: list[JudgeLine]
+    judgeLineList: list[JudgeLine]
     
     combotimes: list[float]|None = None
     
     def __post_init__(self):
         self.BPMList = list(filter(lambda x: x.bpm != 0.0, self.BPMList))
         self.BPMList.sort(key=lambda x: x.startTime.value)
-        self.JudgeLineList = list(filter(lambda x: x.bpmfactor != 0.0, self.JudgeLineList))
+        self.judgeLineList = list(filter(lambda x: x.bpmfactor != 0.0, self.judgeLineList))
         self.combotimes = []
         
         try: avgBpm = sum([e.bpm for e in self.BPMList]) / len(self.BPMList)
         except ZeroDivisionError: avgBpm = 140.0
         
-        for line in self.JudgeLineList:
+        for line in self.judgeLineList:
             if line.father != -1:
-                line.father = self.JudgeLineList[line.father]
+                line.father = self.judgeLineList[line.father]
                 
             for layer in line.eventLayers:
                 fp = 0.0
@@ -549,10 +555,10 @@ class Rpe_Chart:
                 + split_different_speednotes([i for i in line.notes if i.above != 1])
             )
         
-        self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
-        self.JudgeLineList.sort(key = lambda x: x.zOrder)
+        self.note_num = len([i for line in self.judgeLineList for i in line.notes if not i.isFake])
+        self.judgeLineList.sort(key = lambda x: x.zOrder)
         self.combotimes.sort()
-        self.playerNotes = sorted([i for line in self.JudgeLineList for i in line.notes if not i.isFake], key = lambda x: x.secst)
+        self.playerNotes = sorted([i for line in self.judgeLineList for i in line.notes if not i.isFake], key = lambda x: x.secst)
     
     def getCombo(self, t: float):
         l, r = 0, len(self.combotimes)

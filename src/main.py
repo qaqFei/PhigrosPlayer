@@ -436,7 +436,7 @@ def Load_Resource():
         imfns: list[str] = list(map(lambda x: x[0], files_dict["images"]))
         imobjs: list[Image.Image] = list(map(lambda x: x[1], files_dict["images"]))
         
-        for line in chart_obj.JudgeLineList:
+        for line in chart_obj.judgeLineList:
             if line.Texture != "line.png":
                 paths = [
                     f"{temp_dir}\\{line.Texture}",
@@ -450,13 +450,14 @@ def Load_Resource():
                         texture_index = tool_funcs.findfileinlist(p, imfns)
                         texture: Image.Image = imobjs[texture_index]
                         chart_res[line.Texture] = (texture.convert("RGBA"), texture.size)
+                        logging.info(f"Loaded line texture {line.Texture}")
                         break
                 else:
                     logging.warning(f"Cannot find texture {line.Texture}")
                     texture = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
                     chart_res[line.Texture] = (texture, texture.size)
                     
-                respacker.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.JudgeLineList.index(line)}")
+                respacker.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.judgeLineList.index(line)}")
     
     with open(getResPath("/font.ttf"), "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
@@ -497,6 +498,16 @@ def Load_Resource():
     
     # how to load shaders to webgl and use them???
     ... # TODO
+    
+    if CHART_TYPE == const.CHART_TYPE.RPE:
+        for line in chart_obj.judgeLineList:
+            for note in line.notes:
+                if note.hitsound_reskey not in Resource["Note_Click_Audio"]:
+                    try:
+                        Resource["Note_Click_Audio"][note.hitsound_reskey] = playsound.directSound(loadAudio(f"{temp_dir}\\{note.hitsound}"))
+                        logging.info(f"Loaded note hitsound {note.hitsound}")
+                    except Exception as e:
+                        logging.warning(f"Cannot load note hitsound {note.hitsound} for note due to {e}")
     
     cksmanager = phicore.ClickSoundManager(Resource["Note_Click_Audio"])
     logging.info("Load Resource Successfully")
