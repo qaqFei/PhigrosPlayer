@@ -72,6 +72,7 @@ CHAPTER_DIAGONALRECTANGLEDEG = -75
 RPE_WIDTH = 1350
 RPE_HEIGHT = 900
 PHIGROS_TAPTAP_CLIENT_ID = "rAK3FfdieFob2Nn8Am"
+FLOAT_LESSZERO_MAGIC = -1 / 1024
 ClickEffectType = list[tuple[float, tuple[tuple[float, ...]], typing.Callable[[float|int, float|int], tuple[float, float]]]]
 
 DSP_SETTING_TIP = """\

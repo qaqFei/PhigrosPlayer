@@ -41,6 +41,21 @@ def findevent(events: list[LineEvent|ExtraVar], t: float, timeattr: str = "value
         else: l = m + 1
             
     return None
+
+def split_different_speednotes(notes: list[Note]) -> list[Note]:
+    currs = None
+    result, templist = [], []
+    
+    for n in notes:
+        if (h := hash((n.speed, n.yOffset))) != currs:
+            if templist: result.append(templist)
+            templist = []
+            currs = h
+        
+        templist.append(n)
+    
+    if templist: result.append(templist)
+    return result
         
 @dataclass
 class Beat:
@@ -307,8 +322,7 @@ class JudgeLine:
     
     playingFloorPosition: float = 0.0
     effectNotes: list[Note]|None = None
-    renderNotesAbove: list[Note]|None = None
-    renderNotesBelow: list[Note]|None = None
+    renderNotes: list[list[Note]]|None = None
     
     def GetEventValue(self, t: float, es: list[LineEvent], default):
         if not es: return default
@@ -530,8 +544,10 @@ class Rpe_Chart:
             
             line.notes.sort(key=lambda x: x.startTime.value)
             line.effectNotes = [i for i in line.notes if not i.isFake]
-            line.renderNotesAbove = [i for i in line.notes if i.above == 1]
-            line.renderNotesBelow = [i for i in line.notes if i.above != 1]
+            line.renderNotes = (
+                split_different_speednotes([i for i in line.notes if i.above == 1])
+                + split_different_speednotes([i for i in line.notes if i.above != 1])
+            )
         
         self.note_num = len([i for line in self.JudgeLineList for i in line.notes if not i.isFake])
         self.JudgeLineList.sort(key = lambda x: x.zOrder)

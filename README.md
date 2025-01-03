@@ -8,6 +8,8 @@
 
 ## 谱面兼容
 
+tip: 对于谱面播放不使用的部分, 此处忽略
+
 <details>
 <summary>展开</summary>
 
@@ -37,10 +39,7 @@
     - [x] name
     - [x] offset
     - [x] song
-  - [x] judgeLineGroup (谱面播放不使用)
   - [ ] judgeLineList
-    - [x] Group (谱面播放不使用)
-    - [x] Name (谱面播放不使用)
     - [x] Texture
     - [x] bpmfactor (?, 按照字母意思: bpm速率进行处理)
     - [x] father
@@ -66,18 +65,16 @@
       - [x] isFake
       - [x] positionX
       - [x] size
-      - [ ] speed (???)
+      - [x] speed
       - [x] type
       - [x] visibleTime
-      - [ ] yOffset (有bug)
-    - [x] alphaControl (有bug)
-    - [x] posControl (有bug)
-    - [x] sizeControl (有bug)
+      - [x] yOffset
+    - [x] alphaControl (可能有bug)
+    - [x] posControl (可能有bug)
+    - [x] sizeControl (可能有bug)
     - [ ] skewControl
-    - [x] yControl (有bug)
+    - [x] yControl (可能有bug)
     - [x] zOrder
-  - [x] multiLineString (谱面播放不使用)
-  - [x] multiScale (谱面播放不使用)
 - [x] pec
   - 读取转换为`rpe`格式
 - 补充
@@ -91,7 +88,6 @@
     - [x] end
     - [x] startTime
     - [x] endTime
-    - [x] linkgroup (谱面播放不使用)
 
 </details>
 

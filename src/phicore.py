@@ -580,7 +580,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 elif noautoplay and not note.ishold and note.player_clicked:
                     notes.remove(note)
                     continue
-                elif not note.clicked and (note.floorPosition - lineFloorPosition / PHIGROS_Y) < -0.001 and note.type != const.Note.HOLD:
+                elif not note.clicked and (note.floorPosition * PHIGROS_Y - lineFloorPosition) < const.FLOAT_LESSZERO_MAGIC and note.type != const.Note.HOLD:
                     continue
                 elif note.ishold and note.speed == 0.0:
                     notes.remove(note)
@@ -910,206 +910,6 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     if noautoplay:
         pplm.pc_update(now_t)
     
-    def process(notes: list[chartobj_rpe.Note]):
-        for note in notes.copy():
-            note_clicked = note.startTime.value < beatTime
-            
-            if note_clicked and not note.clicked:
-                note.clicked = True
-                if enable_clicksound and not note.isFake and not noautoplay:
-                    Task.ExTask.append(("psound", note.phitype))
-            
-            if not note.ishold and note.clicked:
-                notes.remove(note)
-                continue
-            elif note.ishold and beatTime > note.endTime.value:
-                notes.remove(note)
-                continue
-            elif noautoplay and note.state == const.NOTE_STATE.BAD:
-                notes.remove(note)
-                continue
-            elif noautoplay and not note.ishold and note.player_clicked:
-                notes.remove(note)
-                continue
-            
-            noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h
-            if line.isCover and noteFloorPosition < 0 and not note.clicked and not note.ishold:
-                continue
-            
-            noteAtJudgeLinePos = tool_funcs.rotate_point(
-                *linePos, lineRotate, note.positionX2 * w
-            )
-            lineToNoteRotate = (-90 if note.above == 1 else 90) + lineRotate
-            x, y = tool_funcs.rotate_point(
-                *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
-            )
-            
-            if enable_controls:
-                rpex = tool_funcs.aconrpepos(x, y)[0]
-                ax, px, sx, yx = line.controlEvents.gtvalue(rpex)
-                noteFloorPosition *= yx
-                x, y = tool_funcs.rotate_point(
-                    *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
-                )
-                rpex, rpey = tool_funcs.aconrpepos(x, y)
-                noteAlpha = note.float_alpha * ax
-                rpex *= px
-                noteWidthX = note.width * sx
-                x, y = tool_funcs.conrpepos(rpex, rpey)
-            else:
-                noteAlpha = note.float_alpha
-                noteWidthX = note.width
-            
-            note.nowpos = (x / w, y / h)
-                
-            if note.ishold:
-                holdLength = note.holdLength * h
-                noteHoldDrawLength = noteFloorPosition + holdLength
-                
-                if line.isCover and noteHoldDrawLength < 0 and not note.clicked:
-                    continue
-                
-                holdend_x, holdend_y = tool_funcs.rotate_point(
-                    *noteAtJudgeLinePos, lineToNoteRotate, noteHoldDrawLength
-                )
-                
-                if note.clicked:
-                    holdhead_pos = noteAtJudgeLinePos
-                else:
-                    holdhead_pos = x, y
-                    
-                holdbody_range = (
-                    tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate - 90, noteWidth / 2),
-                    tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate - 90, noteWidth / 2),
-                    tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate + 90, noteWidth / 2),
-                    tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate + 90, noteWidth / 2),
-                )
-                
-            if noteFloorPosition > note_max_size_half:
-                plp_lineLength = w * 4000 / const.RPE_WIDTH
-                
-                nlOutOfScreen_nohold = tool_funcs.noteLineOutOfScreen(
-                    x, y, noteAtJudgeLinePos,
-                    noteFloorPosition,
-                    lineRotate, plp_lineLength,
-                    lineToNoteRotate,
-                    w, h, note_max_size_half
-                )
-                
-                nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
-                    holdend_x, holdend_y, noteAtJudgeLinePos,
-                    noteHoldDrawLength, lineRotate, plp_lineLength,
-                    lineToNoteRotate, w, h, note_max_size_half
-                )
-                
-                if nlOutOfScreen_nohold and nlOutOfScreen_hold:
-                    break
-            
-            canRender = (
-                tool_funcs.noteCanRender(w, h, note_max_size_half, x, y)
-                if not note.ishold
-                else tool_funcs.noteCanRender(w, h, -1, x, y, holdbody_range)
-            ) and not negative_alpha and now_t >= 0.0
-            
-            if canRender and abs(now_t - note.secst) <= note.visibleTime:
-                noteRotate = lineRotate + (0 if note.above == 1 else 180)
-                dub_text = "_dub" if note.morebets else ""
-                if not note.ishold:
-                    this_note_img_keyname = f"{note.type_string}{dub_text}"
-                    this_note_img = Resource["Notes"][this_note_img_keyname]
-                    this_note_imgname = f"Note_{this_note_img_keyname}"
-                else:
-                    this_note_img_keyname = f"{note.type_string}_Head{dub_text}"
-                    this_note_img = Resource["Notes"][this_note_img_keyname]
-                    this_note_imgname = f"Note_{this_note_img_keyname}"
-                    
-                    this_note_img_body_keyname = f"{note.type_string}_Body{dub_text}"
-                    this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
-                    
-                    this_note_img_end_keyname = f"{note.type_string}_End{dub_text}"
-                    this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
-                    this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
-                    
-                fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
-                this_note_width = noteWidth * fix_scale
-                this_note_height = noteWidth / this_note_img.width * this_note_img.height
-                
-                if note.ishold:
-                    this_noteend_height = noteWidth / this_note_img_end.width * this_note_img_end.height
-                    
-                    if note.clicked:
-                        holdbody_x, holdbody_y = noteAtJudgeLinePos
-                        holdbody_length = noteHoldDrawLength - this_noteend_height / 2
-                    else:
-                        holdbody_x, holdbody_y = tool_funcs.rotate_point(
-                            *holdhead_pos, lineToNoteRotate, this_note_height / 2
-                        )
-                        holdbody_length = holdLength - (this_note_height + this_noteend_height) / 2
-                    
-                    if holdbody_length < 0.0:
-                        holdbody_length = 0.0
-                        
-                    miss_alpha_change = 0.5 if noautoplay and note.player_missed else 1.0
-                    
-                    Task(
-                        root.run_js_code,
-                        f"ctx.drawRotateImage(\
-                            {root.get_img_jsvarname(this_note_imgname_end)},\
-                            {holdend_x},\
-                            {holdend_y},\
-                            {this_note_width * noteWidthX},\
-                            {this_noteend_height},\
-                            {noteRotate},\
-                            {noteAlpha * miss_alpha_change}\
-                        );",
-                        add_code_array = True
-                    )
-                    
-                    if holdbody_length > 0.0:
-                        Task(
-                            root.run_js_code,
-                            f"ctx.drawAnchorESRotateImage(\
-                                {root.get_img_jsvarname(this_note_imgname_body)},\
-                                {holdbody_x},\
-                                {holdbody_y},\
-                                {this_note_width * noteWidthX},\
-                                {holdbody_length},\
-                                {noteRotate},\
-                                {noteAlpha * miss_alpha_change}\
-                            );",
-                            add_code_array = True
-                        )
-                
-                if not (note.ishold and note.startTime.value < beatTime):
-                    Task(
-                        root.run_js_code,
-                        f"ctx.drawRotateImage(\
-                            {root.get_img_jsvarname(this_note_imgname)},\
-                            {x},\
-                            {y},\
-                            {this_note_width * noteWidthX},\
-                            {this_note_height},\
-                            {noteRotate},\
-                            {noteAlpha}\
-                        );",
-                        add_code_array = True
-                    )
-                    
-                if debug:
-                    drawDebugText(f"{line_index}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)", Task)
-                    
-                    Task(
-                        root.run_js_code,
-                        f"ctx.fillRectEx(\
-                            {x - (w + h) / 250},\
-                            {y - (w + h) / 250},\
-                            {(w + h) / 250 * 2},\
-                            {(w + h) / 250 * 2},\
-                            'rgb(0, 255, 0)'\
-                        );",
-                        add_code_array = True
-                    )
-    
     for line_index, line in enumerate(chart_obj.JudgeLineList):
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t, line.bpmfactor), (255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor(), chart_obj)
         beatTime = chart_obj.sec2beat(now_t, line.bpmfactor)
@@ -1193,8 +993,208 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         
         line.playingFloorPosition = line.GetFloorPositionByTime(now_t)
         
-        process(line.renderNotesAbove)
-        process(line.renderNotesBelow)
+        for notesChildren in line.renderNotes.copy():
+            for note in notesChildren.copy():
+                note_clicked = note.startTime.value < beatTime
+                
+                if note_clicked and not note.clicked:
+                    note.clicked = True
+                    if enable_clicksound and not note.isFake and not noautoplay:
+                        Task.ExTask.append(("psound", note.phitype))
+                
+                if not note.ishold and note.clicked:
+                    notesChildren.remove(note)
+                    continue
+                elif note.ishold and beatTime > note.endTime.value:
+                    notesChildren.remove(note)
+                    continue
+                elif noautoplay and note.state == const.NOTE_STATE.BAD:
+                    notesChildren.remove(note)
+                    continue
+                elif noautoplay and not note.ishold and note.player_clicked:
+                    notesChildren.remove(note)
+                    continue
+                
+                noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h * note.speed + note.yOffset / const.RPE_HEIGHT * h
+                if line.isCover and noteFloorPosition < const.FLOAT_LESSZERO_MAGIC and not note.clicked and not note.ishold:
+                    continue
+                
+                noteAtJudgeLinePos = tool_funcs.rotate_point(
+                    *linePos, lineRotate, note.positionX2 * w
+                )
+                lineToNoteRotate = (-90 if note.above == 1 else 90) + lineRotate
+                x, y = tool_funcs.rotate_point(
+                    *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
+                )
+                
+                if enable_controls:
+                    rpex = tool_funcs.aconrpepos(x, y)[0]
+                    ax, px, sx, yx = line.controlEvents.gtvalue(rpex)
+                    noteFloorPosition *= yx
+                    x, y = tool_funcs.rotate_point(
+                        *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
+                    )
+                    rpex, rpey = tool_funcs.aconrpepos(x, y)
+                    noteAlpha = note.float_alpha * ax
+                    rpex *= px
+                    noteWidthX = note.width * sx
+                    x, y = tool_funcs.conrpepos(rpex, rpey)
+                else:
+                    noteAlpha = note.float_alpha
+                    noteWidthX = note.width
+                
+                note.nowpos = (x / w, y / h)
+                    
+                if note.ishold:
+                    holdLength = note.holdLength * h * note.speed
+                    noteHoldDrawLength = noteFloorPosition + holdLength
+                    
+                    if line.isCover and noteHoldDrawLength < 0 and not note.clicked:
+                        continue
+                    
+                    holdend_x, holdend_y = tool_funcs.rotate_point(
+                        *noteAtJudgeLinePos, lineToNoteRotate, noteHoldDrawLength
+                    )
+                    
+                    if note.clicked:
+                        holdhead_pos = noteAtJudgeLinePos
+                    else:
+                        holdhead_pos = x, y
+                        
+                    holdbody_range = (
+                        tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate - 90, noteWidth / 2),
+                        tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate - 90, noteWidth / 2),
+                        tool_funcs.rotate_point(holdend_x, holdend_y, lineToNoteRotate + 90, noteWidth / 2),
+                        tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate + 90, noteWidth / 2),
+                    )
+                    
+                if noteFloorPosition > note_max_size_half:
+                    plp_lineLength = w * 4000 / const.RPE_WIDTH
+                    
+                    nlOutOfScreen_nohold = tool_funcs.noteLineOutOfScreen(
+                        x, y, noteAtJudgeLinePos,
+                        noteFloorPosition,
+                        lineRotate, plp_lineLength,
+                        lineToNoteRotate,
+                        w, h, note_max_size_half
+                    )
+                    
+                    nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
+                        holdend_x, holdend_y, noteAtJudgeLinePos,
+                        noteHoldDrawLength, lineRotate, plp_lineLength,
+                        lineToNoteRotate, w, h, note_max_size_half
+                    )
+                    
+                    if nlOutOfScreen_nohold and nlOutOfScreen_hold:
+                        break # it is safe to break, because speed and yOffset value is same in a notesChildren.
+                
+                canRender = (
+                    tool_funcs.noteCanRender(w, h, note_max_size_half, x, y)
+                    if not note.ishold
+                    else tool_funcs.noteCanRender(w, h, -1, x, y, holdbody_range)
+                ) and not negative_alpha and now_t >= 0.0
+                
+                if canRender and abs(now_t - note.secst) <= note.visibleTime:
+                    noteRotate = lineRotate + (0 if note.above == 1 else 180)
+                    dub_text = "_dub" if note.morebets else ""
+                    if not note.ishold:
+                        this_note_img_keyname = f"{note.type_string}{dub_text}"
+                        this_note_img = Resource["Notes"][this_note_img_keyname]
+                        this_note_imgname = f"Note_{this_note_img_keyname}"
+                    else:
+                        this_note_img_keyname = f"{note.type_string}_Head{dub_text}"
+                        this_note_img = Resource["Notes"][this_note_img_keyname]
+                        this_note_imgname = f"Note_{this_note_img_keyname}"
+                        
+                        this_note_img_body_keyname = f"{note.type_string}_Body{dub_text}"
+                        this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
+                        
+                        this_note_img_end_keyname = f"{note.type_string}_End{dub_text}"
+                        this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
+                        this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
+                        
+                    fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
+                    this_note_width = noteWidth * fix_scale
+                    this_note_height = noteWidth / this_note_img.width * this_note_img.height
+                    
+                    if note.ishold:
+                        this_noteend_height = noteWidth / this_note_img_end.width * this_note_img_end.height
+                        
+                        if note.clicked:
+                            holdbody_x, holdbody_y = noteAtJudgeLinePos
+                            holdbody_length = noteHoldDrawLength - this_noteend_height / 2
+                        else:
+                            holdbody_x, holdbody_y = tool_funcs.rotate_point(
+                                *holdhead_pos, lineToNoteRotate, this_note_height / 2
+                            )
+                            holdbody_length = holdLength - (this_note_height + this_noteend_height) / 2
+                        
+                        if holdbody_length < 0.0:
+                            holdbody_length = 0.0
+                            
+                        miss_alpha_change = 0.5 if noautoplay and note.player_missed else 1.0
+                        
+                        Task(
+                            root.run_js_code,
+                            f"ctx.drawRotateImage(\
+                                {root.get_img_jsvarname(this_note_imgname_end)},\
+                                {holdend_x},\
+                                {holdend_y},\
+                                {this_note_width * noteWidthX},\
+                                {this_noteend_height},\
+                                {noteRotate},\
+                                {noteAlpha * miss_alpha_change}\
+                            );",
+                            add_code_array = True
+                        )
+                        
+                        if holdbody_length > 0.0:
+                            Task(
+                                root.run_js_code,
+                                f"ctx.drawAnchorESRotateImage(\
+                                    {root.get_img_jsvarname(this_note_imgname_body)},\
+                                    {holdbody_x},\
+                                    {holdbody_y},\
+                                    {this_note_width * noteWidthX},\
+                                    {holdbody_length},\
+                                    {noteRotate},\
+                                    {noteAlpha * miss_alpha_change}\
+                                );",
+                                add_code_array = True
+                            )
+                    
+                    if not (note.ishold and note.startTime.value < beatTime):
+                        Task(
+                            root.run_js_code,
+                            f"ctx.drawRotateImage(\
+                                {root.get_img_jsvarname(this_note_imgname)},\
+                                {x},\
+                                {y},\
+                                {this_note_width * noteWidthX},\
+                                {this_note_height},\
+                                {noteRotate},\
+                                {noteAlpha}\
+                            );",
+                            add_code_array = True
+                        )
+                        
+                    if debug:
+                        drawDebugText(f"{line_index}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)", Task)
+                        
+                        Task(
+                            root.run_js_code,
+                            f"ctx.fillRectEx(\
+                                {x - (w + h) / 250},\
+                                {y - (w + h) / 250},\
+                                {(w + h) / 250 * 2},\
+                                {(w + h) / 250 * 2},\
+                                'rgb(0, 255, 0)'\
+                            );",
+                            add_code_array = True
+                        )
+        
+            
+            if not notesChildren: line.renderNotes.remove(notesChildren)
         
     effect_time = 0.5
     miss_effect_time = 0.2

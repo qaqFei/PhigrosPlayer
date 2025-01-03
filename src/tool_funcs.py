@@ -19,9 +19,7 @@ import rpe_easing
 import binfile
 
 note_id = -1
-random_block_num = 4
-if "--random-block-num" in argv:
-    random_block_num = eval(argv[argv.index("--random-block-num") + 1])
+random_block_num = eval(argv[argv.index("--random-block-num") + 1]) if "--random-block-num" in argv else 4
 
 def rotate_point(x, y, θ, r) -> tuple[float, float]:
     xo = r * math.cos(math.radians(θ))
