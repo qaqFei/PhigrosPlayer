@@ -254,7 +254,7 @@
     }
 
     function setWlMoreChinese() {
-        let replaceMap = {
+        const replaceMap = {
             "0": "零", 
             "1": "壹", "2": "贰", "3": "叁", "4": "肆",
             "5": "伍", "6": "陆", "7": "柒", "8": "捌",
@@ -278,7 +278,7 @@
             "]": "右方括号", "`": "反引号", "<": "小于号", ">": "大于号"
         };
 
-        let wlmc_text_processer = (text) => {
+        const wlmc_text_processer = (text) => {
             text = text.toUpperCase();
             for (k in replaceMap) {
                 text = text.replaceAll(k, replaceMap[k]);
@@ -300,6 +300,30 @@
 
         CanvasRenderingContext2D.prototype.measureText = function(text, ...args) {
             return this._wlMoreChinese_measureText(wlmc_text_processer(text), ...args);
+        }
+    }
+
+    function setMoreLinesDrawtext() {
+        const callDrawtext = function (cmethod, text, ...args) {
+            if (!(typeof text === "string") || !text.includes("\n")) return cmethod.call(this, text, ...args);
+            let texts = text.split("\n");
+            let [x, y] = args;
+            for (let currtext of texts) {
+                cmethod.call(this, currtext, x, y);
+                let measure = this.measureText(currtext);
+                y += (measure.actualBoundingBoxDescent + measure.actualBoundingBoxAscent) * 1.25;
+            }
+        }
+
+        CanvasRenderingContext2D.prototype._moreLinesDrawtext_fillText = CanvasRenderingContext2D.prototype.fillText;
+        CanvasRenderingContext2D.prototype._moreLinesDrawtext_strokeText = CanvasRenderingContext2D.prototype.strokeText;
+
+        CanvasRenderingContext2D.prototype.fillText = function(text, ...args) {
+            return callDrawtext.call(this, this._moreLinesDrawtext_fillText, text, ...args);
+        }
+
+        CanvasRenderingContext2D.prototype.strokeText = function(text, ...args) {
+            return callDrawtext.call(this, this._moreLinesDrawtext_strokeText, text, ...args);
         }
     }
 
@@ -344,6 +368,7 @@
         return im;
     }
 
+    setMoreLinesDrawtext();
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
