@@ -70,7 +70,7 @@ tip: 对于谱面播放不使用的部分, 此处忽略
       - [x] type
       - [x] visibleTime
       - [x] yOffset
-      - [ ] hitsound
+      - [x] hitsound
     - [x] alphaControl (可能有bug)
     - [x] posControl (可能有bug)
     - [x] sizeControl (可能有bug)
