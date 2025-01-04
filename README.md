@@ -102,6 +102,7 @@ tip: 对于谱面播放不使用的部分, 此处忽略
 这仅仅为了在其他平台或户外使用的目的, 没有过多的优化, 不常维护
 
 Release: [webphiplayer-release](https://qaqfei.github.io/PhigrosPlayer/src/webphiplayer.html)
+
 Dev: [webphiplayer-dev](https://qaqfei.github.io/PhigrosPlayer/src/webphiplayer_dev.html)
 
 ## 声明
