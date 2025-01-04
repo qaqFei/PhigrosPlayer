@@ -245,17 +245,6 @@
         }
     }
 
-    function THREE_ImportChecker() {
-        return new Promise((resolve, reject) => {
-            let checker = setInterval(() => {
-                if (typeof THREE !== "undefined") {
-                    clearInterval(checker);
-                    resolve();
-                }
-            }, 1000 / 30);
-        });
-    }
-
     function setWlMoreChinese() {
         const replaceMap = {
             "0": "零", 
