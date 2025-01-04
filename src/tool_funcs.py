@@ -946,7 +946,8 @@ class PhigrosPlayLogicManager:
             self.recorder.pc_click(t)
         
     def pc_release(self, t: float) -> None:
-        self.pc_clickings -= 1
+        if self.pc_clickings > 0:
+            self.pc_clickings -= 1
         
         if self.record:
             self.recorder.pc_release(t)
