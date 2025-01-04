@@ -83,6 +83,7 @@
     lowquality_imjs_maxsize = 256;
     lfdaot_render_video_stop = false;
     enable_jscanvas_bitmap = false;
+    RPEVersion = -1;
     const textureLineColorFilterColorMatrix = document.getElementById("textureLineColorFilterColorMatrix");
     const lowquality_imweakmap = new WeakMap();
     const letters = [
@@ -101,6 +102,8 @@
     const None = undefined;
     const True = true;
     const False = false;
+    const inf = Infinity;
+    const nan = NaN;
 
     function setTextureLineColorFilterColorMatrixValueByRgbValue(r, g, b) {
         textureLineColorFilterColorMatrix.setAttribute("values", `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`);
@@ -305,7 +308,7 @@
 
     function setMoreLinesDrawtext() {
         const callDrawtext = function (cmethod, text, ...args) {
-            if (!(typeof text === "string") || !text.includes("\n")) return cmethod.call(this, text, ...args);
+            if (!(typeof text === "string") || !text.includes("\n") || RPEVersion < 153) return cmethod.call(this, text, ...args);
             let texts = text.split("\n");
             let [x, y] = args;
             for (let currtext of texts) {

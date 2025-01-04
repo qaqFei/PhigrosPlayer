@@ -30,7 +30,7 @@ tip: 对于谱面播放不使用的部分, 此处忽略
 - [ ] rpe
   - [x] BPMList
   - [ ] META (无法获取info文件时读取)
-    - [ ] RPEVersion (???, 有影响吗?)
+    - [x] RPEVersion (???, 参见 RPEVersion 特殊处理)
     - [x] background
     - [x] charter
     - [x] composer
@@ -90,6 +90,10 @@ tip: 对于谱面播放不使用的部分, 此处忽略
     - [x] end
     - [x] startTime
     - [x] endTime
+
+### RPEVersion 特殊处理
+
+- `>= 153` 时, `textEvents` 中的 `\n` 才生效, 否则使用 `webview` 默认行为
 
 </details>
 

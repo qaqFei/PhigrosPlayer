@@ -225,10 +225,17 @@ else:
 
 def LoadChartObject(first: bool = False):
     global chart_obj
+    
     if CHART_TYPE == const.CHART_TYPE.PHI:
         chart_obj = chartfuncs_phi.Load_Chart_Object(chart_json)
     elif CHART_TYPE == const.CHART_TYPE.RPE:
         chart_obj = chartfuncs_rpe.Load_Chart_Object(chart_json)
+        
+        chart_obj.META.RPEVersion = (
+            sys.argv[sys.argv.index("--rpeversion") + 1]
+            if "--rpeversion" in sys.argv
+            else chart_obj.META.RPEVersion
+        )
     
     if not first:
         updateCoreConfig()
@@ -1028,6 +1035,7 @@ else:
 root.run_js_code(f"lowquality_imjscvscale_x = {lowquality_imjscvscale_x};")
 root.run_js_code(f"lowquality_imjs_maxsize = {lowquality_imjs_maxsize};")
 root.run_js_code(f"enable_jscanvas_bitmap = {enable_jscanvas_bitmap};")
+root.run_js_code(f"RPEVersion = {chart_obj.META.RPEVersion if CHART_TYPE == const.CHART_TYPE.RPE else -1};")
 root.run_js_code(f"resizeCanvas({w}, {h});")
     
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
