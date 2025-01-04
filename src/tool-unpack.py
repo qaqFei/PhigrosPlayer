@@ -349,7 +349,7 @@ def pack_charts(infos: list[dict], rpe: bool):
             charts.append((info["soundIdBak"], l, chartFile, audioFile, imageFile, csvData))
             allcount += 1
     
-    packthread_num = 64
+    packthread_num = 32
     stopthread_count = 0
     packed_num = 0
     charts_bak = charts.copy()
