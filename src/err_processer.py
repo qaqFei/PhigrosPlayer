@@ -1,6 +1,5 @@
 import sys
 import threading
-import time
 
 def excepthook(etype, value, tb):
     # will be fast to load this module
