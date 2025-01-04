@@ -66,7 +66,6 @@ except Exception as e: logging.warning(f"error when create temp dir: {e}")
 
 enable_clicksound = "--noclicksound" not in sys.argv
 debug = "--debug" in sys.argv
-show_holdbody = "--holdbody" in sys.argv
 debug_noshow_transparent_judgeline = "--debug-noshow-transparent-judgeline" in sys.argv
 judgeline_notransparent = "--judgeline-notransparent" in sys.argv
 clickeffect_randomblock = "--noclickeffect-randomblock" not in sys.argv
