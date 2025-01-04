@@ -187,6 +187,7 @@ class WebCanvas:
         self._is_loadimg: dict[str, bool] = {}
         self._jscodes: list[str] = []
         self._framerate: int|float = -1
+        self._jscode_orders: dict[int, list[tuple[str, bool]]] = {}
         
         self._rdevent = threading.Event()
         self._raevent = threading.Event()
@@ -239,9 +240,15 @@ class WebCanvas:
     def resize(self, width: int, height: int): self.web.resize(width, height)
     def move(self, x: int, y:int): self.web.move(x, y)
     
-    def run_js_code(self, code: str, add_code_array: bool = False):
+    def run_js_code(self, code: str, add_code_array: bool = False, order: int|None = None):
         if self.jslog and not code.endswith(";"): code += ";"
-        return self._jscodes.append(code) if add_code_array else self.web.evaluate_js(code)
+        
+        if order is None:
+            return self._jscodes.append(code) if add_code_array else self.web.evaluate_js(code)
+        
+        if order not in self._jscode_orders:
+            self._jscode_orders[order] = []
+        self._jscode_orders[order].append((code, add_code_array))
     
     def _rjwc(self, codes: list[str]):
         framerate: int|float = self.web.evaluate_js(f"{codes}.forEach(r2eval);\nframerate;")
@@ -255,7 +262,16 @@ class WebCanvas:
         if self.renderasync:
             self._raevent.set()
     
+    def run_jscode_orders(self):
+        if self._jscode_orders:
+            for _, i in sorted(self._jscode_orders.items(), key=lambda x: x[0]):
+                for c, w in i: 
+                    if w: self._jscodes.append(c)
+                    else: self.web.evaluate_js(c)
+            self._jscode_orders.clear()
+        
     def run_js_wait_code(self):
+        if self._jscode_orders: self.run_jscode_orders() # not to create a new pyframe
         self.run_js_code("requestAnimationFrame(() => pywebview.api.call_attr('_rdcallback'));", add_code_array=True)
         self.run_js_code("if (!('_frame_counter' in window)) {&FRAMERATE_CODE&};".replace("&FRAMERATE_CODE&", framerate_counter), add_code_array=True)
         

@@ -44,12 +44,27 @@ class PHI_SORTMETHOD:
     SONG_NAME = 2
     DIFFICULTY = 3
     SCORE = 4
+
+class CHART_RENDER_ORDERS:
+    LINE = 0
+    
+    HOLD = 1
+    FLICK = 2
+    DRAG = 2
+    TAP = 2
     
 TYPE_STRING_MAP = {
     Note.TAP: "Tap",
     Note.DRAG: "Drag",
     Note.HOLD: "Hold",
     Note.FLICK: "Flick"
+}
+
+NOTE_RORDER_MAP = {
+    Note.TAP: CHART_RENDER_ORDERS.TAP,
+    Note.DRAG: CHART_RENDER_ORDERS.DRAG,
+    Note.HOLD: CHART_RENDER_ORDERS.HOLD,
+    Note.FLICK: CHART_RENDER_ORDERS.FLICK
 }
 
 PHI_SORTMETHOD_STRING_MAP = {

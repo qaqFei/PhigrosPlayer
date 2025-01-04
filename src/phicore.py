@@ -541,7 +541,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     {JUDGELINE_WIDTH},\
                     '{judgeLine_webCanvas_color}'\
                 );",
-                add_code_array = True
+                add_code_array = True,
+                order = const.CHART_RENDER_ORDERS.LINE
             )
             
             if debug:
@@ -694,7 +695,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                                 {noteRotate},\
                                 {miss_alpha_change}\
                             );",
-                            add_code_array = True
+                            add_code_array = True,
+                            order = note.draworder
                         )
                         
                         if holdbody_length > 0.0:
@@ -709,7 +711,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                                     {noteRotate},\
                                     {miss_alpha_change}\
                                 );",
-                                add_code_array = True
+                                add_code_array = True,
+                                order = note.draworder
                             )
                         
                     if not (note.ishold and note.sec < now_t):
@@ -724,7 +727,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                                 {noteRotate},\
                                 1.0\
                             );",
-                            add_code_array = True
+                            add_code_array = True,
+                            order = note.draworder
                         )
                 
                     if debug:
@@ -744,6 +748,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         
         process(line.renderNotesAbove, 1)
         process(line.renderNotesBelow, -1)
+    
+    Task(root.run_jscode_orders)
     
     effect_time = 0.5
     miss_effect_time = 0.2
@@ -938,7 +944,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         {lineRotate},\
                         {lineAlpha}\
                     ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",
-                    add_code_array = True
+                    add_code_array = True,
+                    order = const.CHART_RENDER_ORDERS.LINE
                 )
         elif lineText is not None and lineAlpha > 0.0:
             Task(
@@ -953,7 +960,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     {lineScaleX},\
                     {lineScaleY}\
                 );",
-                add_code_array = True
+                add_code_array = True,
+                order = const.CHART_RENDER_ORDERS.LINE
             )
         elif line.attachUI is not None:
             if line.attachUI in ("combonumber", "combo", "score", "name", "level", "pause"):
@@ -973,7 +981,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     {JUDGELINE_WIDTH * lineScaleY},\
                     '{judgeLine_webCanvas_color}'\
                 );",
-                add_code_array = True
+                add_code_array = True,
+                order = const.CHART_RENDER_ORDERS.LINE
             )
             
         if debug and line.attachUI is None and tool_funcs.pointInScreen(linePos, w, h):
@@ -1145,7 +1154,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                                 {noteRotate},\
                                 {noteAlpha * miss_alpha_change}\
                             );",
-                            add_code_array = True
+                            add_code_array = True,
+                            order = note.draworder
                         )
                         
                         if holdbody_length > 0.0:
@@ -1160,7 +1170,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                                     {noteRotate},\
                                     {noteAlpha * miss_alpha_change}\
                                 );",
-                                add_code_array = True
+                                add_code_array = True,
+                                order = note.draworder
                             )
                     
                     if not (note.ishold and note.startTime.value < beatTime):
@@ -1175,7 +1186,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                                 {noteRotate},\
                                 {noteAlpha}\
                             );",
-                            add_code_array = True
+                            add_code_array = True,
+                            order = note.draworder
                         )
                         
                     if debug:
@@ -1195,7 +1207,9 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         
             
             if not notesChildren: line.renderNotes.remove(notesChildren)
-        
+    
+    Task(root.run_jscode_orders)
+    
     effect_time = 0.5
     miss_effect_time = 0.2
     bad_effect_time = 0.5

@@ -125,6 +125,7 @@ class Note:
         self.float_alpha = (255 & int(self.alpha)) / 255
         self.ishold = self.type_string == "Hold"
         self.hitsound_reskey = self.phitype if self.hitsound is None else hash(tuple(map(ord, self.hitsound)))
+        self.draworder = const.NOTE_RORDER_MAP[self.phitype]
     
     def _init(self, master: Rpe_Chart, avgBpm: float):
         self.secst = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)

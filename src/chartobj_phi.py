@@ -90,6 +90,7 @@ class note:
         self.hold_endtime = self.sec + self.hold_length_sec
         self.player_holdjudge_tomanager_time = max(self.hold_endtime - 0.2, self.sec)
         self.ishold = self.type == const.Note.HOLD
+        self.draworder = const.NOTE_RORDER_MAP[self.type]
         
         self.type_string = const.TYPE_STRING_MAP[self.type]
         
