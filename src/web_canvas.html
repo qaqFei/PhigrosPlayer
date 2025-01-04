@@ -306,30 +306,6 @@
         }
     }
 
-    function setMoreLinesDrawtext() {
-        const callDrawtext = function (cmethod, text, ...args) {
-            if (!(typeof text === "string") || !text.includes("\n") || RPEVersion < 153) return cmethod.call(this, text, ...args);
-            let texts = text.split("\n");
-            let [x, y] = args;
-            for (let currtext of texts) {
-                cmethod.call(this, currtext, x, y);
-                let measure = this.measureText(currtext);
-                y += (measure.actualBoundingBoxDescent + measure.actualBoundingBoxAscent) * 1.25;
-            }
-        }
-
-        CanvasRenderingContext2D.prototype._moreLinesDrawtext_fillText = CanvasRenderingContext2D.prototype.fillText;
-        CanvasRenderingContext2D.prototype._moreLinesDrawtext_strokeText = CanvasRenderingContext2D.prototype.strokeText;
-
-        CanvasRenderingContext2D.prototype.fillText = function(text, ...args) {
-            return callDrawtext.call(this, this._moreLinesDrawtext_fillText, text, ...args);
-        }
-
-        CanvasRenderingContext2D.prototype.strokeText = function(text, ...args) {
-            return callDrawtext.call(this, this._moreLinesDrawtext_strokeText, text, ...args);
-        }
-    }
-
     function toLowQualityImage(im) {
         if (lowquality_imweakmap.has(im)) return lowquality_imweakmap.get(im);
 
@@ -371,7 +347,6 @@
         return im;
     }
 
-    setMoreLinesDrawtext();
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
@@ -412,6 +387,32 @@
         this.translate(x, y);
         this.scale(xs, ys);
         this.drawImage(im, -width / 2, -height / 2, width, height);
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawRPEMultipleRotateText = function(text, x, y, deg, fontsize, color, xs, ys) {
+        this.save();
+        this.translate(x, y);
+        this.rotate(deg * Math.PI / 180);
+        this.scale(xs, ys);
+        this.fillStyle = color;
+        this.textAlign = "center";
+        this.textBaseline = "middle";
+        this.font = `${fontsize}px PhigrosFont`;
+
+        if (text.includes("\n") && RPEVersion >= 153) {
+            let texts = text.split("\n");
+            let x = 0.0; let y = 0.0;
+            for (let currtext of texts) {
+                if (currtext) this.fillText(currtext, x, y);
+                let measure = this.measureText(currtext);
+                y += (measure.actualBoundingBoxDescent + measure.actualBoundingBoxAscent) * 1.25;
+            }
+        }
+        else {
+            this.fillText(text, 0, 0);
+        }
+
         this.restore();
     }
 

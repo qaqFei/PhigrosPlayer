@@ -943,7 +943,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         elif lineText is not None and lineAlpha > 0.0:
             Task(
                 root.run_js_code,
-                f"ctx.drawRotateText(\
+                f"ctx.drawRPEMultipleRotateText(\
                     '{root.string2cstring(lineText)}',\
                     {linePos[0]},\
                     {linePos[1]},\
