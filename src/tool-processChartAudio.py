@@ -7,10 +7,10 @@ import const
 import chartfuncs_rpe
 
 NoteClickAudios = {
-    const.Note.TAP: AudioSegment.from_file("./resources/resource_packs/default/click.ogg"),
-    const.Note.DRAG: AudioSegment.from_file("./resources/resource_packs/default/drag.ogg"),
-    const.Note.HOLD: AudioSegment.from_file("./resources/resource_packs/default/click.ogg"),
-    const.Note.FLICK: AudioSegment.from_file("./resources/resource_packs/default/flick.ogg")
+    const.Note.TAP: AudioSegment.from_file("./resources/resource_default/click.ogg"),
+    const.Note.DRAG: AudioSegment.from_file("./resources/resource_default/drag.ogg"),
+    const.Note.HOLD: AudioSegment.from_file("./resources/resource_default/click.ogg"),
+    const.Note.FLICK: AudioSegment.from_file("./resources/resource_default/flick.ogg")
 }
 
 with open(argv[1], "r", encoding="utf-8") as f:
