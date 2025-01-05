@@ -23,7 +23,6 @@ tip: 对于谱面播放不使用的部分, 此处忽略
     - [x] judgeLineMoveEvents
     - [x] judgeLineRotateEvents
     - [x] judgeLineDisappearEvents
-
 - [ ] rpe
   - [x] BPMList
   - [ ] META (无法获取info文件时读取)
@@ -74,10 +73,8 @@ tip: 对于谱面播放不使用的部分, 此处忽略
     - [ ] skewControl
     - [x] yControl (可能有bug)
     - [x] zOrder
-
 - [x] pec
   - 读取转换为`rpe`格式
-
 - [ ] phira resource pack
   - [x] click.png
   - [x] click_mh.png
