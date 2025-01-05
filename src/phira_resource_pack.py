@@ -211,3 +211,4 @@ class PhiraResourcePack:
     def setToGlobal(self):
         global globalPack
         globalPack = self
+        
