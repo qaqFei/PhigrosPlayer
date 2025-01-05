@@ -1171,7 +1171,6 @@ class TimeoutTaskManager(typing.Generic[_TimeoutTaskManagerT]):
         for i in self.datas.copy():
             tt, o = i
             if tt <= t:
-                print(o)
                 result.append(o)
                 self.datas.remove(i)
             break
