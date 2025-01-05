@@ -606,6 +606,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         ) * PHIGROS_Y + tool_funcs.linear_interpolation(note.hold_endtime - now_t, 0, note.hold_length_sec, note.hold_length_pgry * PHIGROS_Y, 0)
                     )
                 )
+                note_now_floorPosition *= note.speed
                 
                 if note_now_floorPosition > h * 2:
                     continue
@@ -617,7 +618,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 note.nowpos = (x / w, y / h)
                 
                 if note.ishold:
-                    note_hold_draw_length = note_now_floorPosition + note.hold_length_pgry * PHIGROS_Y
+                    note_hold_draw_length = note_now_floorPosition + note.hold_length_pgry * PHIGROS_Y * note.speed
                     holdend_x, holdend_y = tool_funcs.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_hold_draw_length)
                     
                     if note.clicked:
