@@ -125,7 +125,7 @@ class PhiraResourcePack:
         if not validFile(self.resource["endpath"]):
             self.resource["endpath"] = f"{DEFAULT_PATH}/ending.mp3"
 
-        info: dict = yaml.load(open(f"{directory}/info.yml", "r"), Loader=yaml.FullLoader)
+        info: dict = yaml.load(open(f"{directory}/info.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
         
         self.resource["name"] = info.get("name", "name")
         self.resource["author"] = info.get("author", "author")
