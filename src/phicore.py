@@ -256,7 +256,7 @@ def processClickEffectBase(
             )
     
         caller(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + ((1.0 - p) * alpha, )}');", add_code_array = True)
-            
+    
     caller(
         root.run_js_code,
         f"ctx.drawAlphaImage(\

@@ -81,7 +81,7 @@ def int2argb(x: int):
     )
 
 def argb2rgba(x: tuple):
-    return (x[1], x[2], x[3], x[0])
+    return (x[1], x[2], x[3], x[0] if x[0] != 0 else 255)
 
 class PhiraResourcePack:
     def __init__(self, fp: typing.Optional[str] = None):
