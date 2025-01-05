@@ -223,15 +223,15 @@ def Load_Resource():
             "Perfect": list(map(lambda im: putColor((255, 236, 160), im), ClickEffectImages)),
             "Good": list(map(lambda im: putColor((180, 225, 255), im), ClickEffectImages)),
         },
-        "Levels":{
-            "AP": Image.open("./resources/Levels/AP.png"),
-            "FC": Image.open("./resources/Levels/FC.png"),
-            "V": Image.open("./resources/Levels/V.png"),
-            "S": Image.open("./resources/Levels/S.png"),
-            "A": Image.open("./resources/Levels/A.png"),
-            "B": Image.open("./resources/Levels/B.png"),
-            "C": Image.open("./resources/Levels/C.png"),
-            "F": Image.open("./resources/Levels/F.png")
+        "levels":{
+            "AP": Image.open("./resources/levels/AP.png"),
+            "FC": Image.open("./resources/levels/FC.png"),
+            "V": Image.open("./resources/levels/V.png"),
+            "S": Image.open("./resources/levels/S.png"),
+            "A": Image.open("./resources/levels/A.png"),
+            "B": Image.open("./resources/levels/B.png"),
+            "C": Image.open("./resources/levels/C.png"),
+            "F": Image.open("./resources/levels/F.png")
         },
         "Note_Click_Audio":{
             const.Note.TAP: playsound.directSound(loadAudio("./resources/Note_Click_Audio/Tap.wav")),
@@ -345,7 +345,7 @@ def Load_Resource():
     SortIconWidth = w * 0.0171875
     SortIconHeight = SortIconWidth / Resource["sort"].width * Resource["sort"].height
     
-    for k,v in Resource["Levels"].items():
+    for k,v in Resource["levels"].items():
         respacker.reg_img(v, f"Level_{k}")
         
     for k, v in Resource["Notes"].items():
@@ -1821,9 +1821,9 @@ def settingRender():
         if settingState.atis_o and tool_funcs.inrect(x, y, otherSettingButtonRects[1]) and inSettingUI:
             unregEvents()
             nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
-                chartAudio = "./resources/Introduction/audio.mp3",
-                chartImage = "./resources/Introduction/image.png",
-                chartFile = "./resources/Introduction/chart.json",
+                chartAudio = "./resources/introduction_chart/audio.mp3",
+                chartImage = "./resources/introduction_chart/image.png",
+                chartFile = "./resources/introduction_chart/chart.json",
                 startAnimation = False,
                 chart_information = {
                     "Name": "Introduction",

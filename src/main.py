@@ -38,6 +38,7 @@ import ppr_help
 import binfile
 import shader
 import file_loader
+import phira_resource_pack
 import phicore
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
@@ -97,10 +98,7 @@ lfdaot_use_recordfile = sys.argv[sys.argv.index("--lfdaot-use-recordfile") + 1] 
 wl_more_chinese = "--wl-more-chinese" in sys.argv
 skip_time = float(sys.argv[sys.argv.index("--skip-time") + 1]) if "--skip-time" in sys.argv else 0.0
 enable_jscanvas_bitmap = "--enable-jscanvas-bitmap" in sys.argv
-respaths = ["./resources"]
-
-if "--res" in sys.argv:
-    respaths.append(sys.argv[sys.argv.index("--res") + 1])
+respath = sys.argv[sys.argv.index("--res") + 1] if "--res" in sys.argv else "./resources/resource_packs/default"
 
 if lfdaot and noautoplay:
     noautoplay = False
@@ -309,13 +307,6 @@ if extra.enable:
 
 logging.info(f"enable_shader: {extra.enable}")
 
-def getResPath(path: str, file: bool = True):
-    for rp in reversed(respaths):
-        fp = f"{rp}{path}"
-        if exists(fp) and (isfile(fp) if file else isdir(fp)):
-            return fp
-    return f"{respaths[0]}\\{path}"
-
 def putColor(color: tuple|str, im: Image.Image):
     return Image.merge("RGBA", (
         *Image.new("RGB", im.size, color).split(),
@@ -323,7 +314,7 @@ def putColor(color: tuple|str, im: Image.Image):
     ))
 
 def loadAudio(path: str):
-    seg = AudioSegment.from_file(path)
+    seg: AudioSegment = AudioSegment.from_file(path)
     fp = f"{temp_dir}/{hash(path)}.wav"
     seg.export(fp, format="wav")
     return open(fp, "rb").read()
@@ -339,60 +330,40 @@ def Load_Resource():
     global cksmanager
     
     logging.info("Loading Resource...")
-    WaitLoading = mixer.Sound(getResPath("/WaitLoading.mp3"))
-    LoadSuccess = mixer.Sound(getResPath("/LoadSuccess.wav"))
+    WaitLoading = mixer.Sound("./resources/WaitLoading.mp3")
+    LoadSuccess = mixer.Sound("./resources/LoadSuccess.wav")
     Thread(target=WaitLoading_FadeIn, daemon = True).start()
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
     noteWidth_raw = (0.125 * w + 0.2 * h) / 2
     noteWidth = (noteWidth_raw) * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
-    ClickEffectFrameCount = len(listdir(getResPath("/Note_Click_Effect/Frames", False)))
-    ClickEffectImages = [Image.open(getResPath(f"/Note_Click_Effect/Frames/{i + 1}.png")) for i in range(ClickEffectFrameCount)]
+    
+    phi_rpack = phira_resource_pack.PhiraResourcePack(respath)
+    phi_rpack.setToGlobal()
+    ClickEffectFrameCount = phi_rpack.effectFrameCount
+    
     Resource = {
-        "Notes":{
-            "Tap": Image.open(getResPath("/Notes/Tap.png")),
-            "Tap_dub": Image.open(getResPath("/Notes/Tap_dub.png")),
-            "Drag": Image.open(getResPath("/Notes/Drag.png")),
-            "Drag_dub": Image.open(getResPath("/Notes/Drag_dub.png")),
-            "Flick": Image.open(getResPath("/Notes/Flick.png")),
-            "Flick_dub": Image.open(getResPath("/Notes/Flick_dub.png")),
-            "Hold_Head": Image.open(getResPath("/Notes/Hold_Head.png")),
-            "Hold_Head_dub": Image.open(getResPath("/Notes/Hold_Head_dub.png")),
-            "Hold_End": Image.open(getResPath("/Notes/Hold_End.png")),
-            "Hold_End_dub": Image.open(getResPath("/Notes/Hold_End_dub.png")),
-            "Hold_Body": Image.open(getResPath("/Notes/Hold_Body.png")),
-            "Hold_Body_dub": Image.open(getResPath("/Notes/Hold_Body_dub.png")),
-            "Bad": None
+        "levels":{
+            "AP": Image.open("./resources/levels/AP.png"),
+            "FC": Image.open("./resources/levels/FC.png"),
+            "V": Image.open("./resources/levels/V.png"),
+            "S": Image.open("./resources/levels/S.png"),
+            "A": Image.open("./resources/levels/A.png"),
+            "B": Image.open("./resources/levels/B.png"),
+            "C": Image.open("./resources/levels/C.png"),
+            "F": Image.open("./resources/levels/F.png")
         },
-        "Note_Click_Effect":{
-            "Perfect": list(map(lambda im: putColor((255, 236, 160), im), ClickEffectImages)),
-            "Good": list(map(lambda im: putColor((180, 225, 255), im), ClickEffectImages)),
-        },
-        "Levels":{
-            "AP": Image.open(getResPath("/Levels/AP.png")),
-            "FC": Image.open(getResPath("/Levels/FC.png")),
-            "V": Image.open(getResPath("/Levels/V.png")),
-            "S": Image.open(getResPath("/Levels/S.png")),
-            "A": Image.open(getResPath("/Levels/A.png")),
-            "B": Image.open(getResPath("/Levels/B.png")),
-            "C": Image.open(getResPath("/Levels/C.png")),
-            "F": Image.open(getResPath("/Levels/F.png"))
-        },
-        "Note_Click_Audio":{
-            const.Note.TAP: playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Tap.wav"))),
-            const.Note.DRAG: playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Drag.wav"))),
-            const.Note.HOLD: playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Hold.wav"))),
-            const.Note.FLICK: playsound.directSound(loadAudio(getResPath("/Note_Click_Audio/Flick.wav")))
-        },
-        "le_warn": Image.open(getResPath("/le_warn.png")),
-        "Button_Left": Image.open(getResPath("/Button_Left.png")),
+        "le_warn": Image.open("./resources/le_warn.png"),
+        "Button_Left": Image.open("./resources/Button_Left.png"),
         "Button_Right": None,
-        "Retry": Image.open(getResPath("/Retry.png")),
-        "Arrow_Right": Image.open(getResPath("/Arrow_Right.png")),
-        "Over": mixer.Sound(getResPath("/Over.mp3")),
-        "Pause": mixer.Sound(getResPath("/Pause.wav")),
-        "PauseImg": Image.open(getResPath("/Pause.png"))
+        "Retry": Image.open("./resources/Retry.png"),
+        "Arrow_Right": Image.open("./resources/Arrow_Right.png"),
+        "Over": mixer.Sound("./resources/Over.mp3"),
+        "Pause": mixer.Sound("./resources/Pause.wav"),
+        "PauseImg": Image.open("./resources/Pause.png")
     }
+    
+    Resource.update(phi_rpack.createResourceDict())
     
     respacker = webcv.PILResourcePacker(root)
     
@@ -425,7 +396,7 @@ def Load_Resource():
         respacker.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
         respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
         
-    for k,v in Resource["Levels"].items(): # reg levels img
+    for k,v in Resource["levels"].items(): # reg levels img
         respacker.reg_img(v, f"Level_{k}")
         
     respacker.reg_img(Resource["le_warn"], "le_warn")
@@ -466,7 +437,7 @@ def Load_Resource():
                     
                 respacker.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.judgeLineList.index(line)}")
     
-    with open(getResPath("/font.ttf"), "rb") as f:
+    with open("./resources/font.ttf", "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
     respacker.load(*respacker.pack())
     
@@ -796,7 +767,7 @@ def PlayerStart():
             while not mixer.music.get_busy(): pass
 
             totm: tool_funcs.TimeoutTaskManager[chartobj_phi.FrameRenderTask] = tool_funcs.TimeoutTaskManager()
-            totm.vaild = lambda x: bool(x)
+            totm.valid = lambda x: bool(x)
             
             for fc, task in lfdaot_tasks.items():
                 totm.add_task(fc, task.ExTask)

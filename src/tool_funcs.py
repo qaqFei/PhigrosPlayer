@@ -1159,10 +1159,10 @@ class TimeoutTaskManager(typing.Generic[_TimeoutTaskManagerT]):
     
     def __init__(self):
         self.datas = []
-        self.vaild: typing.Callable[[_TimeoutTaskManagerT], bool] = lambda x: True
+        self.valid: typing.Callable[[_TimeoutTaskManagerT], bool] = lambda x: True
         
     def add_task(self, t: float, o: _TimeoutTaskManagerT):
-        if self.vaild(o):
+        if self.valid(o):
             self.datas.append((t, o))
     
     def get_task(self, t: float):

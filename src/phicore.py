@@ -20,6 +20,7 @@ import chartobj_phi
 import chartobj_rpe
 import phi_tips
 import playsound
+import phira_resource_pack
 
 drawUI_Default_Kwargs = {
     f"{k}_{k2}": v
@@ -216,8 +217,18 @@ def processClickEffectBase(
 ):
     if rblocks is None: rblocks = tool_funcs.get_effect_random_blocks()
     
-    color = (255, 236, 160) if perfect else (180, 225, 255)
-    alphas = (225 if perfect else 235) / 255
+    color = (
+        phira_resource_pack.globalPack.perfectColor
+        if perfect else
+        phira_resource_pack.globalPack.goodColor
+    )
+    
+    alpha = (
+        phira_resource_pack.globalPack.perfectAlpha
+        if perfect else
+        phira_resource_pack.globalPack.goodAlpha
+    ) / 255
+    
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
     effectSize = noteWidth * 1.375
     blockSize = noteWidth / 5.5
@@ -244,14 +255,14 @@ def processClickEffectBase(
                 add_code_array = True
             )
     
-        caller(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + ((1.0 - p) * alphas, )}');", add_code_array = True)
+        caller(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + ((1.0 - p) * alpha, )}');", add_code_array = True)
             
     caller(
         root.run_js_code,
         f"ctx.drawAlphaImage(\
             {root.get_img_jsvarname(f"{imn}_{int(p * (framecount - 1)) + 1}")},\
             {x - effectSize / 2}, {y - effectSize / 2},\
-            {effectSize}, {effectSize}, {alphas}\
+            {effectSize}, {effectSize}, {alpha}\
         );",
         add_code_array = True
     )
@@ -750,7 +761,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 line.renderNotes.remove(notesChildren)
     Task(root.run_jscode_orders)
     
-    effect_time = 0.5
+    effect_time = phira_resource_pack.globalPack.effectDuration
     miss_effect_time = 0.2
     bad_effect_time = 0.5
     
@@ -1210,7 +1221,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     
     Task(root.run_jscode_orders)
     
-    effect_time = 0.5
+    effect_time = phira_resource_pack.globalPack.effectDuration
     miss_effect_time = 0.2
     bad_effect_time = 0.5
     

@@ -6,7 +6,7 @@
 - Windows 版本需 >= `8.1`
 - 第三方库: [requirements.txt](./src/requirements.txt)
 
-## 谱面兼容
+## 兼容
 
 tip: 对于谱面播放不使用的部分, 此处忽略
 
@@ -26,6 +26,7 @@ tip: 对于谱面播放不使用的部分, 此处忽略
     - [x] judgeLineMoveEvents
     - [x] judgeLineRotateEvents
     - [x] judgeLineDisappearEvents
+
 - [ ] rpe
   - [x] BPMList
   - [ ] META (无法获取info文件时读取)
@@ -76,29 +77,53 @@ tip: 对于谱面播放不使用的部分, 此处忽略
     - [ ] skewControl
     - [x] yControl (可能有bug)
     - [x] zOrder
+
 - [x] pec
   - 读取转换为`rpe`格式
-- 补充
-  - [x] rpe格式中的事件
-    - [x] bezier
-    - [x] bezierPoints
-    - [x] easingLeft
-    - [x] easingRight
-    - [x] easingType
-    - [x] start
-    - [x] end
-    - [x] startTime
-    - [x] endTime
+
+- [ ] phira resource pack
+  - [x] click.png
+  - [x] click_mh.png
+  - [x] drag.png
+  - [x] drag_mh.png
+  - [x] hold.png
+  - [x] hold_mh.png
+  - [x] flick.png
+  - [x] flick_mh.png
+  - [x] hit_fx.png
+  - [x] click.ogg
+  - [x] drag.ogg
+  - [x] flick.ogg
+  - [ ] ending.mp3
+  - [ ] info.yml
+    - [ ] name
+    - [ ] author
+    - [ ] description
+    - [x] hitFx
+    - [x] holdAtlas
+    - [x] holdAtlasMH
+    - [x] hitFxDuration
+    - [ ] hitFxScale
+    - [ ] hitFxRotate
+    - [x] hitFxTinted
+    - [ ] hideParticles
+    - [ ] holdKeepHead
+    - [ ] holdRepeat
+    - [ ] holdCompact
+    - [x] colorPerfect
+    - [x] colorGood
 
 ### RPEVersion 特殊处理
 
-- `>= 153` 时, `textEvents` 中的 `\n` 才生效, 否则使用 `webview` 默认行为
+- `>= 150` 时, `textEvents` 中的 `\n` 才生效, 否则使用 `webview` 默认行为
 
 </details>
 
 ## 网页版的 `PhigrosPlayer` ?
 
 这仅仅为了在其他平台或户外使用的目的, 没有过多的优化, 不常维护
+
+NOTE: 由于资源文件结构变更, 当前无法使用
 
 Release: [webphiplayer-release](https://qaqfei.github.io/PhigrosPlayer/src/webphiplayer.html)
 

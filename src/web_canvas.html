@@ -389,7 +389,7 @@
         this.textBaseline = "middle";
         this.font = `${fontsize}px PhigrosFont`;
 
-        if (text.includes("\n") && RPEVersion >= 153) {
+        if (text.includes("\n") && RPEVersion >= 150) {
             let texts = text.split("\n");
             let x = 0.0; let y = 0.0;
             for (let currtext of texts) {
