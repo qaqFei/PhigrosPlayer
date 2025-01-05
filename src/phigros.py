@@ -34,6 +34,7 @@ import chartobj_rpe
 import chartfuncs_phi
 import chartfuncs_rpe
 import playsound
+import phira_resource_pack
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")
@@ -201,28 +202,12 @@ def Load_Resource():
     
     logging.info("Loading Resource...")
     LoadSuccess = mixer.Sound(("./resources/LoadSuccess.wav"))
-    ClickEffectFrameCount = len(listdir("./resources/Note_Click_Effect/Frames"))
-    ClickEffectImages = [Image.open(f"./resources/Note_Click_Effect/Frames/{i + 1}.png") for i in range(ClickEffectFrameCount)]
+    
+    phi_rpack = phira_resource_pack.PhiraResourcePack("./resources/resource_packs/default")
+    phi_rpack.setToGlobal()
+    ClickEffectFrameCount = phi_rpack.effectFrameCount
+    
     Resource = {
-        "Notes":{
-            "Tap": Image.open("./resources/Notes/Tap.png"),
-            "Tap_dub": Image.open("./resources/Notes/Tap_dub.png"),
-            "Drag": Image.open("./resources/Notes/Drag.png"),
-            "Drag_dub": Image.open("./resources/Notes/Drag_dub.png"),
-            "Flick": Image.open("./resources/Notes/Flick.png"),
-            "Flick_dub": Image.open("./resources/Notes/Flick_dub.png"),
-            "Hold_Head": Image.open("./resources/Notes/Hold_Head.png"),
-            "Hold_Head_dub": Image.open("./resources/Notes/Hold_Head_dub.png"),
-            "Hold_End": Image.open("./resources/Notes/Hold_End.png"),
-            "Hold_End_dub": Image.open("./resources/Notes/Hold_End_dub.png"),
-            "Hold_Body": Image.open("./resources/Notes/Hold_Body.png"),
-            "Hold_Body_dub": Image.open("./resources/Notes/Hold_Body_dub.png"),
-            "Bad": None
-        },
-        "Note_Click_Effect":{
-            "Perfect": list(map(lambda im: putColor((255, 236, 160), im), ClickEffectImages)),
-            "Good": list(map(lambda im: putColor((180, 225, 255), im), ClickEffectImages)),
-        },
         "levels":{
             "AP": Image.open("./resources/levels/AP.png"),
             "FC": Image.open("./resources/levels/FC.png"),
@@ -232,12 +217,6 @@ def Load_Resource():
             "B": Image.open("./resources/levels/B.png"),
             "C": Image.open("./resources/levels/C.png"),
             "F": Image.open("./resources/levels/F.png")
-        },
-        "Note_Click_Audio":{
-            const.Note.TAP: playsound.directSound(loadAudio("./resources/Note_Click_Audio/Tap.wav")),
-            const.Note.DRAG: playsound.directSound(loadAudio("./resources/Note_Click_Audio/Drag.wav")),
-            const.Note.HOLD: playsound.directSound(loadAudio("./resources/Note_Click_Audio/Hold.wav")),
-            const.Note.FLICK: playsound.directSound(loadAudio("./resources/Note_Click_Audio/Flick.wav"))
         },
         "logoipt": Image.open("./resources/logoipt.png"),
         "warning": Image.open("./resources/le_warn.png"),
@@ -275,6 +254,8 @@ def Load_Resource():
         "close": Image.open("./resources/close.png"),
         "sort": Image.open("./resources/sort.png"),
     }
+    
+    Resource.update(phi_rpack.createResourceDict())
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)

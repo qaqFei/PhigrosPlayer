@@ -12,7 +12,7 @@ import typing
 from threading import Thread
 from ctypes import windll
 from os import listdir, popen, mkdir, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
-from os.path import exists, isfile, isdir
+from os.path import exists
 from shutil import rmtree
 from tempfile import gettempdir
 from ntpath import basename
@@ -307,12 +307,6 @@ if extra.enable:
 
 logging.info(f"enable_shader: {extra.enable}")
 
-def putColor(color: tuple|str, im: Image.Image):
-    return Image.merge("RGBA", (
-        *Image.new("RGB", im.size, color).split(),
-        im.split()[-1]
-    ))
-
 def loadAudio(path: str):
     seg: AudioSegment = AudioSegment.from_file(path)
     fp = f"{temp_dir}/{hash(path)}.wav"
@@ -372,7 +366,6 @@ def Load_Resource():
     respacker.reg_img(background_image, "background")
     
     Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
-    Resource["Notes"]["Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
     
     finish_animation_image_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
     finish_animation_image_mask.putpixel((0, 4), (0, 0, 0, 204))
