@@ -10,9 +10,6 @@
 
 tip: 对于谱面播放不使用的部分, 此处忽略
 
-<details>
-<summary>展开</summary>
-
 - [x] phi
   - [x] formatVersion
     - [x] 1
@@ -116,18 +113,6 @@ tip: 对于谱面播放不使用的部分, 此处忽略
 ### RPEVersion 特殊处理
 
 - `>= 150` 时, `textEvents` 中的 `\n` 才生效, 否则使用 `webview` 默认行为
-
-</details>
-
-## 网页版的 `PhigrosPlayer` ?
-
-这仅仅为了在其他平台或户外使用的目的, 没有过多的优化, 不常维护
-
-NOTE: 由于资源文件结构变更, 当前无法使用
-
-Release: [webphiplayer-release](https://qaqfei.github.io/PhigrosPlayer/src/webphiplayer.html)
-
-Dev: [webphiplayer-dev](https://qaqfei.github.io/PhigrosPlayer/src/webphiplayer_dev.html)
 
 ## 声明
 
