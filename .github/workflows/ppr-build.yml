@@ -17,7 +17,7 @@ jobs:
 
       - name: build
         run: |
-          # exit
+          exit
 
           cd src
           python tool-compile.py -y --zip
