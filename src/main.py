@@ -862,7 +862,7 @@ def PlayerStart():
                             writer.release()
                             raise e from e
                         
-                    # writer.write(matlike)
+                    writer.write(matlike)
                     frameCount += 1
                     
                 root.jsapi.uploadFrame = uploadFrame
