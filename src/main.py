@@ -801,8 +801,10 @@ def PlayerStart():
             for fc, task in lfdaot_tasks.items():
                 totm.add_task(fc, task.ExTask)
             
+            pst = time.time()
+            
             while True:
-                now_t = mixer.music.get_pos() / 1000
+                now_t = time.time() - pst
                 music_play_fcount = int(now_t / frame_time)
                 
                 try:
@@ -822,8 +824,10 @@ def PlayerStart():
                         break_flag_oside = True
                         break
                 
-                if break_flag_oside or not mixer.get_busy():
+                if break_flag_oside:
                     break
+                
+                pst += tool_funcs.checkOffset(now_t, raw_audio_length, mixer)
                 
         else: # --lfdaot-render-video
             if "--lfdaot-render-video-savefp" in sys.argv:
@@ -858,7 +862,7 @@ def PlayerStart():
                             writer.release()
                             raise e from e
                         
-                    writer.write(matlike)
+                    # writer.write(matlike)
                     frameCount += 1
                     
                 root.jsapi.uploadFrame = uploadFrame
