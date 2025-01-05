@@ -38,8 +38,18 @@ def getFloorPosition(line: judgeLine, t: float) -> float:
     
     return e.floorPosition + (t - e.startTime) * line.T * e.value
 
+def split_different_speednotes(notes: list[Note]) -> list[list[Note]]:
+    tempmap: dict[int, list[Note]] = {}
+    
+    for n in notes:
+        h = n.speed
+        if h not in tempmap: tempmap[h] = []
+        tempmap[h].append(n)
+    
+    return list(tempmap.values())
+
 @dataclass
-class note:
+class Note:
     type: typing.Literal[1,2,3,4]
     time: float
     positionX: float
@@ -76,7 +86,7 @@ class note:
         self.effect_random_blocks = tool_funcs.get_effect_random_blocks()
     
     def __eq__(self, oth:object):
-        if not isinstance(oth, note):
+        if not isinstance(oth, Note):
             return NotImplemented
         return self.id == oth.id
 
@@ -170,8 +180,8 @@ class judgeLineDisappearEvent:
 @dataclass
 class judgeLine:
     bpm: float
-    notesAbove: list[note]
-    notesBelow: list[note]
+    notesAbove: list[Note]
+    notesBelow: list[Note]
     speedEvents: list[speedEvent]
     judgeLineMoveEvents: list[judgeLineMoveEvent]
     judgeLineRotateEvents: list[judgeLineRotateEvent]
@@ -196,12 +206,16 @@ class judgeLine:
         self._sort_events()
         for i, n in enumerate(self.notesAbove): n.master_index = i
         for i, n in enumerate(self.notesBelow): n.master_index = i
+        
         self.notesAbove.sort(key = lambda x: x.time)
         self.notesBelow.sort(key = lambda x: x.time)
-        self.renderNotesAbove = self.notesAbove.copy()
-        self.renderNotesBelow = self.notesBelow.copy()
+        
         self.effectNotes = self.notesAbove + self.notesBelow
         self.effectNotes.sort(key = lambda x: x.time)
+        
+        self.renderNotes = split_different_speednotes(self.notesAbove + self.notesBelow)
+        for rnc in self.renderNotes:
+            rnc.sort(key = lambda x: x.time)
     
     def _sort_events(self):
         self.speedEvents.sort(key = lambda x: x.startTime)
@@ -313,56 +327,56 @@ class PPLMPHI_Proxy(tool_funcs.PPLM_ProxyBase):
     def __init__(self, cobj: Phigros_Chart): self.cobj = cobj
     
     def get_lines(self) -> list[judgeLine]: return self.cobj.judgeLineList
-    def get_all_pnotes(self) -> list[note]: return self.cobj.playerNotes
-    def remove_pnote(self, n: note): self.cobj.playerNotes.remove(n)
+    def get_all_pnotes(self) -> list[Note]: return self.cobj.playerNotes
+    def remove_pnote(self, n: Note): self.cobj.playerNotes.remove(n)
     
-    def nproxy_stime(self, n: note): return n.sec
-    def nproxy_etime(self, n: note): return n.hold_endtime
-    def nproxy_hcetime(self, n: note): return n.player_holdjudge_tomanager_time
+    def nproxy_stime(self, n: Note): return n.sec
+    def nproxy_etime(self, n: Note): return n.hold_endtime
+    def nproxy_hcetime(self, n: Note): return n.player_holdjudge_tomanager_time
     
-    def nproxy_typein(self, n: note, ts: tuple[int]): return n.type in ts
-    def nproxy_typeis(self, n: note, t: int): return n.type == t
-    def nproxy_phitype(self, n: note): return n.type
+    def nproxy_typein(self, n: Note, ts: tuple[int]): return n.type in ts
+    def nproxy_typeis(self, n: Note, t: int): return n.type == t
+    def nproxy_phitype(self, n: Note): return n.type
     
-    def nproxy_nowpos(self, n: note): return n.nowpos
-    def nproxy_effects(self, n: note): return n.player_effect_times
+    def nproxy_nowpos(self, n: Note): return n.nowpos
+    def nproxy_effects(self, n: Note): return n.player_effect_times
     
-    def nproxy_get_pclicked(self, n: note): return n.player_clicked
-    def nproxy_set_pclicked(self, n: note, state: bool): n.player_clicked = state
+    def nproxy_get_pclicked(self, n: Note): return n.player_clicked
+    def nproxy_set_pclicked(self, n: Note, state: bool): n.player_clicked = state
     
-    def nproxy_get_wclick(self, n: note): return n.player_will_click
-    def nproxy_set_wclick(self, n: note, state: bool): n.player_will_click = state
+    def nproxy_get_wclick(self, n: Note): return n.player_will_click
+    def nproxy_set_wclick(self, n: Note, state: bool): n.player_will_click = state
     
-    def nproxy_get_pclick_offset(self, n: note): return n.player_click_offset
-    def nproxy_set_pclick_offset(self, n: note, offset: float): n.player_click_offset = offset
+    def nproxy_get_pclick_offset(self, n: Note): return n.player_click_offset
+    def nproxy_set_pclick_offset(self, n: Note, offset: float): n.player_click_offset = offset
     
-    def nproxy_get_ckstate(self, n: note): return n.state
-    def nproxy_set_ckstate(self, n: note, state: int): n.state = state
-    def nproxy_get_ckstate_ishit(self, n: note): return n.state in (const.NOTE_STATE.PERFECT, const.NOTE_STATE.GOOD)
+    def nproxy_get_ckstate(self, n: Note): return n.state
+    def nproxy_set_ckstate(self, n: Note, state: int): n.state = state
+    def nproxy_get_ckstate_ishit(self, n: Note): return n.state in (const.NOTE_STATE.PERFECT, const.NOTE_STATE.GOOD)
     
-    def nproxy_get_cksound_played(self, n: note): return n.player_click_sound_played
-    def nproxy_set_cksound_played(self, n: note, state: bool): n.player_click_sound_played = state
+    def nproxy_get_cksound_played(self, n: Note): return n.player_click_sound_played
+    def nproxy_set_cksound_played(self, n: Note, state: bool): n.player_click_sound_played = state
     
-    def nproxy_get_missed(self, n: note): return n.player_missed
-    def nproxy_set_missed(self, n: note, state: bool): n.player_missed = state
+    def nproxy_get_missed(self, n: Note): return n.player_missed
+    def nproxy_set_missed(self, n: Note, state: bool): n.player_missed = state
     
-    def nproxy_get_holdjudged(self, n: note): return n.player_holdjudged
-    def nproxy_set_holdjudged(self, n: note, state: bool): n.player_holdjudged = state
+    def nproxy_get_holdjudged(self, n: Note): return n.player_holdjudged
+    def nproxy_set_holdjudged(self, n: Note, state: bool): n.player_holdjudged = state
 
-    def nproxy_get_holdjudged_tomanager(self, n: note) -> bool: return n.player_holdjudged_tomanager
-    def nproxy_set_holdjudged_tomanager(self, n: note, state: bool) -> None: n.player_holdjudged_tomanager = state
+    def nproxy_get_holdjudged_tomanager(self, n: Note) -> bool: return n.player_holdjudged_tomanager
+    def nproxy_set_holdjudged_tomanager(self, n: Note, state: bool) -> None: n.player_holdjudged_tomanager = state
     
-    def nproxy_get_last_testholdmiss_time(self, n: note): return n.player_last_testholdismiss_time
-    def nproxy_set_last_testholdmiss_time(self, n: note, time: float): n.player_last_testholdismiss_time = time
+    def nproxy_get_last_testholdmiss_time(self, n: Note): return n.player_last_testholdismiss_time
+    def nproxy_set_last_testholdmiss_time(self, n: Note, time: float): n.player_last_testholdismiss_time = time
     
-    def nproxy_get_safe_used(self, n: note): return n.player_judge_safe_used
-    def nproxy_set_safe_used(self, n: note, state: bool): n.player_judge_safe_used = state
+    def nproxy_get_safe_used(self, n: Note): return n.player_judge_safe_used
+    def nproxy_set_safe_used(self, n: Note, state: bool): n.player_judge_safe_used = state
     
-    def nproxy_get_holdclickstate(self, n: note): return n.player_holdclickstate
-    def nproxy_set_holdclickstate(self, n: note, state: int): n.player_holdclickstate = state
+    def nproxy_get_holdclickstate(self, n: Note): return n.player_holdclickstate
+    def nproxy_set_holdclickstate(self, n: Note, state: int): n.player_holdclickstate = state
     
-    def nproxy_get_pbadtime(self, n: note): return n.player_badtime
-    def nproxy_set_pbadtime(self, n: note, time: float): n.player_badtime = time
+    def nproxy_get_pbadtime(self, n: Note): return n.player_badtime
+    def nproxy_set_pbadtime(self, n: Note, time: float): n.player_badtime = time
 
 @dataclass
 class RenderTask:
@@ -378,10 +392,12 @@ class FrameRenderTask:
     def __call__(self, func: typing.Callable, *args: typing.Iterable, **kwargs: typing.Mapping[str, typing.Any]):
         self.RenderTasks.append(RenderTask(func, args, kwargs))
     
-    def ExecTask(self):
+    def ExecTask(self, clear: bool = True):
         for t in self.RenderTasks:
             t.func(*t.args, **t.kwargs)
-        self.RenderTasks.clear()
+            
+        if clear:
+            self.RenderTasks.clear()
 
 @dataclass
 class judgeLine_Config_Item:

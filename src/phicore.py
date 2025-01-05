@@ -560,8 +560,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     add_code_array = True
                 )
         
-        def process(notes: list[chartobj_phi.note], t: typing.Literal[1, -1]): # above => t = 1, below => t = -1
-            for note in notes.copy():
+        for notesChildren in line.renderNotes.copy():
+            for note in notesChildren.copy():
                 this_noteitem_clicked = note.sec < now_t
                 
                 if this_noteitem_clicked and not note.clicked:
@@ -570,21 +570,21 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         Task.ExTask.append(("psound", note.type))
                 
                 if not note.ishold and note.clicked:
-                    notes.remove(note)
+                    notesChildren.remove(note)
                     continue
                 elif note.ishold and now_t > note.hold_endtime:
-                    notes.remove(note)
+                    notesChildren.remove(note)
                     continue
                 elif noautoplay and note.state == const.NOTE_STATE.BAD:
-                    notes.remove(note)
+                    notesChildren.remove(note)
                     continue
                 elif noautoplay and not note.ishold and note.player_clicked:
-                    notes.remove(note)
+                    notesChildren.remove(note)
                     continue
                 elif not note.clicked and (note.floorPosition * PHIGROS_Y - lineFloorPosition) < const.FLOAT_LESSZERO_MAGIC and note.type != const.Note.HOLD:
                     continue
                 elif note.ishold and note.speed == 0.0:
-                    notes.remove(note)
+                    notesChildren.remove(note)
                     continue
                 
                 note_now_floorPosition = note.floorPosition * PHIGROS_Y - (
@@ -600,7 +600,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     continue
                 
                 rotatenote_at_judgeLine_pos = tool_funcs.rotate_point(*linePos, lineRotate, note.positionX * PHIGROS_X)
-                judgeLine_to_note_rotate_deg = (-90 if t == 1 else 90) + lineRotate
+                judgeLine_to_note_rotate_deg = (-90 if note.above else 90) + lineRotate
                 x, y = tool_funcs.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_now_floorPosition)
                 
                 note.nowpos = (x / w, y / h)
@@ -745,10 +745,9 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                             );",
                             add_code_array = True
                         )
-        
-        process(line.renderNotesAbove, 1)
-        process(line.renderNotesBelow, -1)
-    
+
+            if not notesChildren:
+                line.renderNotes.remove(notesChildren)
     Task(root.run_jscode_orders)
     
     effect_time = 0.5
@@ -770,7 +769,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         processClickEffect(*position, p, rblocks, perfect, Task)
     
     def process_miss(
-        note:chartobj_phi.note
+        note:chartobj_phi.Note
     ):
         t = now_t / note.master.T
         p = (now_t - note.sec) / miss_effect_time
@@ -805,7 +804,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         )
     
     def process_bad(
-        note: chartobj_phi.note
+        note: chartobj_phi.Note
     ):
         p = (now_t - note.player_badtime) / bad_effect_time
             
@@ -1206,7 +1205,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         )
         
             
-            if not notesChildren: line.renderNotes.remove(notesChildren)
+            if not notesChildren:
+                line.renderNotes.remove(notesChildren)
     
     Task(root.run_jscode_orders)
     

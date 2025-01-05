@@ -44,20 +44,15 @@ def findevent(events: list[LineEvent|ExtraVar], t: float, timeattr: str = "value
             
     return None
 
-def split_different_speednotes(notes: list[Note]) -> list[Note]:
-    currs = None
-    result, templist = [], []
+def split_different_speednotes(notes: list[Note]) -> list[list[Note]]:
+    tempmap: dict[int, list[Note]] = {}
     
     for n in notes:
-        if (h := hash((n.speed, n.yOffset))) != currs:
-            if templist: result.append(templist)
-            templist = []
-            currs = h
-        
-        templist.append(n)
+        h = hash((n.speed, n.yOffset))
+        if h not in tempmap: tempmap[h] = []
+        tempmap[h].append(n)
     
-    if templist: result.append(templist)
-    return result
+    return list(tempmap.values())
         
 @dataclass
 class Beat:

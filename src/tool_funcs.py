@@ -1151,6 +1151,33 @@ class FramerateCalculator:
             if self.framerate != float("inf"):
                 self._frame_checklimit = self.framerate * 0.1
 
+_TimeoutTaskManagerT = typing.TypeVar("_T")
+class TimeoutTaskManager(typing.Generic[_TimeoutTaskManagerT]):
+    """
+    add_task function t arg must be monotonically incremental 
+    """
+    
+    def __init__(self):
+        self.datas = []
+        self.vaild: typing.Callable[[_TimeoutTaskManagerT], bool] = lambda x: True
+        
+    def add_task(self, t: float, o: _TimeoutTaskManagerT):
+        if self.vaild(o):
+            self.datas.append((t, o))
+    
+    def get_task(self, t: float):
+        result = []
+        
+        for i in self.datas.copy():
+            tt, o = i
+            if tt <= t:
+                print(o)
+                result.append(o)
+                self.datas.remove(i)
+            break
+            
+        return result
+
 if environ.get("ENABLE_JIT", "0") == "1":
     import numba
     

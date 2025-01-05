@@ -1,6 +1,7 @@
 import err_processer as _
 import init_logging as _
 import fix_workpath as _
+import import_argvs as _
 import check_edgechromium as _
 
 import json
@@ -674,7 +675,7 @@ def PlayerStart():
             Thread(target=PlayerStart, daemon=True).start()
             return
     else:
-        lfdaot_tasks = {}
+        lfdaot_tasks: dict[int, chartobj_phi.FrameRenderTask] = {}
         frame_speed = 60
         if "--lfdaot-frame-speed" in sys.argv:
             frame_speed = eval(sys.argv[sys.argv.index("--lfdaot-frame-speed") + 1])
@@ -758,6 +759,7 @@ def PlayerStart():
             if "--lfdaot-file-output-autoexit" in sys.argv:
                 root.destroy()
                 return
+            
         else: #--lfdaot-file
             fp = sys.argv[sys.argv.index("--lfdaot-file") + 1]
             with open(fp,"r",encoding="utf-8") as f:
@@ -792,51 +794,37 @@ def PlayerStart():
         if not lfdaot_render_video:
             mixer.music.play()
             while not mixer.music.get_busy(): pass
-        
-            last_music_play_fcount = None
+
+            totm: tool_funcs.TimeoutTaskManager[chartobj_phi.FrameRenderTask] = tool_funcs.TimeoutTaskManager()
+            totm.vaild = lambda x: bool(x)
+            
+            for fc, task in lfdaot_tasks.items():
+                totm.add_task(fc, task.ExTask)
+            
             while True:
-                render_st = time.time()
                 now_t = mixer.music.get_pos() / 1000
                 music_play_fcount = int(now_t / frame_time)
-                will_process_extask = []
                 
                 try:
                     Task: chartobj_phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
                 except KeyError:
                     continue
                 
-                if last_music_play_fcount is not None:
-                    for fcount in range(last_music_play_fcount,music_play_fcount):
-                        try:
-                            Task:chartobj_phi.FrameRenderTask = lfdaot_tasks[fcount]
-                            if Task.ExTask is not None:
-                                will_process_extask.append(Task.ExTask)
-                                Task.ExTask = None
-                        except KeyError:
-                            pass
-            
-                if not Task.RenderTasks: #empty
-                    continue
+                Task.ExecTask(clear=False)
+                extasks = totm.get_task(music_play_fcount)
                 
-                last_music_play_fcount = music_play_fcount
+                break_flag_oside = False
                 
-                Task.ExecTask()
-                
-                break_flag_top = False
-                
-                if Task.ExTask is not None:
-                    will_process_extask.append(Task.ExTask)
-                    Task.ExTask = None
-                for ExTask in will_process_extask:
-                    break_flag = phicore.FrameData_ProcessExTask(ExTask)
+                for extask in extasks:
+                    break_flag = phicore.FrameData_ProcessExTask(extask)
                     
                     if break_flag:
-                        break_flag_top = True
+                        break_flag_oside = True
+                        break
                 
-                if break_flag_top:
+                if break_flag_oside or not mixer.get_busy():
                     break
                 
-                time.sleep(max(0,frame_time - (time.time() - render_st)))
         else: # --lfdaot-render-video
             if "--lfdaot-render-video-savefp" in sys.argv:
                 video_fp = sys.argv[sys.argv.index("--lfdaot-render-video-savefp") + 1]

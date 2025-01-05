@@ -46,18 +46,18 @@ def Load_Chart_Object(phigros_chart: dict):
             chartobj_phi.judgeLine(
                 bpm = line.get("bpm", -1.0),
                 notesAbove = [
-                    chartobj_phi.note(
+                    chartobj_phi.Note(
                         type = n.get("type", 1), time = n.get("time", -1.0),
                         positionX = n.get("positionX", 0.0), holdTime = n.get("holdTime", 0.0),
-                        speed = n.get("speed", -1.0), floorPosition = n.get("floorPosition", -1.0),
+                        speed = n.get("speed", 0.0), floorPosition = n.get("floorPosition", -1.0),
                         above = True
                     ) for n in line.get("notesAbove", [])
                 ],
                 notesBelow = [
-                    chartobj_phi.note(
+                    chartobj_phi.Note(
                         type = n.get("type", 1), time = n.get("time", -1.0),
                         positionX = n.get("positionX", 0.0), holdTime = n.get("holdTime", 0.0),
-                        speed = n.get("speed", -1.0), floorPosition = n.get("floorPosition", -1.0),
+                        speed = n.get("speed", 0.0), floorPosition = n.get("floorPosition", -1.0),
                         above = False
                     ) for n in line.get("notesBelow", [])
                 ],
