@@ -218,9 +218,9 @@ def processClickEffectBase(
     if rblocks is None: rblocks = tool_funcs.get_effect_random_blocks()
     
     color = (
-        phira_resource_pack.globalPack.perfectColor
+        phira_resource_pack.globalPack.perfectRGB
         if perfect else
-        phira_resource_pack.globalPack.goodColor
+        phira_resource_pack.globalPack.goodRGB
     )
     
     alpha = (

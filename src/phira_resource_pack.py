@@ -150,8 +150,11 @@ class PhiraResourcePack:
         self.effectRotate = self.resource["hitFxRotate"]
         self.holdCompact = self.resource["holdCompact"]
         self.effectFrameCount = self.resource["hitFx"][0] * self.resource["hitFx"][1]
+        
         self.perfectColor = argb2rgba(int2argb(self.resource["colorPerfect"]))
         self.goodColor = argb2rgba(int2argb(self.resource["colorGood"]))
+        self.perfectRGB = self.perfectColor[:-1]
+        self.goodRGB = self.goodColor[:-1]
         self.perfectAlpha = self.perfectColor[-1]
         self.goodAlpha = self.goodColor[-1]
         
@@ -187,8 +190,8 @@ class PhiraResourcePack:
         
         if self.resource["hitFxTinted"]:
             result["Note_Click_Effect"].update({
-                "Perfect": [putColor(self.perfectColor[:-1], i) for i in hiteffects],
-                "Good": [putColor(self.goodColor[:-1], i) for i in hiteffects]
+                "Perfect": [putColor(self.perfectRGB, i) for i in hiteffects],
+                "Good": [putColor(self.goodRGB, i) for i in hiteffects]
             })
         else:
             result["Note_Click_Effect"].update({
