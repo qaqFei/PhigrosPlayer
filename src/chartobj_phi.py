@@ -57,6 +57,7 @@ class Note:
     speed: float
     floorPosition: float
     above: bool
+    
     effect_random_blocks: tuple[int]|None = None
     id: int|None = None
     clicked: bool = False # this attr mean is "this note click time is <= now time", so if disable autoplay and click time <= now time but user is not click this attr still is true.
@@ -66,6 +67,7 @@ class Note:
     state: int = const.NOTE_STATE.MISS
     master_index: int|None = None
     nowpos: tuple[float, float] = (-1.0, -1.0)
+    sec: float|None = None
     
     player_clicked: bool = False
     player_click_offset: float = 0.0
@@ -94,7 +96,6 @@ class Note:
         return self.id
     
     def init(self) -> None:
-        self.sec = self.time * self.master.T
         self.hold_length_sec = self.holdTime * self.master.T
         self.hold_length_pgry = self.speed * self.hold_length_sec
         self.hold_endtime = self.sec + self.hold_length_sec
@@ -306,7 +307,13 @@ class Phigros_Chart:
                 line._sort_events()
                     
             self.offset = 0.0
-            
+        
+        self.note_num = 0
+        
+        for line in self.judgeLineList:
+            for note in line.notesAbove + line.notesBelow:
+                note.sec = note.time * line.T
+        
         note_times = {}
         notes = [i for l in self.judgeLineList for i in l.notesAbove + l.notesBelow]
         for n in notes:
@@ -314,9 +321,7 @@ class Phigros_Chart:
             note_times[n.sec] += 1
         for n in notes:
             if note_times[n.sec] > 1: n.morebets = True
-        
-        self.note_num = 0
-        
+            
         for line in self.judgeLineList:
             fp = 0.0
             
