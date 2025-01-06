@@ -257,12 +257,13 @@ def processClickEffectBase(
     
         caller(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + ((1.0 - p) * alpha, )}');", add_code_array = True)
     
+    effectImageSize = effectSize * phira_resource_pack.globalPack.effectScale
     caller(
         root.run_js_code,
         f"ctx.drawAlphaImage(\
             {root.get_img_jsvarname(f"{imn}_{int(p * (framecount - 1)) + 1}")},\
-            {x - effectSize / 2}, {y - effectSize / 2},\
-            {effectSize}, {effectSize}, {alpha}\
+            {x - effectImageSize / 2}, {y - effectImageSize / 2},\
+            {effectImageSize}, {effectImageSize}, {alpha}\
         );",
         add_code_array = True
     )
@@ -750,6 +751,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
 
             if not notesChildren:
                 line.renderNotes.remove(notesChildren)
+                
     Task(root.run_jscode_orders)
     
     effect_time = phira_resource_pack.globalPack.effectDuration
@@ -759,16 +761,6 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     effect_time *= speed
     miss_effect_time *= speed
     bad_effect_time *= speed
-        
-    def process_effect(
-        sec_t: float,
-        rblocks: tuple[tuple[float, float]],
-        perfect: bool,
-        position: tuple[float, float]
-    ):
-        p = (now_t - sec_t) / effect_time
-        if not (0.0 <= p <= 1.0): return
-        processClickEffect(*position, p, rblocks, perfect, Task)
     
     def process_miss(
         note:chartobj_phi.Note
@@ -850,7 +842,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         for pplmckfi in pplm.clickeffects.copy():
             perfect, eft, erbs, position = pplmckfi
             if eft <= now_t <= eft + effect_time:
-                process_effect(eft, erbs, perfect, position(w, h))
+                processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, perfect, Task)
             
             if eft + effect_time < now_t:
                 pplm.clickeffects.remove(pplmckfi)
@@ -862,7 +854,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             if not noautoplay:
                 for eft, erbs, position in note.effect_times:
                     if eft <= now_t <= eft + effect_time:
-                        process_effect(eft, erbs, True, position(w, h))
+                        processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, True, Task)
+                        
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:
                     if 0.0 <= now_t - note.sec <= miss_effect_time and note.type != const.Note.HOLD:
@@ -1208,16 +1201,6 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     miss_effect_time *= speed
     bad_effect_time *= speed
         
-    def process_effect(
-        sec_t: float,
-        rblocks: tuple[tuple[float, float]],
-        perfect: bool,
-        position: tuple[float, float]
-    ):
-        p = (now_t - sec_t) / effect_time
-        if not (0.0 <= p <= 1.0): return
-        processClickEffect(*position, p, rblocks, perfect, Task)
-    
     def process_miss(
         note: chartobj_rpe.Note
     ):
@@ -1295,7 +1278,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         for pplmckfi in pplm.clickeffects.copy():
             perfect, eft, erbs, position = pplmckfi
             if eft <= now_t <= eft + effect_time:
-                process_effect(eft, erbs, perfect, position(w, h))
+                processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, perfect, Task)
             
             if eft + effect_time < now_t:
                 pplm.clickeffects.remove(pplmckfi)
@@ -1307,7 +1290,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             if not noautoplay:
                 for eft, erbs, position in note.effect_times:
                     if eft <= now_t <= eft + effect_time:
-                        process_effect(eft, erbs, True, position(w, h))
+                        processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, True, Task)
+                        
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:
                     if 0.0 <= now_t - note.secst <= miss_effect_time and not note.ishold:

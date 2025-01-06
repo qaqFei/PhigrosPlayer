@@ -97,7 +97,7 @@ tip: 对于谱面播放不使用的部分, 此处忽略
     - [x] holdAtlas
     - [x] holdAtlasMH
     - [x] hitFxDuration
-    - [ ] hitFxScale
+    - [x] hitFxScale
     - [ ] hitFxRotate
     - [x] hitFxTinted
     - [ ] hideParticles
