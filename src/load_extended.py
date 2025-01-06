@@ -3,7 +3,7 @@ from ctypes import windll
 from sys import argv
 from tkinter.messagebox import askokcancel
 
-if "--extended" in argv or 1:
+if "--extended" in argv:
     ZH_T = "警告!!!"
     ZH_M = "你正在加载注入扩展功能,\n请确保你知道你在做什么和对注入的文件有足够的信任!\n如果你不确定, 请不要加载这个扩展!\n你确定要加载这个扩展吗?"
     
