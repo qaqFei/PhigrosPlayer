@@ -126,6 +126,20 @@ class Note:
                 ))
         
         self.player_effect_times = self.effect_times.copy()
+        
+        dub_text = "_dub" if self.morebets else ""
+        if not self.ishold:
+            self.img_keyname = f"{self.type_string}{dub_text}"
+            self.imgname = f"Note_{self.img_keyname}"
+        else:
+            self.img_keyname = f"{self.type_string}_Head{dub_text}"
+            self.imgname = f"Note_{self.img_keyname}"
+            
+            self.img_body_keyname = f"{self.type_string}_Body{dub_text}"
+            self.imgname_body = f"Note_{self.img_body_keyname}"
+            
+            self.img_end_keyname = f"{self.type_string}_End{dub_text}"
+            self.imgname_end = f"Note_{self.img_end_keyname}"
     
     def getNoteClickPos(self, time: float) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
         linePos = self.master.get_datavar_move(time, 1.0, 1.0)
@@ -293,6 +307,14 @@ class Phigros_Chart:
                     
             self.offset = 0.0
             
+        note_times = {}
+        notes = [i for l in self.judgeLineList for i in l.notesAbove + l.notesBelow]
+        for n in notes:
+            if n.sec not in note_times: note_times[n.sec] = 0
+            note_times[n.sec] += 1
+        for n in notes:
+            if note_times[n.sec] > 1: n.morebets = True
+        
         self.note_num = 0
         
         for line in self.judgeLineList:

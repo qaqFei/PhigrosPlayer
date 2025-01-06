@@ -123,23 +123,6 @@ def Load_Chart_Object(chart: dict):
         ]
     )
     
-    logging.info("Finding Chart More Bets, fmt = rpe")
-
-    def morebets_note(note: list[chartobj_rpe.Note]):
-        times = {}
-        
-        for i in note:
-            if i.startTime.value not in times: times[i.startTime.value] = 1
-            else: times[i.startTime.value] += 1
-            
-        for i in note:
-            if times[i.startTime.value] > 1:
-                i.morebets = True
-
-    all_notes = [note for line in rpe_chart_obj.judgeLineList for note in line.notes]
-    morebets_note([i for i in all_notes if not i.isFake])
-    morebets_note([i for i in all_notes if i.isFake])
-                
     logging.info("Load Chart Object Successfully, fmt = rpe")
     
     return rpe_chart_obj

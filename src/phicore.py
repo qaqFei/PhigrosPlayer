@@ -663,22 +663,10 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 
                 if note_iscan_render:
                     noteRotate = judgeLine_to_note_rotate_deg + 90
-                    dub_text = "_dub" if note.morebets else ""
-                    if not note.ishold:
-                        this_note_img_keyname = f"{note.type_string}{dub_text}"
-                        this_note_img = Resource["Notes"][this_note_img_keyname]
-                        this_note_imgname = f"Note_{this_note_img_keyname}"
-                    else:
-                        this_note_img_keyname = f"{note.type_string}_Head{dub_text}"
-                        this_note_img = Resource["Notes"][this_note_img_keyname]
-                        this_note_imgname = f"Note_{this_note_img_keyname}"
-                        
-                        this_note_img_body_keyname = f"{note.type_string}_Body{dub_text}"
-                        this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
-                        
-                        this_note_img_end_keyname = f"{note.type_string}_End{dub_text}"
-                        this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
-                        this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
+                    
+                    this_note_img = Resource["Notes"][note.img_keyname]
+                    if note.ishold:
+                        this_note_img_end = Resource["Notes"][note.img_end_keyname]
                     
                     fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0 # because the note img if has morebets frame, the note will be look small, so we will `*` a fix scale to fix the frame size make the note look is small.
                     this_note_width = noteWidth * fix_scale
@@ -701,7 +689,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         Task(
                             root.run_js_code,
                             f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(this_note_imgname_end)},\
+                                {root.get_img_jsvarname(note.imgname_end)},\
                                 {holdend_x},\
                                 {holdend_y},\
                                 {this_note_width},\
@@ -717,7 +705,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                             Task(
                                 root.run_js_code,
                                 f"ctx.drawAnchorESRotateImage(\
-                                    {root.get_img_jsvarname(this_note_imgname_body)},\
+                                    {root.get_img_jsvarname(note.imgname_body)},\
                                     {holdbody_x},\
                                     {holdbody_y},\
                                     {this_note_width},\
@@ -733,7 +721,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         Task(
                             root.run_js_code,
                             f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(this_note_imgname)},\
+                                {root.get_img_jsvarname(note.imgname)},\
                                 {x},\
                                 {y},\
                                 {this_note_width},\
@@ -802,11 +790,11 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         )
         img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
         this_note_img = Resource["Notes"][img_keyname]
-        this_note_imgname = f"Note_{img_keyname}"
+        imgname = f"Note_{img_keyname}"
         Task(
             root.run_js_code,
             f"crc2d_enable_rrm = false; ctx.drawRotateImage(\
-                {root.get_img_jsvarname(this_note_imgname)},\
+                {root.get_img_jsvarname(imgname)},\
                 {x},\
                 {y},\
                 {noteWidth},\
@@ -1118,22 +1106,10 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 
                 if canRender and abs(now_t - note.secst) <= note.visibleTime:
                     noteRotate = lineRotate + (0 if note.above == 1 else 180)
-                    dub_text = "_dub" if note.morebets else ""
-                    if not note.ishold:
-                        this_note_img_keyname = f"{note.type_string}{dub_text}"
-                        this_note_img = Resource["Notes"][this_note_img_keyname]
-                        this_note_imgname = f"Note_{this_note_img_keyname}"
-                    else:
-                        this_note_img_keyname = f"{note.type_string}_Head{dub_text}"
-                        this_note_img = Resource["Notes"][this_note_img_keyname]
-                        this_note_imgname = f"Note_{this_note_img_keyname}"
-                        
-                        this_note_img_body_keyname = f"{note.type_string}_Body{dub_text}"
-                        this_note_imgname_body = f"Note_{this_note_img_body_keyname}"
-                        
-                        this_note_img_end_keyname = f"{note.type_string}_End{dub_text}"
-                        this_note_img_end = Resource["Notes"][this_note_img_end_keyname]
-                        this_note_imgname_end = f"Note_{this_note_img_end_keyname}"
+                    
+                    this_note_img = Resource["Notes"][note.img_keyname]
+                    if note.ishold:
+                        this_note_img_end = Resource["Notes"][note.img_end_keyname]
                         
                     fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
                     this_note_width = noteWidth * fix_scale
@@ -1159,7 +1135,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         Task(
                             root.run_js_code,
                             f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(this_note_imgname_end)},\
+                                {root.get_img_jsvarname(note.imgname_end)},\
                                 {holdend_x},\
                                 {holdend_y},\
                                 {this_note_width * noteWidthX},\
@@ -1175,7 +1151,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                             Task(
                                 root.run_js_code,
                                 f"ctx.drawAnchorESRotateImage(\
-                                    {root.get_img_jsvarname(this_note_imgname_body)},\
+                                    {root.get_img_jsvarname(note.imgname_body)},\
                                     {holdbody_x},\
                                     {holdbody_y},\
                                     {this_note_width * noteWidthX},\
@@ -1191,7 +1167,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         Task(
                             root.run_js_code,
                             f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(this_note_imgname)},\
+                                {root.get_img_jsvarname(note.imgname)},\
                                 {x},\
                                 {y},\
                                 {this_note_width * noteWidthX},\
@@ -1262,11 +1238,11 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         )
         img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
         this_note_img = Resource["Notes"][img_keyname]
-        this_note_imgname = f"Note_{img_keyname}"
+        imgname = f"Note_{img_keyname}"
         Task(
             root.run_js_code,
             f"ctx.drawRotateImage(\
-                {root.get_img_jsvarname(this_note_imgname)},\
+                {root.get_img_jsvarname(imgname)},\
                 {x},\
                 {y},\
                 {noteWidth * note.width},\

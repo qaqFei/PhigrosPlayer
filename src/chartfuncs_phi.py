@@ -85,14 +85,5 @@ def Load_Chart_Object(phigros_chart: dict):
         ]
     )
     
-    logging.info("Finding Chart More Bets, fmt = phi")
-    note_times = {}
-    notes = [i for l in phigros_chart_obj.judgeLineList for i in l.notesAbove + l.notesBelow]
-    for n in notes:
-        if n.sec not in note_times: note_times[n.sec] = 0
-        note_times[n.sec] += 1
-    for n in notes:
-        if note_times[n.sec] > 1: n.morebets = True
-    
     logging.info("Load Chart Object Successfully, fmt = phi")
     return phigros_chart_obj

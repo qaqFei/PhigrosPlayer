@@ -120,7 +120,7 @@ class Note:
         self.hitsound_reskey = self.phitype if self.hitsound is None else hash(tuple(map(ord, self.hitsound)))
         self.draworder = const.NOTE_RORDER_MAP[self.phitype]
     
-    def _init(self, master: Rpe_Chart, avgBpm: float):
+    def init(self, master: Rpe_Chart, avgBpm: float):
         self.secst = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
         self.secet = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
         self.player_holdjudge_tomanager_time = max(self.secst, self.secet - 0.2)
@@ -148,6 +148,20 @@ class Note:
                 ))
                 
         self.player_effect_times = self.effect_times.copy()
+        
+        dub_text = "_dub" if self.morebets else ""
+        if not self.ishold:
+            self.img_keyname = f"{self.type_string}{dub_text}"
+            self.imgname = f"Note_{self.img_keyname}"
+        else:
+            self.img_keyname = f"{self.type_string}_Head{dub_text}"
+            self.imgname = f"Note_{self.img_keyname}"
+            
+            self.img_body_keyname = f"{self.type_string}_Body{dub_text}"
+            self.imgname_body = f"Note_{self.img_body_keyname}"
+            
+            self.img_end_keyname = f"{self.type_string}_End{dub_text}"
+            self.imgname_end = f"Note_{self.img_end_keyname}"
         
     def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
         linePos = tool_funcs.conrpepos(*line.GetPos(time, master))
@@ -515,6 +529,21 @@ class Rpe_Chart:
         
         try: avgBpm = sum([e.bpm for e in self.BPMList]) / len(self.BPMList)
         except ZeroDivisionError: avgBpm = 140.0
+
+        def morebets_note(note: list[Note]):
+            times = {}
+            
+            for i in note:
+                if i.startTime.value not in times: times[i.startTime.value] = 1
+                else: times[i.startTime.value] += 1
+                
+            for i in note:
+                if times[i.startTime.value] > 1:
+                    i.morebets = True
+
+        all_notes = [note for line in self.judgeLineList for note in line.notes]
+        morebets_note([i for i in all_notes if not i.isFake])
+        morebets_note([i for i in all_notes if i.isFake])
         
         for line in self.judgeLineList:
             if line.father != -1:
@@ -531,7 +560,7 @@ class Rpe_Chart:
             for i, note in enumerate(line.notes):
                 note.master_index = i
                 note.masterLine = line
-                note._init(self, avgBpm)
+                note.init(self, avgBpm)
                 if not note.isFake:
                     self.combotimes.append(note.secst if not note.ishold else max(note.secst, note.secet - 0.2))
             
