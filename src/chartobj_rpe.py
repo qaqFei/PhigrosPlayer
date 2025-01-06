@@ -388,7 +388,6 @@ class JudgeLine:
         )
         linePos = self.GetPos(t, master)
         
-        
         if lineAlpha > 0.0 and self.extended:
             lineColor = self.GetEventValue(t, self.extended.colorEvents, lineColor)
         
