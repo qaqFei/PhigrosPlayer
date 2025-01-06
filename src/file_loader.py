@@ -41,23 +41,24 @@ def loadfile(fp: str):
             raw = f.read()
             
             try: return LoadResult(FILE_TYPE.CHART, json.loads(raw), None)
-            except Exception as e: errs.append(e)
+            except Exception as e:
+                errs.append(e)
             
-            if isinstance(e, json.decoder.JSONDecodeError):
-                pec2rpeResult, p2r_errs = tool_funcs.pec2rpe(raw)
-                
-                if p2r_errs:
-                    for e in p2r_errs:
-                        logging.warning(f"pec2rpe: {repr(e)}")
-                
-                for line in pec2rpeResult["judgeLineList"]:
-                    for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):
-                        if i != len(line["eventLayers"][0]["speedEvents"]) - 1:
-                            e["endTime"] = line["eventLayers"][0]["speedEvents"][i + 1]["startTime"]
-                        else:
-                            e["endTime"] = [e["startTime"][0] + 31250000, 0, 1]
-                
-                return LoadResult(FILE_TYPE.CHART, pec2rpeResult, None)
+                if isinstance(e, json.decoder.JSONDecodeError):
+                    pec2rpeResult, p2r_errs = tool_funcs.pec2rpe(raw)
+                    
+                    if p2r_errs:
+                        for e in p2r_errs:
+                            logging.warning(f"pec2rpe: {repr(e)}")
+                    
+                    for line in pec2rpeResult["judgeLineList"]:
+                        for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):
+                            if i != len(line["eventLayers"][0]["speedEvents"]) - 1:
+                                e["endTime"] = line["eventLayers"][0]["speedEvents"][i + 1]["startTime"]
+                            else:
+                                e["endTime"] = [e["startTime"][0] + 31250000, 0, 1]
+                    
+                    return LoadResult(FILE_TYPE.CHART, pec2rpeResult, None)
             
             raise FileLoadError("Unknown file type, load to text success, but decode to json failed.")
     except Exception as e:
