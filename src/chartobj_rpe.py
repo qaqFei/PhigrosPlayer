@@ -9,8 +9,6 @@ import tool_funcs
 import rpe_easing
 import const
 
-HITSOUND_UNSET = object()
-
 def _init_events(es: list[LineEvent]):
     aes = []
     for i, e in enumerate(es):
@@ -374,31 +372,25 @@ class JudgeLine:
                 pass
             
         return linePos
-    
+
     def GetState(self, t: float, defaultColor: tuple[int, int, int], master: Rpe_Chart) -> tuple[tuple[float, float], float, float, tuple[int, int, int], float, float, str|None]:
         "linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText"
+        
+        lineAlpha = sum(self.GetEventValue(t, layer.alphaEvents, 0.0) for layer in self.eventLayers) if t >= 0.0 or self.attachUI is not None else -255
+        lineRotate = sum(self.GetEventValue(t, layer.rotateEvents, 0.0) for layer in self.eventLayers)
+        lineScaleX = self.GetEventValue(t, self.extended.scaleXEvents, 1.0) if lineAlpha > 0.0 and self.extended else 1.0
+        lineScaleY = self.GetEventValue(t, self.extended.scaleYEvents, 1.0) if lineAlpha > 0.0 and self.extended else 1.0
+        lineText = self.GetEventValue(t, self.extended.textEvents, None) if self.extended else None
+        lineColor = (
+            (255, 255, 255)
+            if (self.extended and self.extended.textEvents) or self.attachUI else
+            defaultColor
+        )
         linePos = self.GetPos(t, master)
-        lineAlpha = 0.0
-        lineRotate = 0.0
-        lineColor = defaultColor
-        if (self.extended and self.extended.textEvents) or self.attachUI:
-            lineColor = (255, 255, 255)
-        lineScaleX = 1.0
-        lineScaleY = 1.0
-        lineText = None
         
-        for layer in self.eventLayers:
-            lineAlpha += self.GetEventValue(t, layer.alphaEvents, 0.0)
-            lineRotate += self.GetEventValue(t, layer.rotateEvents, 0.0)
         
-        if self.extended:
-            lineScaleX = self.GetEventValue(t, self.extended.scaleXEvents, lineScaleX)
-            lineScaleY = self.GetEventValue(t, self.extended.scaleYEvents, lineScaleY)
+        if lineAlpha > 0.0 and self.extended:
             lineColor = self.GetEventValue(t, self.extended.colorEvents, lineColor)
-            lineText = self.GetEventValue(t, self.extended.textEvents, lineText)
-        
-        if t < 0.0 and self.attachUI is None:
-            lineAlpha = -255
         
         return tool_funcs.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
