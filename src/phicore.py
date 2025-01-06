@@ -44,7 +44,6 @@ class PhiCoreConfig:
     PHIGROS_X: float
     PHIGROS_Y: float
     noteWidth: float
-    JUDGELINE_WIDTH: float
     note_max_size_half: float
     audio_length: float
     raw_audio_length: float
@@ -99,7 +98,7 @@ def CoreConfigure(config: PhiCoreConfig):
     global Resource
     global ClickEffectFrameCount
     global PHIGROS_X, PHIGROS_Y
-    global noteWidth, JUDGELINE_WIDTH
+    global noteWidth
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
     global chart_res, clickeffect_randomblock
@@ -123,7 +122,6 @@ def CoreConfigure(config: PhiCoreConfig):
     ClickEffectFrameCount = config.ClickEffectFrameCount
     PHIGROS_X, PHIGROS_Y = config.PHIGROS_X, config.PHIGROS_Y
     noteWidth = config.noteWidth
-    JUDGELINE_WIDTH = config.JUDGELINE_WIDTH
     note_max_size_half = config.note_max_size_half
     audio_length = config.audio_length
     raw_audio_length = config.raw_audio_length
@@ -550,7 +548,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 root.run_js_code,
                 f"ctx.drawLineEx(\
                     {",".join(map(str, judgeLine_DrawPos))},\
-                    {JUDGELINE_WIDTH},\
+                    {h * 0.0075},\
                     '{judgeLine_webCanvas_color}'\
                 );",
                 add_code_array = True,
@@ -972,7 +970,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 root.run_js_code,
                 f"ctx.drawLineEx(\
                     {",".join(map(str, judgeLine_DrawPos))},\
-                    {JUDGELINE_WIDTH * lineScaleY},\
+                    {h * (1 / 180) * lineScaleY},\
                     '{judgeLine_webCanvas_color}'\
                 );",
                 add_code_array = True,
@@ -1542,7 +1540,7 @@ def BeginJudgeLineAnimation(p: float) -> chartobj_phi.FrameRenderTask:
         w / 2 - (val * w / 2), h / 2,
         w / 2 + (val * w / 2), h / 2,
         strokeStyle = const.JUDGELINE_PERFECT_COLOR,
-        lineWidth = JUDGELINE_WIDTH / render_range_more_scale if render_range_more else JUDGELINE_WIDTH,
+        lineWidth = (h * 0.0075) / render_range_more_scale if render_range_more else (h * 0.0075),
         wait_execute = True
     )
     Task(root.run_js_wait_code)

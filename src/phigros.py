@@ -3357,7 +3357,7 @@ def chartPlayerRender(
         ClickEffectFrameCount = ClickEffectFrameCount,
         PHIGROS_X = w * 0.05625, PHIGROS_Y = h * 0.6,
         noteWidth = noteWidth,
-        JUDGELINE_WIDTH = h * 0.0075, note_max_size_half = note_max_size_half,
+        note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,
         show_start_time = float("nan"), chart_res = {},
         clickeffect_randomblock = True,

@@ -41,6 +41,8 @@ import file_loader
 import phira_resource_pack
 import phicore
 
+import load_extended as _
+
 if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")
     raise SystemExit
@@ -923,7 +925,7 @@ def updateCoreConfig():
         Resource = Resource,
         ClickEffectFrameCount = ClickEffectFrameCount,
         PHIGROS_X = PHIGROS_X, PHIGROS_Y = PHIGROS_Y,
-        noteWidth = noteWidth, JUDGELINE_WIDTH = JUDGELINE_WIDTH,
+        noteWidth = noteWidth,
         note_max_size_half = note_max_size_half, audio_length = audio_length,
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),
         chart_res = chart_res, clickeffect_randomblock = clickeffect_randomblock,
@@ -994,7 +996,6 @@ root.run_js_code(f"RPEVersion = {chart_obj.META.RPEVersion if CHART_TYPE == cons
 root.run_js_code(f"resizeCanvas({w}, {h});")
     
 PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
-JUDGELINE_WIDTH = h * 0.0075
 Resource = Load_Resource()
 
 if wl_more_chinese:

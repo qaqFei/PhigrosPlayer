@@ -20,6 +20,11 @@ import binfile
 
 note_id = -1
 random_block_num = eval(argv[argv.index("--random-block-num") + 1]) if "--random-block-num" in argv else 4
+rpe_texture_scalemethod = argv[argv.index("--rpe-texture-scalemethod") + 1] if "--rpe-texture-scalemethod" in argv else "by-width"
+
+if rpe_texture_scalemethod not in ("by-width", "by-height"):
+    logging.warning(f"Unknown scale method: {rpe_texture_scalemethod}, using 'by-width' instead.")
+    rpe_texture_scalemethod = "by-width"
 
 def rotate_point(x, y, θ, r) -> tuple[float, float]:
     xo = r * math.cos(math.radians(θ))
@@ -311,9 +316,16 @@ def aconrpepos(x: float, y: float):
         (1.0 - y) * const.RPE_HEIGHT - const.RPE_HEIGHT / 2
     )
 
-def conimgsize(w: int, h: int, sw: int, sh: int):
-    rw = w / const.RPE_WIDTH * sw
-    return rw, rw / w * h
+match rpe_texture_scalemethod:
+    case "by-width":
+        def conimgsize(w: int, h: int, sw: int, sh: int):
+            rw = w / const.RPE_WIDTH * sw
+            return rw, rw / w * h
+        
+    case "by-height":
+        def conimgsize(w: int, h: int, sw: int, sh: int):
+            rh = h / const.RPE_HEIGHT * sh
+            return rh / h * w, rh
 
 # thanks for HLMC (https://github.com/2278535805)
 def rpe_text_tween(sv: str, ev: str, t: float, isfill: bool) -> str:
