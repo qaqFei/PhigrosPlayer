@@ -52,6 +52,10 @@ class CHART_RENDER_ORDERS:
     FLICK = 2
     DRAG = 2
     TAP = 2
+
+class LINEWIDTH:
+    PHI = 0.0075
+    RPE = 1 / 180
     
 TYPE_STRING_MAP = {
     Note.TAP: "Tap",

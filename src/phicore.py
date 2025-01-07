@@ -548,7 +548,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 root.run_js_code,
                 f"ctx.drawLineEx(\
                     {",".join(map(str, judgeLine_DrawPos))},\
-                    {h * 0.0075},\
+                    {h * const.LINEWIDTH.PHI},\
                     '{judgeLine_webCanvas_color}'\
                 );",
                 add_code_array = True,
@@ -970,7 +970,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 root.run_js_code,
                 f"ctx.drawLineEx(\
                     {",".join(map(str, judgeLine_DrawPos))},\
-                    {h * (1 / 180) * lineScaleY},\
+                    {h * const.LINEWIDTH.RPE * lineScaleY},\
                     '{judgeLine_webCanvas_color}'\
                 );",
                 add_code_array = True,
@@ -1540,7 +1540,7 @@ def BeginJudgeLineAnimation(p: float) -> chartobj_phi.FrameRenderTask:
         w / 2 - (val * w / 2), h / 2,
         w / 2 + (val * w / 2), h / 2,
         strokeStyle = const.JUDGELINE_PERFECT_COLOR,
-        lineWidth = (h * 0.0075) / render_range_more_scale if render_range_more else (h * 0.0075),
+        lineWidth = (h * const.LINEWIDTH.PHI) / render_range_more_scale if render_range_more else (h * const.LINEWIDTH.PHI),
         wait_execute = True
     )
     Task(root.run_js_wait_code)

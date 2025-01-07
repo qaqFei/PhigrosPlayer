@@ -1964,7 +1964,7 @@ def settingRender():
             f"ctx.drawLineEx(\
                 {w * 0.49375}, {h * 0.8},\
                 {w}, {h * 0.8},\
-                {h * 0.0075}, 'rgba({lineColor}, {alpha})'\
+                {h * const.LINEWIDTH.PHI}, 'rgba({lineColor}, {alpha})'\
             );",
             add_code_array = True
         )
@@ -2020,7 +2020,7 @@ def settingRender():
                 f"ctx.drawLineEx(\
                     {w * 0.75 - lw / 2}, {y},\
                     {w * 0.75 + lw / 2}, {y},\
-                    {h * 0.0075 * 0.75}, 'rgba(255, 255, 255, {(ap - 1.0) ** 2})'\
+                    {h * const.LINEWIDTH.PHI * 0.75}, 'rgba(255, 255, 255, {(ap - 1.0) ** 2})'\
                 );",
                 add_code_array = True
             )
