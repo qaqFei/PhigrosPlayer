@@ -8,6 +8,7 @@ import win32event as w32e
 from pywintypes import WAVEFORMATEX
 
 CACHE_BUFFER_MAXSIZE = 128
+PRE_CACHE_SIZE = 16
 
 def _wav_header_unpack(data):
     (
@@ -42,13 +43,22 @@ class directSound:
         self._volume = 0 # -10000 ~ 0
         self._buffers = []
         
+        self.set_volume(0.0)
+        for _ in range(PRE_CACHE_SIZE): self.play()
+        self.set_volume(1.0)
+    
     def _play(self):
         if len(self._buffers) > CACHE_BUFFER_MAXSIZE:
-            self._buffers = self._buffers[:CACHE_BUFFER_MAXSIZE]
+            for i in reversed(self._buffers):
+                e, buf = i
+                if buf.GetStatus() == 0:
+                    self._buffers.remove(i)
+                    break
         
         if self._buffers:
             for e, buf in self._buffers:
                 if buf.GetStatus() == 0:
+                    buf.SetVolume(self._volume)
                     buf.Play(0)
                     return e, buf
         
@@ -70,3 +80,4 @@ class directSound:
         
         if wait:
             w32e.WaitForSingleObject(event, -1)
+            
