@@ -3353,7 +3353,6 @@ def chartPlayerRender(
         chart_information = chart_information,
         chart_obj = chart_obj,
         CHART_TYPE = CHART_TYPE, Resource = Resource,
-        ClickEffect_Size = noteWidth * 1.375,
         ClickEffectFrameCount = ClickEffectFrameCount,
         PHIGROS_X = w * 0.05625, PHIGROS_Y = h * 0.6,
         noteWidth = noteWidth,
@@ -3496,6 +3495,7 @@ def chartPlayerRender(
     stoped = False
     paused, pauseAnimationSt, pauseSt = False, 0.0, float("nan")
     mixer.music.play()
+    
     while True:
         pauseATime = 0.25 if paused else 3.0
         pauseP = tool_funcs.fixorp((time.time() - pauseAnimationSt) / pauseATime)
@@ -3579,7 +3579,7 @@ def chartPlayerRender(
             else:
                 if rendingAnimation is phicore.Chart_BeforeFinish_Animation_Frame:
                     if time.time() - rendingAnimationSt <= 0.75:
-                        rendingAnimation((time.time() - rendingAnimationSt) / 0.75, globals()["PhigrosPlayManagerObject"].getCombo() if phicore.noautoplay else phicore.chart_obj.note_num, False)
+                        rendingAnimation((time.time() - rendingAnimationSt) / 0.75, pplm.ppps.getCombo() if phicore.noautoplay else phicore.chart_obj.note_num, False)
                     else:
                         rendingAnimation, rendingAnimationSt = phicore.Chart_Finish_Animation_Frame, time.time()
                         mixer.music.load("./resources/Over.mp3")
