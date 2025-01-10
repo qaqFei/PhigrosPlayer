@@ -6,14 +6,13 @@ import logging
 import time
 from os import mkdir
 from os.path import exists, isfile, isdir
-from tempfile import gettempdir
 
 import yaml
 from PIL import Image
-from pydub import AudioSegment
 
 import const
-import playsound
+import dxsound
+import tempdir
 
 DEFAULT_PATH = "./resources/resource_default"
 globalPack = None
@@ -38,10 +37,7 @@ def loadAudio(dir: str, fn: str, temp_dir: str) -> bytes:
     if not validFile(fp): fp = f"{DEFAULT_PATH}/{fn}"
     
     try:
-        seg: AudioSegment = AudioSegment.from_file(fp)
-        nfp = f"{temp_dir}/{hash(fp)}.wav"
-        seg.export(nfp, format="wav")
-        return open(nfp, "rb").read()
+        return dxsound.loadFile2Loadable(temp_dir, fp)
     except Exception as e:
         raise LoadResourcePackError(f"Load audio \"{fp}\" fail: {repr(e)}")
 
@@ -111,10 +107,7 @@ class PhiraResourcePack:
             for k in image_names
         }
         
-        temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time.time()}"
-
-        try: mkdir(temp_dir)
-        except Exception as e: logging.warning(f"error when create temp dir: {e}")
+        temp_dir = tempdir.createTempDir()
 
         self.resource["audio"] = {
             k: loadAudio(directory, k, temp_dir)
@@ -200,10 +193,10 @@ class PhiraResourcePack:
             })
         
         result["Note_Click_Audio"].update({
-            const.Note.TAP: playsound.directSound(self.resource["audio"]["click.ogg"]),
-            const.Note.DRAG: playsound.directSound(self.resource["audio"]["drag.ogg"]),
-            const.Note.HOLD: playsound.directSound(self.resource["audio"]["click.ogg"]),
-            const.Note.FLICK: playsound.directSound(self.resource["audio"]["flick.ogg"])
+            const.Note.TAP: dxsound.directSound(self.resource["audio"]["click.ogg"]),
+            const.Note.DRAG: dxsound.directSound(self.resource["audio"]["drag.ogg"]),
+            const.Note.HOLD: dxsound.directSound(self.resource["audio"]["click.ogg"]),
+            const.Note.FLICK: dxsound.directSound(self.resource["audio"]["flick.ogg"])
         })
         
         return result

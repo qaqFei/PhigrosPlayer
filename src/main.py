@@ -11,20 +11,18 @@ import logging
 import typing
 from threading import Thread
 from ctypes import windll
-from os import listdir, popen, mkdir, environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
+from os import listdir, popen, mkdir
 from os.path import exists
 from shutil import rmtree
-from tempfile import gettempdir
 from ntpath import basename
 
 import cv2
 import requests
 from PIL import Image, ImageFilter, ImageEnhance
-from pygame import mixer
 from pydub import AudioSegment
 
 import webcv
-import playsound
+import dxsound
 import chartobj_phi
 import chartobj_rpe
 import chartfuncs_phi
@@ -40,6 +38,8 @@ import shader
 import file_loader
 import phira_resource_pack
 import phicore
+import tempdir
+from dxsmixer import mixer
 
 import load_extended as _
 
@@ -54,19 +54,8 @@ if len(sys.argv) == 1:
     
 console_window.Hide() if "--hideconsole" in sys.argv else None
 
-for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_chart_temp_")]:
-    item = f"{gettempdir()}\\{item}"
-    try:
-        rmtree(item)
-        logging.info(f"Remove Temp Dir: {item}")
-    except Exception as e:
-        logging.warning(e)
-        
-temp_dir = f"{gettempdir()}\\phigros_chart_temp_{time.time()}"
-logging.info(f"Temp Dir: {temp_dir}")
-
-try: mkdir(temp_dir)
-except Exception as e: logging.warning(f"error when create temp dir: {e}")
+tempdir.clearTempDir()
+temp_dir = tempdir.createTempDir()
 
 enable_clicksound = "--noclicksound" not in sys.argv
 debug = "--debug" in sys.argv
@@ -309,12 +298,6 @@ if extra.enable:
 
 logging.info(f"enable_shader: {extra.enable}")
 
-def loadAudio(path: str):
-    seg: AudioSegment = AudioSegment.from_file(path)
-    fp = f"{temp_dir}/{hash(path)}.wav"
-    seg.export(fp, format="wav")
-    return open(fp, "rb").read()
-
 def Load_Resource():
     global noteWidth
     global note_max_width, note_max_height
@@ -477,7 +460,7 @@ def Load_Resource():
             for note in line.notes:
                 if note.hitsound_reskey not in Resource["Note_Click_Audio"]:
                     try:
-                        Resource["Note_Click_Audio"][note.hitsound_reskey] = playsound.directSound(loadAudio(f"{temp_dir}\\{note.hitsound}"))
+                        Resource["Note_Click_Audio"][note.hitsound_reskey] = dxsound.directSound(dxsound.loadFile2Loadable(temp_dir, f"{temp_dir}\\{note.hitsound}"))
                         logging.info(f"Loaded note hitsound {note.hitsound}")
                     except Exception as e:
                         logging.warning(f"Cannot load note hitsound {note.hitsound} for note due to {e}")
@@ -1006,12 +989,6 @@ updateCoreConfig()
 Thread(target=Show_Start, daemon=True).start()
 root.wait_for_close()
 
-for item in [item for item in listdir(gettempdir()) if item.startswith("qfppr_cctemp_")]:
-    item = f"{gettempdir()}\\{item}"
-    try:
-        rmtree(item)
-        logging.info(f"Remove Temp Dir: {item}")
-    except Exception as e:
-        logging.warning(e)
+tempdir.clearTempDir()
 
 windll.kernel32.ExitProcess(0)

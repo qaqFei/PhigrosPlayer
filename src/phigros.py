@@ -14,14 +14,10 @@ import logging
 from io import BytesIO
 from threading import Thread
 from ctypes import windll
-from os import environ, mkdir, system, listdir; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
+from os import system
 from os.path import exists
-from shutil import rmtree
-from tempfile import gettempdir
 
 from PIL import Image, ImageFilter, ImageEnhance
-from pygame import mixer
-from pydub import AudioSegment
 
 import webcv
 import const
@@ -33,8 +29,10 @@ import chartobj_phi
 import chartobj_rpe
 import chartfuncs_phi
 import chartfuncs_rpe
-import playsound
+import dxsound
 import phira_resource_pack
+import tempdir
+from dxsmixer import mixer
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")
@@ -50,13 +48,8 @@ if not exists("./phigros_assets") or not all([
     system("pause")
     raise SystemExit
 
-for item in [item for item in listdir(gettempdir()) if item.startswith("phigros_temp_")]:
-    try: rmtree(f"{gettempdir()}\\{item}")
-    except Exception as e: pass
-        
-temp_dir = f"{gettempdir()}\\phigros_temp_{time.time()}"
-try: mkdir(temp_dir)
-except FileExistsError: pass
+tempdir.clearTempDir()
+temp_dir = tempdir.createTempDir()
 
 assetConfig = json.loads(open(tool_funcs.gtpresp("config.json"), "r", encoding="utf-8").read())
 userData_default = {
@@ -161,12 +154,6 @@ def Load_Chapters():
     
     ChaptersMaxDx = w * (len(Chapters.items) - 1) * (295 / 1920) + w * 0.5 - w * 0.875
 
-def loadAudio(path: str):
-    seg = AudioSegment.from_file(path)
-    fp = f"{temp_dir}/{hash(path)}.wav"
-    seg.export(fp, format="wav")
-    return open(fp, "rb").read()
-
 def putColor(color: tuple|str, im: Image.Image):
     return Image.merge("RGBA", (
         *Image.new("RGB", im.size, color).split(),
@@ -242,7 +229,7 @@ def Load_Resource():
         "bilibili": Image.open("./resources/bilibili.png"),
         "taptap": Image.open("./resources/taptap.png"),
         "checked": Image.open("./resources/checked.png"),
-        "CalibrationHit": playsound.directSound(loadAudio("./resources/CalibrationHit.wav")),
+        "CalibrationHit": dxsound.directSound(dxsound.loadFile2Loadable(temp_dir, "./resources/CalibrationHit.wav")),
         "Button_Left": Image.open("./resources/Button_Left.png"),
         "Retry": Image.open("./resources/Retry.png"),
         "Pause": mixer.Sound("./resources/Pause.wav"),
@@ -893,7 +880,7 @@ def showStartAnimation():
         h * (100 / 230) - h * phigros_logo_width / Resource["phigros"].width * Resource["phigros"].height / 2,
         w * phigros_logo_width, w * phigros_logo_width / Resource["phigros"].width * Resource["phigros"].height
     )
-    if not abs(mixer.music.get_pos() / 1000 - 8.0) <= 0.05:
+    if not abs(mixer.music.get_pos() - 8.0) <= 0.05:
         mixer.music.set_pos(8.0)
     while True:
         atime = time.time() - a3_st
@@ -998,7 +985,7 @@ def soundEffect_From0To1():
     v = 0.0
     for _ in range(100):
         v += 0.01
-        if mixer.music.get_pos() / 1000 <= 3.0:
+        if mixer.music.get_pos() <= 3.0:
             mixer.music.set_volume(v)
             time.sleep(0.02)
         else:
@@ -1739,8 +1726,8 @@ def settingRender():
             w * 0.6015625, 0.0,
             w, h
         )) and inSettingUI:
-            mixer_pos = mixer.music.get_pos()
-            if mixer_pos != -1:
+            if mixer.music.get_busy():
+                mixer_pos = mixer.music.get_pos()
                 CalibrationClickEffectLines.append((time.time(), mixer_pos))
         
         # 账号与统计 - 编辑
@@ -1969,7 +1956,7 @@ def settingRender():
             add_code_array = True
         )
         
-        CalibrationMusicPosition = mixer.music.get_pos() / 1000
+        CalibrationMusicPosition = mixer.music.get_pos()
         if CalibrationMusicPosition > 0.0:
             CalibrationMusicPosition += getUserData("setting-chartOffset") / 1000
             CalibrationMusicPosition %= 2.0
@@ -2014,7 +2001,7 @@ def settingRender():
             ap = (time.time() - t) / 1.1
             if ap > 1.0: continue
             
-            y = h * 0.85 * (((p + getUserData("setting-chartOffset")) / 1000) % 2.0) - h * 0.05
+            y = h * 0.85 * ((p + getUserData("setting-chartOffset")) % 2.0) - h * 0.05
             lw = w * ap * 3.0
             root.run_js_code( # 这里alpha值化简了
                 f"ctx.drawLineEx(\

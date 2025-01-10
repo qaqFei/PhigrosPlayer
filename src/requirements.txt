@@ -1,6 +1,5 @@
 Pillow==11.0.0
 pywin32==308
-pygame==2.6.1
 pydub==0.25.1
 numba==0.60.0
 opencv-python-headless==4.10.0.84

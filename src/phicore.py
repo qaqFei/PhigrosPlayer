@@ -5,11 +5,9 @@ import typing
 import math
 import logging
 import threading
-from os import environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
 from dataclasses import dataclass
 from queue import Queue
 
-from pygame import mixer
 from PIL import Image
 
 import webcv
@@ -19,8 +17,9 @@ import rpe_easing
 import chartobj_phi
 import chartobj_rpe
 import phi_tips
-import playsound
+import dxsound
 import phira_resource_pack
+from dxsmixer import mixer, musicCls
 
 drawUI_Default_Kwargs = {
     f"{k}_{k2}": v
@@ -51,7 +50,7 @@ class PhiCoreConfig:
     chart_res: dict[str, tuple[Image.Image, tuple[int, int]]]
     clickeffect_randomblock: bool
     clickeffect_randomblock_roundn: int
-    LoadSuccess: mixer.Sound
+    LoadSuccess: musicCls
     cksmanager: ClickSoundManager
     enable_clicksound: bool
     rtacc: bool
@@ -186,7 +185,7 @@ def CoreConfigureEx(config: PhiCoreConfigure):
     logging.info("CoreConfigureEx Done")
 
 class ClickSoundManager:
-    def __init__(self, res: dict[int, playsound.directSound]):
+    def __init__(self, res: dict[int, dxsound.directSound]):
         self.res = res
         self.queue: Queue[int|None] = Queue()
         threading.Thread(target=self.runner, daemon=True).start()

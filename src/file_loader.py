@@ -4,9 +4,9 @@ import typing
 from dataclasses import dataclass
 
 from PIL import Image
-from pygame import mixer
 
 import tool_funcs
+from dxsmixer import mixer
 
 class FILE_TYPE:
     CHART: int = 1
