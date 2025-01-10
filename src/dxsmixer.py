@@ -19,7 +19,7 @@ class musicCls:
         self._lflag = 0
         self._volume = 1.0
     
-    def _stopBuffer(self) -> None:
+    def _stopBuffer(self):
         if self.buffer is None: return
         
         try:
@@ -28,19 +28,19 @@ class musicCls:
             if e.winerror != -2147024890: # pywintypes.error: (-2147024890, 'Stop', '句柄无效。')
                 raise e
 
-    def _setBufferVolume(self, v: float) -> None:
+    def _setBufferVolume(self, v: float):
         if self.buffer is None: return
         self.buffer.SetVolume(self.dxs.transform_volume(v))
     
-    def load(self, fp: str) -> None:
+    def load(self, fp: str):
         self.dxs = dxsound.directSound(dxsound.loadFile2Loadable(temp_dir, fp), enable_cache=False)
         self.buffer = None
         
-    def unload(self) -> None:
+    def unload(self):
         self.dxs = None
         self.buffer = None
         
-    def play(self, isloop: typing.Literal[0, -1] = 0) -> None:
+    def play(self, isloop: typing.Literal[0, -1] = 0):
         self.lflag = 0 if isloop == 0 else 1
         
         if self.buffer is None:
@@ -53,20 +53,20 @@ class musicCls:
             
         self._setBufferVolume(self._volume)
         
-    def stop(self) -> None:
+    def stop(self):
         self._stopBuffer()
         self._position = 0
         
-    def pause(self) -> None:
+    def pause(self):
         self._position = self.buffer.GetCurrentPosition()[1]
         self._stopBuffer()
         
-    def unpause(self) -> None:
+    def unpause(self):
         self.buffer.Play(self.lflag)
         self.buffer.SetCurrentPosition(self._position)
     
     @tool_funcs.NoJoinThreadFunc
-    def fadeout(self, t: int) -> None:
+    def fadeout(self, t: int):
         t /= 1000
         st = time.time()
         
@@ -79,21 +79,21 @@ class musicCls:
         self.stop()
         self.set_volume(1.0)
     
-    def set_volume(self, volume: float) -> None:
+    def set_volume(self, volume: float):
         self._volume = volume
         self._setBufferVolume(volume)
         
-    def get_volume(self) -> float:
+    def get_volume(self):
         return self._volume
     
-    def get_busy(self) -> bool:
+    def get_busy(self):
         return self.buffer.GetStatus() != 0
     
-    def set_pos(self, pos: float) -> None:
+    def set_pos(self, pos: float):
         self._position = int(pos * self.dxs._sdesc.lpwfxFormat.nAvgBytesPerSec)
         self.buffer.SetCurrentPosition(self._position)
         
-    def get_pos(self) -> int:
+    def get_pos(self) -> float:
         return self.buffer.GetCurrentPosition()[1] / self.dxs._sdesc.lpwfxFormat.nAvgBytesPerSec
     
     def get_length(self) -> float:

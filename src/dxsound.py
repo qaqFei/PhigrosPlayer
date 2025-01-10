@@ -12,6 +12,9 @@ from pydub import AudioSegment
 CACHE_BUFFER_MAXSIZE = 128
 PRE_CACHE_SIZE = 16
 
+dxs = ds.DirectSoundCreate(None, None)
+dxs.SetCooperativeLevel(None, ds.DSSCL_NORMAL)
+
 def _wav_header_unpack(data):
     (
         format,
@@ -39,8 +42,6 @@ class directSound:
         self._sdesc = ds.DSBUFFERDESC()
         self._sdesc.dwBufferBytes, self._sdesc.lpwfxFormat = _wav_header_unpack(self._hdr)
         self._sdesc.dwFlags = ds.DSBCAPS_CTRLVOLUME | ds.DSBCAPS_CTRLPOSITIONNOTIFY | ds.DSBCAPS_GLOBALFOCUS
-        self.dxs = ds.DirectSoundCreate(None, None)
-        self.dxs.SetCooperativeLevel(None, ds.DSSCL_PRIORITY)
         
         self._enable_cache = enable_cache
         self._volume = 0 # -10000 ~ 0
@@ -69,7 +70,7 @@ class directSound:
                         return e, buf
         
         event = w32e.CreateEvent(None, 0, 0, None)
-        buffer = self.dxs.CreateSoundBuffer(self._sdesc, None)
+        buffer = dxs.CreateSoundBuffer(self._sdesc, None)
         buffer.QueryInterface(ds.IID_IDirectSoundNotify).SetNotificationPositions((-1, event))
         buffer.Update(0, self._bufdata)
         buffer.SetVolume(self._volume)
