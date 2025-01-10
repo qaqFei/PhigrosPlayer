@@ -58,7 +58,7 @@ class musicCls:
         self._position = 0
         
     def pause(self) -> None:
-        self._position = self.buffer.GetCurrentPosition()
+        self._position = self.buffer.GetCurrentPosition()[1]
         self._stopBuffer()
         
     def unpause(self) -> None:
