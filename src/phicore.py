@@ -806,7 +806,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             
             pos = tool_funcs.rotate_point(
                 *will_show_effect_pos,
-                -will_show_effect_rotate,
+                will_show_effect_rotate,
                 note.positionX * PHIGROS_X
             )
             floorp = note.floorPosition - chartobj_phi.getFloorPosition(note.master, t)
