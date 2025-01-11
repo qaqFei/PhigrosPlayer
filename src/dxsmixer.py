@@ -5,9 +5,6 @@ import time
 
 import dxsound
 import tool_funcs
-import tempdir
-
-temp_dir = tempdir.createTempDir()
 
 class musicCls:
     def __init__(self):
@@ -35,7 +32,7 @@ class musicCls:
     
     def load(self, fp: str):
         self.unload()
-        self.dxs = dxsound.directSound(dxsound.loadFile2Loadable(temp_dir, fp), enable_cache=False)
+        self.dxs = dxsound.directSound(fp, enable_cache=False)
         
     def unload(self):
         self.dxs = None

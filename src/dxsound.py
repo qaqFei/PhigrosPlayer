@@ -6,6 +6,7 @@ import math
 import typing
 import struct
 import logging
+from io import BytesIO
 
 import win32comext.directsound.directsound as ds
 import win32event as w32e
@@ -21,7 +22,7 @@ _WAV_HEADER_LENGTH = struct.calcsize(_WAV_HEADER)
 dxs = ds.DirectSoundCreate(None, None)
 dxs.SetCooperativeLevel(None, ds.DSSCL_NORMAL)
 
-def _wav_header_unpack(data: bytes):
+def _wav2wfx(data: bytes):
     (
         format,
         nchannels,
@@ -29,9 +30,8 @@ def _wav_header_unpack(data: bytes):
         datarate,
         blockalign,
         bitspersample,
-        data,
-        datalength
-    ) = struct.unpack(_WAV_HEADER, data)[5:]
+        data
+    ) = struct.unpack(_WAV_HEADER, data)[5:-1]
     wfx = WAVEFORMATEX()
     wfx.wFormatTag = format
     wfx.nChannels = nchannels
@@ -39,19 +39,47 @@ def _wav_header_unpack(data: bytes):
     wfx.nAvgBytesPerSec = datarate
     wfx.nBlockAlign = blockalign
     wfx.wBitsPerSample = bitspersample
-    return min(datalength, ds.DSBSIZE_MAX), wfx
+    return wfx
+
+def _seg2wfx(seg: AudioSegment):
+    wfx = WAVEFORMATEX()
+    wfx.wFormatTag = 1
+    wfx.nChannels = seg.channels
+    wfx.nSamplesPerSec = seg.frame_rate
+    wfx.nAvgBytesPerSec = seg.frame_rate * seg.channels * seg.sample_width
+    wfx.nBlockAlign = seg.channels * seg.sample_width
+    wfx.wBitsPerSample = seg.sample_width * 8
+    return wfx
+
+def _loadDirectSound(data: bytes):
+    sdesc = ds.DSBUFFERDESC()
+    
+    if data.startswith(b"RIFF"):
+        hdr = data[0:_WAV_HEADER_LENGTH]
+        bufdata = data[_WAV_HEADER_LENGTH:]
+        sdesc.lpwfxFormat = _wav2wfx(hdr)
+    else:
+        seg: AudioSegment = AudioSegment.from_file(BytesIO(data))
+        bufdata = seg.raw_data
+        sdesc.lpwfxFormat = _seg2wfx(seg)
+    
+    if len(bufdata) > ds.DSBSIZE_MAX:
+        logging.warning(f"Sound buffer size is too large ({len(bufdata)} > {ds.DSBSIZE_MAX}), truncated.")
+        bufdata = bufdata[:ds.DSBSIZE_MAX]
+        
+    sdesc.dwBufferBytes = len(bufdata)
+    
+    return bufdata, sdesc
 
 class directSound:
-    def __init__(self, data: bytes, enable_cache: bool = True):
-        self._hdr = data[0:_WAV_HEADER_LENGTH]
-        self._bufdata = data[_WAV_HEADER_LENGTH:]
+    def __init__(self, data: bytes|str, enable_cache: bool = True):
+        if isinstance(data, str): data = open(data, "rb").read()
         
-        if len(self._bufdata) > ds.DSBSIZE_MAX:
-            logging.warning(f"Sound buffer size is too large ({len(self._bufdata)} > {ds.DSBSIZE_MAX}), truncated.")
-            self._bufdata = self._bufdata[:ds.DSBSIZE_MAX]
-            
-        self._sdesc = ds.DSBUFFERDESC()
-        self._sdesc.dwBufferBytes, self._sdesc.lpwfxFormat = _wav_header_unpack(self._hdr)
+        (
+            self._bufdata,
+            self._sdesc
+        ) = _loadDirectSound(data)
+        
         self._sdesc.dwFlags = ds.DSBCAPS_CTRLVOLUME | ds.DSBCAPS_CTRLPOSITIONNOTIFY | ds.DSBCAPS_GLOBALFOCUS | ds.DSBCAPS_GETCURRENTPOSITION2
         
         self._enable_cache = enable_cache
@@ -103,12 +131,4 @@ class directSound:
             w32e.WaitForSingleObject(event, -1)
         
         return event, buffer
-
-def loadFile2Loadable(temp_dir: str, path: str):
-    try:
-        seg: AudioSegment = AudioSegment.from_file(path)
-        fp = f"{temp_dir}/{hash(path)}.wav"
-        seg.export(fp, format="wav")
-        return open(fp, "rb").read()
-    except FileNotFoundError as e:
-        print(temp_dir, path, repr(e))
+    

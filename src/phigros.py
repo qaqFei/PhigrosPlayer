@@ -229,7 +229,7 @@ def Load_Resource():
         "bilibili": Image.open("./resources/bilibili.png"),
         "taptap": Image.open("./resources/taptap.png"),
         "checked": Image.open("./resources/checked.png"),
-        "CalibrationHit": dxsound.directSound(dxsound.loadFile2Loadable(temp_dir, "./resources/CalibrationHit.wav")),
+        "CalibrationHit": dxsound.directSound("./resources/CalibrationHit.wav"),
         "Button_Left": Image.open("./resources/Button_Left.png"),
         "Retry": Image.open("./resources/Retry.png"),
         "Pause": mixer.Sound("./resources/Pause.wav"),

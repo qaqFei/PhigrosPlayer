@@ -32,12 +32,12 @@ def loadImage(fp: str) -> Image.Image:
     except Exception as e:
         raise LoadResourcePackError(f"Load image \"{fp}\" fail: {repr(e)}")
 
-def loadAudio(dir: str, fn: str, temp_dir: str) -> bytes:
+def loadAudio(dir: str, fn: str) -> bytes:
     fp = f"{dir}/{fn}"
     if not validFile(fp): fp = f"{DEFAULT_PATH}/{fn}"
     
     try:
-        return dxsound.loadFile2Loadable(temp_dir, fp)
+        return open(fp, "rb").read()
     except Exception as e:
         raise LoadResourcePackError(f"Load audio \"{fp}\" fail: {repr(e)}")
 
@@ -106,11 +106,9 @@ class PhiraResourcePack:
             k: loadImage(f"{directory}/{k}")
             for k in image_names
         }
-        
-        temp_dir = tempdir.createTempDir()
 
         self.resource["audio"] = {
-            k: loadAudio(directory, k, temp_dir)
+            k: loadAudio(directory, k)
             for k in ("click.ogg", "drag.ogg", "flick.ogg")
         }
         

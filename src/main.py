@@ -460,7 +460,7 @@ def Load_Resource():
             for note in line.notes:
                 if note.hitsound_reskey not in Resource["Note_Click_Audio"]:
                     try:
-                        Resource["Note_Click_Audio"][note.hitsound_reskey] = dxsound.directSound(dxsound.loadFile2Loadable(temp_dir, f"{temp_dir}\\{note.hitsound}"))
+                        Resource["Note_Click_Audio"][note.hitsound_reskey] = dxsound.directSound(f"{temp_dir}\\{note.hitsound}")
                         logging.info(f"Loaded note hitsound {note.hitsound}")
                     except Exception as e:
                         logging.warning(f"Cannot load note hitsound {note.hitsound} for note due to {e}")
