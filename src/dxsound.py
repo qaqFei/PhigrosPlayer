@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import init_logging as _
+
 import math
 import typing
 import struct
+import logging
 
 import win32comext.directsound.directsound as ds
 import win32event as w32e
@@ -18,7 +21,7 @@ _WAV_HEADER_LENGTH = struct.calcsize(_WAV_HEADER)
 dxs = ds.DirectSoundCreate(None, None)
 dxs.SetCooperativeLevel(None, ds.DSSCL_NORMAL)
 
-def _wav_header_unpack(data):
+def _wav_header_unpack(data: bytes):
     (
         format,
         nchannels,
@@ -36,12 +39,17 @@ def _wav_header_unpack(data):
     wfx.nAvgBytesPerSec = datarate
     wfx.nBlockAlign = blockalign
     wfx.wBitsPerSample = bitspersample
-    return datalength, wfx
+    return min(datalength, ds.DSBSIZE_MAX), wfx
 
 class directSound:
     def __init__(self, data: bytes, enable_cache: bool = True):
         self._hdr = data[0:_WAV_HEADER_LENGTH]
         self._bufdata = data[_WAV_HEADER_LENGTH:]
+        
+        if len(self._bufdata) > ds.DSBSIZE_MAX:
+            logging.warning(f"Sound buffer size is too large ({len(self._bufdata)} > {ds.DSBSIZE_MAX}), truncated.")
+            self._bufdata = self._bufdata[:ds.DSBSIZE_MAX]
+            
         self._sdesc = ds.DSBUFFERDESC()
         self._sdesc.dwBufferBytes, self._sdesc.lpwfxFormat = _wav_header_unpack(self._hdr)
         self._sdesc.dwFlags = ds.DSBCAPS_CTRLVOLUME | ds.DSBCAPS_CTRLPOSITIONNOTIFY | ds.DSBCAPS_GLOBALFOCUS | ds.DSBCAPS_GETCURRENTPOSITION2
