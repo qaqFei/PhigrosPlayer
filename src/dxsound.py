@@ -44,7 +44,7 @@ class directSound:
         self._bufdata = data[_WAV_HEADER_LENGTH:]
         self._sdesc = ds.DSBUFFERDESC()
         self._sdesc.dwBufferBytes, self._sdesc.lpwfxFormat = _wav_header_unpack(self._hdr)
-        self._sdesc.dwFlags = ds.DSBCAPS_CTRLVOLUME | ds.DSBCAPS_CTRLPOSITIONNOTIFY | ds.DSBCAPS_GLOBALFOCUS
+        self._sdesc.dwFlags = ds.DSBCAPS_CTRLVOLUME | ds.DSBCAPS_CTRLPOSITIONNOTIFY | ds.DSBCAPS_GLOBALFOCUS | ds.DSBCAPS_GETCURRENTPOSITION2
         
         self._enable_cache = enable_cache
         self._volume = 0 # -10000 ~ 0
