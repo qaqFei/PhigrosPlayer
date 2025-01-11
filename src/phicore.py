@@ -353,7 +353,12 @@ def draw_ui(
     if clear: root.clear_canvas(wait_execute = True)
     if background: draw_background()
     
-    pauseImgWidth, pauseImgHeight = w * (36 / 1920) * pauseUI_scaleX, w * (36 / 1920) / 35 * 41 * pauseUI_scaleY
+    pauseImgWidth = w * (32 / 1920)
+    pauseImgHeight = pauseImgWidth / 35 * 41
+    
+    pauseImgWidth *= pauseUI_scaleX
+    pauseImgHeight *= pauseUI_scaleY
+    
     pauseImgAlpha = pauseUI_color.split(")")[-2].split(",")[-1].replace(" ", "")
     fps = mainFramerateCalculator.framerate
     reqaf_fps = root.get_framerate()
@@ -366,23 +371,23 @@ def draw_ui(
         {
             "type": "call",
             "name": "fillRectEx", "args": [
-                0, 0, w * process, h / 125,
+                0, 0, w * process, h / 95,
                 "rgba(145, 145, 145, 0.85)"
             ]
         },
         {
             "type": "call",
             "name": "fillRectEx", "args": [
-                w * process - w * 0.002, 0,
-                w * 0.002, h / 125,
+                w * process - w * 0.00175, 0,
+                w * 0.00175, h / 95,
                 "rgba(255, 255, 255, 0.9)"
             ]
         },
         {
             "type": "text",
             "text": f"{score}", "fontsize": (w + h) / 75 / 0.75,
-            "textBaseline": "middle", "textAlign": "right",
-            "x": w * 0.988, "y": h * (58 / 1080),
+            "textBaseline": "top", "textAlign": "right",
+            "x": w * (1 - (40 / 1920)), "y": h * (31 / 1080),
             "dx": scoreUI_dx, "dy": scoreUI_dy,
             "sx": scoreUI_scaleX, "sy": scoreUI_scaleY,
             "color": scoreUI_color, "rotate": scoreUI_rotate
@@ -392,24 +397,24 @@ def draw_ui(
             "text": f"{acc}", "fontsize": (w + h) / 145 / 0.75,
             "textBaseline": "middle", "textAlign": "right",
             "x": w * 0.988, "y": h * (58 / 1080) + (w + h) / 145 / 0.75 * 1.5,
-            "dx": scoreUI_dx, "dy": scoreUI_dy,
+            "dx": 0.0, "dy": 0.0,
             "sx": scoreUI_scaleX, "sy": scoreUI_scaleY,
             "color": scoreUI_color, "rotate": scoreUI_rotate
         } if rtacc else None,
         {
             "type": "text",
-            "text": f"{combo}", "fontsize": (w + h) / 64.51 / 0.75,
-            "textBaseline": "middle", "textAlign": "center",
-            "x": w / 2, "y": h * 0.05,
+            "text": f"{combo}", "fontsize": (w + h) / 53 / 0.75,
+            "textBaseline": "top", "textAlign": "center",
+            "x": w / 2, "y": h * 0.0135,
             "dx": combonumberUI_dx, "dy": combonumberUI_dy,
             "sx": combonumberUI_scaleX, "sy": combonumberUI_scaleY,
             "color": combonumberUI_color, "rotate": combonumberUI_rotate
         } if combo_state else None,
         {
             "type": "text",
-            "text": f"{combotips}", "fontsize": (w + h) / 142 / 0.75,
-            "textBaseline": "middle", "textAlign": "center",
-            "x": w / 2, "y": h * 0.095,
+            "text": f"{combotips}", "fontsize": (w + h) / 160 / 0.75,
+            "textBaseline": "top", "textAlign": "center",
+            "x": w / 2, "y": h * 0.085,
             "dx": comboUI_dx, "dy": comboUI_dy,
             "sx": comboUI_scaleX, "sy": comboUI_scaleY,
             "color": comboUI_color, "rotate": comboUI_rotate
@@ -428,18 +433,18 @@ def draw_ui(
         } if animationing else None,
         {
             "type": "text",
-            "text": chart_information["Name"], "fontsize": (w + h) / 125 / 0.75,
-            "textBaseline": "middle", "textAlign": "left",
-            "x": w * 0.0125, "y": h * 0.976 - (w + h) / 125 / 0.75 / 2,
+            "text": chart_information["Name"], "fontsize": (w + h) / 115 / 0.75,
+            "textBaseline": "bottom", "textAlign": "left",
+            "x": w * 0.0225, "y": h * 0.965,
             "dx": nameUI_dx, "dy": nameUI_dy,
             "sx": nameUI_scaleX, "sy": nameUI_scaleY,
             "color": nameUI_color, "rotate": nameUI_rotate
         },
         {
             "type": "text",
-            "text": chart_information["Level"], "fontsize": (w + h) / 125 / 0.75,
-            "textBaseline": "middle", "textAlign": "right",
-            "x": w * 0.9875, "y": h * 0.976 - (w + h) / 125 / 0.75 / 2,
+            "text": chart_information["Level"], "fontsize": (w + h) / 115 / 0.75,
+            "textBaseline": "bottom", "textAlign": "right",
+            "x": w * 0.9775, "y": h * 0.965,
             "dx": levelUI_dx, "dy": levelUI_dy,
             "sx": levelUI_scaleX, "sy": levelUI_scaleY,
             "color": levelUI_color, "rotate": levelUI_rotate
@@ -452,7 +457,7 @@ def draw_ui(
                 + "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License"
             ), "fontsize": (w + h) / 275 / 0.75,
             "textBaseline": "bottom", "textAlign": "right",
-            "x": w * 0.9875, "y": h * 0.995,
+            "x": w * 0.9775, "y": h * 0.98,
             "dx": 0.0, "dy": 0.0,
             "sx": 1.0, "sy": 1.0,
             "color": "rgba(255, 255, 255, 0.5)", "rotate": 0.0

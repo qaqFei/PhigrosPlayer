@@ -668,10 +668,10 @@
             else if (i.type == "image") {
                 this.save();
                 let img = eval(i.image);
-                this.translate(i.x + i.dx + i.width / 2, i.y + i.dy + i.height / 2);
+                this.translate(i.x + i.dx, i.y + i.dy);
                 if (i.rotate != 0.0) this.rotate(i.rotate * Math.PI / 180);
                 if (i.alpha != 1.0) this.globalAlpha = i.alpha;
-                this.drawImage(img, -i.width / 2, -i.height / 2, i.width, i.height);
+                this.drawImage(img, 0, 0, i.width, i.height);
                 this.restore();
             }
             else if (i.type == "call") {
