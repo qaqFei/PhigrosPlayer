@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 import typing
-from struct import unpack
+import struct
 
 import win32comext.directsound.directsound as ds
 import win32event as w32e
@@ -11,6 +11,9 @@ from pydub import AudioSegment
 
 CACHE_BUFFER_MAXSIZE = 128
 PRE_CACHE_SIZE = 16
+
+_WAV_HEADER = "<4sl4s4slhhllhh4sl"
+_WAV_HEADER_LENGTH = struct.calcsize(_WAV_HEADER)
 
 dxs = ds.DirectSoundCreate(None, None)
 dxs.SetCooperativeLevel(None, ds.DSSCL_NORMAL)
@@ -25,7 +28,7 @@ def _wav_header_unpack(data):
         bitspersample,
         data,
         datalength
-    ) = unpack("<4sl4s4slhhllhh4sl", data)[5:]
+    ) = struct.unpack(_WAV_HEADER, data)[5:]
     wfx = WAVEFORMATEX()
     wfx.wFormatTag = format
     wfx.nChannels = nchannels
@@ -37,8 +40,8 @@ def _wav_header_unpack(data):
 
 class directSound:
     def __init__(self, data: bytes, enable_cache: bool = True):
-        self._hdr = data[0:44]
-        self._bufdata = data[44:]
+        self._hdr = data[0:_WAV_HEADER_LENGTH]
+        self._bufdata = data[_WAV_HEADER_LENGTH:]
         self._sdesc = ds.DSBUFFERDESC()
         self._sdesc.dwBufferBytes, self._sdesc.lpwfxFormat = _wav_header_unpack(self._hdr)
         self._sdesc.dwFlags = ds.DSBCAPS_CTRLVOLUME | ds.DSBCAPS_CTRLPOSITIONNOTIFY | ds.DSBCAPS_GLOBALFOCUS

@@ -3304,7 +3304,7 @@ def chartPlayerRender(
     elif CHART_TYPE == const.CHART_TYPE.RPE: chartJsonData["META"]["offset"] += getUserData("setting-chartOffset")
     chart_obj = chartfuncs_phi.Load_Chart_Object(chartJsonData) if CHART_TYPE == const.CHART_TYPE.PHI else chartfuncs_rpe.Load_Chart_Object(chartJsonData)
     mixer.music.load(chartAudio)
-    raw_audio_length = mixer.Sound(chartAudio).get_length()
+    raw_audio_length = mixer.music.get_length()
     audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
     
     respacker = webcv.PILResourcePacker(root)
@@ -3418,6 +3418,7 @@ def chartPlayerRender(
                 eventManager.unregEvent(clickEvent)
                 tonextUI, tonextUISt = True, time.time()
                 Resource["UISound_4"].play()
+                
             elif paused and tool_funcs.inrect(x, y, (
                 w * 0.5 - pauseUIButtonR / 2,
                 h * 0.5 - pauseUIButtonR / 2,
@@ -3436,6 +3437,7 @@ def chartPlayerRender(
                     foregroundFrameRender = lambda: None,
                     nextUI = nextUIBak
                 ), True, time.time()
+                
             elif paused and tool_funcs.inrect(x, y, (
                 w * 0.5 + w * 0.1109375 - pauseUIButtonR / 2,
                 h * 0.5 - pauseUIButtonR / 2,
@@ -3463,14 +3465,13 @@ def chartPlayerRender(
                 foregroundFrameRender = lambda: None,
                 nextUI = nextUIBak
             ), True, time.time()
-            mixer.music.fadeout(500)
+            
         elif tool_funcs.inrect(x, y, (
             w - w * const.FINISH_UI_BUTTON_SIZE, h - w * const.FINISH_UI_BUTTON_SIZE / 190 * 145,
             w, h
         )):
             eventManager.unregEvent(clickEvent)
             tonextUI, tonextUISt = True, time.time()
-            mixer.music.fadeout(500)
     
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     

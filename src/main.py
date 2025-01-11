@@ -257,7 +257,7 @@ if speed != 1.0:
     seg.export(audio_fp, format="mp3")
 
 mixer.music.load(audio_fp)
-raw_audio_length = mixer.Sound(audio_fp).get_length()
+raw_audio_length = mixer.music.get_length()
 audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
 all_inforamtion = {}
 logging.info("Loading Chart Information...")
