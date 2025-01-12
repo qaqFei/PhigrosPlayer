@@ -82,6 +82,8 @@ class PhiCoreConfigEx:
     tip_font_size: float
     chart_charter_text: str
     chart_illustrator_text: str
+    chart_charter_text_font_size: float
+    chart_illustrator_text_font_size: float
     
 def CoreConfigure(config: PhiCoreConfig):
     global SETTER
@@ -152,6 +154,7 @@ def CoreConfigureEx(config: PhiCoreConfigEx):
     global tip, tip_font_size
     global chart_charter_text
     global chart_illustrator_text
+    global chart_charter_text_font_size, chart_illustrator_text_font_size
     
     chart_name_text = config.chart_name_text
     chart_name_font_text_size = config.chart_name_font_text_size
@@ -165,6 +168,8 @@ def CoreConfigureEx(config: PhiCoreConfigEx):
     tip_font_size = config.tip_font_size
     chart_charter_text = config.chart_charter_text
     chart_illustrator_text = config.chart_illustrator_text
+    chart_charter_text_font_size = config.chart_charter_text_font_size
+    chart_illustrator_text_font_size = config.chart_illustrator_text_font_size
     
     logging.info("CoreConfigureEx Done")
 
@@ -1481,7 +1486,7 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
         w * 0.1265625 + info_charter_dx,
         h * (590 / 1080),
         text = chart_charter_text,
-        font = f"{(w + h) * 0.011}px PhigrosFont",
+        font = f"{chart_charter_text_font_size}px PhigrosFont",
         textAlign = "left",
         textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value})",
@@ -1505,7 +1510,7 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
         w * 0.1109375 + info_ill_dx,
         h * (677 / 1080),
         text = chart_illustrator_text,
-        font = f"{(w + h) * 0.011}px PhigrosFont",
+        font = f"{chart_illustrator_text_font_size}px PhigrosFont",
         textAlign = "left",
         textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value_2})",
@@ -1569,17 +1574,19 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
     animation_time = 4.5
     
     chart_name_text = chart_information["Name"]
-    chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_name_text)}).width;") / 50
     chart_level_number = Get_LevelNumber()
-    chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_level_number) if len(chart_level_number) >= 2 else "'00'"}).width;") / 50
-    if len(chart_level_number) == 1:
-        chart_level_number_width_1px /= 1.35
     chart_level_text = Get_LevelText()
     chart_artist_text = chart_information["Artist"]
-    chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_artist_text)}).width;") / 50
     chart_charter_text = chart_information["Charter"]
     chart_illustrator_text = chart_information["Illustrator"]
     tip = phi_tips.get_tip()
+    
+    chart_name_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_name_text)}).width;") / 50
+    chart_level_number_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_level_number) if len(chart_level_number) >= 2 else "'00'"}).width;") / 50
+    chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_artist_text)}).width;") / 50
+    chart_charter_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_charter_text)}).width;") / 50
+    chart_illustrator_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_illustrator_text)}).width;") / 50
+    if len(chart_level_number) == 1: chart_level_number_width_1px /= 1.35
     
     tip_font_size = w * 0.020833 / 1.25
     infoframe_width = w * 0.321875
@@ -1588,13 +1595,21 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
     chart_level_number_font_size = h * (66 / 1080)
     chart_level_text_font_size = h * (24 / 1080)
     chart_artist_text_font_size = infoframe_width * 0.65 / chart_artist_text_width_1px
+    chart_charter_text_font_size = infoframe_width * 0.85 / chart_charter_text_width_1px
+    chart_illustrator_text_font_size = infoframe_width * 0.85 / chart_illustrator_text_width_1px
     
     if chart_name_font_text_size > w * 0.025:
         chart_name_font_text_size = w * 0.025
         
     if chart_artist_text_font_size > w * 0.0161875:
         chart_artist_text_font_size = w * 0.0161875
-        
+    
+    if chart_charter_text_font_size > (w + h) * 0.011:
+        chart_charter_text_font_size = (w + h) * 0.011
+
+    if chart_illustrator_text_font_size > (w + h) * 0.011:
+        chart_illustrator_text_font_size = (w + h) * 0.011
+
     CoreConfigureEx(PhiCoreConfigEx(
         chart_name_text = chart_name_text,
         chart_name_font_text_size = chart_name_font_text_size,
@@ -1607,7 +1622,9 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
         tip = tip,
         tip_font_size = tip_font_size,
         chart_charter_text = chart_charter_text,
-        chart_illustrator_text = chart_illustrator_text
+        chart_illustrator_text = chart_illustrator_text,
+        chart_charter_text_font_size = chart_charter_text_font_size,
+        chart_illustrator_text_font_size = chart_illustrator_text_font_size,
     ))
     
     LoadSuccess.play()
