@@ -48,6 +48,7 @@ class PhiCoreConfig:
     raw_audio_length: float
     show_start_time: float
     chart_res: dict[str, tuple[Image.Image, tuple[int, int]]]
+    chart_image: Image.Image
     clickeffect_randomblock: bool
     clickeffect_randomblock_roundn: int
     LoadSuccess: musicCls
@@ -68,12 +69,7 @@ class PhiCoreConfig:
     enable_controls: bool
 
 @dataclass
-class PhiCoreConfigure:
-    infoframe_x: float
-    infoframe_y: float
-    infoframe_width: float
-    infoframe_height: float
-    infoframe_ltr: float
+class PhiCoreConfigEx:
     chart_name_text: str
     chart_name_font_text_size: float
     chart_artist_text: str
@@ -85,9 +81,7 @@ class PhiCoreConfigure:
     tip: str
     tip_font_size: float
     chart_charter_text: str
-    chart_charter_text_font_size: float
     chart_illustrator_text: str
-    chart_illustrator_text_font_size: float
     
 def CoreConfigure(config: PhiCoreConfig):
     global SETTER
@@ -99,7 +93,8 @@ def CoreConfigure(config: PhiCoreConfig):
     global noteWidth
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
-    global chart_res, clickeffect_randomblock
+    global chart_res, chart_image
+    global clickeffect_randomblock
     global clickeffect_randomblock_roundn, LoadSuccess
     global cksmanager
     global enable_clicksound, rtacc, noautoplay
@@ -124,6 +119,7 @@ def CoreConfigure(config: PhiCoreConfig):
     raw_audio_length = config.raw_audio_length
     show_start_time = config.show_start_time
     chart_res = config.chart_res
+    chart_image = config.chart_image
     clickeffect_randomblock = config.clickeffect_randomblock
     clickeffect_randomblock_roundn = config.clickeffect_randomblock_roundn
     LoadSuccess = config.LoadSuccess
@@ -148,22 +144,15 @@ def CoreConfigure(config: PhiCoreConfig):
     
     logging.info("CoreConfigure Done")
 
-def CoreConfigureEx(config: PhiCoreConfigure):
-    global infoframe_x, infoframe_y
-    global infoframe_width, infoframe_height, infoframe_ltr
+def CoreConfigureEx(config: PhiCoreConfigEx):
     global chart_name_text, chart_name_font_text_size
     global chart_artist_text, chart_artist_text_font_size
     global chart_level_number, chart_level_number_font_size
     global chart_level_text, chart_level_text_font_size
     global tip, tip_font_size
-    global chart_charter_text, chart_charter_text_font_size
-    global chart_illustrator_text, chart_illustrator_text_font_size
+    global chart_charter_text
+    global chart_illustrator_text
     
-    infoframe_x = config.infoframe_x
-    infoframe_y = config.infoframe_y
-    infoframe_width = config.infoframe_width
-    infoframe_height = config.infoframe_height
-    infoframe_ltr = config.infoframe_ltr
     chart_name_text = config.chart_name_text
     chart_name_font_text_size = config.chart_name_font_text_size
     chart_artist_text = config.chart_artist_text
@@ -175,9 +164,7 @@ def CoreConfigureEx(config: PhiCoreConfigure):
     tip = config.tip
     tip_font_size = config.tip_font_size
     chart_charter_text = config.chart_charter_text
-    chart_charter_text_font_size = config.chart_charter_text_font_size
     chart_illustrator_text = config.chart_illustrator_text
-    chart_illustrator_text_font_size = config.chart_illustrator_text_font_size
     
     logging.info("CoreConfigureEx Done")
 
@@ -1356,85 +1343,92 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
     background_ease_value = tool_funcs.begin_animation_eases.background_ease(p) * 1.25
     info_data_ease_value = tool_funcs.begin_animation_eases.info_data_ease((p - 0.2) * 3.25)
     info_data_ease_value_2 = tool_funcs.begin_animation_eases.info_data_ease((p - 0.275) * 3.25)
-    im_size = 1 / 2.5
     
     Task(draw_background)
     
     fcb()
+    
+    blackShadowRect = (
+        0, 0,
+        background_ease_value * w, h
+    )
+    blackShadowDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(blackShadowRect), 75)
+    blackShadowPolygon = (
+        (0, 0),
+        (background_ease_value * w, 0),
+        (background_ease_value * w * (1 - blackShadowDPower), h),
+        (0, h),
+        (0, 0)
+    )
     Task(
         root.create_polygon,
-        [
-            (-w * 0.1,0),
-            (-w * 0.1,h),
-            (background_ease_value * w - w * 0.1,h),
-            (background_ease_value * w,0),
-            (-w * 0.1,0)
-        ],
-        strokeStyle = "rgba(0, 0, 0, 0)",
+        blackShadowPolygon,
         fillStyle = f"rgba(0, 0, 0, {0.75 * (1 - p)})",
         wait_execute = True
     )
     
     Task(
         root.run_js_code,
-        f"ctx.translate({all_ease_value * w},0.0);",
+        f"ctx.translate({all_ease_value * w}, 0.0);",
         add_code_array = True
     )
     
+    infoframe_x = w * 0.0640625
+    infoframe_y = h * (362 / 1080)
+    infoframe_width = w * 0.3859375
+    infoframe_height = h * (143 / 1080)
     Task(
         root.create_polygon,
-        [
-            (infoframe_x + infoframe_ltr,infoframe_y - infoframe_height),
-            (infoframe_x + infoframe_ltr + infoframe_width,infoframe_y - infoframe_height),
-            (infoframe_x + infoframe_width,infoframe_y),
-            (infoframe_x,infoframe_y),
-            (infoframe_x + infoframe_ltr,infoframe_y - infoframe_height)
-        ],
-        strokeStyle = "rgba(0, 0, 0, 0)",
+        tool_funcs.rect2drect(
+            (infoframe_x, infoframe_y, infoframe_x + infoframe_width, infoframe_y + infoframe_height),
+            75
+        ),
         fillStyle = "rgba(0, 0, 0, 0.75)",
         wait_execute = True
     )
     
+    levelframe_x = w * 0.3421875
+    levelframe_y = h * (355 / 1080)
+    levelframe_width = w * 0.0984375
+    levelframe_height = h * (157 / 1080)
     Task(
         root.create_polygon,
-        [
-            (infoframe_x + w * 0.225 + infoframe_ltr,infoframe_y - infoframe_height * 1.03),
-            (infoframe_x + w * 0.225 + infoframe_ltr + infoframe_width * 0.215,infoframe_y - infoframe_height * 1.03),
-            (infoframe_x + w * 0.225 + infoframe_width * 0.215,infoframe_y + infoframe_height * 0.03),
-            (infoframe_x + w * 0.225,infoframe_y + infoframe_height * 0.03),
-            (infoframe_x + w * 0.225 + infoframe_ltr,infoframe_y - infoframe_height * 1.03)
-        ],
-        strokeStyle = "rgba(0, 0, 0, 0)",
-        fillStyle = "#FFFFFF",
+        tool_funcs.rect2drect(
+            (levelframe_x, levelframe_y, levelframe_x + levelframe_width, levelframe_y + levelframe_height),
+            75
+        ),
+        fillStyle = "white",
         wait_execute = True
     )
     
     Task(
         root.create_text,
-        infoframe_x + infoframe_ltr * 2,
-        infoframe_y - infoframe_height * 0.65,
+        w * 0.1,
+        h * (416 / 1080),
         text = chart_name_text,
         font = f"{(chart_name_font_text_size)}px PhigrosFont",
+        textAlign = "left",
         textBaseline = "middle",
-        fillStyle = "#FFFFFF",
+        fillStyle = "white",
         wait_execute = True
     )
     
     Task(
         root.create_text,
-        infoframe_x + infoframe_ltr * 2,
-        infoframe_y - infoframe_height * 0.31,
+        w * 0.0984375,
+        h * (467 / 1080),
         text = chart_artist_text,
         font = f"{(chart_artist_text_font_size)}px PhigrosFont",
+        textAlign = "left",
         textBaseline = "middle",
-        fillStyle = "#FFFFFF",
+        fillStyle = "white",
         wait_execute = True
     )
     
     Task(
         root.create_text,
-        infoframe_x + w * 0.225 + infoframe_ltr + infoframe_width * 0.215 / 2 - infoframe_ltr / 2,
-        infoframe_y - infoframe_height * 1.03 * 0.58,
+        w * 0.390625,
+        h * (424 / 1080),
         text = chart_level_number,
         font = f"{(chart_level_number_font_size)}px PhigrosFont",
         textAlign = "center",
@@ -1445,8 +1439,8 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
     
     Task(
         root.create_text,
-        infoframe_x + w * 0.225 + infoframe_ltr + infoframe_width * 0.215 / 2 - infoframe_ltr / 2,
-        infoframe_y - infoframe_height * 1.03 * 0.31,
+        w * 0.390625,
+        h * (467 / 1080),
         text = chart_level_text,
         font = f"{(chart_level_text_font_size)}px PhigrosFont",
         textAlign = "center",
@@ -1457,69 +1451,88 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
     
     Task(
         root.create_text,
-        w * 0.065,
-        h * 0.95,
+        w * 0.053125,
+        h * (1004 / 1080),
         text = f"Tip: {tip}",
         font = f"{tip_font_size}px PhigrosFont",
-        textBaseline = "bottom",
+        textAlign = "left",
+        textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {tool_funcs.begin_animation_eases.tip_alpha_ease(p)})",
         wait_execute = True
     )
     
+    info_charter_dx = (1 - info_data_ease_value) * -1 * w * 0.075
+    info_ill_dx = (1 - info_data_ease_value_2) * -1 * w * 0.075
+    
     Task(
         root.create_text,
-        w * 0.1375 + (1 - info_data_ease_value) * -1 * w * 0.075,
-        h * 0.5225,
+        w * 0.1265625 + info_charter_dx,
+        h * (561 / 1080),
         text = "Chart",
         font = f"{w / 98}px PhigrosFont",
-        textBaseline = "top",
+        textAlign = "left",
+        textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value})",
         wait_execute = True
     )
     
     Task(
         root.create_text,
-        w * 0.1375 + (1 - info_data_ease_value) * -1 * w * 0.075,
-        h * 0.5225 + w / 98 * 1.25,
+        w * 0.1265625 + info_charter_dx,
+        h * (590 / 1080),
         text = chart_charter_text,
-        font = f"{chart_charter_text_font_size}px PhigrosFont",
-        textBaseline = "top",
+        font = f"{(w + h) * 0.011}px PhigrosFont",
+        textAlign = "left",
+        textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value})",
         wait_execute = True
     )
     
     Task(
         root.create_text,
-        w * 0.1235 + (1 - info_data_ease_value_2) * -1 * w * 0.075,
-        h * 0.565 + w / 98 * 1.25,
+        w * 0.1125 + info_ill_dx,
+        h * (645 / 1080),
         text = "Illustration",
         font = f"{w / 98}px PhigrosFont",
-        textBaseline = "top",
+        textAlign = "left",
+        textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value_2})",
         wait_execute = True
     )
     
     Task(
         root.create_text,
-        w * 0.1235 + (1 - info_data_ease_value_2) * -1 * w * 0.075,
-        h * 0.565 + w / 98 * 1.25 + w / 98 * 1.25,
+        w * 0.1109375 + info_ill_dx,
+        h * (677 / 1080),
         text = chart_illustrator_text,
-        font = f"{chart_illustrator_text_font_size}px PhigrosFont",
-        textBaseline = "top",
+        font = f"{(w + h) * 0.011}px PhigrosFont",
+        textAlign = "left",
+        textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value_2})",
         wait_execute = True
     )
     
-    baimg_w = w * im_size
-    baimg_h = h * im_size
+    baimg_w = w * 0.5078125
+    baimg_h = h * (512 / 1080)
     dpower = tool_funcs.getDPower(baimg_w, baimg_h, 75)
+    
+    baimg_rawr = chart_image.width / chart_image.height
+    baimg_r = baimg_w / baimg_h
+    if baimg_rawr > baimg_r:
+        baimg_draww = baimg_h * baimg_rawr
+        baimg_drawh = baimg_h
+    else:
+        baimg_draww = baimg_w
+        baimg_drawh = baimg_w / baimg_rawr
+    
     Task(
         root.run_js_code,
         f"ctx.drawDiagonalRectangleClipImage(\
-            {w * 0.65 - baimg_w / 2}, {h * 0.5 - baimg_h / 2},\
-            {w * 0.65 + baimg_w / 2}, {h * 0.5 + baimg_h / 2},\
+            {w * 0.690625 - baimg_w / 2}, {h * (476 / 1080) - baimg_h / 2},\
+            {w * 0.690625 + baimg_w / 2}, {h * (476 / 1080) + baimg_h / 2},\
             {root.get_img_jsvarname("begin_animation_image")},\
-            0, 0, {baimg_w}, {baimg_h}, {dpower}, 1.0\
+            {baimg_w / 2 - baimg_draww / 2}, {baimg_h / 2 - baimg_drawh / 2},\
+            {baimg_draww}, {baimg_drawh}, {dpower}, 1.0\
         );",
         add_code_array = True
     )
@@ -1562,42 +1575,27 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
     if len(chart_level_number) == 1:
         chart_level_number_width_1px /= 1.35
     chart_level_text = Get_LevelText()
-    chart_level_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_level_text) if len(chart_level_text) >= 2 else "'00'"}).width;") / 50
     chart_artist_text = chart_information["Artist"]
     chart_artist_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_artist_text)}).width;") / 50
     chart_charter_text = chart_information["Charter"]
-    chart_charter_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_charter_text)}).width;") / 50
     chart_illustrator_text = chart_information["Illustrator"]
-    chart_illustrator_text_width_1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(chart_illustrator_text)}).width;") / 50
     tip = phi_tips.get_tip()
-    tip_font_size = w * 0.020833 / 1.25
-    infoframe_x = w * 0.095
-    infoframe_y = h * 0.47
-    infoframe_width = 0.3 * w
-    infoframe_height = 0.118 * h
-    infoframe_ltr = w * 0.01
-    infoframe_text_place_width = w * 0.23
-    chart_name_font_text_size = infoframe_text_place_width * 0.75 / chart_name_text_width_1px
-    chart_level_number_font_size = infoframe_width * 0.215 * 0.45 / chart_level_number_width_1px
-    chart_level_text_font_size = infoframe_width * 0.215 * 0.175 / chart_level_text_width_1px
-    chart_artist_text_font_size = infoframe_text_place_width * 0.65 / chart_artist_text_width_1px
-    chart_charter_text_font_size = infoframe_text_place_width * 0.65 / chart_charter_text_width_1px
-    chart_illustrator_text_font_size = infoframe_text_place_width * 0.65 / chart_illustrator_text_width_1px
-    if chart_name_font_text_size > w * 0.020833 * 0.75:
-        chart_name_font_text_size = w * 0.020833 * 0.75
-    if chart_artist_text_font_size > w * 0.020833 * 0.65:
-        chart_artist_text_font_size = w * 0.020833 * 0.65
-    if chart_charter_text_font_size > w * 0.020833 * 0.65:
-        chart_charter_text_font_size = w * 0.020833 * 0.65
-    if chart_illustrator_text_font_size > w * 0.020833 * 0.65:
-        chart_illustrator_text_font_size = w * 0.020833 * 0.65
     
-    CoreConfigureEx(PhiCoreConfigure(
-        infoframe_x = infoframe_x,
-        infoframe_y = infoframe_y,
-        infoframe_width = infoframe_width,
-        infoframe_height = infoframe_height,
-        infoframe_ltr = infoframe_ltr,
+    tip_font_size = w * 0.020833 / 1.25
+    infoframe_width = w * 0.321875
+    
+    chart_name_font_text_size = infoframe_width * 0.65 / chart_name_text_width_1px
+    chart_level_number_font_size = h * (66 / 1080)
+    chart_level_text_font_size = h * (24 / 1080)
+    chart_artist_text_font_size = infoframe_width * 0.65 / chart_artist_text_width_1px
+    
+    if chart_name_font_text_size > w * 0.03125:
+        chart_name_font_text_size = w * 0.03125
+        
+    if chart_artist_text_font_size > w * 0.0161875:
+        chart_artist_text_font_size = w * 0.0161875
+        
+    CoreConfigureEx(PhiCoreConfigEx(
         chart_name_text = chart_name_text,
         chart_name_font_text_size = chart_name_font_text_size,
         chart_artist_text = chart_artist_text,
@@ -1609,9 +1607,7 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
         tip = tip,
         tip_font_size = tip_font_size,
         chart_charter_text = chart_charter_text,
-        chart_charter_text_font_size = chart_charter_text_font_size,
-        chart_illustrator_text = chart_illustrator_text,
-        chart_illustrator_text_font_size = chart_illustrator_text_font_size
+        chart_illustrator_text = chart_illustrator_text
     ))
     
     LoadSuccess.play()

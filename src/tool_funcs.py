@@ -399,7 +399,10 @@ def compute_intersection(
     a2 = y3 - y2
     b2 = x2 - x3
     c2 = x3 * y2 - x2 * y3
-    return (b2 * c1 - b1 * c2) / (a1 * b2 - a2 * b1), (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1)
+    try:
+        return (b2 * c1 - b1 * c2) / (a1 * b2 - a2 * b1), (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1)
+    except ZeroDivisionError:
+        return x0, y0
 
 def fixorp(p: float):
     return max(0.0, min(1.0, p))
@@ -422,7 +425,21 @@ def PhigrosChapterDataAlphaValueTransfrom(p: float):
 def getDPower(width: float, height: float, deg: float):
     l1 = 0, 0, width, 0
     l2 = 0, height, *rotate_point(0, height, deg, (width ** 2 + height ** 2) ** 0.5)
-    return compute_intersection(*l1, *l2)[0] / width
+    try:
+        return compute_intersection(*l1, *l2)[0] / width
+    except ZeroDivisionError:
+        return 1.0
+
+def rect2drect(rect: tuple[float], deg: float):
+    dpower = getDPower(*getSizeByRect(rect), deg)
+    w = rect[2] - rect[0]
+    return (
+        (rect[0] + w * dpower, rect[1]),
+        (rect[2], rect[1]),
+        (rect[2] - w * dpower, rect[3]),
+        (rect[0], rect[3]),
+        (rect[0] + w * dpower, rect[1])
+    )
 
 def getSizeByRect(rect: tuple[float, float, float, float]):
     return rect[2] - rect[0], rect[3] - rect[1]

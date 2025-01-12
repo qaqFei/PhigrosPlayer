@@ -3345,7 +3345,7 @@ def chartPlayerRender(
         noteWidth = noteWidth,
         note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,
-        show_start_time = float("nan"), chart_res = {},
+        show_start_time = float("nan"), chart_res = {}, chart_image = chart_image,
         clickeffect_randomblock = True,
         clickeffect_randomblock_roundn = 0.0,
         LoadSuccess = LoadSuccess, cksmanager = cksmanager,
