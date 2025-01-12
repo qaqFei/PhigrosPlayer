@@ -103,7 +103,7 @@ class musicCls:
         return self._volume
     
     def get_busy(self) -> bool:
-        return self.buffer.GetStatus() != 0 and not self._paused
+        return self.buffer is not None and (self.buffer.GetStatus() != 0 and not self._paused)
     
     def set_pos(self, pos: float):
         self._setBufferPosition(int(pos * self.dxs._sdesc.lpwfxFormat.nAvgBytesPerSec))
