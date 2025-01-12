@@ -393,8 +393,8 @@ def draw_ui(
         {
             "type": "text",
             "text": f"{combo}", "fontsize": (w + h) / 53 / 0.75,
-            "textBaseline": "top", "textAlign": "center",
-            "x": w / 2, "y": h * 0.0135,
+            "textBaseline": "middle", "textAlign": "center",
+            "x": w / 2, "y": h * (52 / 1080),
             "dx": combonumberUI_dx, "dy": combonumberUI_dy,
             "sx": combonumberUI_scaleX, "sy": combonumberUI_scaleY,
             "color": combonumberUI_color, "rotate": combonumberUI_rotate
