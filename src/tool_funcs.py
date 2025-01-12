@@ -1108,6 +1108,13 @@ class PhigrosPlayLogicManager:
                     self.ppps.addEvent("P")
 
             elif const.NOTE_JUDGE_RANGE.PERFECT < abs_offset <= const.NOTE_JUDGE_RANGE.GOOD:
+                if can_use_safe_notes:
+                    drag, _ = can_use_safe_notes[0]
+                    if not self.pp.nproxy_get_wclick(drag):
+                        self.pp.nproxy_set_wclick(drag, True)
+                    self.pp.nproxy_set_safe_used(drag, True)
+                    continue
+                
                 state = const.NOTE_STATE.GOOD
 
                 self.pp.nproxy_set_ckstate(n, state)
