@@ -533,7 +533,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         lineFloorPosition = chartobj_phi.getFloorPosition(line, lineBTime) * PHIGROS_Y
         linePos = line.get_datavar_move(lineBTime, w, h)
         lineRotate = line.get_datavar_rotate(lineBTime)
-        lineAlpha = line.get_datavar_disappear(lineBTime)
+        lineAlpha = line.get_datavar_alpha(lineBTime)
         
         judgeLine_DrawPos = (
             *tool_funcs.rotate_point(*linePos, lineRotate, h * 5.76 / 2),
@@ -1551,7 +1551,7 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
     Task(root.run_js_wait_code)
     return Task
 
-def BeginJudgeLineAnimation(p: float) -> chartobj_phi.FrameRenderTask:
+def BeginJudgeLineAnimation(p: float, lineWidth: float, showLine: bool) -> chartobj_phi.FrameRenderTask:
     Task = chartobj_phi.FrameRenderTask([], [])
     val = rpe_easing.ease_funcs[12](p)
     Task(
@@ -1559,14 +1559,17 @@ def BeginJudgeLineAnimation(p: float) -> chartobj_phi.FrameRenderTask:
         animationing = True,
         dy = h / 7 * val
     )
-    Task(
-        root.create_line,
-        w / 2 - (val * w / 2), h / 2,
-        w / 2 + (val * w / 2), h / 2,
-        strokeStyle = const.JUDGELINE_PERFECT_COLOR,
-        lineWidth = (h * const.LINEWIDTH.PHI) / render_range_more_scale if render_range_more else (h * const.LINEWIDTH.PHI),
-        wait_execute = True
-    )
+    
+    if showLine:
+        Task(
+            root.create_line,
+            w / 2 - (val * w / 2), h / 2,
+            w / 2 + (val * w / 2), h / 2,
+            strokeStyle = const.JUDGELINE_PERFECT_COLOR,
+            lineWidth = lineWidth / render_range_more_scale if render_range_more else lineWidth,
+            wait_execute = True
+        )
+    
     Task(root.run_js_wait_code)
     return Task
 
@@ -1641,16 +1644,55 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
 def ChartStart_Animation(fcb: typing.Callable[[], typing.Any] = lambda: None):
     csat = 1.25
     st = time.time()
+        
+    showLine = False
+    
+    if CHART_TYPE == const.CHART_TYPE.PHI:
+        lineWidth = const.LINEWIDTH.PHI
+        
+        for line in chart_obj.judgeLineList:
+            linePos = line.get_datavar_move(0.0, w, h)
+            lineRotate = line.get_datavar_rotate(0.0)
+            lineAlpha = line.get_datavar_alpha(0.0)
+            
+            if (
+                abs(linePos[1] - h / 2) <= 0.001 * h
+                and abs(lineRotate) <= 0.001
+                and abs(lineAlpha) >= 0.999
+            ):
+                showLine = True
+                break
+
+    elif CHART_TYPE == const.CHART_TYPE.RPE:
+        lineWidth = const.LINEWIDTH.RPE
+        
+        for line in chart_obj.judgeLineList:
+            (
+                linePos,
+                lineAlpha,
+                lineRotate
+            ) = line.GetState(0.0, (0, 0, 0), chart_obj)[:3]
+            
+            if (
+                abs(linePos[1] - 0.5) <= 0.001 * h
+                and abs(lineRotate) <= 0.001
+                and abs(lineAlpha) >= 0.999
+            ):
+                showLine = True
+                break
+        
+    lineWidth *= h
+    
     while True:
         p = (time.time() - st) / csat
         if p > 1.0:
             break
         
         fcb()
-        Task = BeginJudgeLineAnimation(p)
+        Task = BeginJudgeLineAnimation(p, lineWidth, showLine)
         Task.ExecTask()
     
-    time.sleep(0.35)
+    time.sleep(0.15)
 
 def initFinishAnimation(pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
     global im_size

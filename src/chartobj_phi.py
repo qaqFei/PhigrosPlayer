@@ -248,7 +248,7 @@ class judgeLine:
             e.end
         ) if e is not None else 0.0
     
-    def get_datavar_disappear(self, now_time):
+    def get_datavar_alpha(self, now_time):
         e = findevent(self.judgeLineDisappearEvents, now_time)
         return tool_funcs.linear_interpolation(
             now_time,

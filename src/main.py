@@ -469,9 +469,9 @@ def Load_Resource():
     return Resource
 
 def WaitLoading_FadeIn():
-    for i in range(50):
+    for i in range(100):
         WaitLoading.set_volume((i + 1) / 100)
-        time.sleep(2 / 50)
+        time.sleep(2 / 100)
 
 def Show_Start():
     WaitLoading.fadeout(450)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import typing
 import time
+from sys import argv
 
 import dxsound
 import tool_funcs
@@ -118,18 +119,38 @@ class mixerCls:
     def __init__(self):
         self.music = musicCls()
         
-    def init(
-        frequency: int = 44100,
-        size: int = -16,
-        channels: int = 2,
-        buffer: int = 512,
-        devicename: typing.Optional[str] = None,
-        allowedchanges: int = 5,
-    ) -> None: ...
+    def init(*args, **kwargs) -> None: ...
     
     def Sound(self, fp: str):
         music = musicCls()
         music.load(fp)
         return music
+
+def toDowngradeAPI():
+    global mixer
+    
+    from pygame import mixer as _mixer
+    _mixer.Sound
+    
+    _mixer.init()
+    mixer = _mixer
+    
+    length = -1
+    _load = mixer.music.load
+    _get_pos = mixer.music.get_pos
+    
+    def _loadhook(fn: str):
+        nonlocal length
+        
+        length = _mixer.Sound(fn).get_length()
+        _load(fn)
+        
+    mixer.music.load = _loadhook
+    mixer.music.get_length = lambda: length
+    mixer.music.get_pos = lambda: _get_pos() / 1000
     
 mixer = mixerCls()
+
+if "--soundapi-downgrade" in argv:
+    toDowngradeAPI()
+    

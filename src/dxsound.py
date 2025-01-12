@@ -119,7 +119,9 @@ class directSound:
         return event, buffer
     
     def transform_volume(self, v: float):
-        return int(-10000 if v <= 1e-5 else (0 if v >= 1.0 else 2000 * math.log10(v)))
+        if v <= 1e-5: return ds.DSBVOLUME_MIN
+        if v >= 1.0: return ds.DSBVOLUME_MAX
+        return int(2000 * math.log10(v))
     
     def set_volume(self, v: float):
         self._volume = self.transform_volume(v)
