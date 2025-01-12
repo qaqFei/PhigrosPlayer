@@ -2,9 +2,6 @@ import fix_workpath as _
 import init_logging as _
 
 import typing
-import logging
-import time
-from os import mkdir
 from os.path import exists, isfile, isdir
 
 import yaml
@@ -12,7 +9,6 @@ from PIL import Image
 
 import const
 import dxsound
-import tempdir
 
 DEFAULT_PATH = "./resources/resource_default"
 globalPack = None
