@@ -83,3 +83,4 @@ class ENGLISH:
         SIZE = "Window Size: "
         LFDAOT_FRAME_SPEED = "Create Frame Data Ahead of Time File Frame Speed: "
         RENDER_RANGE_MORE_SCALE = "Extend Render Range Scale: "
+        

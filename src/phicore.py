@@ -2027,3 +2027,4 @@ def Chart_BeforeFinish_Animation_Frame(p: float, a1_combo: int|None, rjc: bool =
         )
         
     if rjc: root.run_js_wait_code()
+    
