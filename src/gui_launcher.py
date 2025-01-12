@@ -116,9 +116,6 @@ def Launch():
     if lowquality_checkbutton_var.get():
         launch_args.append("--lowquality")
     
-    if judgeline_notransparent_checkbutton_var.get():
-        launch_args.append("--judgeline-notransparent")
-    
     if noclickeffect_randomblock_checkbutton_var.get():
         launch_args.append("--noclickeffect-randomblock")
     
@@ -199,17 +196,13 @@ lowquality_checkbutton_var = BooleanVar(value=False) # --lowquality
 lowquality_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LOWQUALITY, variable=lowquality_checkbutton_var)
 lowquality_checkbutton.grid(sticky="w", row=0, column=2)
 
-judgeline_notransparent_checkbutton_var = BooleanVar(value=False) # --judgeline-notransparent
-judgeline_notransparent_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.JUDGELINE_NOTRANSPARENT, variable=judgeline_notransparent_checkbutton_var)
-judgeline_notransparent_checkbutton.grid(sticky="w", row=1, column=0)
-
 noclickeffect_randomblock_checkbutton_var = BooleanVar(value=False) # --noclickeffect-randomblock
 noclickeffect_randomblock_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOCLICKEFFECT_RANDOMBLOCK, variable=noclickeffect_randomblock_checkbutton_var)
-noclickeffect_randomblock_checkbutton.grid(sticky="w", row=1, column=1)
+noclickeffect_randomblock_checkbutton.grid(sticky="w", row=1, column=0)
 
 loop_checkbutton_var = BooleanVar(value=False) # --loop
 loop_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LOOP, variable=loop_checkbutton_var)
-loop_checkbutton.grid(sticky="w", row=1, column=2)
+loop_checkbutton.grid(sticky="w", row=1, column=1)
 
 lfdaot_checkbutton_var = BooleanVar(value=False) # --lfdaot
 lfdaot_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LFDAOT,variable=lfdaot_checkbutton_var, command=lfdaot_callback)

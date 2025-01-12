@@ -3353,7 +3353,6 @@ def chartPlayerRender(
         rtacc = False, noautoplay = "--debug" not in sys.argv, showfps = "--debug" in sys.argv,
         lfdaot = False, speed = 1.0, render_range_more = False,
         render_range_more_scale = 1.0,
-        judgeline_notransparent = False,
         debug = "--debug" in sys.argv,
         combotips = "COMBO" if "--debug" not in sys.argv else "AUTOPLAY", noplaychart = False,
         clicksound_volume = getUserData("setting-clickSoundVolume"),

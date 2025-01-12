@@ -60,7 +60,6 @@ temp_dir = tempdir.createTempDir()
 enable_clicksound = "--noclicksound" not in sys.argv
 debug = "--debug" in sys.argv
 debug_noshow_transparent_judgeline = "--debug-noshow-transparent-judgeline" in sys.argv
-judgeline_notransparent = "--judgeline-notransparent" in sys.argv
 clickeffect_randomblock = "--noclickeffect-randomblock" not in sys.argv
 loop = "--loop" in sys.argv
 lfdaot = "--lfdaot" in sys.argv
@@ -918,7 +917,6 @@ def updateCoreConfig():
         noautoplay = noautoplay, showfps = showfps, lfdaot = lfdaot,
         speed = speed, render_range_more = render_range_more,
         render_range_more_scale = render_range_more_scale,
-        judgeline_notransparent = judgeline_notransparent,
         debug = debug, combotips = combotips, noplaychart = noplaychart,
         clicksound_volume = clicksound_volume,
         musicsound_volume = musicsound_volume,

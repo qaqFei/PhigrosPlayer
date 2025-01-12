@@ -5,7 +5,6 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --hideconsole: Hide the console window.
   --debug: Display webview debug window, and show judgeLine position points.
   --fullscreen: Make the window fullscreen.
-  --judgeline-notransparent: Make the judgeLine not transparent. (Disappear value forever is 1.0.)
   --noclickeffect-randomblock: Disable random block of click effect.
   --loop: Auto loop the chart.
   --lfdaot: Load frame data ahead of time, and output a *.lfdaot file.
@@ -67,7 +66,6 @@ HELP_ZH = '''\
   --hideconsole: 隐藏控制台窗口
   --debug: 显示webview调试窗口, 并显示判定线位置点
   --fullscreen: 使窗口全屏
-  --judgeline-notransparent: 使判定线不透明
   --loop: 自动循环谱面
   --lfdaot: 提前加载帧数据, 并输出一个 *.lfdaot 文件
   --noclicksound: 禁用点击音效

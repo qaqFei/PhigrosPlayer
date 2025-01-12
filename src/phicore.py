@@ -60,7 +60,6 @@ class PhiCoreConfig:
     speed: float
     render_range_more: bool
     render_range_more_scale: float
-    judgeline_notransparent: bool
     debug: bool
     combotips: bool
     noplaychart: bool
@@ -107,7 +106,6 @@ def CoreConfigure(config: PhiCoreConfig):
     global showfps, lfdaot
     global speed, render_range_more
     global render_range_more_scale
-    global judgeline_notransparent
     global debug, combotips, noplaychart
     global enable_controls
     
@@ -138,7 +136,6 @@ def CoreConfigure(config: PhiCoreConfig):
     speed = config.speed
     render_range_more = config.render_range_more
     render_range_more_scale = config.render_range_more_scale
-    judgeline_notransparent = config.judgeline_notransparent
     debug = config.debug
     combotips = config.combotips
     noplaychart = config.noplaychart
@@ -395,8 +392,8 @@ def draw_ui(
         {
             "type": "text",
             "text": f"{acc}", "fontsize": (w + h) / 145 / 0.75,
-            "textBaseline": "middle", "textAlign": "right",
-            "x": w * 0.988, "y": h * (58 / 1080) + (w + h) / 145 / 0.75 * 1.5,
+            "textBaseline": "top", "textAlign": "right",
+            "x": w * (1 - (40 / 1920)), "y": h * (85 / 1080),
             "dx": 0.0, "dy": 0.0,
             "sx": scoreUI_scaleX, "sy": scoreUI_scaleY,
             "color": scoreUI_color, "rotate": scoreUI_rotate
@@ -451,13 +448,19 @@ def draw_ui(
         },
         {
             "type": "text",
-            "text": (
-                (f"fps {fps:.0f} - " if showfps else "")
-                + (f"reqaf fps {reqaf_fps:.0f} - " if showfps else "")
-                + "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License"
-            ), "fontsize": (w + h) / 275 / 0.75,
-            "textBaseline": "bottom", "textAlign": "right",
-            "x": w * 0.9775, "y": h * 0.98,
+            "text": f"fps {fps:.0f} - reqaf fps {reqaf_fps:.0f}", "fontsize": (w + h) / 275 / 0.75,
+            "textBaseline": "bottom", "textAlign": "center",
+            "x": w * 0.5, "y": h * 0.975,
+            "dx": 0.0, "dy": 0.0,
+            "sx": 1.0, "sy": 1.0,
+            "color": "rgba(255, 255, 255, 0.5)", "rotate": 0.0
+        } if showfps else None,
+        {
+            "type": "text",
+            "text": "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License",
+            "fontsize": (w + h) / 275 / 0.75,
+            "textBaseline": "bottom", "textAlign": "center",
+            "x": w * 0.5, "y": h * 0.99,
             "dx": 0.0, "dy": 0.0,
             "sx": 1.0, "sy": 1.0,
             "color": "rgba(255, 255, 255, 0.5)", "rotate": 0.0
@@ -544,7 +547,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             *tool_funcs.rotate_point(*linePos, lineRotate, h * 5.76 / 2),
             *tool_funcs.rotate_point(*linePos, lineRotate + 180, h * 5.76 / 2)
         )
-        judgeLine_color = (*((255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor()), lineAlpha if not judgeline_notransparent else 1.0)
+        judgeLine_color = (*((255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor()), lineAlpha)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
         
         if (judgeLine_color[-1] > 0.0 and tool_funcs.lineInScreen(w, h, judgeLine_DrawPos)) or debug:
@@ -769,17 +772,17 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     ):
         t = now_t / note.master.T
         p = (now_t - note.sec) / miss_effect_time
-        will_show_effect_pos = line.get_datavar_move(t, w, h)
-        will_show_effect_rotate = line.get_datavar_rotate(t)
+        linePos = line.get_datavar_move(t, w, h)
+        lineRotate = line.get_datavar_rotate(t)
         pos = tool_funcs.rotate_point(
-            *will_show_effect_pos,
-            -will_show_effect_rotate,
+            *linePos,
+            lineRotate,
             note.positionX * PHIGROS_X
         )
         floorp = note.floorPosition - chartobj_phi.getFloorPosition(note.master, t)
-        x,y = tool_funcs.rotate_point(
+        x, y = tool_funcs.rotate_point(
             *pos,
-            (-90 if note.above else 90) - will_show_effect_rotate,
+            (-90 if note.above else 90) + lineRotate,
             floorp * PHIGROS_Y
         )
         img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
@@ -793,7 +796,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 {y},\
                 {noteWidth},\
                 {noteWidth / this_note_img.width * this_note_img.height},\
-                {- will_show_effect_rotate},\
+                {lineRotate},\
                 {1 - p ** 0.5}\
             ); crc2d_enable_rrm = true;",
             add_code_array = True
@@ -915,7 +918,6 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     for line_index, line in enumerate(chart_obj.judgeLineList):
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t, line.bpmfactor), (255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor(), chart_obj)
         beatTime = chart_obj.sec2beat(now_t, line.bpmfactor)
-        if judgeline_notransparent: lineAlpha = 1.0
         linePos = (linePos[0] * w, linePos[1] * h)
         judgeLine_DrawPos = (
             *tool_funcs.rotate_point(*linePos, lineRotate, w * 4000 / const.RPE_WIDTH * lineScaleX / 2),
