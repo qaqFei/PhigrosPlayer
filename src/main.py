@@ -252,8 +252,8 @@ if speed != 1.0:
     seg = seg._spawn(seg.raw_data, overrides = {
         "frame_rate": int(seg.frame_rate * speed)
     }).set_frame_rate(seg.frame_rate)
-    audio_fp = f"{temp_dir}/ppr_temp_audio_{time.time()}.mp3"
-    seg.export(audio_fp, format="mp3")
+    audio_fp = f"{temp_dir}/ppr_temp_audio_{time.time()}.wav"
+    seg.export(audio_fp, format="wav")
 
 mixer.music.load(audio_fp)
 raw_audio_length = mixer.music.get_length()
