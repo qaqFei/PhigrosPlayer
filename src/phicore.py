@@ -1584,13 +1584,13 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
     tip_font_size = w * 0.020833 / 1.25
     infoframe_width = w * 0.321875
     
-    chart_name_font_text_size = infoframe_width * 0.65 / chart_name_text_width_1px
+    chart_name_font_text_size = infoframe_width * 0.6 / chart_name_text_width_1px
     chart_level_number_font_size = h * (66 / 1080)
     chart_level_text_font_size = h * (24 / 1080)
     chart_artist_text_font_size = infoframe_width * 0.65 / chart_artist_text_width_1px
     
-    if chart_name_font_text_size > w * 0.03125:
-        chart_name_font_text_size = w * 0.03125
+    if chart_name_font_text_size > w * 0.025:
+        chart_name_font_text_size = w * 0.025
         
     if chart_artist_text_font_size > w * 0.0161875:
         chart_artist_text_font_size = w * 0.0161875
