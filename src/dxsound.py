@@ -54,14 +54,14 @@ def _seg2wfx(seg: AudioSegment):
 def _loadDirectSound(data: bytes):
     sdesc = ds.DSBUFFERDESC()
     
-    if data.startswith(b"RIFF"):
-        hdr = data[0:_WAV_HEADER_LENGTH]
-        bufdata = data[_WAV_HEADER_LENGTH:]
-        sdesc.lpwfxFormat = _wav2wfx(hdr)
-    else:
-        seg: AudioSegment = AudioSegment.from_file(BytesIO(data))
-        bufdata = seg.raw_data
-        sdesc.lpwfxFormat = _seg2wfx(seg)
+    # if data.startswith(b"RIFF"):
+    #     hdr = data[0:_WAV_HEADER_LENGTH]
+    #     bufdata = data[_WAV_HEADER_LENGTH:]
+    #     sdesc.lpwfxFormat = _wav2wfx(hdr)
+    
+    seg: AudioSegment = AudioSegment.from_file(BytesIO(data))
+    bufdata = seg.raw_data
+    sdesc.lpwfxFormat = _seg2wfx(seg)
     
     if len(bufdata) > ds.DSBSIZE_MAX:
         logging.warning(f"Sound buffer size is too large ({len(bufdata)} > {ds.DSBSIZE_MAX}), truncated.")

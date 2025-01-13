@@ -113,6 +113,7 @@ class musicCls:
         return self._getBufferPosition() / self.dxs._sdesc.lpwfxFormat.nAvgBytesPerSec
     
     def get_length(self) -> float:
+        print(self.dxs._sdesc.lpwfxFormat)
         return self.dxs._sdesc.dwBufferBytes / self.dxs._sdesc.lpwfxFormat.nAvgBytesPerSec
     
 class mixerCls:
