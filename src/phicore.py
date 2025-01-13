@@ -1341,7 +1341,11 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
     Task(
         root.create_polygon,
         tool_funcs.rect2drect(
-            (infoframe_x, infoframe_y, infoframe_x + infoframe_width, infoframe_y + infoframe_height),
+            (
+                infoframe_x, infoframe_y,
+                infoframe_x + infoframe_width,
+                infoframe_y + infoframe_height
+            ),
             75
         ),
         fillStyle = "rgba(0, 0, 0, 0.75)",
@@ -1355,7 +1359,11 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
     Task(
         root.create_polygon,
         tool_funcs.rect2drect(
-            (levelframe_x, levelframe_y, levelframe_x + levelframe_width, levelframe_y + levelframe_height),
+            (
+                levelframe_x, levelframe_y,
+                levelframe_x + levelframe_width,
+                levelframe_y + levelframe_height
+            ),
             75
         ),
         fillStyle = "white",
@@ -1673,11 +1681,11 @@ def initFinishAnimation(pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
     ChartNameString = chart_information["Name"]
     ChartNameStringFontSize = w * im_size * 0.65 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(ChartNameString)}).width;") / 50)
     ChartLevelString = chart_information["Level"]
-    ChartLevelStringFontSize = w * im_size * 0.25 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(ChartLevelString)}).width;") / 50)
+    ChartLevelStringFontSize = w * im_size * 0.275 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(ChartLevelString)}).width;") / 50)
     if ChartNameStringFontSize > w * 0.0275:
         ChartNameStringFontSize = w * 0.0275
-    if ChartLevelStringFontSize > w * 0.0275 * 0.5:
-        ChartLevelStringFontSize = w * 0.0275 * 0.5
+    if ChartLevelStringFontSize > w * 0.0275 * 0.55:
+        ChartLevelStringFontSize = w * 0.0275 * 0.55
 
 def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     root.clear_canvas(wait_execute = True)
@@ -1690,24 +1698,39 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     data_block_3_ease_value = tool_funcs.finish_animation_eases.all_ease(p - 0.055)
     data_block_3_ease_pos = w * 1.25 * (1 - data_block_3_ease_value)
     button_ease_value = tool_funcs.finish_animation_eases.button_ease(p * 4.5 - 0.95)
-    level_size = 0.125
+    level_size = 0.1125
     level_size *= tool_funcs.finish_animation_eases.level_size_ease(p)
     button_ease_pos = - w * const.FINISH_UI_BUTTON_SIZE * (1 - button_ease_value)
     
     draw_background()
     
-    root.create_image(
-        "finish_animation_image",
-        w * 0.3 - w * im_size * 0.5 + im_ease_pos,
-        h * 0.5 - h * im_size * 0.5,
-        width = w * im_size,
-        height = h * im_size,
-        wait_execute = True
+    baimg_w = w * 0.5203125
+    baimg_h = h * (624 / 1080)
+    dpower = tool_funcs.getDPower(baimg_w, baimg_h, 75)
+    
+    baimg_rawr = chart_image.width / chart_image.height
+    baimg_r = baimg_w / baimg_h
+    if baimg_rawr > baimg_r:
+        baimg_draww = baimg_h * baimg_rawr
+        baimg_drawh = baimg_h
+    else:
+        baimg_draww = baimg_w
+        baimg_drawh = baimg_w / baimg_rawr
+    
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangleClipImage(\
+            {w * 0.315625 - baimg_w / 2 + im_ease_pos}, {h * (539 / 1080) - baimg_h / 2},\
+            {w * 0.315625 + baimg_w / 2 + im_ease_pos}, {h * (539 / 1080) + baimg_h / 2},\
+            {root.get_img_jsvarname("finish_animation_image")},\
+            {baimg_w / 2 - baimg_draww / 2}, {baimg_h / 2 - baimg_drawh / 2},\
+            {baimg_draww}, {baimg_drawh}, {dpower}, 1.0\
+        );",
+        add_code_array = True
     )
     
     root.create_text(
-        w * 0.3 - w * im_size * 0.5 + w * im_size * 0.05 + im_ease_pos,
-        h * 0.5 + h * im_size * 0.5 - h * im_size * 0.04,
+        w * 0.0828125 + im_ease_pos,
+        h * (815 / 1080),
         text = ChartNameString,
         font = f"{ChartNameStringFontSize}px PhigrosFont",
         textAlign = "left",
@@ -1717,8 +1740,8 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     )
     
     root.create_text(
-        w * 0.3 + w * im_size * 0.5 - w * im_size * 0.125 + im_ease_pos,
-        h * 0.5 + h * im_size * 0.5 - h * im_size * 0.04,
+        w * 0.48125 + im_ease_pos,
+        h * (822 / 1080),
         text = ChartLevelString,
         font = f"{ChartLevelStringFontSize}px PhigrosFont",
         textAlign = "right",
@@ -1726,72 +1749,53 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         fillStyle = "#FFFFFF", 
         wait_execute = True
     )
+    
+    
+    def drawDiagonalDataBlock(sy: float, ey: float, ease_pos: float):
+        sy *= h
+        ey *= h
+        db_x = w * 0.5046875
+        db_y = h * (227 / 1080)
+        db_width = w * 0.4484375
+        db_height = h * (624 / 1080)
+        db_dpower = tool_funcs.getDPower(db_width, db_height, 75)
+        db_dw = db_dpower * db_width
+        sy += db_y
+        ey += db_y
         
+        db_itemrect = (
+            db_x + db_dw * (1.0 - (ey - db_y) / db_height) + ease_pos, sy,
+            db_x + db_width - db_dw * ((sy - db_y) / db_height) + ease_pos, ey
+        )
+        
+        root.create_polygon(
+            tool_funcs.rect2drect(db_itemrect, 75),
+            fillStyle = "rgba(0, 0, 0, 0.5)",
+            wait_execute = True
+        )
     
-    root.create_polygon(
-        [
-            (w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05, h * 0.5 - h * im_size * 0.5),
-            (w * 0.25 + w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05, h * 0.5 - h * im_size * 0.5),
-            (w * 0.25 + w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.5),
-            (w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.5),
-            (w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.05, h * 0.5 - h * im_size * 0.5),
-        ],
-        strokeStyle = "rgba(0, 0, 0, 0)",
-        fillStyle = "#00000066",
-        wait_execute = True
-    )
-    
-    root.create_polygon(
-        [
-            (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
-            (w * 0.25 + w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
-            (w * 0.25 + w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545 + h * im_size * 0.205),
-            (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545 + h * im_size * 0.205),
-            (w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.545),
-        ],
-        strokeStyle = "rgba(0, 0, 0, 0)",
-        fillStyle = "#00000066",
-        wait_execute = True
-    )
-    
-    root.create_polygon(
-        [
-            (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
-            (w * 0.25 + w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
-            (w * 0.25 + w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205),
-            (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.205 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205),
-            (w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25, h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205),
-        ],
-        strokeStyle = "rgba(0, 0, 0, 0)",
-        fillStyle = "#00000066",
-        wait_execute = True
-    )
+    drawDiagonalDataBlock(0.0, 312 / 1080, data_block_1_ease_pos)
+    drawDiagonalDataBlock(357 / 1080, 467 / 1080, data_block_2_ease_pos)
+    drawDiagonalDataBlock(512 / 1080, 622 / 1080, data_block_3_ease_pos)
     
     root.create_text(
-        w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.06,
-        h * 0.433,
+        w * 0.584375 + data_block_1_ease_pos,
+        h * (467 / 1080),
         text = ScoreString,
-        font = f"{(w + h) / 42}px PhigrosFont",
+        font = f"{(w + h) / 38}px PhigrosFont",
+        textAlign = "left",
+        textBaseline = "bottom",
         fillStyle = f"rgba(255, 255, 255, {tool_funcs.finish_animation_eases.score_alpha_ease(p)})",
         wait_execute = True
     )
     
     root.run_js_code(
-        f"ctx.globalAlpha = {tool_funcs.finish_animation_eases.level_alpha_ease(p)};",
-        add_code_array = True
-    )
-    
-    root.create_image(
-        f"Level_{LevelName}",
-        w * 0.25 - w * im_size * 0.4 + data_block_1_ease_pos + w * im_size * 1.6 - level_size * w / 2,
-        h * 0.375 - level_size * w / 2,
-        width = w * level_size,
-        height = w * level_size,
-        wait_execute = True
-    )
-    
-    root.run_js_code(
-        "ctx.globalAlpha = 1.0;",
+        f"ctx.drawAlphaCenterImage(\
+            {root.get_img_jsvarname(f"Level_{LevelName}")},\
+            {w * 0.8578125 + data_block_1_ease_pos}, {h * (380 / 1080)},\
+            {w * level_size}, {w * level_size},\
+            {tool_funcs.finish_animation_eases.level_alpha_ease(p)}\
+        );",
         add_code_array = True
     )
     
@@ -1801,40 +1805,46 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     )
     
     root.create_text( # Max Combo
-        w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 + w * im_size / 45,
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625,
+        w * 0.55625 + data_block_2_ease_pos,
+        h * (650 / 1080),
         text = f"{MaxCombo}",
+        textAlign = "left",
+        textBaseline = "bottom",
         fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 70}px PhigrosFont",
+        font = f"{(w + h) / 65}px PhigrosFont",
         wait_execute = True
     )
     
     root.create_text(
-        w * 0.25 - w * im_size * 0.4 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 + w * im_size / 45,
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625 + (w + h) / 70 / 2 * 1.25,
+        w * 0.55625 + data_block_2_ease_pos,
+        h * (674 / 1080),
         text = "Max Combo",
+        textAlign = "left",
+        textBaseline = "bottom",
         fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 150}px PhigrosFont",
+        font = f"{(w + h) / 125}px PhigrosFont",
         wait_execute = True
     )
     
     root.create_text( # Accuracy
-        w * 0.25 + w * im_size * 0.38 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 45,
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625,
+        w * 0.878125 + data_block_2_ease_pos,
+        h * (650 / 1080),
         text = AccString,
-        textAlign = "end",
+        textAlign = "right",
+        textBaseline = "bottom",
         fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 70}px PhigrosFont",
+        font = f"{(w + h) / 65}px PhigrosFont",
         wait_execute = True
     )
     
     root.create_text(
-        w * 0.25 + w * im_size * 0.38 + data_block_2_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 45,
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.6625 + (w + h) / 70 / 2 * 1.25,
+        w * 0.878125 + data_block_2_ease_pos,
+        h * (674 / 1080),
         text = "Accuracy",
-        textAlign = "end",
+        textAlign = "right",
+        textBaseline = "bottom",
         fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 150}px PhigrosFont",
+        font = f"{(w + h) / 125}px PhigrosFont",
         wait_execute = True
     )
     
@@ -1843,129 +1853,58 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         add_code_array = True
     )
     
-    root.create_text( # Perfect Count
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.125),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-        text = f"{PerfectCount}",
-        textAlign = "center",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 75}px PhigrosFont",
-        wait_execute = True
-    )
+    def drawDataCount(x: float, text: str, count: int):
+        root.create_text( # Perfect Count
+            x + data_block_3_ease_pos,
+            h * (826 / 1080),
+            text = text,
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = "white",
+            font = f"{(w + h) / 185}px PhigrosFont",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            x + data_block_3_ease_pos,
+            h * (806 / 1080),
+            text = f"{count}",
+            textAlign = "center",
+            textBaseline = "bottom",
+            fillStyle = "white",
+            font = f"{(w + h) / 75}px PhigrosFont",
+            wait_execute = True
+        )
     
-    root.create_text(
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.125),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
-        text = "Perfect",
-        textAlign = "center",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 185}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text( # Good Count
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.315),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-        text = f"{GoodCount}",
-        textAlign = "center",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 75}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text(
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.315),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
-        text = "Good",
-        textAlign = "center",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 185}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text( # Bad Conut
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.505),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-        text = f"{BadCount}",
-        textAlign = "center",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 75}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text(
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.505),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
-        text = "Bad",
-        textAlign = "center",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 185}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text( # Miss Count
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.695),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2,
-        text = f"{MissCount}",
-        textAlign = "center",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 75}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text(
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.695),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 / 2 + (w + h) / 75 / 2 * 1.25,
-        text = "Miss",
-        textAlign = "center",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 185}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text( # Early Count
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.875),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.375,
-        text = "Early",
-        textAlign = "start",
-        textBaseline = "middle",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 150}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text(
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.925),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.375,
-        text = f"{EarlyCount}",
-        textAlign = "end",
-        textBaseline = "middle",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 150}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text( # Late Count
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.85 * 0.875),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.625,
-        text = "Late",
-        textAlign = "start",
-        textBaseline = "middle",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 150}px PhigrosFont",
-        wait_execute = True
-    )
-    
-    root.create_text(
-        w * 0.25 - w * im_size * 0.4 + data_block_3_ease_pos + w * im_size * 1.05 - w * im_size / 10 * 0.5 - w * im_size / 10 * 0.25 + (w * im_size * 0.8 * 0.925),
-        h * 0.5 - h * im_size * 0.5 + h * im_size * 0.59 + h * im_size * 0.205 + h * im_size * 0.205 * 0.625,
-        text = f"{LateCount}",
-        textAlign = "end",
-        textBaseline = "middle",
-        fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 150}px PhigrosFont",
-        wait_execute = True
-    )
+    def drawELCount(y: float, text: float, count: int):
+        root.create_text(
+            w * 0.7764375 + data_block_3_ease_pos,
+            y,
+            text = text,
+            textAlign = "left",
+            textBaseline = "bottom",
+            fillStyle = "white",
+            font = f"{(w + h) / 146}px PhigrosFont",
+            wait_execute = True
+        )
+        
+        root.create_text(
+            w * 0.8548125 + data_block_3_ease_pos,
+            y,
+            text = f"{count}",
+            textAlign = "right",
+            textBaseline = "bottom",
+            fillStyle = "white",
+            font = f"{(w + h) / 146}px PhigrosFont",
+            wait_execute = True
+        )
+        
+    drawDataCount(w * 0.5515625, "Perfect", PerfectCount)
+    drawDataCount(w * 0.6234375, "Good", GoodCount)
+    drawDataCount(w * 0.6765625, "Bad", BadCount)
+    drawDataCount(w * 0.7296875, "Miss", MissCount)
+    drawELCount(h * (794 / 1080), "Early", EarlyCount)
+    drawELCount(h * (823 / 1080), "Late", LateCount)
     
     root.run_js_code(
         "ctx.globalAlpha = 1.0;",
@@ -1980,7 +1919,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     Continue_imsize = Retry_imsize
     
     root.create_image( # Retry Button
-        "Button_Left",
+        "ButtonLeftBlack",
         button_ease_pos, 0,
         width = Retry_Button_Width,
         height = Retry_Button_Height,
@@ -1997,7 +1936,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     )
     
     root.create_image( # Continue Button
-        "Button_Right",
+        "ButtonRightBlack",
         w - button_ease_pos - Continue_Button_Width, h - Continue_Button_Height,
         width = Continue_Button_Width,
         height = Continue_Button_Height,

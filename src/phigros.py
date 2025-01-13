@@ -230,7 +230,6 @@ def Load_Resource():
         "taptap": Image.open("./resources/taptap.png"),
         "checked": Image.open("./resources/checked.png"),
         "CalibrationHit": dxsound.directSound("./resources/CalibrationHit.wav"),
-        "Button_Left": Image.open("./resources/Button_Left.png"),
         "Retry": Image.open("./resources/Retry.png"),
         "Pause": mixer.Sound("./resources/Pause.wav"),
         "PauseImg": Image.open("./resources/Pause.png"),
@@ -244,7 +243,6 @@ def Load_Resource():
     
     Resource.update(phi_rpack.createResourceDict())
     
-    Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["Notes"]["Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
     const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
@@ -260,8 +258,6 @@ def Load_Resource():
     
     respacker = webcv.PILResourcePacker(root)
     respacker.reg_img(imageBlackMask.resize((1, 500)), "imageBlackMask")
-    respacker.reg_img(Resource["Button_Left"], "Button_Left")
-    respacker.reg_img(Resource["Button_Right"], "Button_Right")
     respacker.reg_img(Resource["Retry"], "Retry")
     respacker.reg_img(Resource["PauseImg"], "PauseImg")
     respacker.reg_img(Resource["logoipt"], "logoipt")
@@ -3326,7 +3322,6 @@ def chartPlayerRender(
     finish_animation_image = chart_image.copy().convert("RGBA")
     finish_animation_image_mask = finish_animation_image_mask.resize(finish_animation_image.size)
     finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
-    tool_funcs.cutAnimationIllImage(finish_animation_image)
     
     respacker.reg_img(chart_image, "begin_animation_image")
     respacker.reg_img(finish_animation_image, "finish_animation_image")

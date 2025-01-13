@@ -332,13 +332,13 @@ def Load_Resource():
             "F": Image.open("./resources/levels/F.png")
         },
         "le_warn": Image.open("./resources/le_warn.png"),
-        "Button_Left": Image.open("./resources/Button_Left.png"),
-        "Button_Right": None,
         "Retry": Image.open("./resources/Retry.png"),
         "Arrow_Right": Image.open("./resources/Arrow_Right.png"),
         "Over": mixer.Sound("./resources/Over.mp3"),
         "Pause": mixer.Sound("./resources/Pause.wav"),
-        "PauseImg": Image.open("./resources/Pause.png")
+        "PauseImg": Image.open("./resources/Pause.png"),
+        "ButtonLeftBlack": Image.open("./resources/Button_Left_Black.png"),
+        "ButtonRightBlack": None
     }
     
     Resource.update(phi_rpack.createResourceDict())
@@ -348,8 +348,6 @@ def Load_Resource():
     background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
     background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
     respacker.reg_img(background_image, "background")
-    
-    Resource["Button_Right"] = Resource["Button_Left"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     
     finish_animation_image_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
     finish_animation_image_mask.putpixel((0, 4), (0, 0, 0, 204))
@@ -362,8 +360,8 @@ def Load_Resource():
     finish_animation_image = chart_image.copy().convert("RGBA")
     finish_animation_image_mask = finish_animation_image_mask.resize(finish_animation_image.size)
     finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
-    tool_funcs.cutAnimationIllImage(finish_animation_image)
     
+    Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     
     for k, v in Resource["Notes"].items():
@@ -379,11 +377,11 @@ def Load_Resource():
     respacker.reg_img(Resource["le_warn"], "le_warn")
     respacker.reg_img(chart_image, "begin_animation_image")
     respacker.reg_img(finish_animation_image, "finish_animation_image")
-    respacker.reg_img(Resource["Button_Left"], "Button_Left")
-    respacker.reg_img(Resource["Button_Right"], "Button_Right")
     respacker.reg_img(Resource["Retry"], "Retry")
     respacker.reg_img(Resource["Arrow_Right"], "Arrow_Right")
     respacker.reg_img(Resource["PauseImg"], "PauseImg")
+    respacker.reg_img(Resource["ButtonLeftBlack"], "ButtonLeftBlack")
+    respacker.reg_img(Resource["ButtonRightBlack"], "ButtonRightBlack")
     
     chart_res = {}
     

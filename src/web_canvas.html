@@ -428,6 +428,13 @@
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawAlphaCenterImage = function(im, x, y, width, height, alpha) {
+        this.save()
+        this.globalAlpha *= alpha;
+        this.drawImage(im, x - width / 2, y - height / 2, width, height);
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.drawTextEx = function(text, x, y, font, color, align, baseline) {
         this.save();
         this.fillStyle = color;

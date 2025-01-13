@@ -29,7 +29,9 @@ class musicCls:
     
     def _setBufferPosition(self, v: int):
         if self.buffer is None: return
-        self.buffer.SetCurrentPosition(v)
+        minv = 0
+        maxv = self.dxs._sdesc.dwBufferBytes - 1
+        self.buffer.SetCurrentPosition(min(max(minv, v), maxv))
     
     def load(self, fp: str):
         self.unload()

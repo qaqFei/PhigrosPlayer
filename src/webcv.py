@@ -335,7 +335,7 @@ class WebCanvas:
     def create_polygon(
         self, points: typing.Iterator[tuple[int|float, int|float]],
         fillStyle: str|None = None,
-        strokeStyle: str|None = None,
+        strokeStyle: str = "rgba(0, 0, 0, 0)",
         wait_execute: bool = False
     ) -> None:
         code = f"\
