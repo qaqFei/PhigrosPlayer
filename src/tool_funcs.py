@@ -17,6 +17,7 @@ from PIL import Image, ImageDraw
 import const
 import rpe_easing
 import binfile
+import phira_resource_pack
 
 note_id = -1
 random_block_num = eval(argv[argv.index("--random-block-num") + 1]) if "--random-block-num" in argv else 4
@@ -799,8 +800,8 @@ class PhigrosPlayPlayStateManager:
         if "B" in self.events or "M" in self.events:
             return (255, 255, 255) # White
         if "G" in self.events:
-            return (162, 238, 255) # FC
-        return (255, 255, 170) # AP
+            return phira_resource_pack.globalPack.goodRGB # FC
+        return phira_resource_pack.globalPack.perfectRGB # AP
 
     def getCombo(self) -> int:
         cut = 0

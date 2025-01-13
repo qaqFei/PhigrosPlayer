@@ -849,7 +849,7 @@ def PlayerStart():
         def whileCheck():
             nonlocal a2_break
             while True:
-                if a2_loop_clicked or (loop and (time.time() - animation_2_start_time) > 2.75):
+                if a2_loop_clicked or (loop and (time.time() - animation_2_start_time) > 0.25):
                     def _f():
                         LoadChartObject()
                         PlayerStart()

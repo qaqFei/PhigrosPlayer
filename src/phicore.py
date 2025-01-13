@@ -555,7 +555,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             *tool_funcs.rotate_point(*linePos, lineRotate, h * 5.76 / 2),
             *tool_funcs.rotate_point(*linePos, lineRotate + 180, h * 5.76 / 2)
         )
-        judgeLine_color = (*((255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor()), lineAlpha)
+        judgeLine_color = (*(phira_resource_pack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getJudgelineColor()), lineAlpha)
         judgeLine_webCanvas_color = f"rgba{judgeLine_color}"
         
         if (judgeLine_color[-1] > 0.0 and tool_funcs.lineInScreen(w, h, judgeLine_DrawPos)) or debug:
@@ -894,7 +894,11 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         pplm.pc_update(now_t)
     
     for line_index, line in enumerate(chart_obj.judgeLineList):
-        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(chart_obj.sec2beat(now_t, line.bpmfactor), (255, 255, 170) if not noautoplay else pplm.ppps.getJudgelineColor(), chart_obj)
+        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(
+            chart_obj.sec2beat(now_t, line.bpmfactor),
+            phira_resource_pack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getJudgelineColor(),
+            chart_obj
+        )
         beatTime = chart_obj.sec2beat(now_t, line.bpmfactor)
         linePos = (linePos[0] * w, linePos[1] * h)
         judgeLine_DrawPos = (
