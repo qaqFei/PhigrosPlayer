@@ -4,6 +4,8 @@ from sys import argv
 
 import librosa
 
+import const
+
 if len(argv) < 3:
     print("Usage: tool-sound2phi <soundFile> <outputFile>")
     raise SystemExit
@@ -35,7 +37,7 @@ result = {
                     "type": 1,
                     "time": t,
                     "holdTime": 0.0,
-                    "positionX": px / 0.05625,
+                    "positionX": px / const.PGR_UW,
                     "speed": 1.0,
                     "floorPosition": 2.2 * t
                 }

@@ -900,6 +900,7 @@ class PPLM_ProxyBase:
     def nproxy_phitype(self, n: typing.Any) -> typing.Any: ...
     
     def nproxy_nowpos(self, n: typing.Any) -> tuple[float, float]: ...
+    def nproxy_nowrotate(self, n: typing.Any) -> float: ...
     def nproxy_effects(self, n: typing.Any) -> const.ClickEffectType: ...
     
     def nproxy_get_pclicked(self, n: typing.Any) -> bool: ...
@@ -965,7 +966,10 @@ class PhigrosPlayLogicManager:
         
         self.pc_clicks: list[PPLM_PC_ClickEvent] = []
         self.pc_clickings: int = 0
+        
         self.clickeffects: const.ClickEffectType = []
+        self.badeffects: const.BadEffectType = []
+        # self.misseffects: const.MissEffectType = []
     
     def pc_click(self, t: float) -> None:
         self.pc_clickings += 1
@@ -990,7 +994,7 @@ class PhigrosPlayLogicManager:
             if ( # drag / flick range judge
                 keydown and
                 not self.pp.nproxy_get_wclick(i) and
-                self.pp.nproxy_typein(i, (const.Note.DRAG, const.Note.FLICK)) and
+                self.pp.nproxy_typein(i, (const.NOTE_TYPE.DRAG, const.NOTE_TYPE.FLICK)) and
                 abs((self.pp.nproxy_stime(i) - t)) <= const.NOTE_JUDGE_RANGE.GOOD
             ):
                 self.pp.nproxy_set_wclick(i, True)
@@ -1026,7 +1030,7 @@ class PhigrosPlayLogicManager:
             
             if ( # hold holding judge
                 keydown and
-                self.pp.nproxy_typeis(i, const.Note.HOLD) and
+                self.pp.nproxy_typeis(i, const.NOTE_TYPE.HOLD) and
                 self.pp.nproxy_get_pclicked(i) and
                 self.pp.nproxy_get_ckstate_ishit(i) and
                 self.pp.nproxy_etime(i) - 0.2 >= t
@@ -1035,7 +1039,7 @@ class PhigrosPlayLogicManager:
             
             if ( # hold holding miss judge
                 not keydown and
-                self.pp.nproxy_typeis(i, const.Note.HOLD) and
+                self.pp.nproxy_typeis(i, const.NOTE_TYPE.HOLD) and
                 self.pp.nproxy_get_pclicked(i) and
                 self.pp.nproxy_get_ckstate_ishit(i) and
                 self.pp.nproxy_etime(i) - 0.2 >= t and
@@ -1046,7 +1050,7 @@ class PhigrosPlayLogicManager:
                 self.ppps.addEvent("M")
             
             if ( # hold add hit event to manager
-                self.pp.nproxy_typeis(i, const.Note.HOLD) and
+                self.pp.nproxy_typeis(i, const.NOTE_TYPE.HOLD) and
                 self.pp.nproxy_get_holdjudged(i) and # if judged is true, hold state is perfect/good/ miss(miss at clicking)
                 not self.pp.nproxy_get_holdjudged_tomanager(i) and
                 self.pp.nproxy_hcetime(i) <= t
@@ -1059,7 +1063,7 @@ class PhigrosPlayLogicManager:
                     self.ppps.addEvent("G", self.pp.nproxy_get_pclick_offset(i))
             
             if ( # add hold effects
-                self.pp.nproxy_typeis(i, const.Note.HOLD) and
+                self.pp.nproxy_typeis(i, const.NOTE_TYPE.HOLD) and
                 self.pp.nproxy_get_ckstate_ishit(i) and
                 self.pp.nproxy_etime(i) >= t
             ):
@@ -1070,9 +1074,9 @@ class PhigrosPlayLogicManager:
                     else:
                         break
             
-            if self.pp.nproxy_typeisnot(i, const.Note.HOLD) and self.pp.nproxy_stime(i) - t < - const.NOTE_JUDGE_RANGE.MISS * 2:
+            if self.pp.nproxy_typeisnot(i, const.NOTE_TYPE.HOLD) and self.pp.nproxy_stime(i) - t < - const.NOTE_JUDGE_RANGE.MISS * 2:
                 self.pp.remove_pnote(i)
-            elif self.pp.nproxy_typeis(i, const.Note.HOLD) and self.pp.nproxy_etime(i) - t < - const.NOTE_JUDGE_RANGE.MISS * 2:
+            elif self.pp.nproxy_typeis(i, const.NOTE_TYPE.HOLD) and self.pp.nproxy_etime(i) - t < - const.NOTE_JUDGE_RANGE.MISS * 2:
                 self.pp.remove_pnote(i)
             elif self.pp.nproxy_stime(i) > t + const.NOTE_JUDGE_RANGE.BAD * 2:
                 break
@@ -1086,17 +1090,17 @@ class PhigrosPlayLogicManager:
             for i in pnotes:
                 if (
                     not self.pp.nproxy_get_pclicked(i) and
-                    self.pp.nproxy_typein(i, (const.Note.TAP, const.Note.HOLD)) and
+                    self.pp.nproxy_typein(i, (const.NOTE_TYPE.TAP, const.NOTE_TYPE.HOLD)) and
                     abs((offset := (self.pp.nproxy_stime(i) - cke.time))) <= (
                         const.NOTE_JUDGE_RANGE.BAD \
-                            if self.pp.nproxy_typeis(i, const.Note.TAP) else \
+                            if self.pp.nproxy_typeis(i, const.NOTE_TYPE.TAP) else \
                                 const.NOTE_JUDGE_RANGE.GOOD
                     )
                 ):
                     can_judge_notes.append((i, offset))
                 
                 if (
-                    self.pp.nproxy_typein(i, (const.Note.DRAG, const.Note.FLICK)) and
+                    self.pp.nproxy_typein(i, (const.NOTE_TYPE.DRAG, const.NOTE_TYPE.FLICK)) and
                     not self.pp.nproxy_get_safe_used(i) and
                     abs((offset := (self.pp.nproxy_stime(i) - cke.time))) <= const.NOTE_JUDGE_RANGE.GOOD
                 ):
@@ -1118,7 +1122,7 @@ class PhigrosPlayLogicManager:
                 
                 self.pp.nproxy_set_ckstate(n, state)
                 
-                if self.pp.nproxy_typeis(n, const.Note.HOLD):
+                if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD):
                     self.pp.nproxy_set_holdjudged(n, True)
                     self.pp.nproxy_set_holdclickstate(n, state)
                 else:
@@ -1136,7 +1140,7 @@ class PhigrosPlayLogicManager:
 
                 self.pp.nproxy_set_ckstate(n, state)
                 
-                if self.pp.nproxy_typeis(n, const.Note.HOLD):
+                if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD):
                     self.pp.nproxy_set_holdjudged(n, True)
                     self.pp.nproxy_set_holdclickstate(n, state)
                 else:
@@ -1153,6 +1157,11 @@ class PhigrosPlayLogicManager:
                 self.pp.nproxy_set_pbadtime(n, cke.time)
                 self.pp.nproxy_set_ckstate(n, const.NOTE_STATE.BAD)
                 self.ppps.addEvent("B")
+                self.badeffects.append((
+                    cke.time,
+                    self.pp.nproxy_nowrotate(n),
+                    self.pp.nproxy_nowpos(n)
+                ))
             
             if self.pp.nproxy_get_ckstate(n) != const.NOTE_STATE.MISS:
                 self.pp.nproxy_set_pclick_offset(n, offset)
@@ -1165,7 +1174,7 @@ class PhigrosPlayLogicManager:
                     self.pp.nproxy_get_ckstate(n) == const.NOTE_STATE.PERFECT,
                     t,
                     *e[1:-1],
-                    eval(f"lambda w, h: ({npos[0]} * w, {npos[1]} * h)") if self.pp.nproxy_typeis(n, const.Note.HOLD) and self.pp.nproxy_stime(n) >= t else e[-1]
+                    eval(f"lambda w, h: ({npos[0]} * w, {npos[1]} * h)") if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD) and self.pp.nproxy_stime(n) >= t else e[-1]
                 ))
 
 class FramerateCalculator:

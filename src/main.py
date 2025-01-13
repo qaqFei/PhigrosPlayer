@@ -906,7 +906,6 @@ def updateCoreConfig():
         chart_obj = chart_obj, CHART_TYPE = CHART_TYPE,
         Resource = Resource,
         ClickEffectFrameCount = ClickEffectFrameCount,
-        PHIGROS_X = PHIGROS_X, PHIGROS_Y = PHIGROS_Y,
         noteWidth = noteWidth,
         note_max_size_half = note_max_size_half, audio_length = audio_length,
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),
@@ -976,8 +975,7 @@ root.run_js_code(f"lowquality_imjs_maxsize = {lowquality_imjs_maxsize};")
 root.run_js_code(f"enable_jscanvas_bitmap = {enable_jscanvas_bitmap};")
 root.run_js_code(f"RPEVersion = {chart_obj.META.RPEVersion if CHART_TYPE == const.CHART_TYPE.RPE else -1};")
 root.run_js_code(f"resizeCanvas({w}, {h});")
-    
-PHIGROS_X, PHIGROS_Y = 0.05625 * w, 0.6 * h
+
 Resource = Load_Resource()
 
 if wl_more_chinese:

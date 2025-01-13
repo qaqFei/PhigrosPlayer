@@ -4,6 +4,8 @@ from fractions import Fraction
 from sys import argv
 from threading import Thread
 
+import const
+
 if len(argv) < 3:
     print("Usage: tool-phi2rpe <input> <output>")
     raise SystemExit
@@ -81,8 +83,8 @@ def transform_line(line: dict):
             "linkgroup": 0,
             "startTime": n2f(e["startTime"]),
             "endTime": n2f(e["endTime"]),
-            "start": e["value"] * 0.6 * 900 / 120,
-            "end": e["value"] * 0.6 * 900 / 120,
+            "start": e["value"] * const.PGR_UH * 900 / 120,
+            "end": e["value"] * const.PGR_UH * 900 / 120,
         })
     
     for e in line["judgeLineMoveEvents"]:
@@ -159,7 +161,7 @@ def transform_line(line: dict):
             "type": {1:1, 2:4, 3:2, 4:3}[n["type"]],
             "startTime": n2f(n["time"]),
             "endTime": n2f(n["time"] + n["holdTime"]),
-            "positionX": n["positionX"] * 0.05625 * 1350,
+            "positionX": n["positionX"] * const.PGR_UW * 1350,
             "speed": n["speed"]
         })
         
@@ -175,7 +177,7 @@ def transform_line(line: dict):
             "type": {1:1, 2:4, 3:2, 4:3}[n["type"]],
             "startTime": n2f(n["time"]),
             "endTime": n2f(n["time"] + n["holdTime"]),
-            "positionX": n["positionX"] * 0.05625 * 1350,
+            "positionX": n["positionX"] * const.PGR_UW * 1350,
             "speed": n["speed"]
         })
     
@@ -200,8 +202,8 @@ def transform_line(line: dict):
                 "type": 2,
                 "startTime": n2f(n["time"]),
                 "endTime": n2f(n["time"] + n["holdTime"]),
-                "positionX": n["positionX"] * 0.05625 * 1350,
-                "speed": ((n["speed"] / (sevs[0] * 120 / 900 / 0.6)) if sevs and sevs[0] != 0.0 else 1.0)
+                "positionX": n["positionX"] * const.PGR_UW * 1350,
+                "speed": ((n["speed"] / (sevs[0] * 120 / 900 / const.PGR_UH)) if sevs and sevs[0] != 0.0 else 1.0)
             })
         else:
             hnl = deepcopy(rpel)
@@ -233,8 +235,8 @@ def transform_line(line: dict):
                 "linkgroup": 0,
                 "startTime": n2f(n["time"]),
                 "endTime": n2f(n["time"] + n["holdTime"]),
-                "start": n["speed"] * 0.6 * 900 / 120,
-                "end": n["speed"] * 0.6 * 900 / 120,
+                "start": n["speed"] * const.PGR_UH * 900 / 120,
+                "end": n["speed"] * const.PGR_UH * 900 / 120,
             })
             hnl["notes"].append({
                 "above": above, "alpha": 255, "isFake": 0, "size": 1.0,
@@ -243,7 +245,7 @@ def transform_line(line: dict):
                 "type": 2,
                 "startTime": n2f(n["time"]),
                 "endTime": n2f(n["time"] + n["holdTime"]),
-                "positionX": n["positionX"] * 0.05625 * 1350,
+                "positionX": n["positionX"] * const.PGR_UW * 1350,
                 "speed": 1.0
             })
             

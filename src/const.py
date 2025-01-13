@@ -1,7 +1,7 @@
 import typing
 import platform
 
-class Note:
+class NOTE_TYPE:
     TAP = 1
     DRAG = 2
     HOLD = 3
@@ -58,17 +58,17 @@ class LINEWIDTH:
     RPE = 1 / 180
     
 TYPE_STRING_MAP = {
-    Note.TAP: "Tap",
-    Note.DRAG: "Drag",
-    Note.HOLD: "Hold",
-    Note.FLICK: "Flick"
+    NOTE_TYPE.TAP: "Tap",
+    NOTE_TYPE.DRAG: "Drag",
+    NOTE_TYPE.HOLD: "Hold",
+    NOTE_TYPE.FLICK: "Flick"
 }
 
 NOTE_RORDER_MAP = {
-    Note.TAP: CHART_RENDER_ORDERS.TAP,
-    Note.DRAG: CHART_RENDER_ORDERS.DRAG,
-    Note.HOLD: CHART_RENDER_ORDERS.HOLD,
-    Note.FLICK: CHART_RENDER_ORDERS.FLICK
+    NOTE_TYPE.TAP: CHART_RENDER_ORDERS.TAP,
+    NOTE_TYPE.DRAG: CHART_RENDER_ORDERS.DRAG,
+    NOTE_TYPE.HOLD: CHART_RENDER_ORDERS.HOLD,
+    NOTE_TYPE.FLICK: CHART_RENDER_ORDERS.FLICK
 }
 
 PHI_SORTMETHOD_STRING_MAP = {
@@ -90,9 +90,13 @@ JOINQQGUILDPROMO_DIAGONALRECTANGLEPOWER = 127 / 975
 CHAPTER_DIAGONALRECTANGLEDEG = -75
 RPE_WIDTH = 1350
 RPE_HEIGHT = 900
+PGR_UW = 0.05625
+PGR_UH = 0.6
 PHIGROS_TAPTAP_CLIENT_ID = "rAK3FfdieFob2Nn8Am"
 FLOAT_LESSZERO_MAGIC = -1 / 1024
 ClickEffectType = list[tuple[float, tuple[tuple[float, ...]], typing.Callable[[float|int, float|int], tuple[float, float]]]]
+BadEffectType = list[tuple[float, float, tuple[float, float]]]
+MissEffectType = list[tuple[float, object]] # emm, object is a note object
 
 DSP_SETTING_TIP = """\
 如果你在游戏中遇到游戏中的音乐无法正常播放的情况，请适当的更改这个设置。\n

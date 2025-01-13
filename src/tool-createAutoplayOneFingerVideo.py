@@ -48,7 +48,7 @@ if isinstance(chartObj, chartobj_phi.Phigros_Chart):
                         "pos": note.getNoteClickPos(ht)
                     })
             
-            if note.type == const.Note.FLICK:
+            if note.type == const.NOTE_TYPE.FLICK:
                 e = moveDatas[-1]
                 moveDatas.append({
                     "time": e["time"] + 0.05,
@@ -62,7 +62,7 @@ elif isinstance(chartObj, chartobj_rpe.Rpe_Chart): # eq else
                 "pos": note.getNoteClickPos(note.startTime.value, chartObj, line)
             })
             
-            if note.phitype == const.Note.HOLD:
+            if note.phitype == const.NOTE_TYPE.HOLD:
                 dw = chartObj.sec2beat(1 / 12.5, line.bpmfactor)
                 ht = note.startTime.value
                 while ht < note.endTime.value:
@@ -72,7 +72,7 @@ elif isinstance(chartObj, chartobj_rpe.Rpe_Chart): # eq else
                         "pos": note.getNoteClickPos(ht, chartObj, line)
                     })
             
-            if note.phitype == const.Note.FLICK:
+            if note.phitype == const.NOTE_TYPE.FLICK:
                 e = moveDatas[-1]
                 moveDatas.append({
                     "time": e["time"] + 0.05,

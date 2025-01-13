@@ -1,6 +1,8 @@
 import json
 from sys import argv
 
+import const
+
 if len(argv) < 3:
     print("Usage: tool-phi2nk <phiChart> <k> <outputChart>")
     raise SystemExit
@@ -55,14 +57,14 @@ for line in phic["judgeLineList"]:
     for note in line["notesAbove"]:
         px = note["positionX"]
         
-        px *= 0.05625
+        px *= const.PGR_UW
         px += 0.5
         dpxs = []
         for i in pxcs:
             dpxs.append(abs(px - i))
         px = pxcs[dpxs.index(min(dpxs))]
         px -= 0.5
-        px /= 0.05625
+        px /= const.PGR_UW
         
         note["positionX"] = px
         note["speed"] = speed if note["type"] == 3 else 1.0

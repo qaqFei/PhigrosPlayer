@@ -3341,7 +3341,6 @@ def chartPlayerRender(
         chart_obj = chart_obj,
         CHART_TYPE = CHART_TYPE, Resource = Resource,
         ClickEffectFrameCount = ClickEffectFrameCount,
-        PHIGROS_X = w * 0.05625, PHIGROS_Y = h * 0.6,
         noteWidth = noteWidth,
         note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,

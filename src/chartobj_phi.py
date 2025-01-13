@@ -66,8 +66,9 @@ class Note:
     effect_times: const.ClickEffectType | tuple = ()
     state: int = const.NOTE_STATE.MISS
     master_index: int|None = None
-    nowpos: tuple[float, float] = (-1.0, -1.0)
     sec: float|None = None
+    nowpos: tuple[float, float] = (-1.0, -1.0)
+    nowrotate: float = 0.0
     
     player_clicked: bool = False
     player_click_offset: float = 0.0
@@ -100,7 +101,7 @@ class Note:
         self.hold_length_pgry = self.speed * self.hold_length_sec
         self.hold_endtime = self.sec + self.hold_length_sec
         self.player_holdjudge_tomanager_time = max(self.hold_endtime - 0.2, self.sec)
-        self.ishold = self.type == const.Note.HOLD
+        self.ishold = self.type == const.NOTE_TYPE.HOLD
         self.draworder = const.NOTE_RORDER_MAP[self.type]
         
         self.type_string = const.TYPE_STRING_MAP[self.type]
@@ -155,7 +156,7 @@ class Note:
             if cached: return cachedata
             cached, cachedata = True, tool_funcs.rotate_point(
                 linePos[0] * w, linePos[1] * h,
-                lineRotate, self.positionX * 0.05625 * w
+                lineRotate, self.positionX * w * const.PGR_UW
             )
             
             return cachedata
@@ -366,6 +367,7 @@ class PPLMPHI_Proxy(tool_funcs.PPLM_ProxyBase):
     def nproxy_phitype(self, n: Note): return n.type
     
     def nproxy_nowpos(self, n: Note): return n.nowpos
+    def nproxy_nowrotate(self, n: Note) -> float: return n.nowrotate
     def nproxy_effects(self, n: Note): return n.player_effect_times
     
     def nproxy_get_pclicked(self, n: Note): return n.player_clicked

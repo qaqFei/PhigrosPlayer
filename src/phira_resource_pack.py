@@ -187,10 +187,10 @@ class PhiraResourcePack:
             })
         
         result["Note_Click_Audio"].update({
-            const.Note.TAP: dxsound.directSound(self.resource["audio"]["click.ogg"]),
-            const.Note.DRAG: dxsound.directSound(self.resource["audio"]["drag.ogg"]),
-            const.Note.HOLD: dxsound.directSound(self.resource["audio"]["click.ogg"]),
-            const.Note.FLICK: dxsound.directSound(self.resource["audio"]["flick.ogg"])
+            const.NOTE_TYPE.TAP: dxsound.directSound(self.resource["audio"]["click.ogg"]),
+            const.NOTE_TYPE.DRAG: dxsound.directSound(self.resource["audio"]["drag.ogg"]),
+            const.NOTE_TYPE.HOLD: dxsound.directSound(self.resource["audio"]["click.ogg"]),
+            const.NOTE_TYPE.FLICK: dxsound.directSound(self.resource["audio"]["flick.ogg"])
         })
         
         return result

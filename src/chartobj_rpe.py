@@ -94,6 +94,7 @@ class Note:
     masterLine: JudgeLine|None = None
     master_index: int|None = None
     nowpos: tuple[float, float] = (-1.0, -1.0)
+    nowrotate: float = 0.0
     
     state: int = const.NOTE_STATE.MISS
     player_clicked: bool = False
@@ -474,6 +475,7 @@ class PPLMRPE_Proxy(tool_funcs.PPLM_ProxyBase):
     def nproxy_phitype(self, n: Note): return n.phitype
     
     def nproxy_nowpos(self, n: Note): return n.nowpos
+    def nproxy_nowrotate(self, n: Note) -> float: return n.nowrotate
     def nproxy_effects(self, n: Note): return n.player_effect_times
     
     def nproxy_get_pclicked(self, n: Note): return n.player_clicked

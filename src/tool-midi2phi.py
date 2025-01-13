@@ -5,6 +5,8 @@ import mido
 import mido.messages
 import mido.midifiles
 
+import const
+
 if len(argv) < 3:
     print("Usage: tool-midi2phi <midiFile> <outputFile>")
     raise SystemExit
@@ -36,7 +38,7 @@ def pcs():
     
     last = (float("nan"), float("nan"))
     for t, n in onmsgs:
-        r = t, (n + 1 - (max_note - min_note) / 2 - min_note) / (max_note - min_note) / 0.05625 * 0.8
+        r = t, (n + 1 - (max_note - min_note) / 2 - min_note) / (max_note - min_note) / const.PGR_UW * 0.8
         if r != last:
             yield r
         last = r
