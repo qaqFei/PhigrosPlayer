@@ -6,12 +6,7 @@
 - Windows 版本需 >= `8.1`
 - 第三方库: [requirements.txt](./src/requirements.txt)
 
-## 注意事项
-
-- 对于谱面播放不使用的部分, 此处忽略
-- 如播放的 `rpe` 谱面存在判定线贴图, 推荐使用 `3:2` 的比例播放. 你问为什么? 去问饮水机...
-
-### 谱面兼容
+## 谱面兼容
 
 - [x] phi
   - [x] formatVersion

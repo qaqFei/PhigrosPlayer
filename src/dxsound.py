@@ -97,7 +97,8 @@ class directSound:
                 for i in reversed(self._buffers):
                     e, buf = i
                     if buf.GetStatus() == 0:
-                        self._buffers.remove(i)
+                        try: self._buffers.remove(i)
+                        except ValueError: continue
                         break
             
             if self._buffers:
