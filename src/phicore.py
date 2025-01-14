@@ -178,16 +178,16 @@ class ClickSoundManager:
             threading.Thread(target=self.runner, daemon=True).start()
     
     def play(self, nt: int):
-        self.queue.put(nt, False)
+        self.queue.put(nt)
     
     def stop(self):
-        self.queue.put(None, False)
+        self.queue.put(None)
     
     def runner(self):
         while True:
             nt = self.queue.get()
             if nt is None:
-                self.queue.put(None, False)
+                self.queue.put(None)
                 break
             self.res[nt].play()
 
