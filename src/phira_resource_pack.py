@@ -5,7 +5,7 @@ import typing
 from os.path import exists, isfile, isdir
 
 import yaml
-from PIL import Image
+from PIL import Image, ImageChops
 
 import const
 import dxsound
@@ -44,11 +44,8 @@ def cuthold(img: Image.Image, a: int, b: int):
     head = img.crop((0, b, img.width, img.height))
     return head, body, end
 
-def putColor(color: tuple|str, im: Image.Image):
-    return Image.merge("RGBA", (
-        *Image.new("RGB", im.size, color).split(),
-        im.split()[-1]
-    ))
+def putColor(color: tuple, im: Image.Image):
+    return ImageChops.multiply(im, Image.new("RGBA", im.size, color))
 
 def cutHitEffect(im: Image.Image, a: int, b: int):
     result = []
