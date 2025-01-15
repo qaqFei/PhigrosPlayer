@@ -3,6 +3,7 @@ import init_logging as _
 import random
 import logging
 import time
+import sys
 from tempfile import gettempdir
 from os import mkdir, listdir
 from shutil import rmtree
@@ -25,6 +26,9 @@ def createTempDir():
     return temp_dir
 
 def clearTempDir():
+    if "--nocleartemp" in sys.argv:
+        return
+    
     for item in [
         f"{gettempdir()}\\{item}"
         for item in listdir(gettempdir())

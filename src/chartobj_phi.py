@@ -35,6 +35,8 @@ def getFloorPosition(line: judgeLine, t: float) -> float:
     if e is None and t >= line.speedEvents[-1].endTime:
         e = line.speedEvents[-1]
         t = e.endTime
+    elif e is None:
+        return 0.0
     
     return e.floorPosition + (t - e.startTime) * line.T * e.value
 

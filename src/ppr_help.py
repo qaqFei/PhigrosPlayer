@@ -26,6 +26,8 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --enable-jslog: Keep the rendered JavaScript code and output it to file. (path is --jslog-path value)
   --enable-jscanvas-bitmap: Enable BitmapImage when rendering, this will improve many drawing performance, but will lose anti-aliasing
   --soundapi-downgrade: Downgrade audio API from DirectSound to SDL2_mixer
+  --lfdaot-render-video-autoexit: when using --lfdaot and --lfdaot-render-video, auto exit after rendering. (Front-loaded arg: --lfdaot and --lfdaot-render-video)
+  --nocleartemp: Do not clear temporary files.
 
 <Kwargs>
   --combotips <string-value>: Set the combo tips text.
@@ -87,6 +89,8 @@ HELP_ZH = '''\
   --enable-jslog: 保留渲染的 JavaScript 代码并输出到文件 (路径为 --jslog-path 参数值)
   --enable-jscanvas-bitmap: 启用渲染时的 BitmapImage, 这会提升许多绘图性能, 但会失去抗锯齿
   --soundapi-downgrade: 降级音频API, 从 DirectSound 降级到 SDL2_mixer
+  --lfdaot-render-video-autoexit: 使用 --lfdaot 和 --lfdaot-render-video 时, 渲染完成后自动退出. (前置参数: --lfdaot 和 --lfdaot-render-video)
+  --nocleartemp: 不清理临时文件
   
 <关键字参数>
   --combotips <字符串>: 设置连击提示文本
@@ -98,6 +102,7 @@ HELP_ZH = '''\
   --render-range-more-scale <数字>: 设置渲染范围更多的缩放. (前置参数: --render-range-more)
   --window-host <整数-窗口句柄>: 设置窗口宿主 窗口句柄
   --lfdaot-file-savefp <文件路径字符串>: 使用 --lfdaot 时, 设置 lfdaot 文件保存路径. (前置参数: --lfdaot)
+  --lfdaot-render-video-savefp <文件路径字符串>: 使用 --lfdaot-render-video 时, 设置视频文件保存路径. (前置参数: --lfdaot-render-video)
   --lowquality-scale <浮点数>: 设置低画质渲染缩放 默认: 2.0
   --res <资源路径>: 设置资源路径
   --lfdaot-start-frame-num <数字>: 设置 *.lfdaot 文件的开始帧数 (前置参数: --lfdaot, 使用 --lfdaot-file 时无效) // 仅在非常大的谱面文件视频渲染时使用

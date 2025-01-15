@@ -782,6 +782,7 @@ def PlayerStart():
                 video_fp = dialog.savefile(
                     fn = "lfdaot_render_video.mp4"
                 )
+            
             writer = cv2.VideoWriter(
                 video_fp,
                 cv2.VideoWriter.fourcc(*lfdaot_video_fourcc),
@@ -821,6 +822,10 @@ def PlayerStart():
                         break
                 
                 writer.release()
+                
+                if "--lfdaot-render-video-autoexit" in sys.argv:
+                    root.destroy()
+                    return
     
     mixer.music.set_volume(1.0)
     phicore.initFinishAnimation(pplm if noautoplay else None)
