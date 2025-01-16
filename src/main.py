@@ -11,9 +11,8 @@ import logging
 import typing
 from threading import Thread
 from ctypes import windll
-from os import listdir, popen, mkdir
+from os import popen
 from os.path import exists
-from shutil import rmtree
 from ntpath import basename
 
 import cv2
@@ -39,6 +38,7 @@ import file_loader
 import phira_resource_pack
 import phicore
 import tempdir
+import socket_webviewbridge
 from dxsmixer import mixer
 
 import load_extended as _
@@ -89,6 +89,7 @@ wl_more_chinese = "--wl-more-chinese" in sys.argv
 skip_time = float(sys.argv[sys.argv.index("--skip-time") + 1]) if "--skip-time" in sys.argv else 0.0
 enable_jscanvas_bitmap = "--enable-jscanvas-bitmap" in sys.argv
 respath = sys.argv[sys.argv.index("--res") + 1] if "--res" in sys.argv else "./resources/resource_packs/default"
+disengage_webview = "--disengage-webview" in sys.argv
 
 if lfdaot and noautoplay:
     noautoplay = False
@@ -941,6 +942,9 @@ root = webcv.WebCanvas(
     jslog_path = sys.argv[sys.argv.index("--jslog-path")] if "--jslog-path" in sys.argv else "./ppr-jslog-nofmt.js"
 )
 
+if disengage_webview:
+    socket_webviewbridge.hook(root)
+
 webdpr = root.run_js_code("window.devicePixelRatio;")
 if webdpr != 1.0:
     lowquality = True
@@ -949,29 +953,32 @@ if webdpr != 1.0:
 if lowquality:
     root.run_js_code(f"lowquality_scale = {lowquality_scale};")
 
-if "--window-host" in sys.argv:
-    windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
-if "--fullscreen" in sys.argv:
-    w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-    root.web.toggle_fullscreen()
+if disengage_webview:
+    w, h = root.run_js_code("window.innerWidth;"), root.run_js_code("window.innerHeight;")
 else:
-    if "--size" not in sys.argv:
-        w, h = int(root.winfo_screenwidth() * 0.6), int(root.winfo_screenheight() * 0.6)
+    if "--window-host" in sys.argv:
+        windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
+    if "--fullscreen" in sys.argv:
+        w, h = root.winfo_screenwidth(), root.winfo_screenheight()
+        root.web.toggle_fullscreen()
     else:
-        w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
-        
-    winw, winh = (
-        w if w <= root.winfo_screenwidth() else int(root.winfo_screenwidth() * 0.75),
-        h if h <= root.winfo_screenheight() else int(root.winfo_screenheight() * 0.75)
-    )
-    root.resize(winw, winh)
-    w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
-    dw_legacy, dh_legacy = winw - w_legacy, winh - h_legacy
-    dw_legacy *= webdpr; dh_legacy *= webdpr
-    dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
-    del w_legacy, h_legacy
-    root.resize(winw + dw_legacy, winh + dh_legacy)
-    root.move(int(root.winfo_screenwidth() / 2 - (winw + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (winh + dh_legacy) / webdpr / 2))
+        if "--size" not in sys.argv:
+            w, h = int(root.winfo_screenwidth() * 0.6), int(root.winfo_screenheight() * 0.6)
+        else:
+            w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
+            
+        winw, winh = (
+            w if w <= root.winfo_screenwidth() else int(root.winfo_screenwidth() * 0.75),
+            h if h <= root.winfo_screenheight() else int(root.winfo_screenheight() * 0.75)
+        )
+        root.resize(winw, winh)
+        w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
+        dw_legacy, dh_legacy = winw - w_legacy, winh - h_legacy
+        dw_legacy *= webdpr; dh_legacy *= webdpr
+        dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
+        del w_legacy, h_legacy
+        root.resize(winw + dw_legacy, winh + dh_legacy)
+        root.move(int(root.winfo_screenwidth() / 2 - (winw + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (winh + dh_legacy) / webdpr / 2))
 
 root.run_js_code(f"lowquality_imjscvscale_x = {lowquality_imjscvscale_x};")
 root.run_js_code(f"lowquality_imjs_maxsize = {lowquality_imjs_maxsize};")

@@ -245,6 +245,47 @@
         }
     }
 
+    function connectToSocketBridge() {
+        window.connectToSocketBridge = () => {};
+        const addr = prompt("please input the server address: ");
+        const port = 8080;
+        const socket = new WebSocket(`ws://${addr}:${port}`);
+        const split_magic = "\x00";
+
+        window.pywebview = {
+            api: {
+                call_attr: (attr, ...args) => {
+                    socket.send(JSON.stringify({
+                        type: "jsapi_callback",
+                        name: attr,
+                        args: args
+                    }));
+                }
+            }
+        }
+
+        socket.onopen = () => {
+            console.log("Connected to server");
+        };
+
+        socket.onmessage = async (event) => {
+            for (let rawdata of event.data.split(split_magic)) {
+                if (!rawdata) continue;
+                let data = JSON.parse(rawdata);
+                switch (data.type) {
+                    case "evaljs": {
+                        const result = r2eval(data.code);
+                        socket.send(JSON.stringify({
+                            type: "evaljs_result",
+                            result: result,
+                            tid: data.tid
+                        }) + split_magic);
+                    }
+                }
+            }
+        }
+    }
+
     function setWlMoreChinese() {
         const replaceMap = {
             "0": "零", 
@@ -761,4 +802,6 @@
         this.uniform1i(screenTexture, 0);
         this.drawArrays(this.TRIANGLE_STRIP, 0, 4);
     }
+
+    window.addEventListener("touchstart", connectToSocketBridge);
 </script>

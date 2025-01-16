@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import fix_workpath as _
 import imageload_hook as _
+import init_logging as _
 
 import threading
 import typing
 import http.server
 import io
 import time
+import socket
+import sys
+import logging
 from ctypes import windll
 from os.path import abspath
 from random import randint
@@ -18,6 +22,8 @@ from PIL import Image
 current_thread = threading.current_thread
 screen_width = windll.user32.GetSystemMetrics(0)
 screen_height = windll.user32.GetSystemMetrics(1)
+host = socket.gethostbyname(socket.gethostname()) if "--nolocalhost" in sys.argv else "127.0.0.1"
+logging.info(f"server host: {host}")
 
 framerate_counter = '''\
 (() => {
@@ -205,6 +211,7 @@ class WebCanvas:
             js_api = self.jsapi,
             frameless = frameless
         )
+        self.evaljs = lambda x, *args, **kwargs: self.web.evaluate_js(x)
         threading.Thread(target=webview.start, kwargs={"debug": debug}, daemon=True).start()
         
         self.web.resize(width, height)
@@ -223,7 +230,7 @@ class WebCanvas:
         
         self.web_port = int(self.web._server.address.split(":")[2].split("/")[0])
         WebCanvas_FileServerHandler._canvas = self
-        self.file_server = http.server.HTTPServer(("localhost", self.web_port + 1), WebCanvas_FileServerHandler)
+        self.file_server = http.server.HTTPServer(("", self.web_port + 1), WebCanvas_FileServerHandler)
         threading.Thread(target=self.file_server.serve_forever, daemon=True).start()
         
         self.jsapi.set_attr("_rdcallback", self._rdevent.set)
@@ -233,25 +240,25 @@ class WebCanvas:
     def winfo_screenwidth(self) -> int: return screen_width
     def winfo_screenheight(self) -> int: return screen_height
     def winfo_hwnd(self) -> int: return self.web_hwnd
-    def winfo_legacywindowwidth(self) -> int: return self.web.evaluate_js("window.innerWidth;")
-    def winfo_legacywindowheight(self) -> int: return self.web.evaluate_js("window.innerHeight;")
+    def winfo_legacywindowwidth(self) -> int: return self.run_js_code("window.innerWidth;")
+    def winfo_legacywindowheight(self) -> int: return self.run_js_code("window.innerHeight;")
 
     def destroy(self): self.web.destroy()
     def resize(self, width: int, height: int): self.web.resize(width, height)
     def move(self, x: int, y:int): self.web.move(x, y)
     
-    def run_js_code(self, code: str, add_code_array: bool = False, order: int|None = None):
+    def run_js_code(self, code: str, add_code_array: bool = False, order: int|None = None, needresult: bool = True):
         if self.jslog and not code.endswith(";"): code += ";"
         
         if order is None:
-            return self._jscodes.append(code) if add_code_array else self.web.evaluate_js(code)
+            return self._jscodes.append(code) if add_code_array else self.evaljs(code, needresult)
         
         if order not in self._jscode_orders:
             self._jscode_orders[order] = []
         self._jscode_orders[order].append((code, add_code_array))
     
     def _rjwc(self, codes: list[str]):
-        framerate: int|float = self.web.evaluate_js(f"{codes}.forEach(r2eval);\nframerate;")
+        framerate: int|float = self.run_js_code(f"{codes}.forEach(r2eval);\nframerate;")
         
         if self.renderdemand:
             self._rdevent.wait()
@@ -267,7 +274,7 @@ class WebCanvas:
             for _, i in sorted(self._jscode_orders.items(), key=lambda x: x[0]):
                 for c, w in i: 
                     if w: self._jscodes.append(c)
-                    else: self.web.evaluate_js(c)
+                    else: self.run_js_code(c)
             self._jscode_orders.clear()
         
     def run_js_wait_code(self):
@@ -403,7 +410,7 @@ class WebCanvas:
             self.jslog_f.close()
     
     def get_resource_path(self, name: str) -> str:
-        return f"http://127.0.0.1:{self.web_port + 1}/{name}"
+        return f"http://{host}:{self.web_port + 1}/{name}"
 
     def wait_jspromise(self, code: str) -> None:
         eid = f"wait_jspromise_{randint(0, 2 << 31)}"
@@ -428,7 +435,7 @@ class WebCanvas:
         if (!window.{jsvarname}){chr(123)}\
             {jsvarname} = document.createElement('img');\
             {jsvarname}.crossOrigin = \"Anonymous\";\
-            {jsvarname}.src = 'http://127.0.0.1:{self.web_port + 1}/{imgname}';\
+            {jsvarname}.src = 'http://{host}:{self.web_port + 1}/{imgname}';\
             {jsvarname}.loading = \"eager\";\
         {chr(125)}\
         "
