@@ -246,6 +246,7 @@
 
     function connectToSocketBridge() {
         window.removeEventListener("touchstart", connectToSocketBridge);
+        document.body.requestFullscreen();
         const addr = prompt("please input the server address: ");
         const port = 8080;
         const socket = new WebSocket(`ws://${addr}:${port}`);
@@ -806,9 +807,9 @@
 
     // temp
     window.addEventListener("touchstart", () => {
-        pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000);
+        pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000);
     });
     window.addEventListener("touchend", () => {
-        pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000);
+        pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000);
     });
 </script>
