@@ -246,7 +246,7 @@
     }
 
     function connectToSocketBridge() {
-        window.connectToSocketBridge = () => {};
+        window.removeEventListener("touchstart", connectToSocketBridge);
         const addr = prompt("please input the server address: ");
         const port = 8080;
         const socket = new WebSocket(`ws://${addr}:${port}`);
