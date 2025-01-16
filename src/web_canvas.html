@@ -806,19 +806,9 @@
 
     // temp
     window.addEventListener("touchstart", () => {
-        document.body.dispatchEvent(new Event("keydown", {
-            altKey: false,
-            ctrlKey: false,
-            repeat: false,
-            key: "a"
-        }))
+        pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000);
     });
     window.addEventListener("touchend", () => {
-        document.body.dispatchEvent(new Event("keyup", {
-            altKey: false,
-            ctrlKey: false,
-            repeat: false,
-            key: "a"
-        }))
+        pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000);
     });
 </script>
