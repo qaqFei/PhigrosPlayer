@@ -132,7 +132,8 @@ class PhiraResourcePack:
         self.effectDuration = self.resource["hitFxDuration"]
         self.effectScale = self.resource["hitFxScale"]
         self.effectRotate = self.resource["hitFxRotate"]
-        self.holdKeepHead = self.resource["holdKeepHead"] or 1
+        self.hideParticles = self.resource["hideParticles"]
+        self.holdKeepHead = self.resource["holdKeepHead"]
         self.holdCompact = self.resource["holdCompact"]
         self.effectFrameCount = self.resource["hitFx"][0] * self.resource["hitFx"][1]
         

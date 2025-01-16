@@ -219,7 +219,7 @@ def processClickEffectBase(
     effectSize = noteWidth * 1.375
     blockSize = noteWidth / 5.5
     
-    if enable_rblocks:
+    if enable_rblocks and not phira_resource_pack.globalPack.hideParticles:
         randomblock_r = effectSize * rpe_easing.ease_funcs[clickEffectEasingType + 1](p) / 1.2
         nowBlockSize = blockSize * (0.4 * math.sin(p * math.pi) + 0.6)
         
