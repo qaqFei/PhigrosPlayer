@@ -806,10 +806,10 @@
     window.addEventListener("touchstart", connectToSocketBridge);
 
     // temp
-    window.addEventListener("touchstart", () => {
-        pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000);
-    });
-    window.addEventListener("touchend", () => {
-        pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000);
-    });
+    // window.addEventListener("touchstart", () => {
+    //     pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000);
+    // });
+    // window.addEventListener("touchend", () => {
+    //     pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000);
+    // });
 </script>
