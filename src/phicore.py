@@ -646,8 +646,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 note.nowrotate = judgeLine_to_note_rotate_deg + 90
                 
                 if note.ishold:
-                    note_hold_draw_length = note_now_floorPosition + note.hold_length_pgry * h * const.PGR_UH
-                    holdend_x, holdend_y = tool_funcs.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, note_hold_draw_length)
+                    holdEndFloorPosition = note_now_floorPosition + note.hold_length_pgry * h * const.PGR_UH
+                    holdend_x, holdend_y = tool_funcs.rotate_point(*rotatenote_at_judgeLine_pos, judgeLine_to_note_rotate_deg, holdEndFloorPosition)
                     
                     if note.clicked:
                         holdhead_pos = rotatenote_at_judgeLine_pos
@@ -674,7 +674,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     
                     nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
                         holdend_x, holdend_y, rotatenote_at_judgeLine_pos,
-                        note_hold_draw_length, lineRotate, plp_lineLength,
+                        holdEndFloorPosition, lineRotate, plp_lineLength,
                         judgeLine_to_note_rotate_deg, w, h, note_max_size_half
                     )
                     
@@ -698,17 +698,26 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     this_note_width = noteWidth * fix_scale
                     this_note_height = this_note_width / this_note_img.width * this_note_img.height
                         
+                    if (not (note.ishold and note.sec < now_t)) or phira_resource_pack.globalPack.holdKeepHead:
+                        Task(
+                            root.run_js_code,
+                            f"ctx.drawRotateImage(\
+                                {root.get_img_jsvarname(note.imgname)},\
+                                {x if not note.ishold else holdhead_pos[0]},\
+                                {y if not note.ishold else holdhead_pos[1]},\
+                                {this_note_width},\
+                                {this_note_height},\
+                                {noteRotate},\
+                                1.0\
+                            );",
+                            add_code_array = True,
+                            order = note.draworder
+                        )
+                        
                     if note.ishold:
                         this_noteend_height = noteWidth / this_note_img_end.width * this_note_img_end.height
-                        
-                        if note.clicked:
-                            holdbody_x,holdbody_y = rotatenote_at_judgeLine_pos
-                            holdbody_length = note_hold_draw_length - this_noteend_height / 2
-                        else:
-                            holdbody_x,holdbody_y = tool_funcs.rotate_point(
-                                *holdhead_pos, judgeLine_to_note_rotate_deg, this_note_height / 2
-                            )
-                            holdbody_length = note.hold_length_pgry * h * const.PGR_UH - (this_note_height + this_noteend_height) / 2
+                        holdbody_x, holdbody_y = tool_funcs.rotate_point(*holdhead_pos, judgeLine_to_note_rotate_deg, this_note_height / 2)
+                        holdbody_length = (note.hold_length_pgry * h * const.PGR_UH if not note.clicked else holdEndFloorPosition) - (this_note_height + this_noteend_height) / 2
                         
                         miss_alpha_change = 0.5 if noautoplay and note.player_missed else 1.0
                         
@@ -742,22 +751,6 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                                 add_code_array = True,
                                 order = note.draworder
                             )
-                        
-                    if not (note.ishold and note.sec < now_t):
-                        Task(
-                            root.run_js_code,
-                            f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(note.imgname)},\
-                                {x},\
-                                {y},\
-                                {this_note_width},\
-                                {this_note_height},\
-                                {noteRotate},\
-                                1.0\
-                            );",
-                            add_code_array = True,
-                            order = note.draworder
-                        )
                 
                     if debug:
                         drawDebugText(f"{lineIndex}+{note.master_index}", x, y, judgeLine_to_note_rotate_deg, "rgba(0, 255, 255, 0.5)", Task)
@@ -1015,7 +1008,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 noteAtJudgeLinePos = tool_funcs.rotate_point(
                     *linePos, lineRotate, note.positionX2 * w
                 )
-                lineToNoteRotate = (-90 if note.above == 1 else 90) + lineRotate
+                lineToNoteRotate = (-90 if note.above else 90) + lineRotate
                 x, y = tool_funcs.rotate_point(
                     *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
                 )
@@ -1041,14 +1034,12 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     
                 if note.ishold:
                     holdLength = note.holdLength * h * note.speed
-                    noteHoldDrawLength = noteFloorPosition + holdLength
+                    holdEndFloorPosition = noteFloorPosition + holdLength
                     
-                    if line.isCover and noteHoldDrawLength < 0 and not note.clicked:
+                    if line.isCover and holdEndFloorPosition < 0 and not note.clicked:
                         continue
                     
-                    holdend_x, holdend_y = tool_funcs.rotate_point(
-                        *noteAtJudgeLinePos, lineToNoteRotate, noteHoldDrawLength
-                    )
+                    holdend_x, holdend_y = tool_funcs.rotate_point(*noteAtJudgeLinePos, lineToNoteRotate, holdEndFloorPosition)
                     
                     if note.clicked:
                         holdhead_pos = noteAtJudgeLinePos
@@ -1075,7 +1066,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     
                     nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
                         holdend_x, holdend_y, noteAtJudgeLinePos,
-                        noteHoldDrawLength, lineRotate, plp_lineLength,
+                        holdEndFloorPosition, lineRotate, plp_lineLength,
                         lineToNoteRotate, w, h, note_max_size_half
                     )
                     
@@ -1089,7 +1080,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 ) and not negative_alpha and now_t >= 0.0
                 
                 if canRender and abs(now_t - note.secst) <= note.visibleTime:
-                    noteRotate = lineRotate + (0 if note.above == 1 else 180)
+                    noteRotate = lineRotate + (0 if note.above else 180)
                     
                     this_note_img = Resource["Notes"][note.img_keyname]
                     if note.ishold:
@@ -1099,17 +1090,26 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     this_note_width = noteWidth * fix_scale
                     this_note_height = noteWidth / this_note_img.width * this_note_img.height
                     
+                    if (not (note.ishold and note.startTime.value < beatTime)) or phira_resource_pack.globalPack.holdKeepHead:
+                        Task(
+                            root.run_js_code,
+                            f"ctx.drawRotateImage(\
+                                {root.get_img_jsvarname(note.imgname)},\
+                                {x if not note.ishold else holdhead_pos[0]},\
+                                {y if not note.ishold else holdhead_pos[1]},\
+                                {this_note_width * noteWidthX},\
+                                {this_note_height},\
+                                {noteRotate},\
+                                {noteAlpha}\
+                            );",
+                            add_code_array = True,
+                            order = note.draworder
+                        )
+                        
                     if note.ishold:
                         this_noteend_height = noteWidth / this_note_img_end.width * this_note_img_end.height
-                        
-                        if note.clicked:
-                            holdbody_x, holdbody_y = noteAtJudgeLinePos
-                            holdbody_length = noteHoldDrawLength - this_noteend_height / 2
-                        else:
-                            holdbody_x, holdbody_y = tool_funcs.rotate_point(
-                                *holdhead_pos, lineToNoteRotate, this_note_height / 2
-                            )
-                            holdbody_length = holdLength - (this_note_height + this_noteend_height) / 2
+                        holdbody_x, holdbody_y = tool_funcs.rotate_point(*holdhead_pos, lineToNoteRotate, this_note_height / 2)
+                        holdbody_length = (holdLength if not note.clicked else holdEndFloorPosition) - (this_note_height + this_noteend_height) / 2
                         
                         if holdbody_length < 0.0:
                             holdbody_length = 0.0
@@ -1146,22 +1146,6 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                                 add_code_array = True,
                                 order = note.draworder
                             )
-                    
-                    if not (note.ishold and note.startTime.value < beatTime):
-                        Task(
-                            root.run_js_code,
-                            f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(note.imgname)},\
-                                {x},\
-                                {y},\
-                                {this_note_width * noteWidthX},\
-                                {this_note_height},\
-                                {noteRotate},\
-                                {noteAlpha}\
-                            );",
-                            add_code_array = True,
-                            order = note.draworder
-                        )
                         
                     if debug:
                         drawDebugText(f"{line_index}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)", Task)
@@ -1205,7 +1189,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         floorp = note.floorPosition - line.playingFloorPosition
         x, y = tool_funcs.rotate_point(
             *pos,
-            (-90 if note.above == 1 else 90) + lineRotate,
+            (-90 if note.above else 90) + lineRotate,
             floorp * h
         )
         img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"

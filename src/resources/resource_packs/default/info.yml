@@ -2,4 +2,4 @@ name: "Phigros Player Default Pack"
 author: "Pigeon Games"
 hitFx: [6, 5]
 holdAtlas: [50, 50]
-holdAtlasMH: [50, 95]
+holdAtlasMH: [98, 98]

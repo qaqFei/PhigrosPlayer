@@ -120,6 +120,7 @@ class Note:
         self.ishold = self.type_string == "Hold"
         self.hitsound_reskey = self.phitype if self.hitsound is None else hash(tuple(map(ord, self.hitsound)))
         self.draworder = const.NOTE_RORDER_MAP[self.phitype]
+        self.above = self.above == 1
     
     def init(self, master: Rpe_Chart, avgBpm: float):
         self.secst = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
@@ -569,8 +570,8 @@ class Rpe_Chart:
             line.notes.sort(key=lambda x: x.startTime.value)
             line.effectNotes = [i for i in line.notes if not i.isFake]
             line.renderNotes = (
-                split_different_speednotes([i for i in line.notes if i.above == 1])
-                + split_different_speednotes([i for i in line.notes if i.above != 1])
+                split_different_speednotes([i for i in line.notes if i.above])
+                + split_different_speednotes([i for i in line.notes if not i.above])
             )
         
         self.note_num = len([i for line in self.judgeLineList for i in line.notes if not i.isFake])

@@ -99,7 +99,7 @@
     - [ ] hitFxRotate
     - [x] hitFxTinted
     - [ ] hideParticles
-    - [ ] holdKeepHead
+    - [x] holdKeepHead
     - [ ] holdRepeat
     - [ ] holdCompact
     - [x] colorPerfect
