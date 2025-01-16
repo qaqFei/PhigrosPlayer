@@ -803,4 +803,22 @@
     }
 
     window.addEventListener("touchstart", connectToSocketBridge);
+
+    // temp
+    window.addEventListener("touchstart", () => {
+        document.body.dispatchEvent(new Event("keydown", {
+            altKey: false,
+            ctrlKey: false,
+            repeat: false,
+            key: "a"
+        }))
+    });
+    window.addEventListener("touchend", () => {
+        document.body.dispatchEvent(new Event("keyup", {
+            altKey: false,
+            ctrlKey: false,
+            repeat: false,
+            key: "a"
+        }))
+    });
 </script>
