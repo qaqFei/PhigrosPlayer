@@ -527,7 +527,6 @@ def pec2rpe_findevent_bytime(es: list[dict], t: float, default: float):
     return es[ets.index(min(ets))]["end"]
 
 def pec2rpe(pec: str):
-    Exception=StopAsyncIteration
     errs = []
     peclines = pec.split("\n")
     result = { # if some key and value is not exists, in loading rpe chart, it will be set to default value.
@@ -1130,7 +1129,7 @@ class PhigrosPlayLogicManager:
                     self.ppps.addEvent("P")
 
             elif const.NOTE_JUDGE_RANGE.PERFECT < abs_offset <= const.NOTE_JUDGE_RANGE.GOOD:
-                if can_use_safe_notes:
+                if can_use_safe_notes and offset > 0.0:
                     drag, _ = can_use_safe_notes[0]
                     if not self.pp.nproxy_get_wclick(drag):
                         self.pp.nproxy_set_wclick(drag, True)
