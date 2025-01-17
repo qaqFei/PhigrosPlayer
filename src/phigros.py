@@ -3276,8 +3276,8 @@ def chartPlayerRender(
     global raw_audio_length
     global coreConfig
     
-    noteWidth = w * 0.1234375 * getUserData("setting-noteScale")
-    note_max_width = noteWidth * const.NOTE_DUB_FIXSCALE
+    globalNoteWidth = w * 0.1234375 * getUserData("setting-noteScale")
+    note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
     note_max_height = max(
         [
             note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,
@@ -3336,7 +3336,7 @@ def chartPlayerRender(
         chart_obj = chart_obj,
         CHART_TYPE = CHART_TYPE, Resource = Resource,
         ClickEffectFrameCount = ClickEffectFrameCount,
-        noteWidth = noteWidth,
+        globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,
         show_start_time = float("nan"), chart_res = {}, chart_image = chart_image,
@@ -3364,7 +3364,7 @@ def chartPlayerRender(
         elif CHART_TYPE == const.CHART_TYPE.RPE:
             pplm_proxy = chartobj_rpe.PPLMRPE_Proxy(chart_obj)
         
-        pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
+        pppsm = tool_funcs.PhigrosPlayManager(chart_obj.note_num)
         pplm = tool_funcs.PhigrosPlayLogicManager(
             pplm_proxy, pppsm,
             getUserData("setting-enableClickSound"),

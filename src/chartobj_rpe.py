@@ -36,7 +36,7 @@ def findevent(events: list[LineEvent|ExtraVar], t: float, timeattr: str = "value
         m = (l + r) // 2
         e = events[m]
         st, et = getattr(e.startTime, timeattr), getattr(e.endTime, timeattr)
-        if st <= t <= et: return e
+        if st <= t < et: return e
         elif st > t: r = m - 1
         else: l = m + 1
             
@@ -292,7 +292,7 @@ class ControlEvents:
         for e in es:
             if e.next is None:
                 return e.sval
-            if e.sval <= s <= e.next.sval:
+            if e.sval <= s < e.next.sval:
                 return e.easingFunc((s - e.sval) / (e.next.sval - e.sval)) * (e.next.tval - e.tval) + e.tval
         return default
     
@@ -673,7 +673,7 @@ class Extra:
         result = []
         
         for e in self.effects:
-            if e.start.value <= beat <= e.end.value:
+            if e.start.value <= beat < e.end.value:
                 values = {}
                 for k, v in e.vars.items():
                     ev = JudgeLine.GetEventValue(None, beat, v, v[0].start if v else None)

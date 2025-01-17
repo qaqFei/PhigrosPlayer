@@ -21,7 +21,7 @@ def findevent(
     while l <= r:
         m = (l + r) // 2
         e = events[m]
-        if e.startTime <= t <= e.endTime: return e
+        if e.startTime <= t < e.endTime: return e
         elif e.startTime > t: r = m - 1
         else: l = m + 1
             
@@ -146,8 +146,8 @@ class Note:
             self.imgname_end = f"Note_{self.img_end_keyname}"
     
     def getNoteClickPos(self, time: float) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
-        linePos = self.master.get_datavar_move(time, 1.0, 1.0)
-        lineRotate = self.master.get_datavar_rotate(time)
+        linePos = self.master.getMove(time, 1.0, 1.0)
+        lineRotate = self.master.getRotate(time)
         
         cached: bool = False
         cachedata: tuple[float, float]|None = None
@@ -221,7 +221,7 @@ class judgeLine:
                         spes.append(speedEvent(e.endTime, ne.startTime, e.value, None))
         self.speedEvents += spes
         
-        self._sort_events()
+        self._sortEvents()
         for i, n in enumerate(self.notesAbove): n.master_index = i
         for i, n in enumerate(self.notesBelow): n.master_index = i
         
@@ -235,13 +235,13 @@ class judgeLine:
         for rnc in self.renderNotes:
             rnc.sort(key = lambda x: x.time)
     
-    def _sort_events(self):
+    def _sortEvents(self):
         self.speedEvents.sort(key = lambda x: x.startTime)
         self.judgeLineMoveEvents.sort(key = lambda x: x.startTime)
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
         self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)
     
-    def get_datavar_rotate(self, now_time):
+    def getRotate(self, now_time):
         e = findevent(self.judgeLineRotateEvents, now_time)
         return -tool_funcs.linear_interpolation(
             now_time,
@@ -251,7 +251,7 @@ class judgeLine:
             e.end
         ) if e is not None else 0.0
     
-    def get_datavar_alpha(self, now_time):
+    def getAlpha(self, now_time):
         e = findevent(self.judgeLineDisappearEvents, now_time)
         return tool_funcs.linear_interpolation(
             now_time,
@@ -261,15 +261,15 @@ class judgeLine:
             e.end
         ) if e is not None else 0.0
     
-    def _get_datavar_move_rawphi(self, now_time):
+    def _getMoveRaw(self, now_time):
         e = findevent(self.judgeLineMoveEvents, now_time)
         return (
             tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start, e.end),
             tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2)
         ) if e is not None else (0.0, 0.0)
     
-    def get_datavar_move(self, now_time, w, h):
-        raw = self._get_datavar_move_rawphi(now_time)
+    def getMove(self, now_time, w, h):
+        raw = self._getMoveRaw(now_time)
         return (raw[0] * w, (1.0 - raw[1]) * h)
 
 @dataclass
@@ -307,7 +307,7 @@ class Phigros_Chart:
                         e.startTime += offset_time
                         e.endTime += offset_time
                 
-                line._sort_events()
+                line._sortEvents()
                     
             self.offset = 0.0
         

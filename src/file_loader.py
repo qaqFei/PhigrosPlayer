@@ -47,9 +47,8 @@ def loadfile(fp: str):
                 if isinstance(e, json.decoder.JSONDecodeError):
                     pec2rpeResult, p2r_errs = tool_funcs.pec2rpe(raw)
                     
-                    if p2r_errs:
-                        for e in p2r_errs:
-                            logging.warning(f"pec2rpe: {repr(e)}")
+                    for e in p2r_errs:
+                        logging.warning(f"pec2rpe: {repr(e)}")
                     
                     for line in pec2rpeResult["judgeLineList"]:
                         for i, e in enumerate(line["eventLayers"][0]["speedEvents"]):

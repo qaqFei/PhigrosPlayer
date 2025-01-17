@@ -441,6 +441,3 @@ class WebCanvas:
         "
         self.run_js_code(code)
         self._is_loadimg[imgname] = True
-
-class FakeCanvas(WebCanvas):
-    def __init__(self, *args, **kwargs): ...

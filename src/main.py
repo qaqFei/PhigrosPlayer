@@ -159,7 +159,7 @@ files_dict = {
 chartimages = {}
 cfrfp_procer: typing.Callable[[str], str] = lambda x: x.replace(f"{temp_dir}\\", "")
 
-for item in tool_funcs.Get_All_Files(temp_dir):
+for item in tool_funcs.getAllFiles(temp_dir):
     if item.endswith("info.txt") or item.endswith("info.csv") or item.endswith("info.yml") or item.endswith("extra.json"):
         continue
     
@@ -299,7 +299,7 @@ if extra.enable:
 logging.info(f"enable_shader: {extra.enable}")
 
 def Load_Resource():
-    global noteWidth
+    global globalNoteWidth
     global note_max_width, note_max_height
     global note_max_size_half
     global animation_image
@@ -315,7 +315,7 @@ def Load_Resource():
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
     noteWidth_raw = (0.125 * w + 0.2 * h) / 2
-    noteWidth = (noteWidth_raw) * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
+    globalNoteWidth = (noteWidth_raw) * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
     
     phi_rpack = phira_resource_pack.PhiraResourcePack(respath)
     phi_rpack.setToGlobal()
@@ -421,7 +421,7 @@ def Load_Resource():
     root.unreg_res("PhigrosFont")
     
     root.file_server.shutdown()
-    note_max_width = noteWidth * const.NOTE_DUB_FIXSCALE
+    note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
     note_max_height = max(
         [
             note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,
@@ -542,7 +542,7 @@ def PlayerStart():
             elif CHART_TYPE == const.CHART_TYPE.RPE:
                 pplm_proxy = chartobj_rpe.PPLMRPE_Proxy(chart_obj)
             
-            pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
+            pppsm = tool_funcs.PhigrosPlayManager(chart_obj.note_num)
             pplm = tool_funcs.PhigrosPlayLogicManager(
                 pplm_proxy, pppsm,
                 enable_clicksound, lambda nt: Resource["Note_Click_Audio"][nt].play(),
@@ -640,7 +640,7 @@ def PlayerStart():
                 elif CHART_TYPE == const.CHART_TYPE.RPE:
                     pplm_proxy = chartobj_rpe.PPLMRPE_Proxy(chart_obj)
                 
-                pppsm = tool_funcs.PhigrosPlayPlayStateManager(chart_obj.note_num)
+                pppsm = tool_funcs.PhigrosPlayManager(chart_obj.note_num)
                 pplm = tool_funcs.PhigrosPlayLogicManager(
                     pplm_proxy, pppsm,
                     enable_clicksound, lambda nt: Resource["Note_Click_Audio"][nt].play(),
@@ -910,7 +910,7 @@ def updateCoreConfig():
         chart_obj = chart_obj, CHART_TYPE = CHART_TYPE,
         Resource = Resource,
         ClickEffectFrameCount = ClickEffectFrameCount,
-        noteWidth = noteWidth,
+        globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half, audio_length = audio_length,
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),
         chart_res = chart_res, chart_image = chart_image,

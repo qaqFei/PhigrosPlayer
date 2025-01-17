@@ -9,7 +9,7 @@
                 0 1 0 0 0
                 0 0 1 0 0
                 0 0 0 1 0
-            " id="textureLineColorFilterColorMatrix"></feColorMatrix>
+            " id="colorMatrix"></feColorMatrix>
         </filter>
     </svg>
     <div class="mask"></div>
@@ -83,7 +83,7 @@
     lfdaot_render_video_stop = false;
     enable_jscanvas_bitmap = false;
     RPEVersion = -1;
-    const textureLineColorFilterColorMatrix = document.getElementById("textureLineColorFilterColorMatrix");
+    const colorMatrix = document.getElementById("colorMatrix");
     const lowquality_imweakmap = new WeakMap();
     const letters = [
         "a", "b", "c", "d", "e",
@@ -98,14 +98,14 @@
         "U", "V", "W", "X", "Y", "Z"
     ]
 
-    const None = undefined;
+    const None = null;
     const True = true;
     const False = false;
     const inf = Infinity;
     const nan = NaN;
 
-    function setTextureLineColorFilterColorMatrixValueByRgbValue(r, g, b) {
-        textureLineColorFilterColorMatrix.setAttribute("values", `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`);
+    function setColorMatrix(r, g, b) {
+        colorMatrix.setAttribute("values", `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`);
     }
 
     class Queue {
@@ -386,9 +386,6 @@
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center
-        if (x == 200 && y == 200) {
-            console.log("drawRotateImage", im, x, y, width, height, deg, alpha, this.globalAlpha);
-        }
         this.save();
         this.globalAlpha *= alpha;
         if (!!deg) {
