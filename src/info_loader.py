@@ -57,6 +57,7 @@ class InfoLoader:
                                     pass
                                 
                             self.infomap[key] = value
+                            
                     case "txt":
                         lines = [i for i in raw_data.splitlines() if ":" in i]
                         info = {i.split(":")[0]: i[i.index(":") + 1:] for i in lines}
@@ -81,8 +82,10 @@ class InfoLoader:
                                 pass
                         
                         self.infomap[key] = value
+                        
                     case "yml":
                         return #  i think ... we don't need process yml, becasuse: normal, if yml file is exists, it can process info.txt!
+                    
                     case _:
                         return
             except Exception:
