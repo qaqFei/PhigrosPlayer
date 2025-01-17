@@ -98,7 +98,7 @@
     - [x] hitFxScale
     - [ ] hitFxRotate
     - [x] hitFxTinted
-    - [ ] hideParticles
+    - [x] hideParticles
     - [x] holdKeepHead
     - [ ] holdRepeat
     - [ ] holdCompact
