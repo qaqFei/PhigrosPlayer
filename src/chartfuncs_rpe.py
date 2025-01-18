@@ -51,6 +51,7 @@ def _extended(line: dict):
         scaleYEvents = _extendedevents(extended_dict, "scaleYEvents", 1.0),
         colorEvents = _extendedevents(extended_dict, "colorEvents", [255, 255, 255]),
         textEvents = _extendedevents(extended_dict, "textEvents", ""),
+        gifEvents = _extendedevents(extended_dict, "gifEvents", 0.0),
     )
 
 def Load_Chart_Object(chart: dict):

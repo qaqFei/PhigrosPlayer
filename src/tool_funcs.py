@@ -15,6 +15,7 @@ import const
 import rpe_easing
 import binfile
 import phira_resource_pack
+import tempdir
 from light_tool_funcs import *
 
 note_id = -1
@@ -253,6 +254,21 @@ def checkOffset(now_t: float, raw_audio_length: float, mixer):
     #         return music_offset
         
     return 0.0
+
+def gif2mp4(gif: str):
+    tid = random.randint(0, 2 << 31)
+    fp = f"{tempdir.createTempDir()}/{tid}.mp4"
+    cap = cv2.VideoCapture(gif)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    writer = cv2.VideoWriter(fp, cv2.VideoWriter.fourcc(*"mp4v"), fps, size)
+    while True:
+        ret, frame = cap.read()
+        if not ret: break
+        writer.write(frame)
+    cap.release()
+    writer.release()
+    return open(fp, "rb").read(), size
 
 class PhigrosPlayManager:
     def __init__(self, noteCount: int):

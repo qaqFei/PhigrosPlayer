@@ -182,11 +182,21 @@
         let respackage = await (await fetch(url)).blob();
         let imnames = [];
         for (i of indexs) {
-            let [pn, [pd, ps]] = i;
+            let [pt, pn, [pd, ps]] = i;
             let resdata = respackage.slice(pd, pd + ps);
-            let im = new Image();
+
+            let im;
+            if (pt == "img") {
+                im = new Image();
+                im.loading = "eager";
+            }
+            else if (pt == "video") {
+                im = document.createElement("video");
+                im.preload = "auto";
+                im.complete = true;
+            }
+
             im.src = URL.createObjectURL(resdata);
-            im.loading = "eager";
             imnames.push(pn);
             window[`${pn}_img`] = im;
         }
@@ -337,6 +347,7 @@
     }
 
     function toLowQualityImage(im) {
+        if (im.tagName && im.tagName.toLowerCase() == "video") return im;
         if (lowquality_imweakmap.has(im)) return lowquality_imweakmap.get(im);
 
         if (

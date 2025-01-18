@@ -243,17 +243,20 @@ class Extended:
     scaleYEvents: list[LineEvent]
     colorEvents: list[LineEvent]
     textEvents: list[LineEvent]
+    gifEvents: list[LineEvent]
     
     def __post_init__(self):
         self.scaleXEvents.sort(key = lambda x: x.startTime.value)
         self.scaleYEvents.sort(key = lambda x: x.startTime.value)
         self.colorEvents.sort(key = lambda x: x.startTime.value)
         self.textEvents.sort(key = lambda x: x.startTime.value)
+        self.gifEvents.sort(key = lambda x: x.startTime.value)
 
         _init_events(self.scaleXEvents)
         _init_events(self.scaleYEvents)
         _init_events(self.colorEvents)
         _init_events(self.textEvents)
+        _init_events(self.gifEvents)
 
 @dataclass
 class ControlItem:

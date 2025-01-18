@@ -104,10 +104,14 @@ class PILResourcePacker:
     def __init__(self, cv: WebCanvas):
         self.cv = cv
         self.imgs: list[tuple[str, Image.Image|bytes]] = []
+        self.videos: list[tuple[str, bytes]] = []
         self._imgopted: dict[str, threading.Event] = {}
     
     def reg_img(self, img: Image.Image|bytes, name: str):
         self.imgs.append((name, img))
+        
+    def reg_video(self, video: bytes, name: str):
+        self.videos.append((name, video))
     
     def pack(self):
         datas = []
@@ -125,8 +129,13 @@ class PILResourcePacker:
                 data = img
                 
             datas.append(data)
-            dataindexs.append([name, [datacount, len(data)]])
+            dataindexs.append(["img", name, [datacount, len(data)]])
             datacount += len(data)
+        
+        for name, video in self.videos:
+            datas.append(video)
+            dataindexs.append(["video", name, [datacount, len(video)]])
+            datacount += len(video)
             
         return b"".join(datas), dataindexs
 
@@ -136,7 +145,7 @@ class PILResourcePacker:
         imnames = self.cv.wait_jspromise(f"loadrespackage('{self.cv.get_resource_path(rid)}', {indexs});")
         self.cv.wait_loadimgs(self.cv.get_imgcomplete_jseval(imnames))
         self.cv.unreg_res(rid)
-        self.cv.run_js_code(f"[{",".join(map(self.cv.get_img_jsvarname, imnames))}].forEach(im => URL.revokeObjectURL(im.src));")
+        self.cv.run_js_code(f"[{",".join(map(self.cv.get_img_jsvarname, imnames))}].forEach(im => {{if (!(im.tagName && im.tagName.toLowerCase() == 'video')) URL.revokeObjectURL(im.src)}});")
         
         def optimize():
             codes = []

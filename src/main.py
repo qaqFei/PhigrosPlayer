@@ -391,7 +391,8 @@ def Load_Resource():
         imobjs: list[Image.Image] = list(map(lambda x: x[1], files_dict["images"]))
         
         for line in chart_obj.judgeLineList:
-            if line.Texture != "line.png":
+            if line.Texture == "line.png": continue
+            if not line.isGif:
                 paths = [
                     f"{temp_dir}\\{line.Texture}",
                     f"{temp_dir}\\{line.Texture}.png",
@@ -412,6 +413,10 @@ def Load_Resource():
                     chart_res[line.Texture] = (texture, texture.size)
                     
                 respacker.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.judgeLineList.index(line)}")
+            else:
+                mp4data, size = tool_funcs.gif2mp4(f"{temp_dir}\\{line.Texture}")
+                chart_res[line.Texture] = (None, size)
+                respacker.reg_video(mp4data, f"lineTexture_{chart_obj.judgeLineList.index(line)}")
     
     with open("./resources/font.ttf", "rb") as f:
         root.reg_res(f.read(),"PhigrosFont")
