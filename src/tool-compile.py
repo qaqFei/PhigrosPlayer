@@ -33,7 +33,8 @@ res_files = [
     "7z.exe", "7z.dll",
     "ecwv_installer.exe",
     "resources",
-    "icon.ico"
+    "icon.ico",
+    "openh264-1.8.0-win64.dll"
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 

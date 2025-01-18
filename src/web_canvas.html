@@ -200,7 +200,11 @@
         video.loop = true;
         video.autoplay = true;
         video.playsInline = true;
+        video.play();
         window[name] = video;
+        return new Promise((resolve) => {
+            video.onloadeddata = resolve;
+        })
     }
 
     function blurImg(im, r) {

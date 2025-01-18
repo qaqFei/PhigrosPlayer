@@ -38,7 +38,7 @@
     - [x] bpmfactor (?, 按照字母意思: bpm速率进行处理)
     - [x] father
     - [x] isCover
-    - [ ] isGif (你吗的渲染上去为什么是空白的)
+    - [x] isGif
     - [x] eventLayers
       - [ ] gifEvents
       - [x] alphaEvents

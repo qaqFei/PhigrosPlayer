@@ -343,9 +343,6 @@ class JudgeLine:
     effectNotes: list[Note]|None = None
     renderNotes: list[list[Note]]|None = None
     
-    def __post_init__(self):
-        self.isGif = False # 你吗的渲染上去为什么是空白的
-    
     def GetEventValue(self, t: float, es: list[LineEvent], default):
         if not es: return default
         

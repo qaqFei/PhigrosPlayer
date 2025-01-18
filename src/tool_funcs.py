@@ -261,7 +261,7 @@ def gif2mp4(gif: str):
     cap = cv2.VideoCapture(gif)
     fps = cap.get(cv2.CAP_PROP_FPS)
     size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    writer = cv2.VideoWriter(fp, cv2.VideoWriter.fourcc(*"mp4v"), fps, size)
+    writer = cv2.VideoWriter(fp, cv2.VideoWriter.fourcc(*"h264"), fps, size)
     while True:
         ret, frame = cap.read()
         if not ret: break
