@@ -213,6 +213,7 @@ class WebCanvas:
         html_path: str = ".\\web_canvas.html",
         renderdemand: bool = False,
         renderasync: bool = False,
+        hidden: bool = False,
         jslog: bool = False,
         jslog_path: str = ".\\web_canvas.jslog.txt"
     ):
@@ -239,7 +240,8 @@ class WebCanvas:
             url = abspath(html_path),
             resizable = resizable,
             js_api = self.jsapi,
-            frameless = frameless
+            frameless = frameless,
+            hidden = hidden
         )
         self.evaljs = lambda x, *args, **kwargs: self.web.evaluate_js(x)
         threading.Thread(target=webview.start, kwargs={"debug": debug}, daemon=True).start()
