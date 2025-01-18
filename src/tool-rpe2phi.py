@@ -4,6 +4,8 @@ import copy
 from sys import argv
 
 import rpe_easing
+import chartfuncs_phi
+import chartobj_phi
 
 if len(argv) < 3:
     print("Usage: tool-rpe2phi <input> <output>")
@@ -22,6 +24,7 @@ phic = {
     "offset": rpec["META"]["offset"] / 1000,
     "judgeLineList": []
 }
+offsetT = phic["offset"] / globalT
 
 def rt2pt(t: list[int]):
     return (t[0] + t[1] / t[2]) * (60 / globalBpm) / globalT
@@ -209,12 +212,19 @@ def getSpeedValue(es: list[dict], t: float):
     return 0.0
 
 def getFloorPosition(es: list[dict], t: float):
+    if not es: return 0.0
+    
     result = 0.0
     for e in es:
         if e["endTime"] <= t:
             result += e["value"] * (e["endTime"] - e["startTime"])
         elif e["startTime"] <= t <= e["endTime"]:
             result += e["value"] * (t - e["startTime"])
+            
+    if t >= offsetT and es[0]["startTime"] <= offsetT:
+        et = min(t, es[0]["endTime"])
+        result -= es[0]["value"] * (et - es[0]["startTime"])
+    
     return result * globalT
 
 def convertNotes(line: dict, notes: typing.Iterable[dict]):
