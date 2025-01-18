@@ -4,8 +4,6 @@ import copy
 from sys import argv
 
 import rpe_easing
-import chartfuncs_phi
-import chartobj_phi
 
 if len(argv) < 3:
     print("Usage: tool-rpe2phi <input> <output>")
