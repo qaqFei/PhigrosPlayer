@@ -416,16 +416,19 @@ def Load_Resource():
             else:
                 mp4data, size = tool_funcs.gif2mp4(f"{temp_dir}\\{line.Texture}")
                 chart_res[line.Texture] = (None, size)
-                respacker.reg_video(mp4data, f"lineTexture_{chart_obj.judgeLineList.index(line)}")
+                name = f"lineTexture_{chart_obj.judgeLineList.index(line)}"
+                root.reg_res(mp4data, f"{name}.mp4")
+                print(root.get_resource_path(f"{name}.mp4"))
+                root.run_js_code(f"loadvideo(\"{root.get_resource_path(f"{name}.mp4")}\", '{name}_img');")
     
     with open("./resources/font.ttf", "rb") as f:
-        root.reg_res(f.read(),"PhigrosFont")
+        root.reg_res(f.read(),"PhigrosFont.ttf")
     respacker.load(*respacker.pack())
     
-    root.wait_jspromise(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont")}\");")
-    root.unreg_res("PhigrosFont")
+    root.wait_jspromise(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont.ttf")}\");")
+    root.unreg_res("PhigrosFont.ttf")
     
-    root.file_server.shutdown()
+    # root.file_server.shutdown()
     note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
     note_max_height = max(
         [

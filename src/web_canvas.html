@@ -182,25 +182,25 @@
         let respackage = await (await fetch(url)).blob();
         let imnames = [];
         for (i of indexs) {
-            let [pt, pn, [pd, ps]] = i;
+            let [pn, [pd, ps]] = i;
             let resdata = respackage.slice(pd, pd + ps);
-
-            let im;
-            if (pt == "img") {
-                im = new Image();
-                im.loading = "eager";
-            }
-            else if (pt == "video") {
-                im = document.createElement("video");
-                im.preload = "auto";
-                im.complete = true;
-            }
-
+            let im = new Image();
             im.src = URL.createObjectURL(resdata);
             imnames.push(pn);
             window[`${pn}_img`] = im;
         }
         return imnames;
+    }
+
+    function loadvideo(url, name) {
+        let video = document.createElement("video");
+        video.src = url;
+        video.preload = "auto";
+        video.muted = true;
+        video.loop = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        window[name] = video;
     }
 
     function blurImg(im, r) {

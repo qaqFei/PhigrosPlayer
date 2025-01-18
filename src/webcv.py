@@ -59,25 +59,55 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
     _canvas: WebCanvas
     
     def do_GET(self):
+        if self.path[1:] in self._canvas._regims:
+            im: Image.Image = self._canvas._regims[self.path[1:]]
+            if hasattr(im, "byteData"):
+                data = im.byteData
+            else:
+                temp_btyeio = io.BytesIO()
+                im.save(temp_btyeio, "png")
+                data = temp_btyeio.getvalue()
+            ctype = "image/png"
+                
+        elif self.path[1:] in self._canvas._regres:
+            data = self._canvas._regres[self.path[1:]]
+            
+            if self.path.endswith(".png"): ctype = "image/png"
+            elif self.path.endswith(".js"): ctype = "application/javascript"
+            elif self.path.endswith(".html"): ctype = "text/html"
+            elif self.path.endswith(".css"): ctype = "text/css"
+            elif self.path.endswith(".json"): ctype = "application/json"
+            elif self.path.endswith(".ttf"): ctype = "font/ttf"
+            elif self.path.endswith(".woff"): ctype = "font/woff"
+            elif self.path.endswith(".woff2"): ctype = "font/woff2"
+            elif self.path.endswith(".eot"): ctype = "font/eot"
+            elif self.path.endswith(".svg"): ctype = "image/svg+xml"
+            elif self.path.endswith(".ttc"): ctype = "font/ttc"
+            elif self.path.endswith(".otf"): ctype = "font/otf"
+            elif self.path.endswith(".xml"): ctype = "application/xml"
+            elif self.path.endswith(".txt"): ctype = "text/plain"
+            elif self.path.endswith(".ico"): ctype = "image/x-icon"
+            elif self.path.endswith(".webp"): ctype = "image/webp"
+            elif self.path.endswith(".mp4"): ctype = "video/mp4"
+            elif self.path.endswith(".webm"): ctype = "video/webm"
+            elif self.path.endswith(".ogg"): ctype = "video/ogg"
+            elif self.path.endswith(".mp3"): ctype = "audio/mpeg"
+            elif self.path.endswith(".wav"): ctype = "audio/wav"
+            elif self.path.endswith(".flac"): ctype = "audio/flac"
+            elif self.path.endswith(".aac"): ctype = "audio/aac"
+            elif self.path.endswith(".avi"): ctype = "video/x-msvideo"
+            elif self.path.endswith(".mov"): ctype = "video/quicktime"
+            elif self.path.endswith(".mkv"): ctype = "video/x-matroska"
+            else: ctype = "application/octet-stream"
+            
         self.send_response(200)
-        self.send_header("Content-type", "image/png")
+        self.send_header("Content-type", ctype)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "*")
         self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
         self.end_headers()
-        
-        if self.path[1:] in self._canvas._regims:
-            im: Image.Image = self._canvas._regims[self.path[1:]]
-            if hasattr(im, "byteData"):
-                self.wfile.write(im.byteData)
-            else:
-                temp_btyeio = io.BytesIO()
-                im.save(temp_btyeio, "png")
-                self.wfile.write(temp_btyeio.getvalue())
-                
-        elif self.path[1:] in self._canvas._regres:
-            data: bytes = self._canvas._regres[self.path[1:]]
-            self.wfile.write(data)
+
+        self.wfile.write(data)
     
     def log_request(self, *args, **kwargs) -> None: ...
 
@@ -104,15 +134,11 @@ class PILResourcePacker:
     def __init__(self, cv: WebCanvas):
         self.cv = cv
         self.imgs: list[tuple[str, Image.Image|bytes]] = []
-        self.videos: list[tuple[str, bytes]] = []
         self._imgopted: dict[str, threading.Event] = {}
     
     def reg_img(self, img: Image.Image|bytes, name: str):
         self.imgs.append((name, img))
         
-    def reg_video(self, video: bytes, name: str):
-        self.videos.append((name, video))
-    
     def pack(self):
         datas = []
         dataindexs = []
@@ -129,13 +155,8 @@ class PILResourcePacker:
                 data = img
                 
             datas.append(data)
-            dataindexs.append(["img", name, [datacount, len(data)]])
+            dataindexs.append([name, [datacount, len(data)]])
             datacount += len(data)
-        
-        for name, video in self.videos:
-            datas.append(video)
-            dataindexs.append(["video", name, [datacount, len(video)]])
-            datacount += len(video)
             
         return b"".join(datas), dataindexs
 
@@ -145,7 +166,7 @@ class PILResourcePacker:
         imnames = self.cv.wait_jspromise(f"loadrespackage('{self.cv.get_resource_path(rid)}', {indexs});")
         self.cv.wait_loadimgs(self.cv.get_imgcomplete_jseval(imnames))
         self.cv.unreg_res(rid)
-        self.cv.run_js_code(f"[{",".join(map(self.cv.get_img_jsvarname, imnames))}].forEach(im => {{if (!(im.tagName && im.tagName.toLowerCase() == 'video')) URL.revokeObjectURL(im.src)}});")
+        self.cv.run_js_code(f"[{",".join(map(self.cv.get_img_jsvarname, imnames))}].forEach(im => URL.revokeObjectURL(im.src));")
         
         def optimize():
             codes = []

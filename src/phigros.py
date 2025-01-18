@@ -330,11 +330,11 @@ def Load_Resource():
         respacker.reg_img(open(tool_funcs.gtpresp(avatar), "rb").read(), f"avatar_{index}")
     
     with open("./resources/font.ttf", "rb") as f:
-        root.reg_res(f.read(), "PhigrosFont")
+        root.reg_res(f.read(), "PhigrosFont.ttf")
     respacker.load(*respacker.pack())
     
-    root.wait_jspromise(f"loadFont('PhigrosFont', \"{root.get_resource_path("PhigrosFont")}\");")
-    root.unreg_res("PhigrosFont")
+    root.wait_jspromise(f"loadFont('PhigrosFont', \"{root.get_resource_path("PhigrosFont.ttf")}\");")
+    root.unreg_res("PhigrosFont.ttf")
     
     updateUserAvatar()
     root._regims.clear()
