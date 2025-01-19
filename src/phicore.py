@@ -935,11 +935,18 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             texture_width, texture_height = tool_funcs.conimgsize(*texture_size, w, h)
             texture_width *= lineScaleX; texture_height *= lineScaleY
             if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
+                texturename = root.get_img_jsvarname(f"lineTexture_{line_index}")
+                if line.isGif:
+                    Task(
+                        root.run_js_code,
+                        f"{texturename}.currentTime = {now_t} % {texturename}.duration;",
+                        add_code_array = True
+                    )
                 Task(
                     root.run_js_code,
                     f"{f"setColorMatrix{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}\
                     ctx.drawRotateImage(\
-                        {root.get_img_jsvarname(f"lineTexture_{line_index}")},\
+                        {texturename},\
                         {linePos[0]},\
                         {linePos[1]},\
                         {texture_width},\

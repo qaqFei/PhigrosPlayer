@@ -427,7 +427,7 @@ def Load_Resource():
     root.wait_jspromise(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont.ttf")}\");")
     root.unreg_res("PhigrosFont.ttf")
     
-    root.file_server.shutdown()
+    # root.file_server.shutdown()
     note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
     note_max_height = max(
         [

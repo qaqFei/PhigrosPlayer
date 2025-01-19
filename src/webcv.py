@@ -12,6 +12,7 @@ import time
 import socket
 import sys
 import logging
+from email.message import Message
 from ctypes import windll
 from os.path import abspath
 from random import randint
@@ -54,7 +55,18 @@ requestAnimationFrame(_frame_counter);
 
 })();
 '''
-    
+
+def _parseRangeHeader(data: bytes, rg: typing.Optional[str], setrep_header: typing.Callable[[str, str], object]):
+    if rg is None: return data
+    start, end = rg.split("=")[1].split("-")
+    start = int(start)
+    end = int(end) if end else len(data) - 1
+    start = min(max(start, 0), len(data) - 1)
+    end = min(end, len(data) - 1)
+    setrep_header("Content-Range", f"bytes {start}-{end}/{len(data)}")
+    setrep_header("Content-Length", str(end - start + 1))
+    return data[start:end+1]
+
 class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
     _canvas: WebCanvas
     
@@ -99,12 +111,15 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
             elif self.path.endswith(".mov"): ctype = "video/quicktime"
             elif self.path.endswith(".mkv"): ctype = "video/x-matroska"
             else: ctype = "application/octet-stream"
-            
-        self.send_response(200)
+        
+        rangeHeader = self.headers.get("Range")
+        code = 206 if rangeHeader else 200
+        self.send_response(code)
         self.send_header("Content-type", ctype)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "*")
         self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+        data = _parseRangeHeader(data, rangeHeader, self.send_header)
         self.end_headers()
 
         self.wfile.write(data)
