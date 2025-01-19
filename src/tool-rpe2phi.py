@@ -24,8 +24,25 @@ phic = {
 }
 offsetT = phic["offset"] / globalT
 
+def calbeat(t: list[int]):
+    return t[0] + t[1] / t[2]
+
 def rt2pt(t: list[int]):
-    return (t[0] + t[1] / t[2]) * (60 / globalBpm) / globalT
+    beat = calbeat(t)
+    sec = 0.0
+    for i, e in enumerate(rpec["BPMList"]):
+        if i != len(rpec["BPMList"]) - 1:
+            et_beat = calbeat(rpec["BPMList"][i + 1]["startTime"]) - calbeat(e["startTime"])
+            
+            if beat >= et_beat:
+                sec += et_beat * (60 / e["bpm"])
+                beat -= et_beat
+            else:
+                sec += beat * (60 / e["bpm"])
+                break
+        else:
+            sec += beat * (60 / e["bpm"])
+    return sec / globalT
 
 def linear(t: float, st: float, et: float, sv: float, ev: float):
     return (t - st) / (et - st) * (ev - sv) + sv
