@@ -11,6 +11,8 @@ from time import sleep
 from uuid import uuid4
 
 import UnityPy
+import UnityPy.files
+import UnityPy.classes
 from UnityPy.enums import ClassIDType
 from fsb5 import FSB5
 
@@ -235,8 +237,19 @@ def generate_resources():
         elif table[i][0][:14] == "Assets/Tracks/":
             table[i][0] = table[i][0][14:]
     
-    def save(key: str, entry):
+    def save(key: str, entry: UnityPy.files.BundleFile, fn: str):
+        obj: UnityPy.classes.TextAsset | UnityPy.classes.Sprite | UnityPy.classes.AudioClip
         obj = next(entry.get_filtered_objects((ClassIDType.TextAsset, ClassIDType.Sprite, ClassIDType.AudioClip))).read()
+        extended_info.append({
+            "key": key,
+            "fn": fn,
+            "type": obj.type.value,
+            "type_string": obj.type.name,
+            "path_id": obj.path_id,
+            "name": obj.name
+        })
+        
+        print(extended_info[-1])
         
         if key[-14:-7] == "/Chart_" and key.endswith(".json"):
             name = key[:-14]
@@ -281,7 +294,7 @@ def generate_resources():
                         env = UnityPy.Environment()
                         env.load_file(open(getZipItem(f"/assets/aa/Android/{item[2]}"), "rb").read(), name = item[1])
                         for ikey, ientry in env.files.items():
-                            save(ikey, ientry)
+                            save(ikey, ientry, item[2])
                         keunpack_count += 1
                     case "save-string":
                         with open(f"./unpack-result/{item[1]}", "wb") as f:
@@ -307,6 +320,7 @@ def generate_resources():
     iothread_num = 32
     stopthread_count = 0
     iocommands = [None] * iothread_num
+    extended_info = []
     
     for key, entry in table:
         iocommands.append(("ke-unpack", key, entry))
@@ -317,7 +331,10 @@ def generate_resources():
     while stopthread_count != iothread_num:
         print(f"\r{keunpack_count} | {save_string_count} | {save_pilimg_count} | {save_music_count}", end="")
         sleep(0.1)
-        
+    
+    with open(f"./unpack-result/extended_info.json", "w", encoding="utf-8") as f:
+        json.dump(extended_info, f, indent=4, ensure_ascii=False)
+    
     print()
 
 def pack_charts(infos: list[dict], rpe: bool):
