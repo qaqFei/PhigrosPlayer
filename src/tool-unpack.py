@@ -249,8 +249,6 @@ def generate_resources():
             "name": obj.name
         })
         
-        print(extended_info[-1])
-        
         if key[-14:-7] == "/Chart_" and key.endswith(".json"):
             name = key[:-14]
             iocommands.append(("save-string", f"Chart_{key[-7:-5]}/{name}.json", obj.script))
