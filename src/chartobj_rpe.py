@@ -526,6 +526,7 @@ class Rpe_Chart:
     judgeLineList: list[JudgeLine]
     
     combotimes: list[float]|None = None
+    extra: typing.Optional[Extra] = None
     
     def __post_init__(self):
         self.BPMList = list(filter(lambda x: x.bpm != 0.0, self.BPMList))
@@ -653,7 +654,6 @@ class ExtraEffect:
     
 @dataclass
 class Extra:
-    enable: bool
     bpm: list[BPMEvent]
     effects: list[ExtraEffect]
     
@@ -678,9 +678,16 @@ class Extra:
         for e in self.effects:
             if e.start.value <= beat < e.end.value:
                 values = {}
+                
                 for k, v in e.vars.items():
                     ev = JudgeLine.GetEventValue(None, beat, v, v[0].start if v else None)
                     if ev is not None: values.update({k: ev})
+                    
+                if e.shader in const.EXTRA_DEFAULTS.keys():
+                    defvs: dict = const.EXTRA_DEFAULTS[e.shader].copy()
+                    defvs.update(values)
+                    values = defvs
+                    
                 result.append((e.shader, values))
                 
         return result

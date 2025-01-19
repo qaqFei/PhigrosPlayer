@@ -20,7 +20,6 @@ Usage: main <chart_file> [<args>...] [<kwargs>...]
   --noplaychart: Do not play the chart, immediately settle.
   --enable-controls: Enable rpe format chart note control fields, with great performance overhead.
   --wl-more-chinese: Replace texts to chinese. (wl)
-  --enable-shader: Enable shader, WARNING: Use soft rendering, so it will be very very very very very slow. (Front-loaded arg: --lfdaot-render-video)
   --renderdemand: Render demand, use requestAnimationFrame to limit the frame rate.
   --renderasync: Render async, rendering also calculates beatmap data.
   --enable-jslog: Keep the rendered JavaScript code and output it to file. (path is --jslog-path value)
@@ -83,7 +82,6 @@ HELP_ZH = '''\
   --noplaychart: 不播放谱面, 立即结算
   --enable-controls: 启用rpe格式谱面中的note control类字段, 有极大的性能开销
   --wl-more-chinese: 替换文本为中文 (wl)
-  --enable-shader: 启用 shader, 警告: 使用软渲染, 所以会非常非常非常非常非常慢 (前置参数: --lfdaot-render-video)
   --renderdemand: 按需渲染, 使用 requestAnimationFrame 限制帧率
   --renderasync: 异步渲染, 渲染同时可计算谱面数据
   --enable-jslog: 保留渲染的 JavaScript 代码并输出到文件 (路径为 --jslog-path 参数值)

@@ -563,7 +563,7 @@ def set_NOTE_DUB_FIXSCALE(scale: float):
     global NOTE_DUB_FIXSCALE
     NOTE_DUB_FIXSCALE = scale
 
-EXTRA_DEFAULTS = { # no using
+EXTRA_DEFAULTS = {
     "chromatic": {
         "sampleCount": 3,
         "power": 0.01

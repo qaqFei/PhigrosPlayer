@@ -128,9 +128,8 @@ def Load_Chart_Object(chart: dict):
     
     return rpe_chart_obj
 
-def loadextra(extra_json: dict, enable: bool):
+def loadextra(extra_json: dict):
     extra = chartobj_rpe.Extra(
-        enable = enable,
         bpm = [
             chartobj_rpe.BPMEvent(
                 startTime = chartobj_rpe.Beat(*bpme.get("startTime", [0, 0, 1])),

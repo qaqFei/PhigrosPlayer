@@ -33,7 +33,6 @@ import dialog
 import info_loader
 import ppr_help
 import binfile
-import shader
 import file_loader
 import phira_resource_pack
 import phicore
@@ -212,6 +211,17 @@ else:
     logging.fatal("This is what format chart ???")
     raise SystemExit
 
+if exists(f"{temp_dir}\\extra.json"):
+    try:
+        logging.info("found extra.json, loading...")
+        extra = chartfuncs_rpe.loadextra(json.load(open(f"{temp_dir}\\extra.json", "r", encoding="utf-8")))
+        logging.info("loading extra.json successfully")
+    except SystemExit as e:
+        logging.error("loading extra.json failed")
+        
+if "extra" not in globals():
+    extra = chartfuncs_rpe.loadextra({})
+    
 def LoadChartObject(first: bool = False):
     global chart_obj
     
@@ -225,6 +235,7 @@ def LoadChartObject(first: bool = False):
             if "--rpeversion" in sys.argv
             else chart_obj.META.RPEVersion
         )
+        chart_obj.extra = extra
     
     if not first:
         updateCoreConfig()
@@ -275,28 +286,6 @@ logging.info("Loading Chart Information Successfully")
 logging.info("Inforamtions: ")
 for k,v in chart_information.items():
     logging.info(f"              {k}: {v}")
-
-if exists(f"{temp_dir}\\extra.json"):
-    try:
-        logging.info("found extra.json, loading...")
-        extra = chartfuncs_rpe.loadextra(json.load(open(f"{temp_dir}\\extra.json", "r", encoding="utf-8")), "--enable-shader" in sys.argv)
-        logging.info("loading extra.json successfully")
-    except SystemExit as e:
-        logging.error("loading extra.json failed")
-        
-if "extra" not in globals():
-    extra = chartfuncs_rpe.loadextra({}, False)
-
-if extra.enable and not (lfdaot and lfdaot_render_video):
-    logging.warning(f"if you want to enable shader, please render a video.")
-    extra.enable = False
-    
-if extra.enable:
-    logging.warning("extra effect item`s global value is also true, false value is not supported.")
-    logging.warning("if you want to enable shader, you cannot use jit.")
-    shader.hookMathFuncs()
-
-logging.info(f"enable_shader: {extra.enable}")
 
 def Load_Resource():
     global globalNoteWidth
@@ -444,21 +433,21 @@ def Load_Resource():
     )
     note_max_size_half = ((note_max_width ** 2 + note_max_height ** 2) ** 0.5) / 2
     
-    # shaders = {
-    #     "chromatic": open("./shaders/chromatic.glsl", "r", encoding="utf-8").read(),
-    #     "circleBlur": open("./shaders/circle_blur.glsl", "r", encoding="utf-8").read(),
-    #     "fisheye": open("./shaders/fisheye.glsl", "r", encoding="utf-8").read(),
-    #     "glitch": open("./shaders/glitch.glsl", "r", encoding="utf-8").read(),
-    #     "grayscale": open("./shaders/grayscale.glsl", "r", encoding="utf-8").read(),
-    #     "noise": open("./shaders/noise.glsl", "r", encoding="utf-8").read(),
-    #     "pixel": open("./shaders/pixel.glsl", "r", encoding="utf-8").read(),
-    #     "radialBlur": open("./shaders/radial_blur.glsl", "r", encoding="utf-8").read(),
-    #     "shockwave": open("./shaders/shockwave.glsl", "r", encoding="utf-8").read(),
-    #     "vignette": open("./shaders/vignette.glsl", "r", encoding="utf-8").read()
-    # }
+    shaders = {
+        "chromatic": open("./shaders/chromatic.glsl", "r", encoding="utf-8").read(),
+        "circleBlur": open("./shaders/circle_blur.glsl", "r", encoding="utf-8").read(),
+        "fisheye": open("./shaders/fisheye.glsl", "r", encoding="utf-8").read(),
+        "glitch": open("./shaders/glitch.glsl", "r", encoding="utf-8").read(),
+        "grayscale": open("./shaders/grayscale.glsl", "r", encoding="utf-8").read(),
+        "noise": open("./shaders/noise.glsl", "r", encoding="utf-8").read(),
+        "pixel": open("./shaders/pixel.glsl", "r", encoding="utf-8").read(),
+        "radialBlur": open("./shaders/radial_blur.glsl", "r", encoding="utf-8").read(),
+        "shockwave": open("./shaders/shockwave.glsl", "r", encoding="utf-8").read(),
+        "vignette": open("./shaders/vignette.glsl", "r", encoding="utf-8").read()
+    }
     
-    # how to load shaders to webgl and use them???
-    ... # TODO
+    for name, glsl in shaders.items():
+        root.run_js_code(f"mainShaderLoader.load({repr(name)}, {repr(glsl)});")
     
     if CHART_TYPE == const.CHART_TYPE.RPE:
         for line in chart_obj.judgeLineList:
@@ -805,18 +794,6 @@ def PlayerStart():
                 def uploadFrame(dataUrl: str):
                     nonlocal frameCount
                     matlike = tool_funcs.DataUrl2MatLike(dataUrl)
-                    
-                    if extra.enable:
-                        now_t = frameCount / frame_speed
-                        shader.time = now_t
-                        shader.screenSize = shader.vec2(w, h)
-                        try:
-                            matlike = shader.processFrame(matlike, extra.getValues(now_t))
-                        except Exception as e:
-                            logging.fatal(f"Shader error: {repr(e)}")
-                            writer.release()
-                            raise e from e
-                        
                     writer.write(matlike)
                     frameCount += 1
                     

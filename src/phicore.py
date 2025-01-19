@@ -1267,6 +1267,15 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             ) + 0.2 < now_t:
                 line.effectNotes.remove(note)
     
+    if chart_obj.extra is not None:
+        extra_values = chart_obj.extra.getValues(now_t)
+        for name, values in extra_values:
+            Task(
+                root.run_js_code,
+                f"mainShaderLoader.renderToCanvas(ctx, {repr(name)}, {repr(values)})",
+                add_code_array = True
+            )
+    
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     now_t /= speed
     Task(
