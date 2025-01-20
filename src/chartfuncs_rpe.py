@@ -142,24 +142,25 @@ def loadextra(extra_json: dict):
                 start = chartobj_rpe.Beat(*ete.get("start", [0, 0, 1])),
                 end = chartobj_rpe.Beat(*ete.get("end", [0, 0, 1])),
                 shader = ete.get("shader", "default"),
+                global_ = ete.get("global", False),
                 vars = {
                     k: [
                         (
                             chartobj_rpe.ExtraVar(
                                 startTime = chartobj_rpe.Beat(*v.get("startTime", [0, 0, 1])),
                                 endTime = chartobj_rpe.Beat(*v.get("endTime", [0, 0, 1])),
-                                easingType = v.get("easingType", 1),
                                 start = v.get("start", 0),
-                                end = v.get("end", 0)
+                                end = v.get("end", 0),
+                                easingType = v.get("easingType", 1)
                             ) 
                         )
                         for v in vars
                     ] if isinstance(vars, list) and isinstance(vars[0], dict) else [chartobj_rpe.ExtraVar(
                         startTime = chartobj_rpe.Beat(*ete.get("start", [0, 0, 1])),
                         endTime = chartobj_rpe.Beat(*ete.get("end", [0, 0, 1])),
-                        easingType = 1,
                         start = vars,
-                        end = vars
+                        end = vars,
+                        easingType = 1
                     )]
                     for k, vars in ete.get("vars", {}).items()
                 }
@@ -167,10 +168,5 @@ def loadextra(extra_json: dict):
             for ete in extra_json.get("effects", [])
         ]
     )
-    
-    for i in extra.effects.copy():
-        if i.shader not in shader.shaderMethodMap:
-            logging.warning(f"Shader {i.shader} is not supported, only can use builtin shader.")
-            extra.effects.remove(i)
     
     return extra

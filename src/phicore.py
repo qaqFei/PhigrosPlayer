@@ -1268,13 +1268,9 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 line.effectNotes.remove(note)
     
     if chart_obj.extra is not None:
-        extra_values = chart_obj.extra.getValues(now_t)
+        extra_values = chart_obj.extra.getValues(now_t, False)
         for name, values in extra_values:
-            Task(
-                root.run_js_code,
-                f"mainShaderLoader.renderToCanvas(ctx, {repr(name)}, {repr(values)})",
-                add_code_array = True
-            )
+            doShader(name, values)
     
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     now_t /= speed
@@ -1291,6 +1287,11 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     )
     now_t += chart_obj.META.offset / 1000
     
+    if chart_obj.extra is not None:
+        extra_values = chart_obj.extra.getValues(now_t, True)
+        for name, values in extra_values:
+            doShader(name, values)
+            
     rrmEnd(Task)
     if rjc: Task(root.run_js_wait_code)
     
@@ -1298,6 +1299,17 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         Task.ExTask.append(("break", ))
     
     return Task
+
+def doShader(
+    name: str,
+    values: dict,
+    caller: typing.Callable[[typing.Callable, typing.Any], typing.Any] = lambda f, *args, **kwargs: f(*args, **kwargs)
+):
+    caller(
+        root.run_js_code,
+        f"mainShaderLoader.renderToCanvas(ctx, {repr(name)}, {repr(values)})",
+        add_code_array = True
+    )
 
 def getLevelNumber() -> str:
     lv = chart_information["Level"].lower()

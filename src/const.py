@@ -606,7 +606,7 @@ EXTRA_DEFAULTS = {
         "expand": 10.0
     },
     "vignette": {
-        "color": [0, 0, 0],
+        "color": [0, 0, 0, 1],
         "extend": 0.25,
         "radius": 15.0
     }

@@ -193,7 +193,7 @@ class Note:
 @dataclass
 class LineEvent:
     startTime: Beat
-    endTime: Beat
+    endTime: Beat 
     start: float|str|list[int]
     end: float|str|list[int]
     easingType: int = 1
@@ -638,9 +638,9 @@ class Rpe_Chart:
 class ExtraVar:
     startTime: Beat
     endTime: Beat
-    easingType: int
     start: float|list[float]
     end: float|list[float]
+    easingType: int
     
     def __post_init__(self):
         self.easingFunc = geteasing_func(self.easingType)
@@ -650,14 +650,30 @@ class ExtraEffect:
     start: Beat
     end: Beat
     shader: str
+    global_: bool
     vars: dict[str, list[ExtraVar]]
+    
+    def _init_events(self, es: list[ExtraVar]):
+        aes = []
+        for i, e in enumerate(es):
+            if i != len(es) - 1:
+                ne = es[i + 1]
+                if e.endTime.value < ne.startTime.value:
+                    aes.append(ExtraVar(e.endTime, ne.startTime, e.end, e.end, 1))
+        es.extend(aes)
+        es.sort(key = lambda x: x.startTime.value)
+        if es: es.append(ExtraVar(es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, 1))
+        
+    def __post_init__(self):
+        for v in self.vars.values():
+            self._init_events(v)
     
 @dataclass
 class Extra:
     bpm: list[BPMEvent]
     effects: list[ExtraEffect]
     
-    def getValues(self, t: float):
+    def getValues(self, t: float, isglobal: bool):
         beat = 0.0
         for i, e in enumerate(self.bpm):
             if i != len(self.bpm) - 1:
@@ -676,6 +692,7 @@ class Extra:
         result = []
         
         for e in self.effects:
+            if e.global_ != isglobal: continue
             if e.start.value <= beat < e.end.value:
                 values = {}
                 

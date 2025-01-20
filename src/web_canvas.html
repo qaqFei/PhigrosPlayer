@@ -60,13 +60,13 @@
     (() => {
         const cv = document.createElement("canvas");
         cv.nobitmap_tag = true;
-        const gl = cv.getContext("webgl");
+        const gl = cv.getContext("webgl2");
 
         const positions = [
+            -1, 1,
+            1, 1,
             -1, -1,
-             1, -1,
-            -1,  1,
-             1,  1,
+            1, -1,
         ];
         const texCoords = [
             0, 0,
@@ -160,7 +160,6 @@ void main() {
     canvas_ele.className = "main-canvas";
     dialog_canvas_ele = document.createElement("canvas");
     dialog_canvas_ele.className = "dialog-canvas";
-    glcanvas = document.createElement("canvas");
     body_ele.appendChild(canvas_ele);
     body_ele.appendChild(dialog_canvas_ele);
     mask = document.querySelector(".mask");
@@ -169,7 +168,6 @@ void main() {
         alpha: false
     });
     dialog_canvas_ctx = dialog_canvas_ele.getContext("2d");
-    gl = glcanvas.getContext("webgl");
     jscodes = new Array();
     resize_task = false;
     lfdaot_render_fcount = 0;
@@ -232,6 +230,7 @@ void main() {
 
         render(im, name, uniforms) {
             let pg = this.pgs.get(name);
+            if (pg === void 0) return im;
             return drawGL(pg, im, uniforms);
         }
 

@@ -432,7 +432,7 @@ def Load_Resource():
         ]
     )
     note_max_size_half = ((note_max_width ** 2 + note_max_height ** 2) ** 0.5) / 2
-    
+                
     shaders = {
         "chromatic": open("./shaders/chromatic.glsl", "r", encoding="utf-8").read(),
         "circleBlur": open("./shaders/circle_blur.glsl", "r", encoding="utf-8").read(),
@@ -446,9 +446,6 @@ def Load_Resource():
         "vignette": open("./shaders/vignette.glsl", "r", encoding="utf-8").read()
     }
     
-    for name, glsl in shaders.items():
-        root.run_js_code(f"mainShaderLoader.load({repr(name)}, {repr(glsl)});")
-    
     if CHART_TYPE == const.CHART_TYPE.RPE:
         for line in chart_obj.judgeLineList:
             for note in line.notes:
@@ -458,6 +455,18 @@ def Load_Resource():
                         logging.info(f"Loaded note hitsound {note.hitsound}")
                     except Exception as e:
                         logging.warning(f"Cannot load note hitsound {note.hitsound} for note due to {e}")
+        
+        if chart_obj.extra is not None:
+            for effect in chart_obj.extra.effects:
+                if effect.shader not in shaders.keys():
+                    try:
+                        shaders[effect.shader] = open(f"{temp_dir}\\{effect.shader}", "r", encoding="utf-8").read()
+                    except Exception as e:
+                        logging.warning(f"Cannot load shader {effect.shader} due to {e}")
+    
+    for name, glsl in shaders.items():
+        root.run_js_code(f"mainShaderLoader.load({repr(name)}, {repr(glsl)});")
+        logging.info(f"Loaded shader {name}")
     
     cksmanager = phicore.ClickSoundManager(Resource["Note_Click_Audio"])
     logging.info("Load Resource Successfully")
