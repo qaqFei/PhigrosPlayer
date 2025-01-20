@@ -2,6 +2,7 @@ import fix_workpath as _
 
 import json
 import typing
+import struct
 from sys import argv
 from os import popen
 
@@ -45,10 +46,11 @@ def putimto_bundle(bundle: typing.Optional[UnityPy.files.BundleFile], im: Image.
     for name, f in bundle.files.items():
         if isinstance(f, UnityPy.files.SerializedFile):
             for pid2, asset in f.files.items():
-                    asset: UnityPy.files.ObjectReader
-                    realasset = asset.read()
-                    if isinstance(realasset, UnityPy.classes.Texture2D):
-                        realasset.image = im
+                asset: UnityPy.files.ObjectReader
+                realasset = asset.read()
+                if isinstance(realasset, UnityPy.classes.Texture2D):
+                    realasset.image = im
+                    realasset.save()
 
 def fail(mod: dict):
     print(f"Failed to process mod: {mod["name"]}")
@@ -70,6 +72,15 @@ for mod in modlist:
                 fail(mod)
                 continue
             
+            chart = json.load(open(mod["content_path"], "r", encoding="utf-8"))
+            if "META" in chart:
+                rpe2phi = input("rpe2phi runner: ").replace("/", "\\")
+                print(f"Mod {mod["name"]} is rpe format, converting...")
+                tdir = tempdir.createTempDir()
+                popen(f"{rpe2phi} \"{mod["content_path"]}\" \"{tdir}\\chart.json\"").read()
+                chart = json.load(open(f"{tdir}\\chart.json", "r", encoding="utf-8"))
+            content = json.dumps(chart, ensure_ascii=False).encode("utf-8")
+            
             bundle = loadbundle(exiitem["fn"])
             for name, f in bundle.files.items():
                 f: UnityPy.files.SerializedFile
@@ -79,7 +90,6 @@ for mod in modlist:
                         textasset: UnityPy.classes.TextAsset = asset.read()
                         rawchart = textasset.script.tobytes()
                         rawdata: bytes = asset.get_raw_data().tobytes()
-                        content = open(mod["content_path"], "rb").read()
                         moded = rawdata.replace(rawchart, content)
                         size = len(rawchart).to_bytes(4, "little")
                         newsize = len(content).to_bytes(4, "little")
@@ -99,17 +109,32 @@ for mod in modlist:
                 continue
             
             tdir = tempdir.createTempDir()
-            AudioSegment.from_file(mod["content_path"]).export(f"{tdir}/music.ogg", format="ogg")
+            seg: AudioSegment = AudioSegment.from_file(mod["content_path"])
+            seg.export(f"{tdir}/music.ogg", format="ogg")
             popen(f".\\oggvorbis2fsb5.exe \"{tdir}/music.ogg\" \"{tdir}/music.fsb\"").read()
+            fsb = open(f"{tdir}/music.fsb", "rb").read()
 
             bundle = loadbundle(exiitem["fn"])
             for name, f in bundle.files.items():
                 if isinstance(f, UnityPy.streams.EndianBinaryReader):
-                    f.view = memoryview(open(f"{tdir}/music.fsb", "rb").read())
+                    f.view = memoryview(fsb)
+                    f.Length = len(fsb)
+                else:
+                    f: UnityPy.files.SerializedFile
+                    for pid, asset in f.files.items():
+                        asset: UnityPy.files.ObjectReader
+                        realasset = asset.read()
+                        if isinstance(realasset, UnityPy.classes.AudioClip):
+                            asset.data = memoryview(
+                                asset.get_raw_data().tobytes()
+                                .replace(realasset.m_Size.to_bytes(4, "little"), len(fsb).to_bytes(4, "little"), 1)
+                                .replace(struct.pack("f", realasset.m_Length), struct.pack("f", seg.duration_seconds), 1)
+                            )
             
             savebundle(bundle, exiitem["fn"])
             
         case "Ill":
+            print("Warning: Ill mod has bugs, it will make game crash.")
             iitem = findinfo_byname(mod["name"])
             if iitem is None:
                 fail(mod)
