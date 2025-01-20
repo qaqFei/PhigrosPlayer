@@ -3551,7 +3551,7 @@ def chartPlayerRender(
                     
                 Task.ExecTask()
                 
-                break_flag = phicore.FrameData_ProcessExTask(Task.ExTask)
+                break_flag = phicore.processExTask(Task.ExTask)
                 
                 if break_flag and not stoped:
                     phicore.initFinishAnimation(pplm)

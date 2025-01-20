@@ -216,8 +216,8 @@ def processClickEffectBase(
     ) / 255
     
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
-    effectSize = globalNoteWidth * 1.375
-    blockSize = globalNoteWidth / 5.5
+    effectSize = noteWidth * 1.375
+    blockSize = noteWidth / 5.5
     
     if enable_rblocks and not phira_resource_pack.globalPack.hideParticles:
         randomblock_r = effectSize * rpe_easing.ease_funcs[clickEffectEasingType + 1](p) / 1.2
@@ -325,11 +325,11 @@ def getNoteDrawPosition(
         holdrect
     )
 
-def get_stringscore(score:float) -> str:
+def stringifyScore(score:float) -> str:
     score_integer = int(score + 0.5)
     return f"{score_integer:>7}".replace(" ","0")
 
-def draw_background():
+def drawBg():
     root.run_js_code(
         f"ctx.drawImage(\
            {root.get_img_jsvarname("background")},\
@@ -393,7 +393,7 @@ def draw_ui(
     pauseUI_rotate: float = 0.0
 ):
     if clear: root.clear_canvas(wait_execute = True)
-    if background: draw_background()
+    if background: drawBg()
     
     pauseImgWidth = w * (32 / 1920)
     pauseImgHeight = pauseImgWidth / 35 * 41
@@ -519,7 +519,7 @@ def draw_ui(
     root.run_js_code(f"ctx.drawUIItems({uidata});", add_code_array = True)
     mainFramerateCalculator.frame()
              
-def deleteDrwaUIKwargsDefaultValues(kwargs:dict) -> dict:
+def delDrawuiDefaultVals(kwargs: dict) -> dict:
     return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}   
 
 def drawDebugText(text: str, x: float, y: float, rotate: float, color: str, Task: chartobj_phi.FrameRenderTask):
@@ -533,7 +533,7 @@ def drawDebugText(text: str, x: float, y: float, rotate: float, color: str, Task
         add_code_array = True
     )
 
-def rrm_start(Task: chartobj_phi.FrameRenderTask):
+def rrmStart(Task: chartobj_phi.FrameRenderTask):
     if not render_range_more: return
     lw, lh = w / render_range_more_scale, h / render_range_more_scale
     lr, lt = w / 2 - lw / 2, h / 2 - lh / 2
@@ -545,7 +545,7 @@ def rrm_start(Task: chartobj_phi.FrameRenderTask):
         add_code_array = True
     )
 
-def rrm_end(Task: chartobj_phi.FrameRenderTask):
+def rrmEnd(Task: chartobj_phi.FrameRenderTask):
     if not render_range_more: return
     Task(
         root.run_js_code,
@@ -553,7 +553,7 @@ def rrm_end(Task: chartobj_phi.FrameRenderTask):
         add_code_array = True
     )
     
-def FrameData_ProcessExTask(ExTask: list[tuple[str, object]]):
+def processExTask(ExTask: list[tuple[str, object]]):
     break_flag = False
     
     for ext in ExTask:
@@ -572,8 +572,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     PlayChart_NowTime = now_t
     Task = chartobj_phi.FrameRenderTask([], [])
     if clear: Task(root.clear_canvas, wait_execute = True)
-    rrm_start(Task)
-    Task(draw_background)
+    rrmStart(Task)
+    Task(drawBg)
     if noplaychart: Task.ExTask.append(("break", ))
     
     noautoplay = pplm is not None # reset a global variable
@@ -880,7 +880,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     Task(
         draw_ui,
         process = now_t / audio_length,
-        score = get_stringscore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else get_stringscore(pplm.ppps.getScore()),
+        score = stringifyScore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else stringifyScore(pplm.ppps.getScore()),
         combo_state = combo >= 3,
         combo = combo,
         acc = "100.00%" if not noautoplay else f"{(pplm.ppps.getAcc() * 100):.2f}%",
@@ -888,7 +888,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         background = False
     )
     
-    rrm_end(Task)
+    rrmEnd(Task)
     if rjc: Task(root.run_js_wait_code)
     
     if now_t >= raw_audio_length:
@@ -902,8 +902,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     now_t *= speed
     Task = chartobj_phi.FrameRenderTask([], [])
     if clear: Task(root.clear_canvas, wait_execute = True)
-    rrm_start(Task)
-    Task(draw_background)
+    rrmStart(Task)
+    Task(drawBg)
     PlayChart_NowTime = now_t
     if noplaychart: Task.ExTask.append(("break", ))
     
@@ -1281,17 +1281,17 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     Task(
         draw_ui,
         process = now_t / audio_length,
-        score = get_stringscore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else get_stringscore(pplm.ppps.getScore()),
+        score = stringifyScore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else stringifyScore(pplm.ppps.getScore()),
         combo_state = combo >= 3,
         combo = combo,
         acc = "100.00%" if not noautoplay else f"{(pplm.ppps.getAcc() * 100):.2f}%",
         clear = False,
         background = False,
-        **deleteDrwaUIKwargsDefaultValues(attachUIData)
+        **delDrawuiDefaultVals(attachUIData)
     )
     now_t += chart_obj.META.offset / 1000
     
-    rrm_end(Task)
+    rrmEnd(Task)
     if rjc: Task(root.run_js_wait_code)
     
     if now_t >= raw_audio_length:
@@ -1299,7 +1299,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     
     return Task
 
-def Get_LevelNumber() -> str:
+def getLevelNumber() -> str:
     lv = chart_information["Level"].lower()
     if "lv." in lv:
         return lv.split("lv.")[1]
@@ -1310,7 +1310,7 @@ def Get_LevelNumber() -> str:
     else:
         return "?"
     
-def Get_LevelText() -> str:
+def getLevelText() -> str:
     return chart_information["Level"].split(" ")[0]
 
 def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None) -> chartobj_phi.FrameRenderTask:
@@ -1322,7 +1322,7 @@ def BeginLoadingAnimation(p: float, clear: bool = True, fcb: typing.Callable[[],
     info_data_ease_value = tool_funcs.begin_animation_eases.info_data_ease((p - 0.2) * 3.25)
     info_data_ease_value_2 = tool_funcs.begin_animation_eases.info_data_ease((p - 0.275) * 3.25)
     
-    Task(draw_background)
+    Task(drawBg)
     
     fcb()
     
@@ -1562,8 +1562,8 @@ def Begin_Animation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = l
     animation_time = 4.5
     
     chart_name_text = chart_information["Name"]
-    chart_level_number = Get_LevelNumber()
-    chart_level_text = Get_LevelText()
+    chart_level_number = getLevelNumber()
+    chart_level_text = getLevelText()
     chart_artist_text = chart_information["Artist"]
     chart_charter_text = chart_information["Charter"]
     chart_illustrator_text = chart_information["Illustrator"]
@@ -1680,7 +1680,7 @@ def initFinishAnimation(pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
     BadCount = 0 if not noautoplay else pplm.ppps.getBadCount()
     MissCount = 0 if not noautoplay else pplm.ppps.getMissCount()
     Acc = 1.0 if not noautoplay else pplm.ppps.getAcc()
-    ScoreString = "1000000" if not noautoplay else get_stringscore(pplm.ppps.getScore())
+    ScoreString = "1000000" if not noautoplay else stringifyScore(pplm.ppps.getScore())
     MaxCombo = chart_obj.note_num if not noautoplay else pplm.ppps.getMaxCombo()
     AccString = f"{(Acc * 100):.2f}%"
     ChartNameString = chart_information["Name"]
@@ -1707,7 +1707,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     level_size *= tool_funcs.finish_animation_eases.level_size_ease(p)
     button_ease_pos = - w * const.FINISH_UI_BUTTON_SIZE * (1 - button_ease_value)
     
-    draw_background()
+    drawBg()
     
     baimg_w = w * 0.5203125
     baimg_h = h * (624 / 1080)

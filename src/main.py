@@ -492,7 +492,7 @@ def Show_Start():
     animationst = time.time()
     while time.time() - animationst < 1.0:
         root.clear_canvas(wait_execute=True)
-        phicore.draw_background()
+        phicore.drawBg()
         phicore.draw_ui(animationing=True)
         p = (time.time() - animationst) / 1.0
         dle_warn((tool_funcs.fixorp(p) - 1.0) ** 4)
@@ -500,7 +500,7 @@ def Show_Start():
     
     time.sleep(0.25)
     root.clear_canvas(wait_execute=True)
-    phicore.draw_background()
+    phicore.drawBg()
     phicore.draw_ui(animationing=True)
     root.run_js_wait_code()
     Thread(target=PlayerStart, daemon=True).start()
@@ -592,7 +592,7 @@ def PlayerStart():
                 
             Task.ExecTask()
             
-            break_flag = phicore.FrameData_ProcessExTask(Task.ExTask)
+            break_flag = phicore.processExTask(Task.ExTask)
             
             if break_flag:
                 break
@@ -714,7 +714,7 @@ def PlayerStart():
                 for func_name in dir(root)
             }
             Task_function_mapping.update({
-                "draw_background": phicore.draw_background,
+                "draw_background": phicore.drawBg,
                 "draw_ui": phicore.draw_ui
             })
             for index,Task_data in enumerate(data["data"]):
@@ -761,7 +761,7 @@ def PlayerStart():
                 break_flag_oside = False
                 
                 for extask in extasks:
-                    break_flag = phicore.FrameData_ProcessExTask(extask)
+                    break_flag = phicore.processExTask(extask)
                     
                     if break_flag:
                         break_flag_oside = True
