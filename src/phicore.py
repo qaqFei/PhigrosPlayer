@@ -709,7 +709,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     )
                     
                     nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
-                        *endpos, noteAtLinePos,
+                        x, y, noteAtLinePos,
                         holdEndFloorPosition, lineRotate, plp_lineLength,
                         lineToNoteRotate, w, h, note_max_size_half
                     )
@@ -1066,7 +1066,6 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 noteImg = Resource["Notes"][note.img_keyname]
                 fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
                 noteWidth = globalNoteWidth * fix_scale
-                noteHeight = noteWidth / noteImg.width * noteImg.height
                 noteHadHead = not (note.ishold and note.clicked) or phira_resource_pack.globalPack.holdKeepHead
                     
                 if note.ishold:
@@ -1098,7 +1097,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     )
                     
                     nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
-                        *endpos, noteAtJudgeLinePos,
+                        x, y, noteAtJudgeLinePos,
                         holdEndFloorPosition, lineRotate, plp_lineLength,
                         lineToNoteRotate, w, h, note_max_size_half
                     )
@@ -1114,6 +1113,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 
                 if noteCanRender and abs(now_t - note.secst) <= note.visibleTime:
                     noteRotate = lineRotate + (0 if note.above else 180)
+                    noteHeight = noteWidth / noteImg.width * noteImg.height
                     
                     if noteHadHead:
                         Task(
