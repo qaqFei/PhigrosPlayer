@@ -711,6 +711,17 @@ void main() {
         this.rect(x0, y0, x1 - x0, y1 - y0);
         this.clip();
     }
+    
+    CanvasRenderingContext2D.prototype.drawClipXText = function(text, x, y, align, baseline, color, font, clipx0, clipx1) {
+        this.save();
+        this.clipRect(clipx0, 0, clipx1, this.canvas.height);
+        this.fillStyle = color;
+        this.textAlign = align;
+        this.textBaseline = baseline;
+        this.font = font;
+        this.fillText(text, x, y);
+        this.restore();
+    }
 
     CanvasRenderingContext2D.prototype.drawDiagonalRectangle = function(x0, y0, x1, y1, power, color) {
         this.save();
