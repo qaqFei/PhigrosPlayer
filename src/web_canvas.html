@@ -246,7 +246,7 @@ void main() {
 
         render(im, name, uniforms) {
             let pg = this.pgs.get(name);
-            if (pg === void 0) return im;
+            if (pg === void 0) return null;
             return drawGL(pg, im, uniforms);
         }
 
@@ -254,6 +254,7 @@ void main() {
             const cv = ctx.canvas;
             uniforms["screenSize"] = [cv.width, cv.height];
             let result = this.render(cv, name, uniforms);
+            if (result === null) return;
             ctx.clear();
             ctx.save();
             ctx.translate(cv.width / 2, cv.height / 2);
