@@ -118,7 +118,7 @@ class Note:
         ))
         
         if self.ishold:
-            bt = 1 / self.master.bpm * 30
+            bt = 30 / self.master.bpm
             st = 0.0
             while True:
                 st += bt

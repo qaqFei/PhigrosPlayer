@@ -13,8 +13,8 @@ import win32event as w32e
 from pywintypes import WAVEFORMATEX
 from pydub import AudioSegment
 
-CACHE_BUFFER_MAXSIZE = 128
-PRE_CACHE_SIZE = 16
+CACHE_BUFFER_MAXSIZE = 16
+PRE_CACHE_SIZE = CACHE_BUFFER_MAXSIZE
 
 _WAV_HEADER = "<4sl4s4slhhllhh4sl"
 _WAV_HEADER_LENGTH = struct.calcsize(_WAV_HEADER)
@@ -108,6 +108,13 @@ class directSound:
                         buf.SetCurrentPosition(0)
                         buf.Play(playMethod)
                         return e, buf
+                    
+                e, buf = self._buffers[0]
+                buf.Stop()
+                buf.SetVolume(self._volume)
+                buf.SetCurrentPosition(0)
+                buf.Play(playMethod)
+                return e, buf
         
         event = w32e.CreateEvent(None, 0, 0, None)
         buffer = dxs.CreateSoundBuffer(self._sdesc, None)
