@@ -1270,7 +1270,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     if chart_obj.extra is not None:
         extra_values = chart_obj.extra.getValues(now_t, False)
         for name, values in extra_values:
-            doShader(name, values)
+            doShader(name, values, Task)
     
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     now_t /= speed
@@ -1290,7 +1290,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     if chart_obj.extra is not None:
         extra_values = chart_obj.extra.getValues(now_t, True)
         for name, values in extra_values:
-            doShader(name, values)
+            doShader(name, values, Task)
             
     rrmEnd(Task)
     if rjc: Task(root.run_js_wait_code)

@@ -548,9 +548,7 @@ class Rpe_Chart:
                 if times[i.startTime.value] > 1:
                     i.morebets = True
 
-        all_notes = [note for line in self.judgeLineList for note in line.notes]
-        morebets_note([i for i in all_notes if not i.isFake])
-        morebets_note([i for i in all_notes if i.isFake])
+        morebets_note([note for line in self.judgeLineList for note in line.notes])
         
         for line in self.judgeLineList:
             if line.father != -1:

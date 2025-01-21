@@ -461,12 +461,25 @@ def Load_Resource():
                 if effect.shader not in shaders.keys():
                     try:
                         shaders[effect.shader] = open(f"{temp_dir}\\{effect.shader}", "r", encoding="utf-8").read()
+                        const.EXTRA_DEFAULTS[effect.shader] = {}
+                        for line in shaders[effect.shader].split("\n"):
+                            if line.startswith("uniform") and "//" in line:
+                                name = line.split(";")[0].split(" ")[-1]
+                                default = list(map(float, line.split("//")[1].replace(" ", "").split("%")[1].split(",")))
+                                if len(default) == 1: default = default[0]
+                                const.EXTRA_DEFAULTS[effect.shader][name] = default
                     except Exception as e:
                         logging.warning(f"Cannot load shader {effect.shader} due to {e}")
-    
-    for name, glsl in shaders.items():
-        root.run_js_code(f"mainShaderLoader.load({repr(name)}, {repr(glsl)});")
-        logging.info(f"Loaded shader {name}")
+            
+            shadernames = list(set(effect.shader for effect in chart_obj.extra.effects))
+
+            for name, glsl in shaders.items():
+                if name not in shadernames: continue
+                root.run_js_code(f"mainShaderLoader.load({repr(name)}, {repr(glsl)});")
+                if (glerr := root.run_js_code("GLERR;")) is not None:
+                    logging.warning(f"Cannot compile shader {name} due to {glerr}")
+                else:
+                    logging.info(f"Loaded shader {name}")
     
     cksmanager = phicore.ClickSoundManager(Resource["Note_Click_Audio"])
     logging.info("Load Resource Successfully")
