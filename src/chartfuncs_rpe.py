@@ -1,7 +1,6 @@
 import logging
 
 import chartobj_rpe
-import shader
 
 def _controlevents(line: dict, controlName: str, svalName: str, tvalName: str):
     controlList: list[dict] = line.get(controlName, [])
