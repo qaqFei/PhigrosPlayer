@@ -669,7 +669,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     noteFloorPosition *= note.speed
                 
                 if noteFloorPosition > h * 2:
-                    continue
+                    break
                 
                 noteAtLinePos = tool_funcs.rotate_point(*linePos, lineRotate, note.positionX * w * const.PGR_UW)
                 lineToNoteRotate = (-90 if note.above else 90) + lineRotate
