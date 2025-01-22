@@ -453,7 +453,7 @@ class FrameTaskRecorder:
     meta: FrameTaskRecorder_Meta
     data: typing.Iterable[FrameRenderTask]
     
-    def jsonify(self):
+    def stringify(self, f: typing.IO):
         data = {
             "meta": {
                 "frame_speed": self.meta.frame_speed,
@@ -482,4 +482,4 @@ class FrameTaskRecorder:
             
             data["data"].append(task_data)
         
-        return json.dumps(data)
+        return json.dump(data, f)

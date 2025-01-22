@@ -722,7 +722,7 @@ def PlayerStart():
                 )
                 
                 with open(lfdaot_fp, "w", encoding="utf-8") as f:
-                    f.write(recorder.jsonify())
+                    recorder.stringify(f)
                     
             if "--lfdaot-file-output-autoexit" in sys.argv:
                 root.destroy()
