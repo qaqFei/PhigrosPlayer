@@ -553,7 +553,7 @@ def rrmEnd(Task: chartobj_phi.FrameRenderTask):
         add_code_array = True
     )
     
-def processExTask(ExTask: list[tuple[str, object]]):
+def processExTask(ExTask: list[tuple[str, typing.Any]]):
     break_flag = False
     
     for ext in ExTask:
@@ -2013,6 +2013,30 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         height = Continue_imsize,
         wait_execute = True
     )
+    
+    root.run_js_code(
+        "ctx.globalAlpha = 1.0;",
+        add_code_array = True
+    )
+    
+    root.run_js_code(
+        f"ctx.globalAlpha = {tool_funcs.finish_animation_eases.userinfo_alpha_ease(p - 0.03)}",
+        add_code_array = True
+    )
+    
+    # userinfo_right = w * 0.83125
+    # userinfo_left = w * 0.7234375
+    # userinfo_rect = (
+    #     userinfo_left, h * (29 / 1080),
+    #     w, h * (133 / 1080)
+    # )
+    # userinfo_drect = tool_funcs.rect2drect_l(userinfo_rect, 75)
+    
+    root.run_js_code(
+        "ctx.globalAlpha = 1.0;",
+        add_code_array = True
+    )
+    
     if rjc: root.run_js_wait_code()
 
 def Chart_BeforeFinish_Animation_Frame(p: float, a1_combo: int|None, rjc: bool = True):

@@ -56,7 +56,7 @@ requestAnimationFrame(_frame_counter);
 })();
 '''
 
-def _parseRangeHeader(data: bytes, rg: typing.Optional[str], setrep_header: typing.Callable[[str, str], object]):
+def _parseRangeHeader(data: bytes, rg: typing.Optional[str], setrep_header: typing.Callable[[str, str], typing.Any]):
     if rg is None: return data
     start, end = rg.split("=")[1].split("-")
     start = int(start)

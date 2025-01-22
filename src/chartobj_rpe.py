@@ -333,7 +333,7 @@ class JudgeLine:
     extended: Extended|None
     notes: list[Note]
     bpmfactor: float
-    father: int|JudgeLine # in other object, __post_init__ change this value to a line
+    father: int|JudgeLine # in other typing.Any, __post_init__ change this value to a line
     zOrder: int
     isGif: bool
     

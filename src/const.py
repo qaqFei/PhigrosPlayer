@@ -97,7 +97,7 @@ FLOAT_LESSZERO_MAGIC = -1 / 1024
 CSOUND_MANAGER_THREADNUM = 1
 ClickEffectType = list[tuple[float, tuple[tuple[float, ...]], typing.Callable[[float|int, float|int], tuple[float, float]]]]
 BadEffectType = list[tuple[float, float, tuple[float, float]]]
-MissEffectType = list[tuple[float, object]] # emm, object is a note object
+MissEffectType = list[tuple[float, typing.Any]] # emm, typing.Any is a note typing.Any
 
 DSP_SETTING_TIP = """\
 如果你在游戏中遇到游戏中的音乐无法正常播放的情况，请适当的更改这个设置。\n

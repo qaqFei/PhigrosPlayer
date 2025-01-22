@@ -90,7 +90,7 @@ class Note:
         self.id = tool_funcs.Get_A_New_NoteId()
         self.effect_random_blocks = tool_funcs.get_effect_random_blocks()
     
-    def __eq__(self, oth:object):
+    def __eq__(self, oth: typing.Any):
         if not isinstance(oth, Note):
             return NotImplemented
         return self.id == oth.id

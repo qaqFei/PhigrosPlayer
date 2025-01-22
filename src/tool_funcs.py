@@ -114,6 +114,16 @@ class finish_animation_eases_class:
         return x ** 2
     
     @staticmethod
+    def userinfo_alpha_ease(x):
+        k = 0.1875
+        x -= k
+        x *= (1 / (1 - k))
+        x *= 5.0
+        if x <= 0.0: return 0.0
+        if x >= 1.0: return 1.0
+        return x ** 2
+    
+    @staticmethod
     def button_ease(x):
         if x <= 0.0: return 0.0
         if x >= 1.0: return 1.0
@@ -197,6 +207,17 @@ def PhigrosChapterDataAlphaValueTransfrom(p: float):
     if p <= 0.6:
         return 0.0
     return (p - 0.6) / 0.4
+
+def rect2drect_l(rect: tuple[float], deg: float):
+    dpower = getDPower(*getSizeByRect(rect), deg)
+    w = rect[2] - rect[0]
+    return (
+        (rect[0] + w * dpower, rect[1]),
+        (rect[2], rect[1]),
+        (rect[2], rect[3]),
+        (rect[0], rect[3]),
+        (rect[0] + w * dpower, rect[1])
+    )
 
 def rect2drect(rect: tuple[float], deg: float):
     dpower = getDPower(*getSizeByRect(rect), deg)

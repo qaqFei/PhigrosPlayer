@@ -1,10 +1,11 @@
 import io
+import typing
 
 from PIL import Image
 
 _open = Image.open
 
-def _isio(obj: object):
+def _isio(obj: typing.Any):
     return hasattr(obj, "read") and hasattr(obj, "seek")
 
 def open_hook(*args, **kwargs):
