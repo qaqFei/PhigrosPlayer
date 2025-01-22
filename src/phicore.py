@@ -1335,7 +1335,6 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     info_data_ease_value_2 = tool_funcs.begin_animation_eases.info_data_ease((p - 0.275) * 3.25)
     
     Task(drawBg)
-    
     fcb()
     
     blackShadowRect = (
@@ -1467,7 +1466,8 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     loadingBlockTime = 0.65
     loadingBlockState: typing.Literal[0, 1] = int(sec / loadingBlockTime) % 2
     loadingBlockP = (sec % loadingBlockTime) / loadingBlockTime
-    loadingBlockEasingType = 16
+    loadingBlockP = min(loadingBlockP / 0.95, 1.0)
+    loadingBlockEasingType = 10
     loadingBlockEasing = (
         rpe_easing.ease_funcs[loadingBlockEasingType - 1](loadingBlockP)
         if loadingBlockState == 0 else
