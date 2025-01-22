@@ -49,6 +49,7 @@ class PhiCoreConfig:
     clickeffect_randomblock: bool
     clickeffect_randomblock_roundn: int
     LoadSuccess: musicCls
+    chart_res: dict[str, tuple[Image.Image, tuple[int, int]]]
     cksmanager: ClickSoundManager
     enable_clicksound: bool
     rtacc: bool
@@ -94,7 +95,7 @@ def CoreConfigure(config: PhiCoreConfig):
     global chart_image
     global clickeffect_randomblock
     global clickeffect_randomblock_roundn, LoadSuccess
-    global cksmanager
+    global chart_res, cksmanager
     global enable_clicksound, rtacc, noautoplay
     global showfps, lfdaot
     global speed, render_range_more
@@ -119,6 +120,7 @@ def CoreConfigure(config: PhiCoreConfig):
     clickeffect_randomblock = config.clickeffect_randomblock
     clickeffect_randomblock_roundn = config.clickeffect_randomblock_roundn
     LoadSuccess = config.LoadSuccess
+    chart_res = config.chart_res
     cksmanager = config.cksmanager
     enable_clicksound = config.enable_clicksound
     rtacc = config.rtacc
@@ -938,7 +940,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             })
         elif lineAlpha > 0.0:
             if line.Texture != "line.png":
-                texture_width, texture_height = tool_funcs.conimgsize(*line.textureSize, w, h)
+                texture_width, texture_height = tool_funcs.conimgsize(*chart_res[line.Texture][1], w, h)
                 texture_width *= lineScaleX; texture_height *= lineScaleY
                 if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
                     texturename = root.get_img_jsvarname(f"lineTexture_{line_index}")

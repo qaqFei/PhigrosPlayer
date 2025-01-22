@@ -135,11 +135,13 @@ finish_animation_eases = finish_animation_eases_class()
 match rpe_texture_scalemethod:
     case "by-width":
         def conimgsize(w: int, h: int, sw: int, sh: int):
+            if w == 0: return 0, 0
             rw = w / const.RPE_WIDTH * sw
             return rw, rw / w * h
         
     case "by-height":
         def conimgsize(w: int, h: int, sw: int, sh: int):
+            if h == 0: return 0, 0
             rh = h / const.RPE_HEIGHT * sh
             return rh / h * w, rh
 
