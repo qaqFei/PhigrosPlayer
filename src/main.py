@@ -706,20 +706,23 @@ def PlayerStart():
             
             if "--lfdaot-file-savefp" in sys.argv:
                 lfdaot_fp = sys.argv[sys.argv.index("--lfdaot-file-savefp") + 1]
+                savelfdaot = True
             else:
                 lfdaot_fp = dialog.savefile(fn="Chart.lfdaot")
+                savelfdaot = lfdaot_fp != "Chart.lfdaot"
             
-            recorder = chartobj_phi.FrameTaskRecorder(
-                meta = chartobj_phi.FrameTaskRecorder_Meta(
-                    frame_speed = frame_speed,
-                    frame_num = len(lfdaot_tasks),
-                    size = (w, h)
-                ),
-                data = lfdaot_tasks.values()
-            )
-            
-            with open(lfdaot_fp, "w", encoding="utf-8") as f:
-                f.write(recorder.jsonify())
+            if savelfdaot:
+                recorder = chartobj_phi.FrameTaskRecorder(
+                    meta = chartobj_phi.FrameTaskRecorder_Meta(
+                        frame_speed = frame_speed,
+                        frame_num = len(lfdaot_tasks),
+                        size = (w, h)
+                    ),
+                    data = lfdaot_tasks.values()
+                )
+                
+                with open(lfdaot_fp, "w", encoding="utf-8") as f:
+                    f.write(recorder.jsonify())
                     
             if "--lfdaot-file-output-autoexit" in sys.argv:
                 root.destroy()
@@ -741,7 +744,7 @@ def PlayerStart():
             })
             for index,Task_data in enumerate(data["data"]):
                 lfdaot_tasks.update({
-                    index:chartobj_phi.FrameRenderTask(
+                    index: chartobj_phi.FrameRenderTask(
                         RenderTasks = [
                             chartobj_phi.RenderTask(
                                 func = Task_function_mapping[render_task_data["func_name"]],
