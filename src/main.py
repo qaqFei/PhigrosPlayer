@@ -408,6 +408,8 @@ def Load_Resource():
                 name = f"lineTexture_{chart_obj.judgeLineList.index(line)}"
                 root.reg_res(mp4data, f"{name}.mp4")
                 root.wait_jspromise(f"loadvideo(\"{root.get_resource_path(f"{name}.mp4")}\", '{name}_img');")
+            
+            line.textureSize = chart_res[line.Texture][1]
     
     with open("./resources/font.ttf", "rb") as f:
         root.reg_res(f.read(),"PhigrosFont.ttf")
@@ -922,7 +924,7 @@ def updateCoreConfig():
         globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half, audio_length = audio_length,
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),
-        chart_res = chart_res, chart_image = chart_image,
+        chart_image = chart_image,
         clickeffect_randomblock = clickeffect_randomblock,
         clickeffect_randomblock_roundn = clickeffect_randomblock_roundn,
         LoadSuccess = LoadSuccess, cksmanager = cksmanager,

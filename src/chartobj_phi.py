@@ -88,7 +88,7 @@ class Note:
     
     def __post_init__(self):
         self.id = tool_funcs.Get_A_New_NoteId()
-        self.effect_random_blocks = tool_funcs.get_effect_random_blocks()
+        self.effect_random_blocks = tool_funcs.newRandomBlocks()
     
     def __eq__(self, oth: typing.Any):
         if not isinstance(oth, Note):
@@ -113,7 +113,7 @@ class Note:
         self.effect_times = []
         self.effect_times.append((
             self.sec,
-            tool_funcs.get_effect_random_blocks(),
+            tool_funcs.newRandomBlocks(),
             self.getNoteClickPos(self.time)
         ))
         
@@ -125,7 +125,7 @@ class Note:
                 if st >= self.hold_length_sec: break
                 self.effect_times.append((
                     self.sec + st,
-                    tool_funcs.get_effect_random_blocks(),
+                    tool_funcs.newRandomBlocks(),
                     self.getNoteClickPos((self.sec + st) / self.master.T)
                 ))
         

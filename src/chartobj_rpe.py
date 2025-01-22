@@ -18,7 +18,7 @@ def _init_events(es: list[LineEvent]):
                 aes.append(LineEvent(e.endTime, ne.startTime, e.end, e.end, 1, isfill=True))
     es.extend(aes)
     es.sort(key = lambda x: x.startTime.value)
-    if es: es.append(LineEvent(es[-1].endTime, Beat(31250000, 0, 1), es[-1].end, es[-1].end, 1, isfill=True))
+    if es: es.append(LineEvent(es[-1].endTime, Beat(const.INFBEAT, 0, 1), es[-1].end, es[-1].end, 1, isfill=True))
 
 def geteasing_func(t: int):
     try:
@@ -54,23 +54,23 @@ def split_different_speednotes(notes: list[Note]) -> list[list[Note]]:
         
 @dataclass
 class Beat:
-    var1: int
-    var2: int
-    var3: int
+    v1: int
+    v2: int
+    v3: int
     
     secvar: float|None = None # only speed events
     
     def __post_init__(self):
-        self.value = self.var1 + (self.var2 / self.var3)
+        self.value = self.v1 + (self.v2 / self.v3)
         self._hash = hash(self.value)
     
     def __hash__(self) -> int:
         return self._hash
     
     def __repr__(self):
-        return f"{self.var1} + {self.var2} / {self.var3} = {self.value}"
+        return f"{self.v1} + {self.v2} / {self.v3} = {self.value}"
     
-    def __str__(self): return self.__repr__()
+    __str__ = __repr__
     
 @dataclass
 class Note:
@@ -87,6 +87,8 @@ class Note:
     alpha: int
     hitsound: str|None
     
+    masterLine: JudgeLine|None = None
+    master: Rpe_Chart|None = None
     clicked: bool = False
     morebets: bool = False
     floorPosition: float = 0.0
@@ -95,6 +97,7 @@ class Note:
     master_index: int|None = None
     nowpos: tuple[float, float] = (-1.0, -1.0)
     nowrotate: float = 0.0
+    rotate_add: float = 0.0
     
     state: int = const.NOTE_STATE.MISS
     player_clicked: bool = False
@@ -108,7 +111,7 @@ class Note:
     player_holdjudged: bool = False
     player_holdclickstate: int = const.NOTE_STATE.MISS
     player_holdjudged_tomanager: bool = False
-    player_holdjudge_tomanager_time: float = float("nan") # init at note._init function
+    player_holdjudge_tomanager_time: float = float("nan")
     player_judge_safe_used: bool = False
     player_bad_posandrotate: tuple[tuple[float, float], float]|None = None
     
@@ -122,9 +125,9 @@ class Note:
         self.draworder = const.NOTE_RORDER_MAP[self.phitype]
         self.above = self.above == 1
     
-    def init(self, master: Rpe_Chart, avgBpm: float):
-        self.secst = master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
-        self.secet = master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
+    def init(self, avgBpm: float):
+        self.secst = self.master.beat2sec(self.startTime.value, self.masterLine.bpmfactor)
+        self.secet = self.master.beat2sec(self.endTime.value, self.masterLine.bpmfactor)
         self.player_holdjudge_tomanager_time = max(self.secst, self.secet - 0.2)
         
         self.floorPosition = self.masterLine.GetFloorPositionByTime(self.secst)
@@ -133,24 +136,24 @@ class Note:
         self.effect_times = []
         self.effect_times.append((
             self.secst,
-            tool_funcs.get_effect_random_blocks(),
-            self.getNoteClickPos(self.startTime.value, master, self.masterLine)
+            tool_funcs.newRandomBlocks(),
+            self.getNoteClickPos(self.startTime.value)
         ))
         
         if self.ishold:
             bt = 1 / avgBpm * 30
-            st = 0.0
-            while True:
-                st += bt
-                if st >= self.secet - self.secst: break
+            t = self.secst + bt
+            while t <= self.secet:
                 self.effect_times.append((
-                    self.secst + st,
-                    tool_funcs.get_effect_random_blocks(),
-                    self.getNoteClickPos(master.sec2beat(self.secst + st, self.masterLine.bpmfactor), master, self.masterLine)
+                    t,
+                    tool_funcs.newRandomBlocks(),
+                    self.getNoteClickPos(self.master.sec2beat(t, self.masterLine.bpmfactor))
                 ))
+                t += bt
                 
         self.player_effect_times = self.effect_times.copy()
         
+        self.rotate_add = 0 if self.above else 180
         dub_text = "_dub" if self.morebets else ""
         if not self.ishold:
             self.img_keyname = f"{self.type_string}{dub_text}"
@@ -165,11 +168,11 @@ class Note:
             self.img_end_keyname = f"{self.type_string}_End{dub_text}"
             self.imgname_end = f"Note_{self.img_end_keyname}"
         
-    def getNoteClickPos(self, time: float, master: Rpe_Chart, line: JudgeLine) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
-        linePos = tool_funcs.conrpepos(*line.GetPos(time, master))
+    def getNoteClickPos(self, time: float) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
+        linePos = tool_funcs.conrpepos(*self.masterLine.GetPos(time))
         lineRotate = sum([
-            line.GetEventValue(time, layer.rotateEvents, 0.0)
-            for layer in line.eventLayers
+            self.masterLine.getEventValue(time, layer.rotateEvents)
+            for layer in self.masterLine.eventLayers
         ])
         
         cached: bool = False
@@ -339,11 +342,21 @@ class JudgeLine:
     
     controlEvents: ControlEvents
     
+    master: Rpe_Chart|None = None
     playingFloorPosition: float = 0.0
+    textureSize: tuple[int|float, int|float] = (0.0, 0.0)
     effectNotes: list[Note]|None = None
     renderNotes: list[list[Note]]|None = None
     
-    def GetEventValue(self, t: float, es: list[LineEvent], default):
+    def __post_init__(self):
+        for note in self.notes:
+            note.masterLine = self
+    
+    def setChartMaster(self):
+        for note in self.notes:
+            note.master = self.master
+    
+    def getEventValue(self, t: float, es: list[LineEvent], default: float|int|str|tuple[float] = 0.0):
         if not es: return default
         
         e = findevent(es, t)
@@ -363,19 +376,19 @@ class JudgeLine:
             b = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], e.easingFunc)
             return (r, g, b)
     
-    def GetPos(self, t: float, master: Rpe_Chart) -> list[float, float]:
-        linePos = [
-            sum(self.GetEventValue(t, layer.moveXEvents, 0.0) for layer in self.eventLayers),
-            sum(self.GetEventValue(t, layer.moveYEvents, 0.0) for layer in self.eventLayers)
-        ]
+    def GetPos(self, t: float) -> tuple[float, float]:
+        linePos = (
+            sum(self.getEventValue(t, layer.moveXEvents) for layer in self.eventLayers),
+            sum(self.getEventValue(t, layer.moveYEvents) for layer in self.eventLayers)
+        )
             
         if self.father != -1:
             try:
-                sec = master.beat2sec(t, self.bpmfactor)
+                sec = self.master.beat2sec(t, self.bpmfactor)
                 
-                fatherBeat = master.sec2beat(sec, self.father.bpmfactor)
-                fatherPos = self.father.GetPos(fatherBeat, master)
-                fatherRotate = sum(self.father.GetEventValue(fatherBeat, layer.rotateEvents, 0.0) for layer in self.father.eventLayers)
+                fatherBeat = self.master.sec2beat(sec, self.father.bpmfactor)
+                fatherPos = self.father.GetPos(fatherBeat)
+                fatherRotate = sum(self.father.getEventValue(fatherBeat, layer.rotateEvents) for layer in self.father.eventLayers)
                 
                 if fatherRotate == 0.0:
                     return list(map(lambda v1, v2: v1 + v2, fatherPos, linePos))
@@ -392,39 +405,30 @@ class JudgeLine:
             
         return linePos
 
-    def GetState(self, t: float, defaultColor: tuple[int, int, int], master: Rpe_Chart) -> tuple[tuple[float, float], float, float, tuple[int, int, int], float, float, str|None]:
+    def GetState(self, t: float, defaultColor: tuple[int, int, int]) -> tuple[tuple[float, float], float, float, tuple[float, float, float], float, float, str|None]:
         "linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText"
         
-        lineAlpha = sum(self.GetEventValue(t, layer.alphaEvents, 0.0) for layer in self.eventLayers) if t >= 0.0 or self.attachUI is not None else -255
-        lineRotate = sum(self.GetEventValue(t, layer.rotateEvents, 0.0) for layer in self.eventLayers)
-        lineScaleX = self.GetEventValue(t, self.extended.scaleXEvents, 1.0) if lineAlpha > 0.0 and self.extended else 1.0
-        lineScaleY = self.GetEventValue(t, self.extended.scaleYEvents, 1.0) if lineAlpha > 0.0 and self.extended else 1.0
-        lineText = self.GetEventValue(t, self.extended.textEvents, None) if self.extended else None
+        lineAlpha = sum(self.getEventValue(t, layer.alphaEvents) for layer in self.eventLayers) if t >= 0.0 or self.attachUI is not None else -255
+        lineRotate = sum(self.getEventValue(t, layer.rotateEvents) for layer in self.eventLayers)
+        lineScaleX = self.getEventValue(t, self.extended.scaleXEvents, 1.0) if lineAlpha > 0.0 and self.extended else 1.0
+        lineScaleY = self.getEventValue(t, self.extended.scaleYEvents, 1.0) if lineAlpha > 0.0 and self.extended else 1.0
+        lineText = self.getEventValue(t, self.extended.textEvents, None) if lineAlpha > 0.0 and self.extended else None
         lineColor = (
             (255, 255, 255)
             if (self.extended and self.extended.textEvents) or self.attachUI else
             defaultColor
         )
-        linePos = self.GetPos(t, master)
+        linePos = self.GetPos(t)
         
         if lineAlpha > 0.0 and self.extended:
-            lineColor = self.GetEventValue(t, self.extended.colorEvents, lineColor)
+            lineColor = self.getEventValue(t, self.extended.colorEvents, lineColor)
         
         return tool_funcs.conrpepos(*linePos), lineAlpha / 255, lineRotate, lineColor, lineScaleX, lineScaleY, lineText
     
     def GetEventRawFloorPosition(self, e: LineEvent, l: float, r: float) -> float:
         st, et = e.startTime.secvar, e.endTime.secvar
-        
-        if l <= st <= r <= et:
-            v1, v2 = st, r
-        elif st <= l <= et <= r:
-            v1, v2 = l, et
-        elif l <= st <= et <= r:
-            v1, v2 = st, et
-        elif st <= l <= r <= et:
-            v1, v2 = l, r
-        else:
-            return 0.0
+        if r < st or l > et: return 0.0
+        v1, v2 = max(st, l), min(et, r)
         
         if e.start == e.end:
             return (v2 - v1) * e.start
@@ -460,7 +464,7 @@ class JudgeLine:
     def __hash__(self) -> int:
         return id(self)
     
-    def __eq__(self, oth) -> bool:
+    def __eq__(self, oth: typing.Any) -> bool:
         return self is oth
 
 class PPLMRPE_Proxy(tool_funcs.PPLM_ProxyBase):
@@ -551,6 +555,9 @@ class Rpe_Chart:
         morebets_note([note for line in self.judgeLineList for note in line.notes])
         
         for line in self.judgeLineList:
+            line.master = self
+            line.setChartMaster()
+            
             if line.father != -1:
                 line.father = self.judgeLineList[line.father]
                 
@@ -565,7 +572,7 @@ class Rpe_Chart:
             for i, note in enumerate(line.notes):
                 note.master_index = i
                 note.masterLine = line
-                note.init(self, avgBpm)
+                note.init(avgBpm)
                 if not note.isFake:
                     self.combotimes.append(note.secst if not note.ishold else max(note.secst, note.secet - 0.2))
             
@@ -695,7 +702,7 @@ class Extra:
                 values = {}
                 
                 for k, v in e.vars.items():
-                    ev = JudgeLine.GetEventValue(None, beat, v, v[0].start if v else None)
+                    ev = JudgeLine.getEventValue(None, beat, v, v[0].start if v else None)
                     if ev is not None: values.update({k: ev})
                     
                 if e.shader in const.EXTRA_DEFAULTS.keys():

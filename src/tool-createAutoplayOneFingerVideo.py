@@ -59,7 +59,7 @@ elif isinstance(chartObj, chartobj_rpe.Rpe_Chart): # eq else
         for note in line.notes:
             moveDatas.append({
                 "time": note.secst,
-                "pos": note.getNoteClickPos(note.startTime.value, chartObj, line)
+                "pos": note.getNoteClickPos(note.startTime.value, chartObj)
             })
             
             if note.phitype == const.NOTE_TYPE.HOLD:
@@ -69,7 +69,7 @@ elif isinstance(chartObj, chartobj_rpe.Rpe_Chart): # eq else
                     ht += dw
                     moveDatas.append({
                         "time": chartObj.beat2sec(ht, line.bpmfactor),
-                        "pos": note.getNoteClickPos(ht, chartObj, line)
+                        "pos": note.getNoteClickPos(ht, chartObj)
                     })
             
             if note.phitype == const.NOTE_TYPE.FLICK:

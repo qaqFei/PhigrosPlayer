@@ -31,7 +31,7 @@ def Get_A_New_NoteId():
     note_id += 1
     return note_id
 
-def get_effect_random_blocks() -> tuple[tuple[float, float], ...]:
+def newRandomBlocks() -> tuple[tuple[float, float]]:
     return tuple(
         (random.uniform(0.0, 360.0), random.uniform(-0.15, 0.3))
         for _ in range(random_block_num)
@@ -390,10 +390,7 @@ class PhigrosPlayManager:
         elif 1000000 <= score:
             return "AP"
         
-        elif score < 0:
-            return "F"
-        else:
-            return "AP"
+        return "F" if score < 0 else "AP"
         
 class PPLM_ProxyBase:
     def __init__(self, cobj: typing.Any) -> None: ...

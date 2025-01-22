@@ -45,7 +45,6 @@ class PhiCoreConfig:
     audio_length: float
     raw_audio_length: float
     show_start_time: float
-    chart_res: dict[str, tuple[Image.Image, tuple[int, int]]]
     chart_image: Image.Image
     clickeffect_randomblock: bool
     clickeffect_randomblock_roundn: int
@@ -92,7 +91,7 @@ def CoreConfigure(config: PhiCoreConfig):
     global globalNoteWidth
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
-    global chart_res, chart_image
+    global chart_image
     global clickeffect_randomblock
     global clickeffect_randomblock_roundn, LoadSuccess
     global cksmanager
@@ -116,7 +115,6 @@ def CoreConfigure(config: PhiCoreConfig):
     audio_length = config.audio_length
     raw_audio_length = config.raw_audio_length
     show_start_time = config.show_start_time
-    chart_res = config.chart_res
     chart_image = config.chart_image
     clickeffect_randomblock = config.clickeffect_randomblock
     clickeffect_randomblock_roundn = config.clickeffect_randomblock_roundn
@@ -201,7 +199,7 @@ def processClickEffectBase(
     rblocks_roundn: float = 0.0,
     caller: typing.Callable[[typing.Callable, typing.Any], typing.Any] = lambda f, *args, **kwargs: f(*args, **kwargs)
 ):
-    if rblocks is None: rblocks = tool_funcs.get_effect_random_blocks()
+    if rblocks is None: rblocks = tool_funcs.newRandomBlocks()
     
     color = (
         phira_resource_pack.globalPack.perfectRGB
@@ -914,13 +912,12 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     if noautoplay:
         pplm.pc_update(now_t)
     
+    nowLineColor = phira_resource_pack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()
+    normalBeatTime = chart_obj.sec2beat(now_t, 1.0)
+    
     for line_index, line in enumerate(chart_obj.judgeLineList):
-        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(
-            chart_obj.sec2beat(now_t, line.bpmfactor),
-            phira_resource_pack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor(),
-            chart_obj
-        )
-        beatTime = chart_obj.sec2beat(now_t, line.bpmfactor)
+        beatTime = chart_obj.sec2beat(now_t, line.bpmfactor) if line.bpmfactor != 1.0 else normalBeatTime
+        linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(beatTime, nowLineColor)
         linePos = (linePos[0] * w, linePos[1] * h)
         lineDrawPos = (
             *tool_funcs.rotate_point(*linePos, lineRotate, w * 4000 / const.RPE_WIDTH * lineScaleX / 2),
@@ -930,85 +927,84 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         lineWebColor = f"rgba{lineColor + (lineAlpha, )}"
         lineWidth = h * const.LINEWIDTH.RPE * lineScaleY
         
-        if line.Texture != "line.png" and lineAlpha > 0.0:
-            _, texture_size = chart_res[line.Texture]
-            texture_width, texture_height = tool_funcs.conimgsize(*texture_size, w, h)
-            texture_width *= lineScaleX; texture_height *= lineScaleY
-            if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
-                texturename = root.get_img_jsvarname(f"lineTexture_{line_index}")
-                if line.isGif:
+        if line.attachUI is not None and line.attachUI in ("combonumber", "combo", "score", "name", "level", "pause"):
+            attachUIData.update({
+                f"{line.attachUI}UI_dx": linePos[0] - w / 2,
+                f"{line.attachUI}UI_dy": linePos[1] - h / 2,
+                f"{line.attachUI}UI_scaleX": lineScaleX,
+                f"{line.attachUI}UI_scaleY": lineScaleY,
+                f"{line.attachUI}UI_color": lineWebColor,
+                f"{line.attachUI}UI_rotate": lineRotate
+            })
+        elif lineAlpha > 0.0:
+            if line.Texture != "line.png":
+                texture_width, texture_height = tool_funcs.conimgsize(*line.textureSize, w, h)
+                texture_width *= lineScaleX; texture_height *= lineScaleY
+                if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
+                    texturename = root.get_img_jsvarname(f"lineTexture_{line_index}")
+                    if line.isGif:
+                        Task(
+                            root.run_js_code,
+                            f"{texturename}.currentTime = {now_t} % {texturename}.duration;",
+                            add_code_array = True
+                        )
                     Task(
                         root.run_js_code,
-                        f"{texturename}.currentTime = {now_t} % {texturename}.duration;",
-                        add_code_array = True
+                        f"{f"setColorMatrix{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}\
+                        ctx.drawRotateImage(\
+                            {texturename},\
+                            {linePos[0]},\
+                            {linePos[1]},\
+                            {texture_width},\
+                            {texture_height},\
+                            {lineRotate},\
+                            {lineAlpha}\
+                        ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",
+                        add_code_array = True,
+                        order = const.CHART_RENDER_ORDERS.LINE
                     )
+            elif lineText is not None:
                 Task(
                     root.run_js_code,
-                    f"{f"setColorMatrix{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}\
-                    ctx.drawRotateImage(\
-                        {texturename},\
+                    f"ctx.drawRPEMultipleRotateText(\
+                        '{root.string2cstring(lineText)}',\
                         {linePos[0]},\
                         {linePos[1]},\
-                        {texture_width},\
-                        {texture_height},\
                         {lineRotate},\
-                        {lineAlpha}\
-                    ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",
+                        {(w + h) / 75 * 1.35},\
+                        '{lineWebColor}',\
+                        {lineScaleX},\
+                        {lineScaleY}\
+                    );",
                     add_code_array = True,
                     order = const.CHART_RENDER_ORDERS.LINE
                 )
-        elif lineText is not None and lineAlpha > 0.0:
-            Task(
-                root.run_js_code,
-                f"ctx.drawRPEMultipleRotateText(\
-                    '{root.string2cstring(lineText)}',\
-                    {linePos[0]},\
-                    {linePos[1]},\
-                    {lineRotate},\
-                    {(w + h) / 75 * 1.35},\
-                    '{lineWebColor}',\
-                    {lineScaleX},\
-                    {lineScaleY}\
-                );",
-                add_code_array = True,
-                order = const.CHART_RENDER_ORDERS.LINE
-            )
-        elif line.attachUI is not None:
-            if line.attachUI in ("combonumber", "combo", "score", "name", "level", "pause"):
-                attachUIData.update({
-                    f"{line.attachUI}UI_dx": linePos[0] - w / 2,
-                    f"{line.attachUI}UI_dy": linePos[1] - h / 2,
-                    f"{line.attachUI}UI_scaleX": lineScaleX,
-                    f"{line.attachUI}UI_scaleY": lineScaleY,
-                    f"{line.attachUI}UI_color": lineWebColor,
-                    f"{line.attachUI}UI_rotate": lineRotate
-                })
-        elif lineAlpha > 0.0 and tool_funcs.lineInScreen(w, h, lineDrawPos):
-            Task(
-                root.run_js_code,
-                f"ctx.drawLineEx(\
-                    {",".join(map(str, lineDrawPos))},\
-                    {lineWidth},\
-                    '{lineWebColor}'\
-                );",
-                add_code_array = True,
-                order = const.CHART_RENDER_ORDERS.LINE
-            )
+            elif tool_funcs.lineInScreen(w, h, lineDrawPos):
+                Task(
+                    root.run_js_code,
+                    f"ctx.drawLineEx(\
+                        {",".join(map(str, lineDrawPos))},\
+                        {lineWidth},\
+                        '{lineWebColor}'\
+                    );",
+                    add_code_array = True,
+                    order = const.CHART_RENDER_ORDERS.LINE
+                )
             
-        if debug and line.attachUI is None and tool_funcs.pointInScreen(linePos, w, h):
-            drawDebugText(f"{line_index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
-            
-            Task(
-                root.run_js_code,
-                f"ctx.fillRectEx(\
-                    {linePos[0] - (w + h) / 250},\
-                    {linePos[1] - (w + h) / 250},\
-                    {(w + h) / 250 * 2},\
-                    {(w + h) / 250 * 2},\
-                    'rgb(238, 130, 238)'\
-                );",
-                add_code_array = True
-            )
+            if debug and tool_funcs.pointInScreen(linePos, w, h):
+                drawDebugText(f"{line_index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
+                
+                Task(
+                    root.run_js_code,
+                    f"ctx.fillRectEx(\
+                        {linePos[0] - (w + h) / 250},\
+                        {linePos[1] - (w + h) / 250},\
+                        {(w + h) / 250 * 2},\
+                        {(w + h) / 250 * 2},\
+                        'rgb(238, 130, 238)'\
+                    );",
+                    add_code_array = True
+                )
         
         line.playingFloorPosition = line.GetFloorPositionByTime(now_t)
         
@@ -1038,19 +1034,15 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 if line.isCover and noteFloorPosition < const.FLOAT_LESSZERO_MAGIC and not note.clicked and not note.ishold:
                     continue
                 
-                noteAtJudgeLinePos = tool_funcs.rotate_point(
-                    *linePos, lineRotate, note.positionX2 * w
-                )
-                lineToNoteRotate = (-90 if note.above else 90) + lineRotate
-                x, y = tool_funcs.rotate_point(
-                    *noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition
-                )
+                noteAtLinePos = tool_funcs.rotate_point(*linePos, lineRotate, note.positionX2 * w)
+                lineToNoteRotate = lineRotate + (-90 if note.above else 90)
+                x, y = tool_funcs.rotate_point(*noteAtLinePos, lineToNoteRotate, noteFloorPosition)
                 
                 if enable_controls:
                     rpex = tool_funcs.aconrpepos(x, y)[0]
                     ax, px, sx, yx = line.controlEvents.gtvalue(rpex)
                     noteFloorPosition *= yx
-                    x, y = tool_funcs.rotate_point(*noteAtJudgeLinePos, lineToNoteRotate, noteFloorPosition)
+                    x, y = tool_funcs.rotate_point(*noteAtLinePos, lineToNoteRotate, noteFloorPosition)
                     rpex, rpey = tool_funcs.aconrpepos(x, y)
                     noteAlpha = note.float_alpha * ax
                     rpex *= px
@@ -1064,8 +1056,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 note.nowrotate = lineToNoteRotate + 90
                     
                 noteImg = Resource["Notes"][note.img_keyname]
-                fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
-                noteWidth = globalNoteWidth * fix_scale
+                noteWidth = globalNoteWidth * (const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)
                 noteHadHead = not (note.ishold and note.clicked) or phira_resource_pack.globalPack.holdKeepHead
                     
                 if note.ishold:
@@ -1078,7 +1069,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         continue
                     
                     headpos, bodypos, endpos, holdrect = getNoteDrawPosition(
-                        *(noteAtJudgeLinePos if note.clicked else (x, y)),
+                        *(noteAtLinePos if note.clicked else (x, y)),
                         noteWidth, bodyLength,
                         noteImg, noteEndImg,
                         lineToNoteRotate,
@@ -1089,7 +1080,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     plp_lineLength = w * 4000 / const.RPE_WIDTH
                     
                     nlOutOfScreen_nohold = tool_funcs.noteLineOutOfScreen(
-                        x, y, noteAtJudgeLinePos,
+                        x, y, noteAtLinePos,
                         noteFloorPosition,
                         lineRotate, plp_lineLength,
                         lineToNoteRotate,
@@ -1097,7 +1088,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     )
                     
                     nlOutOfScreen_hold = True if not note.ishold else tool_funcs.noteLineOutOfScreen(
-                        x, y, noteAtJudgeLinePos,
+                        x, y, noteAtLinePos,
                         holdEndFloorPosition, lineRotate, plp_lineLength,
                         lineToNoteRotate, w, h, note_max_size_half
                     )
@@ -1109,10 +1100,10 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     tool_funcs.noteCanRender(w, h, note_max_size_half, x, y)
                     if not note.ishold
                     else tool_funcs.noteCanRender(w, h, -1, x, y, holdrect)
-                ) and not negativeAlpha and now_t >= 0.0
+                ) and not negativeAlpha and now_t >= 0.0 and note.secst - now_t <= note.visibleTime
                 
-                if noteCanRender and abs(now_t - note.secst) <= note.visibleTime:
-                    noteRotate = lineRotate + (0 if note.above else 180)
+                if noteCanRender:
+                    noteRotate = lineRotate + note.rotate_add
                     noteHeight = noteWidth / noteImg.width * noteImg.height
                     
                     if noteHadHead:
@@ -1133,7 +1124,6 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         
                     if note.ishold:
                         noteEndHeight = noteWidth / noteEndImg.width * noteEndImg.height
-                        
                         missAlpha = 0.5 if noautoplay and note.player_missed else 1.0
                         
                         Task(
@@ -1192,42 +1182,43 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     effect_time *= speed
     miss_effect_time *= speed
     bad_effect_time *= speed
-        
-    def process_miss(note: chartobj_rpe.Note):
-        t = chart_obj.sec2beat(now_t, note.masterLine.bpmfactor)
-        p = (now_t - note.secst) / miss_effect_time
-        linePos = tool_funcs.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
-        lineRotate = sum([line.GetEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
-        pos = tool_funcs.rotate_point(
-            *linePos,
-            lineRotate,
-            note.positionX2 * w
-        )
-        floorp = note.floorPosition - line.playingFloorPosition
-        x, y = tool_funcs.rotate_point(
-            *pos,
-            (-90 if note.above else 90) + lineRotate,
-            floorp * h
-        )
-        img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
-        noteImg = Resource["Notes"][img_keyname]
-        imgname = f"Note_{img_keyname}"
-        fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
-        noteWidth = globalNoteWidth * fix_scale
-        noteHeight = noteWidth / noteImg.width * noteImg.height
-        Task(
-            root.run_js_code,
-            f"ctx.drawRotateImage(\
-                {root.get_img_jsvarname(imgname)},\
-                {x},\
-                {y},\
-                {noteWidth * note.width},\
-                {noteHeight},\
-                {lineRotate},\
-                {note.float_alpha * (1 - p ** 0.5)}\
-            );",
-            add_code_array = True
-        )
+    
+    if noautoplay:
+        def process_miss(note: chartobj_rpe.Note):
+            t = chart_obj.sec2beat(now_t, note.masterLine.bpmfactor)
+            p = (now_t - note.secst) / miss_effect_time
+            linePos = tool_funcs.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
+            lineRotate = sum([line.getEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
+            pos = tool_funcs.rotate_point(
+                *linePos,
+                lineRotate,
+                note.positionX2 * w
+            )
+            floorp = note.floorPosition - line.playingFloorPosition
+            x, y = tool_funcs.rotate_point(
+                *pos,
+                (-90 if note.above else 90) + lineRotate,
+                floorp * h
+            )
+            img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
+            noteImg = Resource["Notes"][img_keyname]
+            imgname = f"Note_{img_keyname}"
+            fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
+            noteWidth = globalNoteWidth * fix_scale
+            noteHeight = noteWidth / noteImg.width * noteImg.height
+            Task(
+                root.run_js_code,
+                f"ctx.drawRotateImage(\
+                    {root.get_img_jsvarname(imgname)},\
+                    {x},\
+                    {y},\
+                    {noteWidth * note.width},\
+                    {noteHeight},\
+                    {lineRotate},\
+                    {note.float_alpha * (1 - p ** 0.5)}\
+                );",
+                add_code_array = True
+            )
     
     if noautoplay:
         for pplmckfi in pplm.clickeffects.copy():
@@ -1697,7 +1688,7 @@ def ChartStart_Animation(fcb: typing.Callable[[], typing.Any] = lambda: None):
                 linePos,
                 lineAlpha,
                 lineRotate
-            ) = line.GetState(0.0, (0, 0, 0), chart_obj)[:3]
+            ) = line.GetState(0.0, (0, 0, 0))[:3]
             
             if (
                 abs(linePos[1] - 0.5) <= 0.001 * h

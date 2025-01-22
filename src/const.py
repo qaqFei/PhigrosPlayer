@@ -95,6 +95,7 @@ PGR_UH = 0.6
 PHIGROS_TAPTAP_CLIENT_ID = "rAK3FfdieFob2Nn8Am"
 FLOAT_LESSZERO_MAGIC = -1 / 1024
 CSOUND_MANAGER_THREADNUM = 1
+INFBEAT = 1e9
 ClickEffectType = list[tuple[float, tuple[tuple[float, ...]], typing.Callable[[float|int, float|int], tuple[float, float]]]]
 BadEffectType = list[tuple[float, float, tuple[float, float]]]
 MissEffectType = list[tuple[float, typing.Any]] # emm, typing.Any is a note typing.Any
