@@ -531,7 +531,8 @@ def drawDebugText(text: str, x: float, y: float, rotate: float, color: str, Task
             {",".join(map(str, tool_funcs.rotate_point(x, y, rotate, (w + h) / 75)))},\
             {90 + rotate}, {(w + h) / 85 / 0.75}, '{color}', 1.0, 1.0\
         );",
-        add_code_array = True
+        add_code_array = True,
+        order = const.CHART_RENDER_ORDERS.DEBUG
     )
 
 def rrmStart(Task: chartobj_phi.FrameRenderTask):
@@ -620,7 +621,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         {(w + h) / 250 * 2},\
                         'rgb(238, 130, 238)'\
                     );",
-                    add_code_array = True
+                    add_code_array = True,
+                    order = const.CHART_RENDER_ORDERS.DEBUG
                 )
         
         for notesChildren in line.renderNotes.copy():
@@ -788,7 +790,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                                 {(w + h) / 250 * 2},\
                                 'rgb(0, 255, 0)'\
                             );",
-                            add_code_array = True
+                            add_code_array = True,
+                            order = const.CHART_RENDER_ORDERS.DEBUG
                         )
 
             if not notesChildren:
@@ -1006,7 +1009,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         {(w + h) / 250 * 2},\
                         'rgb(238, 130, 238)'\
                     );",
-                    add_code_array = True
+                    add_code_array = True,
+                    order = const.CHART_RENDER_ORDERS.DEBUG
                 )
         
         line.playingFloorPosition = line.GetFloorPositionByTime(now_t)
@@ -1170,7 +1174,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                                 {(w + h) / 250 * 2},\
                                 'rgb(0, 255, 0)'\
                             );",
-                            add_code_array = True
+                            add_code_array = True,
+                            order = const.CHART_RENDER_ORDERS.DEBUG
                         )
             
             if not notesChildren:

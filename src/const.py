@@ -52,6 +52,8 @@ class CHART_RENDER_ORDERS:
     FLICK = 2
     DRAG = 2
     TAP = 2
+    
+    DEBUG = 3
 
 class LINEWIDTH:
     PHI = 0.0075
