@@ -343,6 +343,7 @@ class JudgeLine:
     controlEvents: ControlEvents
     
     master: Rpe_Chart|None = None
+    index: int = -1
     playingFloorPosition: float = 0.0
     textureSize: tuple[int|float, int|float] = (0.0, 0.0)
     effectNotes: list[Note]|None = None
@@ -355,7 +356,7 @@ class JudgeLine:
     def setChartMaster(self):
         for note in self.notes:
             note.master = self.master
-    
+        
     def getEventValue(self, t: float, es: list[LineEvent], default: float|int|str|tuple[float] = 0.0):
         if not es: return default
         
@@ -535,7 +536,6 @@ class Rpe_Chart:
     def __post_init__(self):
         self.BPMList = list(filter(lambda x: x.bpm != 0.0, self.BPMList))
         self.BPMList.sort(key=lambda x: x.startTime.value)
-        self.judgeLineList = list(filter(lambda x: x.bpmfactor != 0.0, self.judgeLineList))
         self.combotimes = []
         
         try: avgBpm = sum([e.bpm for e in self.BPMList]) / len(self.BPMList)
@@ -554,12 +554,16 @@ class Rpe_Chart:
 
         morebets_note([note for line in self.judgeLineList for note in line.notes])
         
-        for line in self.judgeLineList:
+        for lindex, line in enumerate(self.judgeLineList):
             line.master = self
+            line.index = lindex
             line.setChartMaster()
             
             if line.father != -1:
                 line.father = self.judgeLineList[line.father]
+            
+            if line.bpmfactor == 0.0:
+                line.bpmfactor = 1.0
                 
             for layer in line.eventLayers:
                 fp = 0.0
@@ -584,9 +588,9 @@ class Rpe_Chart:
             )
         
         self.note_num = len([i for line in self.judgeLineList for i in line.notes if not i.isFake])
-        self.judgeLineList.sort(key = lambda x: x.zOrder)
         self.combotimes.sort()
         self.playerNotes = sorted([i for line in self.judgeLineList for i in line.notes if not i.isFake], key = lambda x: x.secst)
+        self.sortedLines = sorted(self.judgeLineList, key=lambda x: x.zOrder)
     
     def getCombo(self, t: float):
         l, r = 0, len(self.combotimes)

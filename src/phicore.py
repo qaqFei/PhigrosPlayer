@@ -921,7 +921,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     nowLineColor = phira_resource_pack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()
     normalBeatTime = chart_obj.sec2beat(now_t, 1.0)
     
-    for line_index, line in enumerate(chart_obj.judgeLineList):
+    for line in chart_obj.sortedLines:
         beatTime = chart_obj.sec2beat(now_t, line.bpmfactor) if line.bpmfactor != 1.0 else normalBeatTime
         linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText = line.GetState(beatTime, nowLineColor)
         linePos = (linePos[0] * w, linePos[1] * h)
@@ -933,21 +933,22 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         lineWebColor = f"rgba{lineColor + (lineAlpha, )}"
         lineWidth = h * const.LINEWIDTH.RPE * lineScaleY
         
-        if line.attachUI is not None and line.attachUI in ("combonumber", "combo", "score", "name", "level", "pause"):
-            attachUIData.update({
-                f"{line.attachUI}UI_dx": linePos[0] - w / 2,
-                f"{line.attachUI}UI_dy": linePos[1] - h / 2,
-                f"{line.attachUI}UI_scaleX": lineScaleX,
-                f"{line.attachUI}UI_scaleY": lineScaleY,
-                f"{line.attachUI}UI_color": lineWebColor,
-                f"{line.attachUI}UI_rotate": lineRotate
-            })
+        if line.attachUI is not None: # has a "bar" key is not supported, but you cannot merge the 2 if !!!!!!!!
+            if line.attachUI in ("combonumber", "combo", "score", "name", "level", "pause"):
+                attachUIData.update({
+                    f"{line.attachUI}UI_dx": linePos[0] - w / 2,
+                    f"{line.attachUI}UI_dy": linePos[1] - h / 2,
+                    f"{line.attachUI}UI_scaleX": lineScaleX,
+                    f"{line.attachUI}UI_scaleY": lineScaleY,
+                    f"{line.attachUI}UI_color": lineWebColor,
+                    f"{line.attachUI}UI_rotate": lineRotate
+                })
         elif lineAlpha > 0.0:
             if line.Texture != "line.png":
                 texture_width, texture_height = tool_funcs.conimgsize(*chart_res[line.Texture][1], w, h)
                 texture_width *= lineScaleX; texture_height *= lineScaleY
                 if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
-                    texturename = root.get_img_jsvarname(f"lineTexture_{line_index}")
+                    texturename = root.get_img_jsvarname(f"lineTexture_{line.index}")
                     if line.isGif:
                         Task(
                             root.run_js_code,
@@ -998,7 +999,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 )
             
             if debug and tool_funcs.pointInScreen(linePos, w, h):
-                drawDebugText(f"{line_index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
+                drawDebugText(f"{line.index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
                 
                 Task(
                     root.run_js_code,
@@ -1163,7 +1164,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                             )
                         
                     if debug:
-                        drawDebugText(f"{line_index}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)", Task)
+                        drawDebugText(f"{line.index}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)", Task)
                         
                         Task(
                             root.run_js_code,
