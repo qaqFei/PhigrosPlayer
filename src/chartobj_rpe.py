@@ -372,10 +372,7 @@ class JudgeLine:
         elif isinstance(e.start, str):
             return tool_funcs.rpe_text_tween(e.start, e.end, tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, 0.0, 1.0, e.easingFunc), e.isfill)
         elif isinstance(e.start, list):
-            r = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[0], e.end[0], e.easingFunc)
-            g = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[1], e.end[1], e.easingFunc)
-            b = tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[2], e.end[2], e.easingFunc)
-            return (r, g, b)
+            return tuple(tool_funcs.easing_interpolation(t, e.startTime.value, e.endTime.value, e.start[i], e.end[i], e.easingFunc) for i in range(len(e.start)))
     
     def GetPos(self, t: float) -> tuple[float, float]:
         linePos = (
