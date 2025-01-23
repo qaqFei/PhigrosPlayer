@@ -33,6 +33,7 @@ import dxsound
 import phira_resource_pack
 import tempdir
 from dxsmixer import mixer
+from graplib_webview import *
 
 if not exists("./7z.exe") or not exists("./7z.dll"):
     logging.fatal("7z.exe or 7z.dll Not Found")
@@ -530,7 +531,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
     )
     
     if p != 0.0:
-        root.create_text(
+        drawText(
             chapterRect[2] - (w + h) / 50,
             chapterRect[1] + (w + h) / 90,
             item.cn_name,
@@ -541,7 +542,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             chapterRect[0] + dPower * chapterWidth + (w + h) / 125,
             chapterRect[1] + (w + h) / 90,
             item.o_name,
@@ -588,7 +589,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             playButtonRect[0] + (playButtonRect[2] - playButtonRect[0]) * 0.35,
             playButtonRect[1] + (playButtonRect[3] - playButtonRect[1]) * 0.5,
             "P L A Y",
@@ -602,7 +603,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
     dataAlpha = tool_funcs.PhigrosChapterDataAlphaValueTransfrom(p)
     
     if dataAlpha != 0.0:
-        root.create_text(
+        drawText(
             chapterRect[0] + chapterWidth * 0.075,
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
             "All",
@@ -613,7 +614,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             chapterRect[0] + chapterWidth * 0.075,
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
             f"{len(item.songs)}",
@@ -624,7 +625,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             chapterRect[0] + chapterWidth * (0.075 + 0.095),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
             "Clear",
@@ -635,7 +636,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             chapterRect[0] + chapterWidth * (0.075 + 0.095),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
             "-",
@@ -646,7 +647,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 2),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
             "Full Combo",
@@ -657,7 +658,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 2),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
             "-",
@@ -668,7 +669,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 3),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
             "Phi",
@@ -679,7 +680,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 3),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
             "-",
@@ -823,7 +824,7 @@ def showStartAnimation():
             if start_animation_clicked:
                 break
             
-        root.clear_canvas(wait_execute = True)
+        clearCanvas(wait_execute = True)
         
         root.run_js_code(
             f"ctx.drawAlphaImage(\
@@ -842,7 +843,7 @@ def showStartAnimation():
         if p > 1.0: break
         if start_animation_clicked: break
         
-        root.clear_canvas(wait_execute = True)
+        clearCanvas(wait_execute = True)
         
         root.run_js_code(
             f"ctx.drawAlphaImage(\
@@ -882,10 +883,10 @@ def showStartAnimation():
         atime = time.time() - a3_st
         
         if a3_clicked and time.time() - a3_clicked_time > 1.0:
-            root.clear_canvas() # no wait
+            clearCanvas() # no wait
             break
         
-        root.clear_canvas(wait_execute = True)
+        clearCanvas(wait_execute = True)
         
         drawBackground()
         
@@ -898,7 +899,7 @@ def showStartAnimation():
         )
         
         for i in range(50):
-            root.create_line(
+            drawLine(
                 0, h * (i / 50), w, h * (i / 50),
                 strokeStyle = "rgba(162, 206, 223, 0.03)",
                 lineWidth = 0.25, wait_execute = True
@@ -925,7 +926,7 @@ def showStartAnimation():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             w / 2,
             h * (155 / 230),
             text = "点  击  屏  幕  开  始",
@@ -941,7 +942,7 @@ def showStartAnimation():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             w / 2,
             h * 0.98,
             text = f"Version: {const.PHIGROS_VERSION}",
@@ -1194,7 +1195,7 @@ def mainRender():
     eventManager.regClickEvent(events[-1])
     
     while True:
-        root.clear_canvas(wait_execute = True)
+        clearCanvas(wait_execute = True)
         
         drawBackground()
         
@@ -1365,7 +1366,7 @@ def mainRender():
             )
         elif tonextUI:
             inMainUI = False
-            root.clear_canvas(wait_execute = True)
+            clearCanvas(wait_execute = True)
             root.run_js_wait_code()
             Thread(target=nextUI, daemon=True).start()
             break
@@ -1391,7 +1392,7 @@ def renderPhigrosWidgets(
         x, y = sx - dx_f(sy + (dy + widgets_height)), sy + (dy + widgets_height)
         
         if isinstance(widget, phigame_obj.PhiLabel):
-            _temp = lambda text, align: root.create_text(
+            _temp = lambda text, align: drawText(
                 x + (max_width if align == "right" else 0.0), y, text, 
                 font = f"{widget.fontsize}px PhigrosFont",
                 textAlign = align,
@@ -1504,7 +1505,7 @@ def renderPhigrosWidgets(
             
             widgets_height += widget.tonext
         elif isinstance(widget, phigame_obj.PhiCheckbox):
-            root.create_text(
+            drawText(
                 x, y, widget.text,
                 font = f"{widget.fontsize}px PhigrosFont",
                 textAlign = "left",
@@ -1575,7 +1576,7 @@ def renderPhigrosWidgets(
                 add_code_array = True
             )
             
-            root.create_text(
+            drawText(
                 buttonRect[0] + (buttonRect[2] - buttonRect[0]) / 2, buttonRect[1] + (buttonRect[3] - buttonRect[1]) / 2,
                 widget.text,
                 font = f"{widget.fontsize}px PhigrosFont",
@@ -2027,7 +2028,7 @@ def settingRender():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.1765625, h * 0.2,
             "玩家信息",
             font = f"{(w + h) / 75}px PhigrosFont",
@@ -2152,7 +2153,7 @@ def settingRender():
                 add_code_array = True
             )
         
-        root.create_text(
+        drawText(
             w * 0.234375, h * (340 / 1080),
             getUserData("userdata-userName"),
             font = f"{userName_FontSize}px PhigrosFont",
@@ -2177,7 +2178,7 @@ def settingRender():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             (rankingScoreRect[0] + rankingScoreRect[2]) / 2, (rankingScoreRect[1] + rankingScoreRect[3]) / 2,
             f"{getUserData("userdata-rankingScore"):.2f}",
             font = f"{(rankingScoreRect[3] - rankingScoreRect[1]) * 0.8}px PhigrosFont",
@@ -2212,7 +2213,7 @@ def settingRender():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             (editButtonRect[0] + editButtonRect[2]) / 2, (editButtonRect[1] + editButtonRect[3]) / 2,
             "编辑" if not editingUserData else "完成",
             font = f"{(editButtonRect[3] - editButtonRect[1]) * 0.7}px PhigrosFont",
@@ -2222,7 +2223,7 @@ def settingRender():
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.46875, h * (805 / 1080),
             "登录以使用云存档功能",
             font = f"{(w + h) / 90}px PhigrosFont",
@@ -2271,7 +2272,7 @@ def settingRender():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             (chartDataDifRect[0] + chartDataDifRect[2]) / 2, (chartDataDifRect[1] + chartDataDifRect[3]) / 2,
             "IN",
             font = f"{(chartDataDifRect[3] - chartDataDifRect[1]) * 0.55}px PhigrosFont",
@@ -2331,7 +2332,7 @@ def settingRender():
                 add_code_array = True
             )
             
-            root.create_text(
+            drawText(
                 x, h * (648 / 1080),
                 text,
                 font = f"{(w + h) / 180}px PhigrosFont",
@@ -2409,7 +2410,7 @@ def settingRender():
             
             textX = chooseDialogLeftX + settingShadowDWidth * (h - top) / h + w * 0.015625
             textY = top + h * (53 / 1080)
-            root.create_text(
+            drawText(
                 textX, textY,
                 text,
                 font = f"{(w + h) / 75}px PhigrosFont",
@@ -2550,7 +2551,7 @@ def settingRender():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.5703125, h * (308 / 1080),
             f"Version: {const.PHIGROS_VERSION}",
             font = f"{(w + h) /125}px PhigrosFont",
@@ -2560,7 +2561,7 @@ def settingRender():
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.5703125, h * (361 / 1080),
             f"Device: {const.DEVICE}",
             font = f"{(w + h) /125}px PhigrosFont",
@@ -2572,7 +2573,7 @@ def settingRender():
         
         settingOtherButtonDPower = tool_funcs.getDPower(90, 50, 75)
         
-        root.create_text(
+        drawText(
             w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.575),
             h * 0.575,
             "音频问题疑难解答",
@@ -2583,7 +2584,7 @@ def settingRender():
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.575),
             h * 0.575,
             "开源许可证",
@@ -2594,7 +2595,7 @@ def settingRender():
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.675),
             h * 0.675,
             "观看教学",
@@ -2605,7 +2606,7 @@ def settingRender():
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.675),
             h * 0.675,
             "隐私政策",
@@ -2616,7 +2617,7 @@ def settingRender():
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.775),
             h * 0.775,
             "关于我们",
@@ -2630,7 +2631,7 @@ def settingRender():
         for i in otherSettingButtonRects:
             drawOtherSettingButton(*i, settingOtherButtonDPower)
         
-        root.create_text(
+        drawText(
             w * 0.5453125,
             h * (1031 / 1080),
             const.OTHERSERTTING_RIGHTDOWN_TEXT,
@@ -2650,7 +2651,7 @@ def settingRender():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.0875, h * (1031 / 1080),
             const.OTHER_SETTING_LB_STRINGS.TWITTER,
             font = f"{(w + h) / 135}px PhigrosFont",
@@ -2669,7 +2670,7 @@ def settingRender():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.2171875, h * (1031 / 1080),
             const.OTHER_SETTING_LB_STRINGS.BILIBILI,
             font = f"{(w + h) / 135}px PhigrosFont",
@@ -2688,7 +2689,7 @@ def settingRender():
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.346875, h * (1031 / 1080),
             const.OTHER_SETTING_LB_STRINGS.QQ,
             font = f"{(w + h) / 135}px PhigrosFont",
@@ -2825,7 +2826,7 @@ def settingRender():
     settingRenderSt = time.time()
     
     while True:
-        root.clear_canvas(wait_execute = True)
+        clearCanvas(wait_execute = True)
         
         drawBackground()
         
@@ -2895,7 +2896,7 @@ def settingRender():
         OtherTextFontScale = settingState.getTextScale(const.PHIGROS_SETTING_STATE.OTHER)
         settingTextY = h * 0.025 + BarHeight / 2
                 
-        root.create_text(
+        drawText(
             w * 0.209375, settingTextY,
             "游玩",
             font = f"{(w + h) / 100 * PlayTextFontScale}px PhigrosFont",
@@ -2905,7 +2906,7 @@ def settingRender():
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.3296875, settingTextY,
             "账号与统计",
             font = f"{(w + h) / 100 * AccountAndCountTextFontScale}px PhigrosFont",
@@ -2915,7 +2916,7 @@ def settingRender():
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.4484375, settingTextY,
             "其他",
             font = f"{(w + h) / 100 * OtherTextFontScale}px PhigrosFont",
@@ -2985,7 +2986,7 @@ def settingRender():
                 add_code_array = True
             )
         elif tonextUI:
-            root.clear_canvas(wait_execute = True)
+            clearCanvas(wait_execute = True)
             root.run_js_wait_code()
             Thread(target=nextUI, daemon=True).start()
             break
@@ -3052,7 +3053,7 @@ def audioQARender():
     updateConfig()
     
     while True:
-        root.clear_canvas(wait_execute = True)
+        clearCanvas(wait_execute = True)
         
         drawBackground()
         
@@ -3082,7 +3083,7 @@ def audioQARender():
             w * 0.425, 0.0, h
         )
         
-        root.create_text(
+        drawText(
             w * 0.3, h * (98 / 1080),
             "音频问题疑难解答",
             font = f"{(w + h) / 62.5}px PhigrosFont",
@@ -3124,7 +3125,7 @@ def audioQARender():
                 add_code_array = True
             )
         elif tonextUI:
-            root.clear_canvas(wait_execute = True)
+            clearCanvas(wait_execute = True)
             root.run_js_wait_code()
             Thread(target=nextUI, daemon=True).start()
             break
@@ -3163,7 +3164,7 @@ def aboutUsRender():
     clickStartButtonEvent = eventManager.regClickEventFs(clickStartButtonCallback, False)
     
     while True:
-        root.clear_canvas(wait_execute = True)
+        clearCanvas(wait_execute = True)
         
         if not clickedStart or time.time() - clickedStartButtonTime <= 0.75:
             phiIconWidth = w * 0.296875
@@ -3179,7 +3180,7 @@ def aboutUsRender():
                 add_code_array = True
             )
             
-            root.create_text(
+            drawText(
                 w * 0.5015625, h * (733 / 1080),
                 text = "t   o   u   c   h      t   o      s   t   a   r   t",
                 font = f"{(w + h) / 80 * (1.0 + (math.sin(time.time() * 1.5) + 1.1) / 35)}px PhigrosFont",
@@ -3219,7 +3220,7 @@ def aboutUsRender():
         
         if (skipStart and skipStartButtonTime == skipStartButtonTime) or (tonextUI and skipStartButtonTime == skipStartButtonTime):
             p = (time.time() - skipStartButtonTime) / 1.75 if (skipStart and skipStartButtonTime == skipStartButtonTime) else (1.0 - (time.time() - tonextUISt) / 0.75)
-            root.create_text(
+            drawText(
                 w * 0.028125, h * (50 / 1080),
                 "长按以跳过",
                 font = f"{(w + h) / 80}px PhigrosFont",
@@ -3239,7 +3240,7 @@ def aboutUsRender():
                 add_code_array = True
             )
         elif tonextUI:
-            root.clear_canvas(wait_execute = True)
+            clearCanvas(wait_execute = True)
             root.run_js_wait_code()
             Thread(target=nextUI, daemon=True).start()
             break
@@ -3518,7 +3519,7 @@ def chartPlayerRender(
                 alpha = ((w / 2 - abs(w / 2 - x)) / (w / 2)) ** 25
                 if pauseP >= 0.8:
                     alpha *= 1.0 - (1.0 - (1.0 - (pauseP - 0.8) / 0.2) ** 2)
-                root.create_text(
+                drawText(
                     x, h / 2,
                     number,
                     font = f"{(w + h) / 30}px PhigrosFont",
@@ -3540,7 +3541,7 @@ def chartPlayerRender(
             pauseSt = float("nan")
         
         if not paused and pauseP == 1.0:
-            root.clear_canvas(wait_execute = True)
+            clearCanvas(wait_execute = True)
         
             if not stoped:
                 now_t = time.time() - show_start_time
@@ -3601,7 +3602,7 @@ def chartPlayerRender(
                 )
                 root.run_js_code("ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
         elif tonextUI:
-            root.clear_canvas(wait_execute = True)
+            clearCanvas(wait_execute = True)
             root.run_js_code(f"dialog_canvas_ctx.clear()", add_code_array = True)
             root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", add_code_array = True)
             root.run_js_wait_code()
@@ -3669,7 +3670,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
     while True:
-        root.clear_canvas(wait_execute = True)
+        clearCanvas(wait_execute = True)
         
         drawBackground()
         drawFaculas()
@@ -3749,7 +3750,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.1484375, h * (34 / 1080),
             "排序方式",
             font = f"{(w + h) / 135}px PhigrosFont",
@@ -3769,7 +3770,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             add_code_array = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.16875, h * (69 / 1080),
             const.PHI_SORTMETHOD_STRING_MAP[choose_state.sort_method],
             font = f"{(w + h) / 100}px PhigrosFont",
@@ -3801,7 +3802,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 add_code_array = True
             )
         elif tonextUI:
-            root.clear_canvas(wait_execute = True)
+            clearCanvas(wait_execute = True)
             root.run_js_wait_code()
             Thread(target=nextUI, daemon=True).start()
             break

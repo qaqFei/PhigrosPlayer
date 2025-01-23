@@ -12,13 +12,14 @@ import time
 import socket
 import sys
 import logging
-from email.message import Message
 from ctypes import windll
 from os.path import abspath
 from random import randint
 
 import webview
 from PIL import Image
+
+import graplib_webview
 
 current_thread = threading.current_thread
 screen_width = windll.user32.GetSystemMetrics(0)
@@ -282,6 +283,8 @@ class WebCanvas:
         
         self.jsapi.set_attr("_rdcallback", self._rdevent.set)
         self._raevent.set()
+        
+        graplib_webview.root = self
     
     def title(self, title: str) -> str: self.web.set_title(title)
     def winfo_screenwidth(self) -> int: return screen_width
@@ -347,79 +350,6 @@ class WebCanvas:
     def string2cstring(self, code: str): return code.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"").replace("`", "\\`").replace("\n", "\\n")
     def string2sctring_hqm(self, code: str): return f"'{self.string2cstring(code)}'"
     def get_framerate(self) -> int|float: return self._framerate
-    
-    def create_line(
-        self,
-        x0: int|float, y0: int|float,
-        x1: int|float, y1: int|float,
-        lineWidth: int = 1,
-        fillStyle: str|None = None,
-        strokeStyle:str|None = None,
-        wait_execute: bool = False
-    ) -> None:
-        code = f"\
-            ctx.save();\
-            ctx.fillStyle = \"{fillStyle}\";\
-            ctx.strokeStyle = \"{strokeStyle}\";\
-            ctx.lineWidth = {lineWidth};\
-            ctx.beginPath();\
-            ctx.moveTo({x0},{y0});\
-            ctx.lineTo({x1},{y1});\
-            ctx.closePath();\
-            ctx.stroke();\
-            ctx.restore();\
-        "
-        self.run_js_code(code, wait_execute)
-    
-    def create_text(
-        self,
-        x: int|float, y: int|float,
-        text: str, font: str,
-        textAlign: typing.Literal["start", "end", "left", "right", "center"] = "start",
-        textBaseline: typing.Literal["top", "hanging", "middle", "alphabetic", "ideographic", "bottom"] = "alphabetic",
-        fillStyle: str|None = None,
-        strokeStyle: str|None = None,
-        method: typing.Literal["fill", "stroke"] = "fill",
-        maxwidth: float|None = None,
-        wait_execute: bool = False
-    ) -> None:
-        text = self.string2sctring_hqm(text)
-        self.run_js_code(f"ctx.save(); ctx.font = \"{font}\"; ctx.textAlign = \"{textAlign}\"; ctx.textBaseline = \"{textBaseline}\"; ctx.fillStyle = \"{fillStyle}\"; ctx.strokeStyle = \"{strokeStyle}\"; ctx.{method}Text({text}, {x}, {y}, {maxwidth if maxwidth is not None else "undefined"}); ctx.restore();", wait_execute)
-    
-    def create_polygon(
-        self, points: typing.Iterator[tuple[int|float, int|float]],
-        fillStyle: str|None = None,
-        strokeStyle: str = "rgba(0, 0, 0, 0)",
-        wait_execute: bool = False
-    ) -> None:
-        code = f"\
-            ctx.save();\
-            ctx.fillStyle = \"{fillStyle}\";\
-            ctx.strokeStyle = \"{strokeStyle}\";\
-            ctx.beginPath();\
-            ctx.moveTo({points[0][0]}, {points[0][1]});\
-        " + "".join([f"ctx.lineTo({point[0]}, {point[1]});" for point in points[1:]])
-        self.run_js_code(code + "ctx.closePath(); ctx.stroke(); ctx.fill(); ctx.restore();", wait_execute)
-    
-    def create_image(
-        self, imgname: str,
-        x: int|float, y: int|float,
-        width: int|float, height: int|float,
-        wait_execute: bool = False
-    ) -> None:
-        jsvarname = self.get_img_jsvarname(imgname)
-        self.run_js_code(f"ctx.drawImage({jsvarname}, {x}, {y}, {width}, {height});", wait_execute)
-
-    def clear_rectangle(
-        self,
-        x0: int|float, y0: int|float,
-        x1: int|float, y1: int|float,
-        wait_execute: bool = False
-    ) -> None:
-        self.run_js_code(f"ctx.clearRect({x0}, {y0}, {x1 - x0}, {y1 - y0});", wait_execute)
-    
-    def clear_canvas(self, wait_execute: bool = False) -> None:
-        self.run_js_code("ctx.clear();", wait_execute)
     
     def get_img_jsvarname(self, imname: str):
         return f"{imname}_img"

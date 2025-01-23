@@ -39,6 +39,7 @@ import phicore
 import tempdir
 import socket_webviewbridge
 from dxsmixer import mixer
+from graplib_webview import *
 
 import load_extended as _
 
@@ -504,7 +505,7 @@ def Show_Start():
     
     animationst = time.time()
     while time.time() - animationst < 1.0:
-        root.clear_canvas(wait_execute=True)
+        clearCanvas(wait_execute=True)
         p = (time.time() - animationst) / 1.0
         dle_warn(1.0 - (1.0 - tool_funcs.fixorp(p)) ** 4)
         root.run_js_wait_code()
@@ -513,7 +514,7 @@ def Show_Start():
     
     animationst = time.time()
     while time.time() - animationst < 1.0:
-        root.clear_canvas(wait_execute=True)
+        clearCanvas(wait_execute=True)
         phicore.drawBg()
         phicore.draw_ui(animationing=True)
         p = (time.time() - animationst) / 1.0
@@ -521,7 +522,7 @@ def Show_Start():
         root.run_js_wait_code()
     
     time.sleep(0.25)
-    root.clear_canvas(wait_execute=True)
+    clearCanvas(wait_execute=True)
     phicore.drawBg()
     phicore.draw_ui(animationing=True)
     root.run_js_wait_code()
@@ -534,7 +535,19 @@ def checkOffset(now_t: float):
     if dt != 0.0:
         show_start_time += dt
         updateCoreConfig()
-                
+
+def getLfdaotFuncs():
+    maps = [
+        {fn: getattr(root, fn) for fn in dir(root)},
+        {fn: getattr(phicore, fn) for fn in dir(phicore)},
+    ]
+    result = {k: v for i in maps for k, v in i.items()}
+    
+    if len(result) != sum(len(i) for i in maps):
+        assert False, "Duplicate function name detected"
+        
+    return result
+
 def PlayerStart():
     global show_start_time, cksmanager
     
@@ -734,20 +747,15 @@ def PlayerStart():
                 data = json.load(f)
             frame_speed = data["meta"]["frame_speed"]
             allframe_num = data["meta"]["frame_num"]
-            Task_function_mapping = {
-                func_name:getattr(root,func_name)
-                for func_name in dir(root)
-            }
-            Task_function_mapping.update({
-                "draw_background": phicore.drawBg,
-                "draw_ui": phicore.draw_ui
-            })
+            
+            funcmap = getLfdaotFuncs()
+            
             for index,Task_data in enumerate(data["data"]):
                 lfdaot_tasks.update({
                     index: chartobj_phi.FrameRenderTask(
                         RenderTasks = [
                             chartobj_phi.RenderTask(
-                                func = Task_function_mapping[render_task_data["func_name"]],
+                                func = funcmap[render_task_data["func_name"]],
                                 args = tuple(render_task_data["args"]),
                                 kwargs = render_task_data["kwargs"]
                             )

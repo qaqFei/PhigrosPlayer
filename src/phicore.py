@@ -20,6 +20,7 @@ import phi_tips
 import dxsound
 import phira_resource_pack
 from dxsmixer import mixer, musicCls
+from graplib_webview import *
 
 drawUI_Default_Kwargs = {
     f"{k}_{k2}": v
@@ -392,7 +393,7 @@ def draw_ui(
     pauseUI_color: str = "rgba(255, 255, 255, 1.0)",
     pauseUI_rotate: float = 0.0
 ):
-    if clear: root.clear_canvas(wait_execute = True)
+    if clear: clearCanvas(wait_execute = True)
     if background: drawBg()
     
     pauseImgWidth = w * (32 / 1920)
@@ -571,7 +572,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     now_t *= speed
     PlayChart_NowTime = now_t
     Task = chartobj_phi.FrameRenderTask([], [])
-    if clear: Task(root.clear_canvas, wait_execute = True)
+    if clear: Task(clearCanvas, wait_execute = True)
     rrmStart(Task)
     Task(drawBg)
     if noplaychart: Task.ExTask.append(("break", ))
@@ -901,7 +902,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     
     now_t *= speed
     Task = chartobj_phi.FrameRenderTask([], [])
-    if clear: Task(root.clear_canvas, wait_execute = True)
+    if clear: Task(clearCanvas, wait_execute = True)
     rrmStart(Task)
     Task(drawBg)
     PlayChart_NowTime = now_t
@@ -1321,7 +1322,7 @@ def getLevelText() -> str:
 def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None) -> chartobj_phi.FrameRenderTask:
     Task = chartobj_phi.FrameRenderTask([], [])
     
-    if clear: Task(root.clear_canvas, wait_execute = True)
+    if clear: Task(clearCanvas, wait_execute = True)
     all_ease_value = tool_funcs.begin_animation_eases.im_ease(p)
     background_ease_value = tool_funcs.begin_animation_eases.background_ease(p) * 1.25
     info_data_ease_value = tool_funcs.begin_animation_eases.info_data_ease((p - 0.2) * 3.25)
@@ -1343,7 +1344,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
         (0, 0)
     )
     Task(
-        root.create_polygon,
+        drawPolygon,
         blackShadowPolygon,
         fillStyle = f"rgba(0, 0, 0, {0.75 * (1 - p)})",
         wait_execute = True
@@ -1360,7 +1361,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     infoframe_width = w * 0.3859375
     infoframe_height = h * (143 / 1080)
     Task(
-        root.create_polygon,
+        drawPolygon,
         tool_funcs.rect2drect(
             (
                 infoframe_x, infoframe_y,
@@ -1378,7 +1379,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     levelframe_width = w * 0.0984375
     levelframe_height = h * (157 / 1080)
     Task(
-        root.create_polygon,
+        drawPolygon,
         tool_funcs.rect2drect(
             (
                 levelframe_x, levelframe_y,
@@ -1392,7 +1393,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     )
     
     Task(
-        root.create_text,
+        drawText,
         w * 0.1,
         h * (416 / 1080),
         text = chart_name_text,
@@ -1404,7 +1405,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     )
     
     Task(
-        root.create_text,
+        drawText,
         w * 0.0984375,
         h * (467 / 1080),
         text = chart_artist_text,
@@ -1416,7 +1417,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     )
     
     Task(
-        root.create_text,
+        drawText,
         w * 0.390625,
         h * (424 / 1080),
         text = chart_level_number,
@@ -1428,7 +1429,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     )
     
     Task(
-        root.create_text,
+        drawText,
         w * 0.390625,
         h * (467 / 1080),
         text = chart_level_text,
@@ -1441,7 +1442,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     
     tipalpha = tool_funcs.begin_animation_eases.tip_alpha_ease(p)
     Task(
-        root.create_text,
+        drawText,
         w * 0.053125,
         h * (1004 / 1080),
         text = f"Tip: {tip}",
@@ -1499,7 +1500,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     info_ill_dx = (1 - info_data_ease_value_2) * -1 * w * 0.075
     
     Task(
-        root.create_text,
+        drawText,
         w * 0.1265625 + info_charter_dx,
         h * (561 / 1080),
         text = "Chart",
@@ -1511,7 +1512,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     )
     
     Task(
-        root.create_text,
+        drawText,
         w * 0.1265625 + info_charter_dx,
         h * (590 / 1080),
         text = chart_charter_text,
@@ -1523,7 +1524,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     )
     
     Task(
-        root.create_text,
+        drawText,
         w * 0.1125 + info_ill_dx,
         h * (645 / 1080),
         text = "Illustration",
@@ -1535,7 +1536,7 @@ def BeginLoadingAnimation(p: float, sec: float, clear: bool = True, fcb: typing.
     )
     
     Task(
-        root.create_text,
+        drawText,
         w * 0.1109375 + info_ill_dx,
         h * (677 / 1080),
         text = chart_illustrator_text,
@@ -1591,7 +1592,7 @@ def BeginJudgeLineAnimation(p: float, lineWidth: float, showLine: bool) -> chart
     
     if showLine:
         Task(
-            root.create_line,
+            drawLine,
             w / 2 - (val * w / 2), h / 2,
             w / 2 + (val * w / 2), h / 2,
             strokeStyle = const.JUDGELINE_PERFECT_COLOR,
@@ -1743,7 +1744,7 @@ def initFinishAnimation(pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
         ChartLevelStringFontSize = w * 0.0275 * 0.55
 
 def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
-    root.clear_canvas(wait_execute = True)
+    clearCanvas(wait_execute = True)
     im_ease_value = tool_funcs.finish_animation_eases.all_ease(p)
     im_ease_pos = w * 1.25 * (1 - im_ease_value)
     data_block_1_ease_value = tool_funcs.finish_animation_eases.all_ease(p - 0.015)
@@ -1783,7 +1784,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         add_code_array = True
     )
     
-    root.create_text(
+    drawText(
         w * 0.0828125 + im_ease_pos,
         h * (815 / 1080),
         text = ChartNameString,
@@ -1794,7 +1795,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         wait_execute = True
     )
     
-    root.create_text(
+    drawText(
         w * 0.48125 + im_ease_pos,
         h * (822 / 1080),
         text = ChartLevelString,
@@ -1823,7 +1824,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
             db_x + db_width - db_dw * ((sy - db_y) / db_height) + ease_pos, ey
         )
         
-        root.create_polygon(
+        drawPolygon(
             tool_funcs.rect2drect(db_itemrect, 75),
             fillStyle = "rgba(0, 0, 0, 0.5)",
             wait_execute = True
@@ -1833,7 +1834,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     drawDiagonalDataBlock(357 / 1080, 467 / 1080, data_block_2_ease_pos)
     drawDiagonalDataBlock(512 / 1080, 622 / 1080, data_block_3_ease_pos)
     
-    root.create_text(
+    drawText(
         w * 0.584375 + data_block_1_ease_pos,
         h * (467 / 1080),
         text = ScoreString,
@@ -1859,7 +1860,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         add_code_array = True
     )
     
-    root.create_text( # Max Combo
+    drawText( # Max Combo
         w * 0.55625 + data_block_2_ease_pos,
         h * (650 / 1080),
         text = f"{MaxCombo}",
@@ -1870,7 +1871,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         wait_execute = True
     )
     
-    root.create_text(
+    drawText(
         w * 0.55625 + data_block_2_ease_pos,
         h * (674 / 1080),
         text = "Max Combo",
@@ -1881,7 +1882,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         wait_execute = True
     )
     
-    root.create_text( # Accuracy
+    drawText( # Accuracy
         w * 0.878125 + data_block_2_ease_pos,
         h * (650 / 1080),
         text = AccString,
@@ -1892,7 +1893,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         wait_execute = True
     )
     
-    root.create_text(
+    drawText(
         w * 0.878125 + data_block_2_ease_pos,
         h * (674 / 1080),
         text = "Accuracy",
@@ -1909,7 +1910,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     )
     
     def drawDataCount(x: float, text: str, count: int):
-        root.create_text( # Perfect Count
+        drawText( # Perfect Count
             x + data_block_3_ease_pos,
             h * (826 / 1080),
             text = text,
@@ -1920,7 +1921,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             x + data_block_3_ease_pos,
             h * (806 / 1080),
             text = f"{count}",
@@ -1932,7 +1933,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         )
     
     def drawELCount(y: float, text: float, count: int):
-        root.create_text(
+        drawText(
             w * 0.7764375 + data_block_3_ease_pos,
             y,
             text = text,
@@ -1943,7 +1944,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
             wait_execute = True
         )
         
-        root.create_text(
+        drawText(
             w * 0.8548125 + data_block_3_ease_pos,
             y,
             text = f"{count}",
@@ -1973,7 +1974,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
     Continue_Button_Width, Continue_Button_Height = Retry_Button_Width, Retry_Button_Height
     Continue_imsize = Retry_imsize
     
-    root.create_image( # Retry Button
+    drawImage( # Retry Button
         "ButtonLeftBlack",
         button_ease_pos, 0,
         width = Retry_Button_Width,
@@ -1981,7 +1982,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         wait_execute = True
     )
     
-    root.create_image(
+    drawImage(
         "Retry",
         button_ease_pos + w * const.FINISH_UI_BUTTON_SIZE * 0.3 - Retry_imsize / 2,
         Retry_Button_Height / 2 - (Retry_Button_Height * (8 / 145)) - Retry_imsize / 2,
@@ -1990,7 +1991,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         wait_execute = True
     )
     
-    root.create_image( # Continue Button
+    drawImage( # Continue Button
         "ButtonRightBlack",
         w - button_ease_pos - Continue_Button_Width, h - Continue_Button_Height,
         width = Continue_Button_Width,
@@ -1998,7 +1999,7 @@ def Chart_Finish_Animation_Frame(p: float, rjc: bool = True):
         wait_execute = True
     )
     
-    root.create_image(
+    drawImage(
         "Arrow_Right",
         w - (button_ease_pos + w * const.FINISH_UI_BUTTON_SIZE * 0.35 + Continue_imsize / 2),
         h - (Continue_Button_Height / 2 - (Continue_Button_Height * (8 / 145)) * 1.15 + Continue_imsize / 2),
