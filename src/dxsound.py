@@ -13,8 +13,9 @@ import win32event as w32e
 from pywintypes import WAVEFORMATEX
 from pydub import AudioSegment
 
-CACHE_BUFFER_MAXSIZE = 16
+CACHE_BUFFER_MAXSIZE = 32
 PRE_CACHE_SIZE = CACHE_BUFFER_MAXSIZE
+RING_BUFFER = True
 
 _WAV_HEADER = "<4sl4s4slhhllhh4sl"
 _WAV_HEADER_LENGTH = struct.calcsize(_WAV_HEADER)
@@ -87,9 +88,15 @@ class directSound:
         self._buffers = []
         
         if self._enable_cache:
-            self.set_volume(0.0)
-            for _ in range(PRE_CACHE_SIZE): self.play()
-            self.set_volume(1.0)
+            self._buffers.extend(self._create() for _ in range(PRE_CACHE_SIZE))
+    
+    def _create(self):
+        event = w32e.CreateEvent(None, 0, 0, None)
+        buffer = dxs.CreateSoundBuffer(self._sdesc, None)
+        buffer.QueryInterface(ds.IID_IDirectSoundNotify).SetNotificationPositions((-1, event))
+        buffer.Update(0, self._bufdata)
+        buffer.SetVolume(self._volume)
+        return event, buffer
     
     def create(self, playMethod: typing.Literal[0, 1]):
         if self._enable_cache:
@@ -108,19 +115,16 @@ class directSound:
                         buf.SetCurrentPosition(0)
                         buf.Play(playMethod)
                         return e, buf
-                    
-                e, buf = self._buffers[0]
-                buf.Stop()
-                buf.SetVolume(self._volume)
-                buf.SetCurrentPosition(0)
-                buf.Play(playMethod)
-                return e, buf
+                
+                if RING_BUFFER:
+                    e, buf = self._buffers[0]
+                    buf.Stop()
+                    buf.SetVolume(self._volume)
+                    buf.SetCurrentPosition(0)
+                    buf.Play(playMethod)
+                    return e, buf
         
-        event = w32e.CreateEvent(None, 0, 0, None)
-        buffer = dxs.CreateSoundBuffer(self._sdesc, None)
-        buffer.QueryInterface(ds.IID_IDirectSoundNotify).SetNotificationPositions((-1, event))
-        buffer.Update(0, self._bufdata)
-        buffer.SetVolume(self._volume)
+        event, buffer = self._create()
         buffer.Play(playMethod)
         if self._enable_cache:
             self._buffers.append((event, buffer))
