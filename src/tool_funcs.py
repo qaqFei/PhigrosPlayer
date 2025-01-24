@@ -293,6 +293,23 @@ def gif2mp4(gif: str):
     writer.release()
     return open(fp, "rb").read(), size
 
+def getShaderDefault(shader: str):
+    result = {}
+    for line in shader.split("\n"):
+        if line.startswith("uniform") and "//" in line and line.count("%") >= 2:
+            try:
+                name = line.split(";")[0].split(" ")[-1]
+                default = list(map(float, line.split("//")[1].replace(" ", "").split("%")[1].split(",")))
+                if len(default) == 1: default = default[0]
+                result[name] = default
+            except Exception as e:
+                logging.error(f"shader default parse error: {e}")
+    return result
+
+def fixShader(shader: str):
+    shader = "\n".join(line for line in shader.split("\n") if not line.strip().startswith("#version"))
+    return shader
+
 class PhigrosPlayManager:
     def __init__(self, noteCount: int):
         self.events: list[typing.Literal["P", "G", "B", "M"]] = []

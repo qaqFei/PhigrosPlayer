@@ -159,14 +159,19 @@ class PILResourcePacker:
         datas = []
         dataindexs = []
         datacount = 0
+        cache = {}
         for name, img in self.imgs:
             if isinstance(img, Image.Image):
                 if hasattr(img, "byteData"):
                     data = img.byteData
                 else:
-                    btio = io.BytesIO()
-                    img.save(btio, "png") # toooooooooooooo slow
-                    data = btio.getvalue()
+                    if id(img) in cache:
+                        data = cache[id(img)]
+                    else:
+                        btio = io.BytesIO()
+                        img.save(btio, "png") # toooooooooooooo slow
+                        data = btio.getvalue()
+                        cache[id(img)] = data
             else:
                 data = img
                 
