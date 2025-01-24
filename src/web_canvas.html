@@ -882,10 +882,15 @@ void main() {
             }
             else if (i.type == "image") {
                 this.save();
-                let img = eval(i.image);
+                const img = eval(i.image);
+                const [r, g, b, a] = i.color;
                 this.translate(i.x + i.dx, i.y + i.dy);
                 if (i.rotate != 0.0) this.rotate(i.rotate * Math.PI / 180);
-                if (i.alpha != 1.0) this.globalAlpha = i.alpha;
+                if (a != 1.0) this.globalAlpha = a;
+                if (r != 255 || g != 255 || b != 255) {
+                    setColorMatrix(r, g, b);
+                    this.filter = "url(#textureLineColorFilter)";
+                }
                 this.drawImage(img, 0, 0, i.width, i.height);
                 this.restore();
             }

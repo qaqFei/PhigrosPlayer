@@ -402,7 +402,7 @@ def draw_ui(
     pauseImgWidth *= pauseUI_scaleX
     pauseImgHeight *= pauseUI_scaleY
     
-    pauseImgAlpha = pauseUI_color.split(")")[-2].split(",")[-1].replace(" ", "")
+    pauseImgRGBA = list(map(float, pauseUI_color.replace(" ", "").replace("rgba", "").replace("(", "").replace(")", "").split(",")))
     fps = mainFramerateCalculator.framerate
     reqaf_fps = root.get_framerate()
     
@@ -468,7 +468,7 @@ def draw_ui(
             "x": w * (36 / 1920), "y": h * (41 / 1080),
             "dx": pauseUI_dx, "dy": pauseUI_dy,
             "width": pauseImgWidth, "height": pauseImgHeight,
-            "rotate": pauseUI_rotate, "alpha": pauseImgAlpha
+            "rotate": pauseUI_rotate, "color": pauseImgRGBA
         },
         {
             "type": "call",
