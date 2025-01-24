@@ -205,7 +205,7 @@ def processClickEffectBase(
     if rblocks is None: rblocks = tool_funcs.newRandomBlocks()
     
     color = (
-        phira_resource_pack.globalPack.perfectRGB
+        (phira_resource_pack.globalPack.perfectRGB if not phira_resource_pack.globalPack.isdefault_perfect else (255, 236, 160))
         if perfect else
         phira_resource_pack.globalPack.goodRGB
     )
@@ -218,11 +218,11 @@ def processClickEffectBase(
     
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
     effectSize = noteWidth * 1.375
-    blockSize = noteWidth / 5.5
+    blockSize = noteWidth / 5
     
     if enable_rblocks and not phira_resource_pack.globalPack.hideParticles:
         randomblock_r = effectSize * rpe_easing.ease_funcs[clickEffectEasingType + 1](p) / 1.2
-        nowBlockSize = blockSize * (0.4 * math.sin(p * math.pi) + 0.6)
+        nowBlockSize = blockSize * (0.426 * math.sin(p * math.pi / 1.185) + 0.5) # start: 0.5, end: 0.7, max: ~0.925
         
         for deg, randdr in rblocks:
             pointr = randomblock_r + randdr * blockSize
@@ -242,7 +242,7 @@ def processClickEffectBase(
                 add_code_array = True
             )
     
-        caller(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + ((1.0 - p) * alpha, )}');", add_code_array = True)
+        caller(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + (1.0 - p, )}');", add_code_array = True)
     
     effectImageSize = effectSize * phira_resource_pack.globalPack.effectScale
     caller(

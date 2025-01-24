@@ -72,6 +72,9 @@ def int2argb(x: int):
 def argb2rgba(x: tuple):
     return (x[1], x[2], x[3], x[0] if x[0] != 0 else 255)
 
+DEFAULT_PERFECT = 0xe1ffec9f
+DEFAULT_GOOD = 0xebb4e1ff
+
 class PhiraResourcePack:
     def __init__(self, fp: typing.Optional[str] = None):
         self.loaded = False
@@ -143,6 +146,9 @@ class PhiraResourcePack:
         self.goodRGB = self.goodColor[:-1]
         self.perfectAlpha = self.perfectColor[-1]
         self.goodAlpha = self.goodColor[-1]
+        
+        self.isdefault_perfect = self.resource["colorPerfect"] == DEFAULT_PERFECT
+        self.isdefault_good = self.resource["colorGood"] == DEFAULT_GOOD
         
     def createResourceDict(self) -> dict:
         result = {
