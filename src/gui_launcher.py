@@ -7,12 +7,12 @@ from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import showerror
 from os import popen
 from os.path import exists, isfile
-from sys import argv
+from sys import argv, executable
 
 import gui_const
 
 if exists("./main.py"):
-    target_path = "./main.py"
+    target_path = f"{executable} ./main.py"
 elif exists("./main.exe"):
     target_path = "./main.exe"
 else:
@@ -38,6 +38,7 @@ def OpenFile():
     fp = askopenfilename(
             filetypes = [
                 (TEXT.FILE_INPUT_CHART_TYPE_TEXT, "*.zip"),
+                (TEXT.FILE_INPUT_CHART_TYPE_TEXT, "*.pez"),
                 (TEXT.FILE_INPUT_ALLFILE_TYPE, "*.*")
             ],
             parent = root,
