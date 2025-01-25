@@ -10,7 +10,7 @@ from os.path import exists, isfile, isdir
 from sys import executable
 
 if exists("./main.py") and isfile("./main.py"):
-    target_path = f"\"{executable}\" ./main.py"
+    target_path = f"\"\" \"{executable}\" ./main.py"
 elif exists("./main.exe") and isfile("./main.exe"):
     target_path = "./main.exe"
 else:
