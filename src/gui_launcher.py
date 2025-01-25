@@ -7,12 +7,12 @@ from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import showerror
 from os import popen
 from os.path import exists, isfile
-from sys import argv
+from sys import argv, executable
 
 import gui_const
 
 if exists("./main.py"):
-    target_path = "./main.py"
+    target_path = f"{executable} ./main.py"
 elif exists("./main.exe"):
     target_path = "./main.exe"
 else:
