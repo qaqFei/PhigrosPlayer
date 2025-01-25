@@ -207,6 +207,7 @@ void main() {
         "P", "Q", "R", "S", "T",
         "U", "V", "W", "X", "Y", "Z"
     ]
+    const dpr = window.devicePixelRatio || 1;
 
     const None = null;
     const True = true;
@@ -272,18 +273,12 @@ void main() {
             h = window.innerHeight;
         }
 
-        canvas_ele.width = w / lowquality_scale;
-        canvas_ele.height = h / lowquality_scale;
-        dialog_canvas_ele.width = w / lowquality_scale;
-        dialog_canvas_ele.height = h / lowquality_scale;
+        canvas_ele.width = w;
+        canvas_ele.height = h;
+        dialog_canvas_ele.width = w;
+        dialog_canvas_ele.height = h;
         ctx.reset();
         dialog_canvas_ctx.reset();
-        ctx.scale(1 / lowquality_scale, 1 / lowquality_scale);
-        dialog_canvas_ctx.scale(1 / lowquality_scale, 1 / lowquality_scale);
-        /*
-        in python, width and height is the real size of canvas, so we donot need to scale the canvas.
-        */
-        // ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     }
 
     async function loadFont(family, url) {

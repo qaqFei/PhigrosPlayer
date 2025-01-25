@@ -888,14 +888,15 @@ def PlayerStart():
                 a2_loop_clicked = True
         
         def continueClick(clientX, clientY):
+            print(clientX, clientY, w, h)
             nonlocal a2_continue_clicked
             if clientX >= w - w * const.FINISH_UI_BUTTON_SIZE and clientY >= h - w * const.FINISH_UI_BUTTON_SIZE / 190 * 145:
                 a2_continue_clicked = True
         
         root.jsapi.set_attr("loopClick", loopClick)
         root.jsapi.set_attr("continueClick", continueClick)
-        root.run_js_code("_loopClick = (e) => {pywebview.api.call_attr('loopClick', e.clientX, e.clientY);}")
-        root.run_js_code("_continueClick = (e) => {pywebview.api.call_attr('continueClick', e.clientX, e.clientY);}")
+        root.run_js_code("_loopClick = (e) => {pywebview.api.call_attr('loopClick', e.clientX * dpr, e.clientY * dpr);}")
+        root.run_js_code("_continueClick = (e) => {pywebview.api.call_attr('continueClick', e.clientX * dpr, e.clientY * dpr);}")
         root.run_js_code("window.addEventListener('click', _loopClick);")
         root.run_js_code("window.addEventListener('click', _continueClick);")
         
@@ -991,12 +992,13 @@ else:
         root.resize(winw + dw_legacy, winh + dh_legacy)
         root.move(int(root.winfo_screenwidth() / 2 - (winw + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (winh + dh_legacy) / webdpr / 2))
 
+w *= webdpr; h *= webdpr; w = int(w); h = int(h)
+
 root.run_js_code(f"lowquality_imjscvscale_x = {lowquality_imjscvscale_x};")
 root.run_js_code(f"lowquality_imjs_maxsize = {lowquality_imjs_maxsize};")
 root.run_js_code(f"enable_jscanvas_bitmap = {enable_jscanvas_bitmap};")
 root.run_js_code(f"RPEVersion = {chart_obj.META.RPEVersion if CHART_TYPE == const.CHART_TYPE.RPE else -1};")
 root.run_js_code(f"resizeCanvas({w}, {h});")
-
 Resource = Load_Resource()
 
 if wl_more_chinese:

@@ -351,15 +351,15 @@ def bindEvents():
     global settingUIChooseAvatarAndBackgroundSlideControler
     
     root.jsapi.set_attr("click", eventManager.click)
-    root.run_js_code("_click = (e) => pywebview.api.call_attr('click', e.x, e.y);")
+    root.run_js_code("_click = (e) => pywebview.api.call_attr('click', e.x * dpr, e.y * dpr);")
     root.run_js_code("document.addEventListener('mousedown', _click);")
     
     root.jsapi.set_attr("mousemove", eventManager.move)
-    root.run_js_code("_mousemove = (e) => pywebview.api.call_attr('mousemove', e.x, e.y);")
+    root.run_js_code("_mousemove = (e) => pywebview.api.call_attr('mousemove', e.x * dpr, e.y * dpr);")
     root.run_js_code("document.addEventListener('mousemove', _mousemove);")
     
     root.jsapi.set_attr("mouseup", eventManager.release)
-    root.run_js_code("_mouseup = (e) => pywebview.api.call_attr('mouseup', e.x, e.y);")
+    root.run_js_code("_mouseup = (e) => pywebview.api.call_attr('mouseup', e.x * dpr, e.y * dpr);")
     root.run_js_code("document.addEventListener('mouseup', _mouseup);")
     
     mainUISlideControler = phigame_obj.SlideControler(
@@ -3916,6 +3916,8 @@ else:
     del w_legacy, h_legacy
     root.resize(winw + dw_legacy, winh + dh_legacy)
     root.move(int(root.winfo_screenwidth() / 2 - (winw + dw_legacy) / webdpr / 2), int(root.winfo_screenheight() / 2 - (winh + dh_legacy) / webdpr / 2))
+
+w *= webdpr; h *= webdpr; w = int(w); h = int(h)
 
 root.reg_event("resized", resize)
 root.run_js_code(f"resizeCanvas({w}, {h});")
