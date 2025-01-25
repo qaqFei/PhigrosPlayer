@@ -38,6 +38,7 @@ def OpenFile():
     fp = askopenfilename(
             filetypes = [
                 (TEXT.FILE_INPUT_CHART_TYPE_TEXT, "*.zip"),
+                (TEXT.FILE_INPUT_CHART_TYPE_TEXT, "*.pez"),
                 (TEXT.FILE_INPUT_ALLFILE_TYPE, "*.*")
             ],
             parent = root,
