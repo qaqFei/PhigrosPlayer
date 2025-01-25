@@ -1196,7 +1196,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         def process_miss(note: chartobj_rpe.Note):
             t = chart_obj.sec2beat(now_t, note.masterLine.bpmfactor)
             p = (now_t - note.secst) / miss_effect_time
-            linePos = tool_funcs.conrpepos(*line.GetPos(t, chart_obj)); linePos = (linePos[0] * w, linePos[1] * h)
+            linePos = tool_funcs.conrpepos(*line.GetPos(t)); linePos = (linePos[0] * w, linePos[1] * h)
             lineRotate = sum([line.getEventValue(t, layer.rotateEvents, 0.0) for layer in line.eventLayers])
             pos = tool_funcs.rotate_point(
                 *linePos,
