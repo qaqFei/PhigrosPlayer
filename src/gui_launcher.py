@@ -1,15 +1,13 @@
 import fix_workpath as _
 
 import ctypes
-from tkinter import Tk, Label, BooleanVar, StringVar
-from tkinter.ttk import Entry, Button, Checkbutton, LabelFrame
-from tkinter.filedialog import askopenfilename
+import tkinter
+import tkinter.ttk
+from tkinter.filedialog import askopenfilename, askdirectory
 from tkinter.messagebox import showerror
 from os import popen
-from os.path import exists, isfile
-from sys import argv, executable
-
-import gui_const
+from os.path import exists, isfile, isdir
+from sys import executable
 
 if exists("./main.py") and isfile("./main.py"):
     target_path = f"\"{executable}\" ./main.py"
@@ -19,286 +17,239 @@ else:
     print("Can't find main.py or main.exe.")
     raise SystemExit
 
-if "--english" in argv or "--eng" in argv:
-    english = True
-elif ctypes.windll.kernel32.GetSystemDefaultUILanguage() != 0x804:
-    english = True
-else:
-    english = False
-    
-if english:
-    TEXT = gui_const.ENGLISH
-else:
-    TEXT = gui_const.CHINESE
-
 def hook_dropfiles_first(hwnd, callback):
     globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"] = ctypes.WINFUNCTYPE(*(ctypes.c_uint64,) * 5)(lambda hwnd,msg,wp,lp: [callback([ctypes.windll.shell32.DragQueryFileW(ctypes.c_uint64(wp),0,szFile := ctypes.create_unicode_buffer(260),ctypes.sizeof(szFile)),szFile.value][1]) if msg == 0x233 else None,ctypes.windll.user32.CallWindowProcW(*map(ctypes.c_uint64,(lptr,hwnd,msg,wp,lp)))][1]);ctypes.windll.shell32.DragAcceptFiles(hwnd,True);lptr = ctypes.windll.user32.GetWindowLongPtrA(hwnd,-4);ctypes.windll.user32.SetWindowLongPtrA(hwnd,-4,globals()[f"hook_dropfiles_dropfunc_prototype_{hwnd}"])
 
-def OpenFile():
-    fp = askopenfilename(
-            filetypes = [
-                (TEXT.FILE_INPUT_CHART_TYPE_TEXT, "*.zip"),
-                (TEXT.FILE_INPUT_CHART_TYPE_TEXT, "*.pez"),
-                (TEXT.FILE_INPUT_ALLFILE_TYPE, "*.*")
-            ],
-            parent = root,
-            title = TEXT.FILE_INPUT_DIALOG_TITLE
-        )
+def openfile_callback(widget: tkinter.Entry):
+    fp = askopenfilename(parent=root, title="选择文件")
     if fp == "":
         return
     
     if not (exists(fp) and isfile(fp)):
-        showerror(
-            title = TEXT.ERROR_TITLE,
-            message = TEXT.FILE_INPUT_ERROR_MESSAGE
-        )
+        showerror(title="错误", message="选择的文件不存在或不为文件")
     
-    file_input_entry.delete(0, "end")
-    file_input_entry.insert(0, fp)
+    widget.delete(0, "end")
+    widget.insert(0, fp)
 
-def lfdaot_callback():
-    state = "normal" if lfdaot_checkbutton_var.get() else "disabled"
-    lfdaot_render_video_checkbutton.configure(state = state)
-    kwarg_lfdaot_file_entry.configure(state = state)
-    kwarg_lfdaot_file_choose_button.configure(state = state)
-    kwarg_lfdaot_frame_speed_entry.configure(state = state)
-
-def setsize_callback():
-    state = "normal" if setsize_checkbutton_var.get() else "disabled"
-    kwarg_size_x_entry.configure(state = state)
-    kwarg_size_connect_label.configure(state = state)
-    kwarg_size_y_entry.configure(state = state)
-
-def render_range_more_callback():
-    state = "normal" if render_range_more_checkbutton_var.get() else "disabled"
-    kwarg_render_range_more_scale_entry.configure(state = state)
-    
-def kwarg_lfdaot_file_choose_callback():
-    fp = askopenfilename(
-            filetypes = [
-                (TEXT.FILE_INPUT_LFDAOT_TYPE_TEXT, "*.lfdaot"),
-                (TEXT.FILE_INPUT_ALLFILE_TYPE, "*.*")
-            ],
-            parent = root,
-            title = TEXT.FILE_INPUT_DIALOG_TITLE
-        )
-    if fp == "":
+def opendir_callback(widget: tkinter.Entry):
+    dp = askdirectory(parent=root, title="选择文件夹")
+    if dp == "":
         return
-    
-    if not (exists(fp) and isfile(fp)):
-        showerror(
-            title = TEXT.ERROR_TITLE,
-            message = TEXT.FILE_INPUT_ERROR_MESSAGE
-        )
-    
-    kwarg_lfdaot_file_entry.delete(0, "end")
-    kwarg_lfdaot_file_entry.insert(0, fp)
 
-def Launch():
-    launch_command = f"start {target_path} "
+    if not exists(dp):
+        showerror(title="错误", message="选择的文件夹不存在")
+
+    widget.delete(0, "end")
+    widget.insert(0, dp)
+
+def launch():
     launch_args = []
-    phi_fp = file_input_entry.get()
+    chartfp = file_input_entry.get()
     
-    if exists(phi_fp):
-        launch_args.append(f"\"{phi_fp}\"")
+    if exists(chartfp):
+        launch_args.append(chartfp)
     else:
-        showerror(
-            title = TEXT.ERROR_TITLE,
-            message = TEXT.LAUNCH_FILE_ERROR_TEXT
-        )
+        showerror(title="错误", message="谱面文件不存在或不为文件")
         return
     
-    if debug_checkbutton_var.get():
-        launch_args.append("--debug")
-    
-    if fullscreen_checkbutton_var.get():
-        launch_args.append("--fullscreen")
-    
-    if lowquality_checkbutton_var.get():
-        launch_args.append("--lowquality")
-    
-    if noclickeffect_randomblock_checkbutton_var.get():
-        launch_args.append("--noclickeffect-randomblock")
-    
-    if loop_checkbutton_var.get():
-        launch_args.append("--loop")
-    
-    if frameless_checkbutton_var.get():
-        launch_args.append("--frameless")
-    
-    if noautoplay_checkbutton_var.get():
-        launch_args.append("--noautoplay")
-    
-    if rtacc_checkbutton_var.get():
-        launch_args.append("--rtacc")
-    
-    if lfdaot_checkbutton_var.get():
-        launch_args.append("--lfdaot")
-        if kwarg_lfdaot_file_entry.get() != "":
-            if exists(kwarg_lfdaot_file_entry.get()) and isfile(kwarg_lfdaot_file_entry.get()):
-                launch_args.append(f"--lfdaot-file \"{kwarg_lfdaot_file_entry.get()}\"")
-        launch_args.append(f"--lfdaot-frame-speed \"{kwarg_lfdaot_frame_speed_entry.get()}\"")
-    
-    if noclicksound_checkbutton_var.get():
-        launch_args.append("--noclicksound")
-    
-    if render_range_more_checkbutton_var.get():
-        launch_args.append("--render-range-more")
-        launch_args.append(f"--render-range-more-scale \"{kwarg_render_range_more_scale_entry.get()}\"")
-    
-    if setsize_checkbutton_var.get():
-        launch_args.append("--size")
-        launch_args.append(f"\"{kwarg_size_x_entry.get()}\" \"{kwarg_size_y_entry.get()}\"")
-    
-    if lfdaot_render_video_checkbutton_var.get():
-        launch_args.append("--lfdaot-render-video")
-    
-    if kwarg_combotips_entry.get() != "AUTOPLAY": launch_args.append(f"--combotips \"{kwarg_combotips_entry.get()}\"")
-    launch_args.append(f"--random-block-num \"{kwarg_random_block_num_entry.get()}\"")
-    launch_args.append(f"--scale-note \"{kwarg_scale_note_entry.get()}\"")
-    
-    launch_command += " ".join(launch_args)
-    launch_command += f" {other_args_Entry.get()}"
-    print(launch_command)
-    popen(launch_command)
+    for var, arg in zip(arg_widgets, arg_setting):
+        if var.get():
+            launch_args.append(f"--{arg[1]}")
 
-root = Tk()
+    for entry, kwarg in zip(kwarg_widgets, kwarg_setting):
+        userinput = entry.get()
+        if not userinput: continue
+        match kwarg[3]:
+            case "int":
+                try: userinput = int(float(userinput))
+                except ValueError:
+                    showerror(title="错误", message=f"参数 {kwarg[1]} 的值应为整数")
+                    return
+            
+            case "float":
+                try: userinput = float(userinput)
+                except ValueError:
+                    showerror(title="错误", message=f"参数 {kwarg[1]} 的值应为浮点数")
+                    return
+
+            case "string":
+                pass
+            
+            case "path":
+                if not (exists(userinput) or isfile(userinput)):
+                    showerror(title="错误", message=f"参数 {kwarg[1]} 的值应为存在的文件")
+                    return
+            
+            case "path-dir":
+                if not (exists(userinput) or isdir(userinput)):
+                    showerror(title="错误", message=f"参数 {kwarg[1]} 的值应为存在的文件夹")
+                    return
+            
+            case "choice":
+                if userinput not in kwarg[4]:
+                    showerror(title="错误", message=f"参数 {kwarg[1]} 的值应为以下之一: {kwarg[4]}")
+                    return
+                
+        if userinput != kwarg[2]:
+            launch_args.append(f"--{kwarg[1]}")
+            launch_args.append(f"{userinput}")
+    
+    command = "start " + target_path + " " + " ".join(map(lambda x: f"\"{x}\"", launch_args))
+    print(command)
+    popen(command)
+    
+root = tkinter.Tk()
 root.withdraw()
 root.title("Phigros Player Launcher")
 root.iconbitmap("icon.ico")
 root.resizable(False, False)
 screen_width, screen_height = root.winfo_screenwidth(), root.winfo_screenheight()
-
-file_input_label = Label(root, text=TEXT.FILE_INPUT_LABEL_TEXT)
+file_input_label = tkinter.Label(root, text="谱面文件: ")
 file_input_label.grid(row=0, column=0, columnspan=100, padx=12, sticky="w")
-file_input_entry = Entry(root, width=int(screen_width / 35))
+file_input_entry = tkinter.ttk.Entry(root, width=int(screen_width / 35))
 file_input_entry.grid(row=0, column=101, columnspan=100, sticky="w")
-file_input_filedialog_button = Button(root, text=TEXT.FILE_INPUT_FILEDIALOG_BUTTON_TEXT, command=OpenFile)
+file_input_filedialog_button = tkinter.ttk.Button(root, text="选择", command=lambda: openfile_callback(file_input_entry))
 file_input_filedialog_button.grid(row=0, column=202, sticky="w")
 
-args_LabelFrame = LabelFrame(root, text=TEXT.ARGS_TEXT)
-args_LabelFrame.grid(row=1, column=0, columnspan=5000, padx=12, sticky="w")
-kwargs_LabelFrame = LabelFrame(root,text=TEXT.KWARGS_TEXT)
-kwargs_LabelFrame.grid(row=2, column=0, columnspan=5000, padx=12, sticky="w")
-other_args_Label = Label(root, text=TEXT.OTHER_ARGS_TEXT)
-other_args_Label.grid(row=3, column=0, columnspan=100, padx=12, sticky="w")
-other_args_Entry = Entry(root, width=int(screen_width / 35))
-other_args_Entry.grid(row=3, column=101, columnspan=100, sticky="w")
+arg_setting = [
+    ("隐藏控制台窗口", "hideconsole"),
+    ("调试", "debug"),
+    ("全屏", "fullscreen"),
+    ("自动循环", "loop"),
+    ("生成lfdaot文件", "lfdaot"),
+    ("禁用点击音效", "noclicksound"),
+    ("扩展渲染范围", "render-range-more"),
+    ("使用lfdaot文件渲染视频", "lfdaot-render-video"),
+    ("窗口无边框", "frameless"),
+    ("禁用自动游玩", "noautoplay"),
+    ("启用实时准度", "rtacc"),
+    ("生成lfdaot文件后自动退出", "lfdaot-file-output-autoexit"),
+    ("低画质模式", "lowquality"),
+    ("显示帧率", "showfps"),
+    ("不播放谱面, 立即结算", "noplaychart"),
+    ("启用rpe谱面control类字段", "rpe-control", "有极大的性能开销"),
+    ("替换文本为中文 (wl)", "wl-more-chinese"),
+    ("使用 raf 限制帧率", "renderdemand"),
+    ("异步渲染", "renderasync"),
+    ("保留渲染的 JavaScript 代码", "enable-jslog"),
+    ("启用 BitmapImage", "enable-jscanvas-bitmap"),
+    ("降级音频API", "soundapi-downgrade"),
+    ("lfdaot渲染完成视频后自动退出", "lfdaot-render-video-autoexit"),
+    ("不清理临时文件", "nocleartemp")
+]
 
-debug_checkbutton_var = BooleanVar(value=False) # --debug
-debug_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.DEBUG, variable=debug_checkbutton_var)
-debug_checkbutton.grid(sticky="w", row=0, column=0)
+kwarg_setting = [
+    ("连击提示文本", "combotips", "AUTOPLAY", "string"),
+    ("打击特效随机块数量", "random-block-num", 4, "int"),
+    ("设置音符缩放", "scale-note", 1.0, "float"),
+    ("设置 lfdaot 文件路径", "lfdaot-file", None, "path"),
+    ("设置窗口大小 (如: \"1920 1080\")", "size", None, "string"),
+    ("设置生成 lfdaot 文件的帧速度", "lfdaot-frame-speed", 60, "int"),
+    ("设置渲染范围更多的缩放", "render-range-more-scale", 2.0, "float"),
+    ("设置窗口宿主 (hwnd)", "window-host", None, "int"),
+    ("生成lfdaot文件的变成路径", "lfdaot-file-savefp", None, "path"),
+    ("设置lfdaot渲染视频输出路径", "lfdaot-render-video-savefp", None, "path"),
+    ("设置低画质渲染缩放", "lowquality-scale", 2.0, "float"),
+    ("设置资源路径", "res", None, "path-dir"),
+    ("设置生成 lfdaot 文件的开始帧数", "lfdaot-start-frame-num", 0, "int"),
+    ("设置生成 lfdaot 文件的总帧数", "lfdaot-run-frame-num", None, "int"),
+    ("设置谱面速度", "speed", 1.0, "float"),
+    ("设置打击特效方块的圆角系数", "clickeffect-randomblock-roundn", 0.0, "float"),
+    ("设置打击音效音量", "clicksound-volume", 1.0, "float"),
+    ("设置音乐音量", "musicsound-volume", 1.0, "float"),
+    ("设置低画质渲染缩放 (js调用层)", "lowquality-imjscvscale-x", 1.0, "float"),
+    ("设置 lfdaot 文件生成的视频编码", "lfdaot-video-fourcc", "mp4v", "string"),
+    ("使用 phira 谱面 (id)", "phira-chart", None, "int"),
+    ("保存 phira 谱面路径", "phira-chart-save", None, "path"),
+    ("播放时跳过的时间", "skip-time", 0.0, "float"),
+    ("设置 渲染JavaScript 代码输出路径", "jslog-path", None, "path"),
+    ("设置低画质渲染最大尺寸 (js调用层)", "lowquality-imjs-maxsize", 256, "int"),
+    ("设置 rpe 谱面纹理缩放方法", "rpe-texture-scalemethod", "by-width", "choice", ["by-width", "by-height"]),
+    ("扩展", "extended", None, "path")
+]
 
-fullscreen_checkbutton_var = BooleanVar(value=False) # --fullscreen
-fullscreen_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.FULLSCREEN, variable=fullscreen_checkbutton_var)
-fullscreen_checkbutton.grid(sticky="w", row=0, column=1)
+arg_widgets = []
+kwarg_widgets = []
 
-lowquality_checkbutton_var = BooleanVar(value=False) # --lowquality
-lowquality_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LOWQUALITY, variable=lowquality_checkbutton_var)
-lowquality_checkbutton.grid(sticky="w", row=0, column=2)
+arg_canvas = tkinter.Canvas(root)
+arg_sbary = tkinter.ttk.Scrollbar(root, orient="vertical", command=arg_canvas.yview)
+arg_sbarx = tkinter.ttk.Scrollbar(root, orient="horizontal", command=arg_canvas.xview)
+arg_canvas.configure(yscrollcommand=arg_sbary.set)
+arg_canvas.configure(xscrollcommand=arg_sbarx.set)
 
-noclickeffect_randomblock_checkbutton_var = BooleanVar(value=False) # --noclickeffect-randomblock
-noclickeffect_randomblock_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOCLICKEFFECT_RANDOMBLOCK, variable=noclickeffect_randomblock_checkbutton_var)
-noclickeffect_randomblock_checkbutton.grid(sticky="w", row=1, column=0)
+arg_frame = tkinter.Frame(arg_canvas)
+arg_canvas.create_window((0, 0), window=arg_frame, anchor="nw")
 
-loop_checkbutton_var = BooleanVar(value=False) # --loop
-loop_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LOOP, variable=loop_checkbutton_var)
-loop_checkbutton.grid(sticky="w", row=1, column=1)
+for index, data in enumerate(arg_setting):
+    var = tkinter.BooleanVar()
+    var.set(False)
+    checkbut = tkinter.ttk.Checkbutton(arg_frame, text=data[0], variable=var)
+    checkbut.grid(row=index, column=0, sticky="w")
+    arg_widgets.append(var)
 
-lfdaot_checkbutton_var = BooleanVar(value=False) # --lfdaot
-lfdaot_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LFDAOT,variable=lfdaot_checkbutton_var, command=lfdaot_callback)
-lfdaot_checkbutton.grid(sticky="w", row=2, column=0)
+arg_frame.update_idletasks()
+arg_canvas.configure(scrollregion=arg_canvas.bbox("all"))
 
-noclicksound_checkbutton_var = BooleanVar(value=False) # --noclicksound
-noclicksound_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOCLICKSOUND, variable=noclicksound_checkbutton_var)
-noclicksound_checkbutton.grid(sticky="w", row=2, column=1)
+arg_canvas.grid(row=1, column=0, columnspan=3000, sticky="nw")
+arg_sbary.grid(row=1, column=3001, sticky="ns")
+arg_sbarx.grid(row=2, column=0, columnspan=1000, sticky="ew")
+arg_canvas.bind("<MouseWheel>", lambda e: arg_canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
+arg_canvas.bind("<Shift-MouseWheel>", lambda e: arg_canvas.xview_scroll(int(-1*(e.delta/120)), "units"))
 
-render_range_more_checkbutton_var = BooleanVar(value=False) # --render-range-more
-render_range_more_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.RRM,variable=render_range_more_checkbutton_var, command=render_range_more_callback)
-render_range_more_checkbutton.grid(sticky="w", row=2, column=2)
+kwarg_canvas = tkinter.Canvas(root, width=root.winfo_width())
+kwarg_sbary = tkinter.ttk.Scrollbar(root, orient="vertical", command=kwarg_canvas.yview)
+kwarg_sbarx = tkinter.ttk.Scrollbar(root, orient="horizontal", command=kwarg_canvas.xview)
+kwarg_canvas.configure(yscrollcommand=kwarg_sbary.set)
+kwarg_canvas.configure(xscrollcommand=kwarg_sbarx.set)
 
-setsize_checkbutton_var = BooleanVar(value=False) # --size
-setsize_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.SETSIZE,variable=setsize_checkbutton_var, command=setsize_callback)
-setsize_checkbutton.grid(sticky="w", row=3, column=0)
+kwarg_frame = tkinter.Frame(kwarg_canvas)
+kwarg_canvas.create_window((0, 0), window=kwarg_frame, anchor="nw")
 
-lfdaot_render_video_checkbutton_var = BooleanVar(value=False) # --lfdaot-render-video
-lfdaot_render_video_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.LFDAOT_RENDER_VIDEO, variable=lfdaot_render_video_checkbutton_var)
-lfdaot_render_video_checkbutton.grid(sticky="w", row=4, column=0, columnspan=500)
-lfdaot_render_video_checkbutton.configure(state = "disabled")
+for i, data in enumerate(kwarg_setting):
+    label = tkinter.Label(kwarg_frame, text=f"{data[0]} ({data[3]}): ")
+    label.grid(row=i, column=0, sticky="w")
+    match data[3]:
+        case "int" | "float" | "string":
+            entry = tkinter.Entry(kwarg_frame)
+            entry.grid(row=i, column=1, sticky="w")
+            kwarg_widgets.append(entry)
+            if data[2] is not None:
+                entry.insert(0, str(data[2]))
+        case "path":
+            entry = tkinter.Entry(kwarg_frame)
+            entry.grid(row=i, column=1, sticky="w")
+            button = tkinter.ttk.Button(kwarg_frame, text="浏览", command=lambda entry=entry: openfile_callback(entry))
+            button.grid(row=i, column=2, sticky="w")
+            kwarg_widgets.append(entry)
+        case "path-dir":
+            entry = tkinter.Entry(kwarg_frame)
+            entry.grid(row=i, column=1, sticky="w")
+            button = tkinter.ttk.Button(kwarg_frame, text="浏览", command=lambda entry=entry: opendir_callback(entry))
+            button.grid(row=i, column=2, sticky="w")
+            kwarg_widgets.append(entry)
+        case "choice":
+            entry = tkinter.ttk.Combobox(kwarg_frame, values=data[4])
+            entry.grid(row=i, column=1, sticky="w")
+            kwarg_widgets.append(entry)
+            entry.current(0)
 
-frameless_checkbutton_var = BooleanVar(value=False) # --frameless
-frameless_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.FRAMELESS, variable=frameless_checkbutton_var)
-frameless_checkbutton.grid(sticky="w", row=5, column=0)
+kwarg_frame.update_idletasks()
+kwarg_canvas.configure(scrollregion=kwarg_canvas.bbox("all"))
 
-noautoplay_checkbutton_var = BooleanVar(value=False) # --noautoplay
-noautoplay_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.NOAUTOPLAY, variable=noautoplay_checkbutton_var)
-noautoplay_checkbutton.grid(sticky="w", row=5, column=1)
+kwarg_canvas.grid(row=3, column=2, columnspan=3000, sticky="nw")
+kwarg_sbary.grid(row=3, column=3001, sticky="ns")
+kwarg_sbarx.grid(row=4, column=2, columnspan=1000, sticky="ew")
+kwarg_canvas.bind("<MouseWheel>", lambda e: kwarg_canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
+kwarg_canvas.bind("<Shift-MouseWheel>", lambda e: kwarg_canvas.xview_scroll(int(-1*(e.delta/120)), "units"))
 
-rtacc_checkbutton_var = BooleanVar(value=False) # --rtacc
-rtacc_checkbutton = Checkbutton(args_LabelFrame, text=TEXT.ARGS.RTACC, variable=rtacc_checkbutton_var)
-rtacc_checkbutton.grid(sticky="w", row=5, column=2)
+launchButton = tkinter.ttk.Button(root, text="启动", command=launch)
+launchButton.grid(row=5, column=0, columnspan=5000, padx=12, pady=5, sticky="w")
 
-
-kwarg_combotips_var = StringVar(value="AUTOPLAY") # --combotips
-kwarg_combotips_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.COMBOTIPS)
-kwarg_combotips_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_combotips_var)
-kwarg_combotips_label.grid(row=0, column=0)
-kwarg_combotips_entry.grid(row=0, column=1)
-
-kwarg_random_block_num_var = StringVar(value="4") # --random-block-num
-kwarg_random_block_num_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.RANDOM_BLOCK_NUM)
-kwarg_random_block_num_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_random_block_num_var)
-kwarg_random_block_num_label.grid(row=1, column=0)
-kwarg_random_block_num_entry.grid(row=1, column=1)
-
-kwarg_scale_note_var = StringVar(value="1.0") # --scale-note
-kwarg_scale_note_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.SCALE_NOTE)
-kwarg_scale_note_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_scale_note_var)
-kwarg_scale_note_label.grid(row=2, column=0)
-kwarg_scale_note_entry.grid(row=2, column=1)
-
-kwarg_lfdaot_file_var = StringVar(value="") # --lfdaot-file
-kwarg_lfdaot_file_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.LFDAOT_FILE)
-kwarg_lfdaot_file_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_lfdaot_file_var)
-kwarg_lfdaot_file_choose_button = Button(kwargs_LabelFrame, text=TEXT.FILE_INPUT_FILEDIALOG_BUTTON_TEXT, command=kwarg_lfdaot_file_choose_callback)
-kwarg_lfdaot_file_label.grid(row=3, column=0)
-kwarg_lfdaot_file_entry.grid(row=3, column=1)
-kwarg_lfdaot_file_choose_button.grid(row=3, column=2, columnspan=100, sticky="w")
-kwarg_lfdaot_file_entry.configure(state = "disabled")
-kwarg_lfdaot_file_choose_button.configure(state = "disabled")
-
-kwarg_size_x_var = StringVar(value="NULL") # --size
-kwarg_size_y_var = StringVar(value="NULL")
-kwarg_size_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.SIZE)
-kwarg_size_x_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_size_x_var)
-kwarg_size_y_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_size_y_var)
-kwarg_size_connect_label = Label(kwargs_LabelFrame,text="x")
-kwarg_size_label.grid(row=4, column=0)
-kwarg_size_x_entry.grid(row=4, column=1)
-kwarg_size_connect_label.grid(row=4, column=2)
-kwarg_size_y_entry.grid(row=4, column=3)
-kwarg_size_x_entry.configure(state = "disabled")
-kwarg_size_connect_label.configure(state = "disabled")
-kwarg_size_y_entry.configure(state = "disabled")
-
-kwarg_lfdaot_frame_speed_var = StringVar(value="60.0") # --lfdaot-frame-speed
-kwarg_lfdaot_frame_speed_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.LFDAOT_FRAME_SPEED)
-kwarg_lfdaot_frame_speed_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_lfdaot_frame_speed_var)
-kwarg_lfdaot_frame_speed_label.grid(row=5, column=0)
-kwarg_lfdaot_frame_speed_entry.grid(row=5, column=1)
-kwarg_lfdaot_frame_speed_entry.configure(state = "disabled")
-
-kwarg_render_range_more_scale_var = StringVar(value="2.0") # --render-range-more-scale
-kwarg_render_range_more_scale_label = Label(kwargs_LabelFrame, text=TEXT.KWARGS.RENDER_RANGE_MORE_SCALE)
-kwarg_render_range_more_scale_entry = Entry(kwargs_LabelFrame, textvariable=kwarg_render_range_more_scale_var)
-kwarg_render_range_more_scale_label.grid(row=6, column=0)
-kwarg_render_range_more_scale_entry.grid(row=6, column=1)
-kwarg_render_range_more_scale_entry.configure(state = "disabled")
-
-Launch_Button = Button(root, text=TEXT.LAUNCH_BUTTON_TEXT, command=Launch)
-Launch_Button.grid(row=4, column=0, columnspan=5000, padx=12, pady=5, sticky="w")
-
-root.update()
-hook_dropfiles_first(root.winfo_id(), lambda file:([file_input_entry.delete(0, "end"),file_input_entry.insert(0, file)] if isfile(file) else None))
 root.deiconify()
+root.update()
+arg_frame["width"] = root.winfo_width()
+kwarg_frame["width"] = root.winfo_width()
+arg_canvas["width"] = root.winfo_width()
+kwarg_canvas["width"] = root.winfo_width()
+hook_dropfiles_first(root.winfo_id(), lambda file:([file_input_entry.delete(0, "end"),file_input_entry.insert(0, file)] if isfile(file) else None))
 root.mainloop()

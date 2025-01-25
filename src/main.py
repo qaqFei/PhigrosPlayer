@@ -48,8 +48,7 @@ if not exists("./7z.exe") or not exists("./7z.dll"):
     raise SystemExit
 
 if len(sys.argv) == 1:
-    HELP = ppr_help.HELP_EN if windll.kernel32.GetSystemDefaultUILanguage() != 0x804 else ppr_help.HELP_ZH
-    print(HELP)
+    print(ppr_help.HELP_ZH)
     raise SystemExit
     
 console_window.Hide() if "--hideconsole" in sys.argv else None
