@@ -69,11 +69,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         command10 = run(self.checkBox_10," --loop")
         command11 = run(self.checkBox_11," --fullscreen")
         command13 = " --combotips "+ self.combotips
+        command14 = " "+self.lineEdit_3.text()
         if self.chart:
             command12 = " \""+self.chart+"\""
         else:
             command12 = " --phira-chart "+ self.lineEdit_2.text()
-        command = "py main.py" +command12+command1+command2+command3+command4+command5+command7+command8+command9+command10+command11+command13
+        command = "py main.py" +command12+command1+command2+command3+command4+command5+command7+command8+command9+command10+command11+command13+command14
         print(command)
         os.system(command)
         self.messagebox_when_render_off()
