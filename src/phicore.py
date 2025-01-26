@@ -246,13 +246,11 @@ def processClickEffectBase(
     
     effectImageSize = effectSize * phira_resource_pack.globalPack.effectScale
     caller(
-        root.run_js_code,
-        f"ctx.drawAlphaImage(\
-            {root.get_img_jsvarname(f"{imn}_{int(p * (framecount - 1)) + 1}")},\
-            {x - effectImageSize / 2}, {y - effectImageSize / 2},\
-            {effectImageSize}, {effectImageSize}, {alpha}\
-        );",
-        add_code_array = True
+        drawAlphaImage,
+        f"{imn}_{int(p * (framecount - 1)) + 1}",
+        x - effectImageSize / 2, y - effectImageSize / 2,
+        effectImageSize, effectImageSize, alpha,
+        wait_execute = True
     )
 
 def processClickEffect(
@@ -331,13 +329,7 @@ def stringifyScore(score:float) -> str:
     return f"{score_integer:>7}".replace(" ","0")
 
 def drawBg():
-    root.run_js_code(
-        f"ctx.drawImage(\
-           {root.get_img_jsvarname("background")},\
-            0, 0, {w}, {h},\
-        );",
-        add_code_array = True
-    )
+    drawImage("background", 0, 0, w, h, wait_execute=True)
 
 # color 一定要传 rgba 的
 def draw_ui(

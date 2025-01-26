@@ -488,13 +488,7 @@ def Show_Start():
     WaitLoading.fadeout(450)
     
     def dle_warn(a: float):
-        root.run_js_code(
-            f"ctx.drawAlphaImage(\
-                {root.get_img_jsvarname("le_warn")},\
-                0, 0, {w}, {h}, {a}\
-            );",
-            add_code_array = True
-        )
+        drawAlphaImage("le_warn", 0, 0, w, h, a, wait_execute=True)
     
     animationst = time.time()
     while time.time() - animationst < 1.0:
