@@ -9,16 +9,21 @@ root: webcv.WebCanvas
 __all__ = (
     "setCtx",
     "getCtx",
+    "setOrder",
+    "getOrder",
     "clearCanvas",
     "drawLine",
     "drawText",
     "drawPolygon",
     "drawImage",
-    "drawAlphaImage"
+    "drawAlphaImage",
+    "drawRotateImage"
 )
+
 transparent = "rgba(0, 0, 0, 0)"
 number = int|float
 ctx: str = "ctx"
+order: int|None = None
 
 def setCtx(n: str):
     global ctx
@@ -27,8 +32,15 @@ def setCtx(n: str):
 def getCtx() -> str:
     return ctx
 
+def setOrder(n: int|None):
+    global order
+    order = n
+    
+def getOrder():
+    return order
+
 def clearCanvas(wait_execute: bool = False):
-    root.run_js_code(f"{ctx}.clear();", wait_execute)
+    root.run_js_code(f"{ctx}.clear();", wait_execute, order)
     
 def drawLine(
     x0: number, y0: number,
@@ -46,7 +58,7 @@ def drawLine(
     code.append(f"{ctx}.lineTo({x1}, {y1});")
     code.append(f"{ctx}.stroke();")
     code.append(f"{ctx}.restore();")
-    root.run_js_code("".join(code), wait_execute)
+    root.run_js_code("".join(code), wait_execute, order)
 
 def drawText(
     x: number, y: number,
@@ -69,7 +81,7 @@ def drawText(
     code.append(f"{ctx}.strokeStyle = '{strokeStyle}';") if method == "stroke" else None
     code.append(f"{ctx}.{method}Text({text}, {x}, {y}, {maxwidth if maxwidth is not None else "undefined"});")
     code.append(f"{ctx}.restore();")
-    root.run_js_code("".join(code), wait_execute)
+    root.run_js_code("".join(code), wait_execute, order)
 
 def drawPolygon(
     points: typing.Iterable[tuple[number, number]],
@@ -91,7 +103,7 @@ def drawPolygon(
     code.append(f"{ctx}.fill();") if method == "fill" else None
     code.append(f"{ctx}.stroke();") if method == "stroke" else None
     code.append(f"{ctx}.restore();")
-    root.run_js_code("".join(code), wait_execute)
+    root.run_js_code("".join(code), wait_execute, order)
 
 def drawImage(
     imname: str,
@@ -100,7 +112,7 @@ def drawImage(
     wait_execute: bool = False
 ):
     jvn = root.get_img_jsvarname(imname)
-    root.run_js_code(f"{ctx}.drawImage({jvn}, {x}, {y}, {width}, {height});", wait_execute)
+    root.run_js_code(f"{ctx}.drawImage({jvn}, {x}, {y}, {width}, {height});", wait_execute, order)
 
 def drawAlphaImage(
     imname: str,
@@ -110,4 +122,15 @@ def drawAlphaImage(
     wait_execute: bool = False
 ):
     jvn = root.get_img_jsvarname(imname)
-    root.run_js_code(f"{ctx}.drawAlphaImage({jvn}, {x}, {y}, {width}, {height}, {alpha});", wait_execute)
+    root.run_js_code(f"{ctx}.drawAlphaImage({jvn}, {x}, {y}, {width}, {height}, {alpha});", wait_execute, order)
+
+def drawRotateImage(
+    imname: str,
+    x: number, y: number,
+    width: number, height: number,
+    deg: number, alpha: number,
+    wait_execute: bool = False
+):
+    jvn = root.get_img_jsvarname(imname)
+    root.run_js_code(f"{ctx}.drawRotateImage({jvn}, {x}, {y}, {width}, {height}, {deg}, {alpha});", wait_execute, order)
+    

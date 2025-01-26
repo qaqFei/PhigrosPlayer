@@ -134,7 +134,7 @@ mixer.init()
 if "--phira-chart" in sys.argv:
     logging.info("Downloading phira chart...")
     pctid = sys.argv[sys.argv.index("--phira-chart") + 1]
-    apiresult = requests.get(f"https://api.phira.cn/chart/{pctid}").json()
+    apiresult = requests.get(f"https://phira.5wyxi.com/chart/{pctid}").json()
     if "error" in apiresult:
         logging.error(f"phira api: {apiresult["error"]}")
         raise SystemExit

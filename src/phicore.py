@@ -278,17 +278,14 @@ def processBadEffect(
     p = (now_t - st) / bdfi_t
     this_note_img = Resource["Notes"]["Bad"]
     caller(
-        root.run_js_code,
-        f"ctx.drawRotateImage(\
-            {root.get_img_jsvarname("Note_Bad")},\
-            {x * w},\
-            {y * h},\
-            {globalNoteWidth},\
-            {globalNoteWidth / this_note_img.width * this_note_img.height},\
-            {rotate},\
-            {1 - p ** 3}\
-        );",
-        add_code_array = True
+        drawRotateImage,
+        "Note_Bad",
+        x * w, y * h,
+        globalNoteWidth,
+        globalNoteWidth / this_note_img.width * this_note_img.height,
+        rotate,
+        1 - p ** 3,
+        wait_execute = True
     )
 
 def getNoteDrawPosition(
@@ -722,38 +719,34 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     noteRotate = lineToNoteRotate + 90
                         
                     if noteHadHead:
+                        Task(setOrder, note.draworder)
                         Task(
-                            root.run_js_code,
-                            f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(note.imgname)},\
-                                {x if not note.ishold else headpos[0]},\
-                                {y if not note.ishold else headpos[1]},\
-                                {noteWidth},\
-                                {noteHeight},\
-                                {noteRotate},\
-                                1.0\
-                            );",
-                            add_code_array = True,
-                            order = note.draworder
+                            drawRotateImage,
+                            note.imgname,
+                            x if not note.ishold else headpos[0],
+                            y if not note.ishold else headpos[1],
+                            noteWidth,
+                            noteHeight,
+                            noteRotate,
+                            1.0,
+                            wait_execute = True
                         )
+                        Task(setOrder, None)
                         
                     if note.ishold:
                         noteEndHeight = noteWidth / noteEndImg.width * noteEndImg.height
                         missAlpha = 0.5 if noautoplay and note.player_missed else 1.0
                         
+                        Task(setOrder, note.draworder)
                         Task(
-                            root.run_js_code,
-                            f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(note.imgname_end)},\
-                                {endpos[0]}, {endpos[1]},\
-                                {noteWidth},\
-                                {noteEndHeight},\
-                                {noteRotate},\
-                                {missAlpha}\
-                            );",
-                            add_code_array = True,
-                            order = note.draworder
+                            drawRotateImage,
+                            note.imgname_end,
+                            *endpos,
+                            noteWidth, noteEndHeight,
+                            noteRotate, missAlpha,
+                            wait_execute = True
                         )
+                        Task(setOrder, None)
                         
                         if bodyLength > 0.0:
                             Task(
@@ -822,15 +815,13 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         noteWidth = globalNoteWidth * fix_scale
         noteHeight = noteWidth / noteImg.width * noteImg.height
         Task(
-            root.run_js_code,
-            f"ctx.drawRotateImage(\
-                {root.get_img_jsvarname(imgname)},\
-                {x}, {y},\
-                {noteWidth}, {noteHeight},\
-                {lineRotate},\
-                {1 - p ** 0.5}\
-            );",
-            add_code_array = True
+            drawRotateImage,
+            imgname,
+            x, y,
+            noteWidth, noteHeight,
+            lineRotate,
+            1 - p ** 0.5,
+            wait_execute = True
         )
         
     if noautoplay:
@@ -1107,38 +1098,36 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     noteHeight = noteWidth / noteImg.width * noteImg.height
                     
                     if noteHadHead:
+                        Task(setOrder, note.draworder)
                         Task(
-                            root.run_js_code,
-                            f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(note.imgname)},\
-                                {x if not note.ishold else headpos[0]},\
-                                {y if not note.ishold else headpos[1]},\
-                                {noteWidth * noteWidthX},\
-                                {noteHeight},\
-                                {noteRotate},\
-                                {noteAlpha}\
-                            );",
-                            add_code_array = True,
-                            order = note.draworder
+                            drawRotateImage,
+                            note.imgname,
+                            x if not note.ishold else headpos[0],
+                            y if not note.ishold else headpos[1],
+                            noteWidth * noteWidthX,
+                            noteHeight,
+                            noteRotate,
+                            noteAlpha,
+                            wait_execute = True
                         )
+                        Task(setOrder, None)
                         
                     if note.ishold:
                         noteEndHeight = noteWidth / noteEndImg.width * noteEndImg.height
                         missAlpha = 0.5 if noautoplay and note.player_missed else 1.0
                         
+                        Task(setOrder, note.draworder)
                         Task(
-                            root.run_js_code,
-                            f"ctx.drawRotateImage(\
-                                {root.get_img_jsvarname(note.imgname_end)},\
-                                {endpos[0]}, {endpos[1]},\
-                                {noteWidth * noteWidthX},\
-                                {noteEndHeight},\
-                                {noteRotate},\
-                                {noteAlpha * missAlpha}\
-                            );",
-                            add_code_array = True,
-                            order = note.draworder
+                            drawRotateImage,
+                            note.imgname_end,
+                            *endpos,
+                            noteWidth * noteWidthX,
+                            noteEndHeight,
+                            noteRotate,
+                            noteAlpha * missAlpha,
+                            wait_execute = True
                         )
+                        Task(setOrder, None)
                         
                         if bodyLength > 0.0:
                             Task(
@@ -1208,17 +1197,14 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             noteWidth = globalNoteWidth * fix_scale
             noteHeight = noteWidth / noteImg.width * noteImg.height
             Task(
-                root.run_js_code,
-                f"ctx.drawRotateImage(\
-                    {root.get_img_jsvarname(imgname)},\
-                    {x},\
-                    {y},\
-                    {noteWidth * note.width},\
-                    {noteHeight},\
-                    {lineRotate},\
-                    {note.float_alpha * (1 - p ** 0.5)}\
-                );",
-                add_code_array = True
+                drawRotateImage,
+                imgname,
+                x, y,
+                noteWidth * note.width,
+                noteHeight,
+                lineRotate,
+                note.float_alpha * (1 - p ** 0.5),
+                wait_execute = True
             )
     
     if noautoplay:
