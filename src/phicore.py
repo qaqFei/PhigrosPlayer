@@ -1251,10 +1251,9 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             doShader(name, values, Task)
     
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
-    now_t /= speed
     Task(
         draw_ui,
-        process = now_t / audio_length,
+        process = now_t / speed / audio_length,
         score = stringifyScore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else stringifyScore(pplm.ppps.getScore()),
         combo_state = combo >= 3,
         combo = combo,
@@ -1263,12 +1262,14 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         background = False,
         **delDrawuiDefaultVals(attachUIData)
     )
-    now_t += chart_obj.META.offset / 1000
     
     if chart_obj.extra is not None:
         extra_values = chart_obj.extra.getValues(now_t, True)
         for name, values in extra_values:
             doShader(name, values, Task)
+        
+    now_t /= speed
+    now_t += chart_obj.META.offset / 1000
             
     rrmEnd(Task)
     if rjc: Task(root.run_js_wait_code)
