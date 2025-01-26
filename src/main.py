@@ -882,7 +882,6 @@ def PlayerStart():
                 a2_loop_clicked = True
         
         def continueClick(clientX, clientY):
-            print(clientX, clientY, w, h)
             nonlocal a2_continue_clicked
             if clientX >= w - w * const.FINISH_UI_BUTTON_SIZE and clientY >= h - w * const.FINISH_UI_BUTTON_SIZE / 190 * 145:
                 a2_continue_clicked = True
