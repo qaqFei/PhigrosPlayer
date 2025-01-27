@@ -544,8 +544,8 @@ def PlayerStart():
     
     Resource["Over"].stop()
     
-    phicore.Begin_Animation()
-    phicore.ChartStart_Animation()
+    phicore.loadingAnimation()
+    phicore.lineOpenAnimation()
 
     show_start_time = time.time() - skip_time
     PhiCoreConfigObject.show_start_time = show_start_time
@@ -834,7 +834,7 @@ def PlayerStart():
             needrelease.remove(writer.release)
     
     mixer.music.set_volume(1.0)
-    phicore.initFinishAnimation(pplm if noautoplay else None)
+    phicore.initSettlementAnimation(pplm if noautoplay else None)
     
     def Chart_Finish_Animation():
         animation_1_time = 0.75
@@ -844,7 +844,7 @@ def PlayerStart():
         while True:
             p = (time.time() - animation_1_start_time) / animation_1_time
             if p > 1.0: break
-            phicore.Chart_BeforeFinish_Animation_Frame(p, a1_combo)
+            phicore.lineCloseAimationFrame(p, a1_combo)
         
         time.sleep(0.25)
         Resource["Over"].play(-1)
@@ -897,10 +897,10 @@ def PlayerStart():
         while not a2_break:
             p = (time.time() - animation_2_start_time) / animation_2_time
             if p > 1.0: break
-            phicore.Chart_Finish_Animation_Frame(p)
+            phicore.settlementAnimationFrame(p)
         
         while not a2_break:
-            phicore.Chart_Finish_Animation_Frame(1.0)
+            phicore.settlementAnimationFrame(1.0)
     
     mixer.music.fadeout(250)
     Chart_Finish_Animation()
