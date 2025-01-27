@@ -39,6 +39,7 @@ import phicore
 import tempdir
 import socket_webviewbridge
 import wcv2matlike
+import needrelease
 from dxsmixer import mixer
 from graplib_webview import *
 
@@ -811,6 +812,7 @@ def PlayerStart():
                 frame_speed, (w, h),
                 True
             )
+            needrelease.add(writer.release)
             
             if video_fp != "":
                 def writeFrame(data: bytes):
@@ -824,12 +826,14 @@ def PlayerStart():
                     Task.ExecTask()
                     root.wait_jspromise(f"uploadFrame('http://127.0.0.1:{port}/');")
                 
-                writer.release()
                 httpd.shutdown()
                 
                 if "--lfdaot-render-video-autoexit" in sys.argv:
                     root.destroy()
                     return
+            
+            writer.release()
+            needrelease.remove(writer.release)
     
     mixer.music.set_volume(1.0)
     phicore.initFinishAnimation(pplm if noautoplay else None)
