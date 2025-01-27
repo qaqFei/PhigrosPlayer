@@ -424,19 +424,17 @@ def Load_Resource():
     
     # root.file_server.shutdown()
     note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
-    note_max_height = max(
-        [
-            note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,
-            note_max_width / Resource["Notes"]["Tap_dub"].width * Resource["Notes"]["Tap_dub"].height,
-            note_max_width / Resource["Notes"]["Drag"].width * Resource["Notes"]["Drag"].height,
-            note_max_width / Resource["Notes"]["Drag_dub"].width * Resource["Notes"]["Drag_dub"].height,
-            note_max_width / Resource["Notes"]["Flick"].width * Resource["Notes"]["Flick"].height,
-            note_max_width / Resource["Notes"]["Flick_dub"].width * Resource["Notes"]["Flick_dub"].height,
-            note_max_width / Resource["Notes"]["Hold_Head"].width * Resource["Notes"]["Hold_Head"].height,
-            note_max_width / Resource["Notes"]["Hold_Head_dub"].width * Resource["Notes"]["Hold_Head_dub"].height,
-            note_max_width / Resource["Notes"]["Hold_End"].width * Resource["Notes"]["Hold_End"].height
-        ]
-    )
+    note_max_height = max((
+        note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,
+        note_max_width / Resource["Notes"]["Tap_dub"].width * Resource["Notes"]["Tap_dub"].height,
+        note_max_width / Resource["Notes"]["Drag"].width * Resource["Notes"]["Drag"].height,
+        note_max_width / Resource["Notes"]["Drag_dub"].width * Resource["Notes"]["Drag_dub"].height,
+        note_max_width / Resource["Notes"]["Flick"].width * Resource["Notes"]["Flick"].height,
+        note_max_width / Resource["Notes"]["Flick_dub"].width * Resource["Notes"]["Flick_dub"].height,
+        note_max_width / Resource["Notes"]["Hold_Head"].width * Resource["Notes"]["Hold_Head"].height,
+        note_max_width / Resource["Notes"]["Hold_Head_dub"].width * Resource["Notes"]["Hold_Head_dub"].height,
+        note_max_width / Resource["Notes"]["Hold_End"].width * Resource["Notes"]["Hold_End"].height
+    ))
     note_max_size_half = ((note_max_width ** 2 + note_max_height ** 2) ** 0.5) / 2
                 
     shaders = {
