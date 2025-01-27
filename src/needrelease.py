@@ -17,3 +17,4 @@ def run() -> None:
             func()
     except Exception as e:
         logging.error(f"Error while running needrelease: {repr(e)}")
+        
