@@ -3,6 +3,7 @@ import random
 import logging
 import time
 import re
+import threading
 from sys import argv
 from os import environ
 from dataclasses import dataclass
@@ -318,6 +319,9 @@ def fixShader(shader: str):
     shader = replaceForLoops(shader)
     
     return shader
+
+def runByThread(f: typing.Callable[[], typing.Any], daemon: bool = False):
+    threading.Thread(target=f, daemon=daemon).start()
 
 class PhigrosPlayManager:
     def __init__(self, noteCount: int):
