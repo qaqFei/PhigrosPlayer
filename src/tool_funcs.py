@@ -320,9 +320,6 @@ def fixShader(shader: str):
     
     return shader
 
-def runByThread(f: typing.Callable[[], typing.Any], daemon: bool = False):
-    threading.Thread(target=f, daemon=daemon).start()
-
 class PhigrosPlayManager:
     def __init__(self, noteCount: int):
         self.events: list[typing.Literal["P", "G", "B", "M"]] = []
