@@ -21,7 +21,7 @@ def getrangefre(start: float, end: float):
     for i in range(int(start * sr), int(end * sr)):
         v = data[i]
         
-        if (last < 0.0 and v >= 0.0) or (last >= 0.0 and v < 0.0):
+        if (last <= 0.0 and v >= 0.0) or (last >= 0.0 and v <= 0.0):
             count += 1
             
         last = v
