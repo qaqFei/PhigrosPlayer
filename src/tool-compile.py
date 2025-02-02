@@ -1,3 +1,4 @@
+from zipfile import ZipFile
 from threading import Thread
 from os import system, mkdir, listdir
 from os.path import isfile
@@ -30,7 +31,6 @@ compile_files = [
 res_files = [
     "_internal",
     "web_canvas.html",
-    "7z.exe", "7z.dll",
     "ecwv_installer.exe",
     "resources",
     "icon.ico",
@@ -70,7 +70,9 @@ if "--zip" in argv:
         _copy(i.replace(".py", ".exe"), ".\\compile_result")
     for i in res_files:
         _copy(i, ".\\compile_result")
-    system("7z a compile_result.zip .\\compile_result\\*")
+    with ZipFile("compile_result.zip", "w") as zipf:
+        for f in listdir("compile_result"):
+            zipf.write(f"compile_result/{f}", arcname=f)
 
 print("\nCompile complete!")
 system("pause")

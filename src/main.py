@@ -9,6 +9,8 @@ import sys
 import time
 import logging
 import typing
+
+from zipfile import ZipFile
 from threading import Thread
 from ctypes import windll
 from os import popen
@@ -44,10 +46,6 @@ from dxsmixer import mixer
 from graplib_webview import *
 
 import load_extended as _
-
-if not exists("./7z.exe") or not exists("./7z.dll"):
-    logging.fatal("7z.exe or 7z.dll Not Found")
-    raise SystemExit
 
 if len(sys.argv) == 1:
     print(ppr_help.HELP_ZH)
@@ -153,7 +151,8 @@ if "--phira-chart" in sys.argv:
     logging.info("Downloaded phira chart.")
 
 logging.info("Unpack Chart...")
-popen(f".\\7z.exe x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y >> nul").read()
+with ZipFile(sys.argv[1]) as zipf:
+    zipf.extractall(temp_dir)
 
 logging.info("Loading All Files of Chart...")
 files_dict = {
@@ -276,7 +275,6 @@ if speed != 1.0:
 mixer.music.load(audio_fp)
 raw_audio_length = mixer.music.get_length()
 audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
-all_inforamtion = {}
 logging.info("Loading Chart Information...")
 
 ChartInfoLoader = info_loader.InfoLoader([f"{temp_dir}\\info.csv", f"{temp_dir}\\info.txt", f"{temp_dir}\\info.yml"])

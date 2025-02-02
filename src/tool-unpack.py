@@ -3,6 +3,8 @@ import fix_workpath as _
 import json
 import struct
 import base64
+
+from zipfile import ZipFile
 from os import mkdir, popen, listdir
 from os.path import exists, isfile
 from shutil import rmtree
@@ -15,10 +17,6 @@ import UnityPy.files
 import UnityPy.classes
 from UnityPy.enums import ClassIDType
 from fsb5 import FSB5
-
-if not exists("./7z.exe") or not exists("./7z.dll"):
-    print("7z.exe or 7z.dll Not Found")
-    raise SystemExit
     
 class ByteReaderA:
     def __init__(self, data: bytes):
@@ -76,8 +74,9 @@ class ByteReaderB:
 
 def getZipItem(path: str) -> str:
     while path[0] in ("/", "\\"): path = path[1:]
-    popen(f".\\7z.exe x \"{pgrapk}\" \"{path}\" -o.\\unpack-temp -y >> nul").read()
-    return f".\\unpack-temp\\{path}"
+    with ZipFile(pgrapk) as zip:
+        zip.extractall(f"unpack-temp/{path}")
+    return f"unpack-temp/{path}"
 
 def run(rpe: bool):
     try: rmtree("unpack-temp")
@@ -380,10 +379,11 @@ def pack_charts(infos: list[dict], rpe: bool):
             
             try:
                 rid = uuid4()
-                mkdir(f"./unpack-temp/pack-{rid}")
-                with open(f"./unpack-temp/pack-{rid}/info.csv", "w", encoding="utf-8") as f:
+                mkdir(f"unpack-temp/pack-{rid}")
+                with open(f"unpack-temp/pack-{rid}/info.csv", "w", encoding="utf-8") as f:
                     f.write(item[5])
-                popen(f".\\7z.exe a .\\unpack-result\\packed\\{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip {" ".join(map(lambda x: f"\"{x}\"", (item[2], item[3], item[4], f"./unpack-temp/pack-{rid}/info.csv")))} -y >> nul").read()
+                with ZipFile(f"unpack-result/packed/{item[0]}_{item[1]}{'_RPE' if p2r else ''}.zip", 'w') as zipf:
+                    [zipf.write(f, arcname=f.split('/')[-1]) for f in (item[2], item[3], item[4], f"unpack-temp/pack-{rid}/info.csv")]
                 packed_num += 1
             except Exception:
                 pass

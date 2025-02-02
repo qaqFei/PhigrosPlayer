@@ -11,6 +11,8 @@ import sys
 import time
 import math
 import logging
+
+from zipfile import ZipFile
 from io import BytesIO
 from threading import Thread
 from ctypes import windll
@@ -35,10 +37,6 @@ import tempdir
 import socket_webviewbridge
 from dxsmixer import mixer
 from graplib_webview import *
-
-if not exists("./7z.exe") or not exists("./7z.dll"):
-    logging.fatal("7z.exe or 7z.dll Not Found")
-    raise SystemExit
     
 if not exists("./phigros_assets") or not all([
     exists(tool_funcs.gtpresp(i)) for i in [
