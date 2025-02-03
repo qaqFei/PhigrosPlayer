@@ -91,6 +91,7 @@ skip_time = float(sys.argv[sys.argv.index("--skip-time") + 1]) if "--skip-time" 
 enable_jscanvas_bitmap = "--enable-jscanvas-bitmap" in sys.argv
 respath = sys.argv[sys.argv.index("--res") + 1] if "--res" in sys.argv else "./resources/resource_packs/default"
 disengage_webview = "--disengage-webview" in sys.argv
+usu169 = "--usu169" in sys.argv
 
 if lfdaot and noautoplay:
     noautoplay = False
@@ -1002,7 +1003,17 @@ def init():
     root.run_js_code(f"lowquality_imjs_maxsize = {lowquality_imjs_maxsize};")
     root.run_js_code(f"enable_jscanvas_bitmap = {enable_jscanvas_bitmap};")
     root.run_js_code(f"RPEVersion = {chart_obj.META.RPEVersion if CHART_TYPE == const.CHART_TYPE.RPE else -1};")
-    root.run_js_code(f"resizeCanvas({w}, {h});")
+    
+    rw, rh = w, h
+    if usu169:
+        ratio = w / h
+        if ratio > 16 / 9:
+            w = int(h * 16 / 9)
+        else:
+            h = int(w / 16 * 9)
+        root.run_js_code("usu169 = true;")
+    root.run_js_code(f"resizeCanvas({rw}, {rh});")
+        
     Resource = Load_Resource()
 
     if wl_more_chinese:

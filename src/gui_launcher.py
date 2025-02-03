@@ -136,7 +136,9 @@ arg_setting = [
     ("降级音频API", "soundapi-downgrade"),
     ("lfdaot渲染完成视频后自动退出", "lfdaot-render-video-autoexit"),
     ("不清理临时文件", "nocleartemp"),
-    ("脱离 WebView", "disengage-webview")
+    ("脱离 WebView", "disengage-webview"),
+    ("禁用 localhost 作为内置服务器地址", "nolocalhost"),
+    ("使用 16:9 的比例", "usu169")
 ]
 
 kwarg_setting = [
