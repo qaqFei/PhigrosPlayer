@@ -967,6 +967,15 @@ void main() {
     proxyTouchEvent("touchmove", "mousemove");
     proxyTouchEvent("touchend", "mouseup");
 
+    window.addEventListener("touchstart", () => {
+        try {pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000, "a")}
+        catch (e) {}
+    });
+    window.addEventListener("touchend", () => {
+        try {pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000, "a")}
+        catch (e) {}
+    });
+
     // temp
     // window.addEventListener("touchstart", () => {
     //     pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000);
