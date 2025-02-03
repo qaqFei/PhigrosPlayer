@@ -971,7 +971,7 @@ void main() {
         try {pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
         catch (e) {}
     });
-    window.addEventListener("touchend", () => {
+    window.addEventListener("touchend", (e) => {
         try {pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
         catch (e) {}
     });
