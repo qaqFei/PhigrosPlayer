@@ -415,11 +415,11 @@ void main() {
 
     function connectToSocketBridge() {
         window.removeEventListener("touchstart", connectToSocketBridge);
-        document.body.requestFullscreen();
         const addr = prompt("please input the server address: ");
         const port = 8080;
         const socket = new WebSocket(`ws://${addr}:${port}`);
         const split_magic = "\x00";
+        document.body.requestFullscreen();
 
         window.pywebview = {
             api: {
