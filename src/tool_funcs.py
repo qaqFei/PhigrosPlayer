@@ -419,7 +419,10 @@ class PhigrosPlayManager:
             return "AP"
         
         return "F" if score < 0 else "AP"
-        
+
+def PPLM_vaildKey(key: str) -> bool:
+    return key.lower() in const.ALL_LETTER
+
 class PPLM_ProxyBase:
     def __init__(self, cobj: typing.Any) -> None: ...
     
@@ -515,7 +518,7 @@ class PhigrosPlayLogicManager:
             self.recorder = binfile.PlayRecorderWriter()
         
         self.pc_clicks: list[PPLM_PC_ClickEvent] = []
-        self.pc_clickings: int = 0
+        self.pc_keymap: dict[str, bool] = {i: False for i in const.ALL_LETTER}
         
         self.mob_touches: list[PPLM_MOB_Touch] = []
         self.mob_flicks: list[tuple[float, tuple[float, float]]] = []
@@ -524,24 +527,25 @@ class PhigrosPlayLogicManager:
         self.badeffects: const.BadEffectType = []
         # self.misseffects: const.MissEffectType = []
     
-    def pc_click(self, t: float) -> None:
-        self.pc_clickings += 1
+    def pc_click(self, t: float, key: str) -> None:
+        if not PPLM_vaildKey(key): return
+        self.pc_keymap[key] = True
         self.pc_clicks.append(PPLM_PC_ClickEvent(time=t))
         
         if self.record:
-            self.recorder.pc_click(t)
+            self.recorder.pc_click(t, key)
         
-    def pc_release(self, t: float) -> None:
-        if self.pc_clickings > 0:
-            self.pc_clickings -= 1
+    def pc_release(self, t: float, key: str) -> None:
+        if not PPLM_vaildKey(key): return
+        self.pc_keymap[key] = False
         
         if self.record:
-            self.recorder.pc_release(t)
+            self.recorder.pc_release(t, key)
     
     def pc_update(self, t: float) -> None:
         pnotes = self.pp.get_all_pnotes()
         
-        keydown = self.pc_clickings > 0
+        keydown = any(self.pc_keymap.values())
         
         for i in pnotes.copy():
             if ( # drag / flick range judge

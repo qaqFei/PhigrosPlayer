@@ -59,12 +59,14 @@ class PlayRecorderWriter(PlayRecorderBase):
         self.writer.write_float(t)
         self.writer.write_int(nt)
     
-    def pc_click(self, t: float):
+    def pc_click(self, t: float, key: str):
         self.writer.write_int(self.PC_CLICK)
+        self.writer.write_string(key)
         self.writer.write_float(t)
     
-    def pc_release(self, t: float):
+    def pc_release(self, t: float, key: str):
         self.writer.write_int(self.PC_RELEASE)
+        self.writer.write_string(key)
         self.writer.write_float(t)
 
 def readPlayRecorder(data: bytes):
@@ -80,5 +82,6 @@ def readPlayRecorder(data: bytes):
             
             case PlayRecorderBase.PC_CLICK | PlayRecorderBase.PC_RELEASE:
                 t = reader.read_float()
-                yield event, t
+                key = reader.read_string()
+                yield event, t, key
                 
