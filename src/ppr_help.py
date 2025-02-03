@@ -27,6 +27,8 @@ HELP_ZH = '''\
   --lfdaot-render-video-autoexit: 使用 --lfdaot 和 --lfdaot-render-video 时, 渲染完成后自动退出. (前置参数: --lfdaot 和 --lfdaot-render-video)
   --nocleartemp: 不清理临时文件
   --disengage-webview: 脱离 WebView
+  --nolocalhost: 禁用 localhost 作为内置服务器地址
+  --usu169: 使用 16:9 的比例
   
 <关键字参数>
   --combotips <字符串>: 设置连击提示文本
