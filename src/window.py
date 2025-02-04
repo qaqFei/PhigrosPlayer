@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-
-
+import subprocess
 import os
+
+from threading import Thread
+from sys import executable
+
 import tkinter as tk
 import tkinter.messagebox as tkmsgbox
 #我也不知道我为什么要用tkinter，谁知道呢（笑
@@ -127,9 +130,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             command12 = " \""+self.chart+"\""
         else:
             command12 = " --phira-chart "+ self.lineEdit_2.text()
-        command = "py main.py" +command12+command1+command2+command3+command4+command5+command7+command8+command9+command10+command11+command13+command14
+        self.executable_path = os.path.dirname(os.path.abspath(__file__))
+        command = f"{executable} {self.executable_path}/main.py" +command12+command1+command2+command3+command4+command5+command7+command8+command9+command10+command11+command13+command14
         print(command)
-        os.system(command)
+        Thread(target = self.process, args = (command,), daemon = True).start()
+    
+    def process(self, command):
+        subprocess.run(command)
         self.messagebox_when_render_off()
     
     def openrespository(self):
