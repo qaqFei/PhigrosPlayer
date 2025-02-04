@@ -13,7 +13,6 @@ from PIL import Image, ImageDraw
 
 import const
 import rpe_easing
-import binfile
 import phira_resource_pack
 import tempdir
 from light_tool_funcs import *
@@ -504,18 +503,13 @@ class PhigrosPlayLogicManager:
             ppps: PhigrosPlayManager,
             enable_cksound: bool,
             psound: typing.Callable[[str], typing.Any],
-            record: bool = False
         ) -> None:
         
         self.pp = pplm_proxy
         self.ppps = ppps
         self.enable_cksound = enable_cksound
         self.psound = psound
-        self.record = record
         self.enable_mob: bool = False
-        
-        if self.record:
-            self.recorder = binfile.PlayRecorderWriter()
         
         self.pc_clicks: list[PPLM_PC_ClickEvent] = []
         self.pc_keymap: dict[str, bool] = {i: False for i in const.ALL_LETTER}
@@ -532,15 +526,9 @@ class PhigrosPlayLogicManager:
         self.pc_keymap[key] = True
         self.pc_clicks.append(PPLM_PC_ClickEvent(time=t))
         
-        if self.record:
-            self.recorder.pc_click(t, key)
-        
     def pc_release(self, t: float, key: str) -> None:
         if not PPLM_vaildKey(key): return
         self.pc_keymap[key] = False
-        
-        if self.record:
-            self.recorder.pc_release(t, key)
     
     def pc_update(self, t: float) -> None:
         pnotes = self.pp.get_all_pnotes()
@@ -573,8 +561,6 @@ class PhigrosPlayLogicManager:
             ):
                 if self.enable_cksound:
                     self.psound(self.pp.nproxy_phitype(i))
-                    if self.record:
-                        self.recorder.clicksound(t, self.pp.nproxy_phitype(i))
                 self.pp.nproxy_set_cksound_played(i, True)
             
             if ( # miss judge

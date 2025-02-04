@@ -66,8 +66,7 @@ for line_index, line in enumerate(Chart["judgeLineList"]):
             seg: AudioSegment = blocks[t_index]
             nt %= blockLength / 1000
             blocks[t_index] = seg.overlay(NoteClickAudios[note["type"]], nt * 1000)
-            if note_index % 5000 == 0:
-                print(f"Process Note: {line_index}+{note_index}")
+            print(f"Process Note: {line_index}+{note_index}")
         except IndexError:
             pass
 
