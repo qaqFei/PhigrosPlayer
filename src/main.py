@@ -964,8 +964,13 @@ def init():
 
     Thread(target=Show_Start, daemon=True).start()
     root.wait_for_close()
+    atexit_run()
+
+def atexit_run():
     tempdir.clearTempDir()
+    needrelease.run()
     windll.kernel32.ExitProcess(0)
 
 Thread(target=root.init, args=(init, ), daemon=True).start()
 root.start()
+atexit_run()
