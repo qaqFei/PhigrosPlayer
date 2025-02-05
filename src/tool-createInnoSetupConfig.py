@@ -4,7 +4,7 @@ from sys import argv
 from os.path import abspath, dirname
 
 if len(argv) < 6:
-    print("Usage: tool-createInnoSetupConfig <version> <files-dir> <main-program> <output-exe> <output-issfile>")
+    print("Usage: tool-createInnoSetupConfig <version> <files-dir> <main-program> <pez-file-program> <output-exe> <output-issfile>")
     raise SystemExit
 
 issfile = '''\
@@ -13,6 +13,7 @@ issfile = '''\
 #define AppPublisher ""
 #define AppURL " $$AppURL$$ "
 #define AppExeName " $$AppExeName$$ "
+#define AppAssocExeName " $$AppAssocExeName$$ "
 #define AppAssocName " $$AppAssocName$$ "
 #define AppAssocExt ".pez"
 #define AppAssocKey StringChange(AppAssocName, " ", "") + AppAssocExt
@@ -52,7 +53,7 @@ Source: " $$AppFilesPath$$ \\*"; DestDir: "{app}"; Flags: ignoreversion recurses
 Root: HKA; Subkey: "Software\\Classes\\{#AppAssocExt}\\OpenWithProgids"; ValueType: string; ValueName: "{#AppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
 Root: HKA; Subkey: "Software\\Classes\\{#AppAssocKey}"; ValueType: string; ValueName: ""; ValueData: "{#AppAssocName}"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\\Classes\\{#AppAssocKey}\\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\\{#AppExeName},0"
-Root: HKA; Subkey: "Software\\Classes\\{#AppAssocKey}\\shell\\open\\command"; ValueType: string; ValueName: ""; ValueData: """{app}\\{#AppExeName}"" ""%1"""
+Root: HKA; Subkey: "Software\\Classes\\{#AppAssocKey}\\shell\\open\\command"; ValueType: string; ValueName: ""; ValueData: """{app}\\{#AppAssocExeName}"" ""%1"""
 Root: HKA; Subkey: "Software\\Classes\\Applications\\{#AppExeName}\\SupportedTypes"; ValueType: string; ValueName: ".myp"; ValueData: ""
 
 [Icons]
@@ -71,10 +72,11 @@ replacedict = {
     "AppVersion": argv[1],
     "AppURL": "https://github.com/qaqFei/PhigrosPlayer",
     "AppExeName": argv[3],
+    "AppAssocExeName": argv[4],
     "AppAssocName": "Phigros Re:PhiEdit 谱面文件",
     "LicenseFile": abspath("../LICENSE"),
-    "OutputDir": dirname(abspath(argv[4])),
-    "OutputBaseFilename": argv[4].split("/")[-1].split("\\")[-1],
+    "OutputDir": dirname(abspath(argv[5])),
+    "OutputBaseFilename": argv[5].split("/")[-1].split("\\")[-1],
     "SetupIconFile": abspath("./icon.ico"),
     "AppFilesPath": argv[2]
 }
@@ -83,5 +85,5 @@ for k, v in replacedict.items():
     issfile = issfile.replace(f" $${k}$$ ", v)
     issfile = issfile.replace(f" $${k}$$#", v)
 
-with open(argv[5], "w", encoding="utf-8") as f:
+with open(argv[6], "w", encoding="gbk") as f:
     f.write(issfile)

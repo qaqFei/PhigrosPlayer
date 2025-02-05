@@ -26,7 +26,7 @@ compile_files = [
     ("gui_launcher.py", False),
     ("irc_launcher.py", False),
     ("phigros.py", False),
-    *(map(lambda x: (x, False), filter(lambda x: x.startswith("tool-") and x.endswith(".py") and x != "tool-compile.py", listdir())))
+    *(map(lambda x: (x, False), filter(lambda x: x.startswith("tool-") and x.endswith(".py") and x not in ("tool-compile.py", "tool-createInnoSetupConfig.py"), listdir())))
 ]
 res_files = [
     "_internal",
@@ -35,7 +35,8 @@ res_files = [
     "ecwv_installer.exe",
     "resources",
     "icon.ico",
-    "openh264-1.8.0-win64.dll"
+    "openh264-1.8.0-win64.dll",
+    "shaders"
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 
