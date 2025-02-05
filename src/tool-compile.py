@@ -24,6 +24,7 @@ debug = "--debug" in argv
 compile_files = [
     ("main.py", False),
     ("gui_launcher.py", False),
+    ("irc_launcher.py", False),
     ("phigros.py", False),
     *(map(lambda x: (x, False), filter(lambda x: x.startswith("tool-") and x.endswith(".py") and x != "tool-compile.py", listdir())))
 ]
