@@ -133,7 +133,6 @@ def toDowngradeAPI():
     
     from os import environ; environ["PYGAME_HIDE_SUPPORT_PROMPT"] = ""
     from pygame import mixer as _mixer
-    _mixer.Sound
     
     _mixer.init()
     mixer = _mixer
