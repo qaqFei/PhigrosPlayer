@@ -9,8 +9,10 @@ import mido.messages
 import const
 
 if len(argv) < 3:
-    print("Usage: tool-midi2phi-nur <midiFile> <outputFile>")
+    print("Usage: tool-midi2phi-nur <midiFile> <outputFile> [default_note_length=0.1]")
     raise SystemExit
+
+DEFAULT_NOTELENGTH = 0.1 if len(argv) < 4 else float(argv[3])
 
 class MidiNoteBin:
     def __init__(self):
@@ -19,7 +21,9 @@ class MidiNoteBin:
     
     def add(self, msg: mido.messages.Message, t: float):
         msghash = hash((msg.channel, msg.note))
-        if msghash in self.bin: return
+        if msghash in self.bin:
+            ont, note = self.bin.pop(msghash)
+            self.result.append((ont, ont + DEFAULT_NOTELENGTH, note))
 
         self.bin[msghash] = (t, msg.note)
     
@@ -32,7 +36,8 @@ class MidiNoteBin:
     
     def flush(self):
         for ont, note in self.bin.values():
-            self.result.append((ont, ont + 0.05, note))
+            self.result.append((ont, ont + DEFAULT_NOTELENGTH, note))
+        self.bin.clear()
 
 mid = mido.MidiFile(argv[1])
 notebin = MidiNoteBin()

@@ -9,7 +9,7 @@ from pydub import AudioSegment
 import const
 import chartfuncs_rpe
 
-NoteClickAudios = {
+NoteClickAudios: dict[int, AudioSegment] = {
     const.NOTE_TYPE.TAP: AudioSegment.from_file("./resources/resource_default/click.ogg"),
     const.NOTE_TYPE.DRAG: AudioSegment.from_file("./resources/resource_default/drag.ogg"),
     const.NOTE_TYPE.HOLD: AudioSegment.from_file("./resources/resource_default/click.ogg"),
@@ -55,8 +55,9 @@ allLength = chartAudio.duration_seconds
 # 分割次数为 note 数量开根号时, 性能最好
 notesNum = sum(len(l["notesAbove"] + l["notesBelow"]) for l in Chart["judgeLineList"])
 blockLength = chartAudio.duration_seconds * 1000 / max(1.0, notesNum ** 0.5) # ms
+maxCksLength = max(i.duration_seconds for i in NoteClickAudios.values()) * 1000
 blockNum = int(allLength / (blockLength / 1000)) + 1
-blocks = [AudioSegment.silent(blockLength + 500) for _ in range(blockNum)]
+blocks = [AudioSegment.silent(blockLength + maxCksLength) for _ in range(blockNum)]
 getIndexBySec = lambda sec: int(sec / (blockLength / 1000))
 tasks = [list() for _ in range(blockNum)]
 
@@ -72,7 +73,7 @@ for line_index, line in enumerate(Chart["judgeLineList"]):
             nt %= blockLength / 1000
             tasks[t_index].append((note["type"], nt * 1000))
         except IndexError:
-            pass
+            notesNum -= 1
 
 gilenable = hasattr(sys, "_is_gil_enabled") and sys._is_gil_enabled()
 processed = 0
@@ -99,6 +100,7 @@ def print_progress():
 
 printer = Thread(target=print_progress, daemon=True)
 printer.start()
+st = time.perf_counter()
 
 if gilenable:
     executor = ThreadPoolExecutor(max_workers=min(16, blockNum))
@@ -109,6 +111,7 @@ else:
         blocks[i] = merge_seg(blocks[i], task)
 
 printer.join()
+print(f"Usage time: {(time.perf_counter() - st):.2f}s")
 
 class SegMerger:
     def __init__(self, segs: list[AudioSegment]):
@@ -120,5 +123,5 @@ class SegMerger:
         return chartAudio
 
 print("Merge...")
-SegMerger(blocks).merge(chartAudio, blockLength).export(sys.argv[3], format="wav")
+SegMerger(blocks).merge(chartAudio, blockLength).export(sys.argv[3])
 print("Done.")
