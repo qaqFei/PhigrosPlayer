@@ -1,79 +1,46 @@
-# -*- coding: utf-8 -*-
-
-
 import os
-import tkinter as tk
-import tkinter.messagebox as tkmsgbox
-#我也不知道我为什么要用tkinter，谁知道呢（笑
-#那再来个subprocess吧
+import sys
 import subprocess
-
+import webbrowser
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication, QFileDialog, QWidget
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
+from qfluentwidgets import FluentWindow, NavigationItemPosition, NavigationAvatarWidget
+from qfluentwidgets import FluentIcon
+from qfluentwidgets import CheckBox, LineEdit, PrimaryPushButton, PushButton, Dialog, SplashScreen
 
-from PyQt5.QtWidgets import QApplication,QFileDialog,QMainWindow,QWidget
-
-from PyQt5.QtCore import QUrl,Qt
-
-from PyQt5.QtGui import QDesktopServices,QIcon
-
-from functools import partial
-
-from qfluentwidgets import FluentWindow,NavigationItemPosition,NavigationAvatarWidget
-
-from qfluentwidgets import FluentIcon as FIF
-
-
-from qfluentwidgets import CheckBox, LineEdit, PrimaryPushButton, PushButton,Dialog,SplashScreen
-
+import const
 
 class MainWindow(FluentWindow):
-    def openrespository(self):
-        url = "https://github.com/qaqfei/PhigrosPlayer"
-        QDesktopServices.openUrl(QUrl(url))
-    def initWindow(self):
-        self.resize(1000,600)
-    
-
-       
-
-        desktop = QApplication.desktop().availableGeometry()
-        w, h = desktop.width(), desktop.height()
-        self.move(w//2 - self.width()//2, h//2 - self.height()//2)
-
-
-
     def __init__(self):
         super().__init__()
-        self.splash = SplashScreen(self.windowIcon(),self)
-        
-        self.resize(800,600)
+        self.splash = SplashScreen(self.windowIcon(), self)
         self.setWindowIcon(QIcon("icon.ico"))
         self.setWindowTitle("Phigros Player GUI Launcher")
         self.splash.raise_()
         self.show()
-
         self.initNav()
         self.initWindow()
-
-
         self.splash.finish()
+        
+    def initWindow(self):
+        self.resize(1000, 800)
+        desktop = QApplication.desktop().availableGeometry()
+        w, h = desktop.width(), desktop.height()
+        self.move(int((w - self.width()) / 2), int((h - self.height()) / 2))
 
     def initNav(self):
-        
         self.startup = SettingsWindow()
-        self.addSubInterface(self.startup, FIF.HOME ,"Startup")
+        self.addSubInterface(self.startup, FluentIcon.HOME, "Startup")
         self.navigationInterface.addWidget(
-            routeKey='avatar',
-            widget=NavigationAvatarWidget('Github Repository','icon.ico'),
-            onClick=self.openrespository,
-            position=NavigationItemPosition.BOTTOM,
+            routeKey = "avatar",
+            widget = NavigationAvatarWidget("Github Repository", "icon.ico"),
+            onClick = lambda: webbrowser.open(const.REPO_URL),
+            position = NavigationItemPosition.BOTTOM
         )
         self.navigationInterface.setExpandWidth(280)
-
-
-
-
 
 class SettingsWindow(QWidget):
     chart = ""
@@ -86,44 +53,27 @@ class SettingsWindow(QWidget):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self, "选择文件", "", "All Files (*)", options=options)
-        if fileName:
-            print(f"选择的文件：{fileName}")
-            self.chart = fileName
-            return fileName
-        else:
-            self.chart = ""
-            return ""
+        self.chart = fileName if fileName else ""
+        return self.chart
 
     def messagebox_when_render_up(self):
         self.MessageBox1 = Dialog("注意", "要开始渲染谱面了，启动器可能会未响应。如果Windows弹出了未响应窗口，请无视。否则渲染和启动器一块闪退").exec_()
         
-
-
     def messagebox_when_render_off(self):
         self.MessageBox2 = Dialog("渲染结束", "渲染结束，请自行查看渲染结果。如遇到视频损坏或有改进建议，欢迎点击侧边栏的Github Repository来向qaqFei。(当然gui有问题来抽IrCat-Ninth位于natayark@outlook.com)").exec_()
-        #w = Dialog("哦呼", "渲染结束了！如果渲染了谱面那就赶快看看吧！如果损坏欢迎来GitHub给我提Issue!", self)
-
-
-
   
     def render_chart(self):
-    
         self.messagebox_when_render_up()
+        check = lambda checkbox, command: command if checkbox.isChecked() else ""
+        command = []
+        command.append("main.exe" if os.path.isfile("main.exe") else "python main.py")
         
-        def check(checkbox, command):
-            return command if checkbox.isChecked() else ""
-
-        command = "main.exe " if os.path.isfile("main.exe") else "python main.py "
-        
-        # 处理谱面参数
         if self.chart:
-            command += f'"{self.chart}"'
+            command.append(self.chart)
         else:
             phira_id = self.phiraChartID.text().strip()
-            if phira_id:
-                command += f"--phira-chart {phira_id}"
+            command.extend(("--phira-chart", phira_id)) if phira_id else ""
 
-        # 添加选项参数
         options = [
             check(self.low_quality, "--lowquality"),
             check(self.showFps, "--showfps"),
@@ -146,21 +96,15 @@ class SettingsWindow(QWidget):
             f"--size {self.size_x.text()} {self.size_y.text()}" if self.size_x.text() or self.size_y.text() else "",
             self.own_argu.text()
         ]
-        
-        command += " " + " ".join(filter(None, options))
+        command.extend(filter(None, options))
 
         try:
-            print("调用的命令（出现错误的时候可以看看是不是命令出错了，是的话来抽IrCat-Ninth）："+command)
-            subprocess.run(command, shell=True, check=True)
+            print(f"调用的命令 (出现错误的时候可以看看是不是命令出错了，是的话来抽IrCat-Ninth): {command}")
+            subprocess.run(" ".join(map(lambda x: f"\"{x}\"", command)), shell=True, check=True)
         except subprocess.CalledProcessError as e:
-            Dialog("错误", f"命令执行失败: {e}", self).exec()
+            Dialog("错误", f"命令执行失败: {repr(e)}", self).exec()
         finally:
             self.messagebox_when_render_off()
-
-    def openrespository(self):
-        url = "https://github.com/qaqfei/PhigrosPlayer"
-        QDesktopServices.openUrl(QUrl(url))
-
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -320,17 +264,17 @@ class SettingsWindow(QWidget):
         self.size_y.setGeometry(QtCore.QRect(170, 20, 121, 31))
         self.size_y.setObjectName("size_y")
         self.scrollArea_3.setWidget(self.scrollAreaWidgetContents_3)
-        #self.setCentralWidget(self.centralwidget)
-        #self.menubar = QtWidgets.QMenuBar(MainWindow)
-        #self.menubar.setGeometry(QtCore.QRect(0, 0, 974, 23))
-        #self.menubar.setObjectName("menubar")
-        #self.menuGithub_Repository = QtWidgets.QMenu(self.menubar)
-        ##self.menuGithub_Repository.setObjectName("menuGithub_Repository")
-        #MainWindow.setMenuBar(self.menubar)
+        # self.setCentralWidget(self.centralwidget)
+        # self.menubar = QtWidgets.QMenuBar(MainWindow)
+        # self.menubar.setGeometry(QtCore.QRect(0, 0, 974, 23))
+        # self.menubar.setObjectName("menubar")
+        # self.menuGithub_Repository = QtWidgets.QMenu(self.menubar)
+        # #self.menuGithub_Repository.setObjectName("menuGithub_Repository")
+        # MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
-        #MainWindow.setStatusBar(self.statusbar)
-        #self.menubar.addAction(self.menuGithub_Repository.menuAction())
+        # MainWindow.setStatusBar(self.statusbar)
+        # self.menubar.addAction(self.menuGithub_Repository.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -366,27 +310,17 @@ class SettingsWindow(QWidget):
         self.groupBox_4.setTitle(_translate("MainWindow", "高级选项"))
         self.label_5.setText(_translate("MainWindow", "如果不是真的会用，我建议你别动。"))
         self.enable_JIT.setText(_translate("MainWindow", "启用JIT(不建议）"))
-        self.label_6.setText(_translate("MainWindow", "使用自己的命令行参数：我们稍后会将其添加到\n"
-"控制台。"))
+        self.label_6.setText(_translate("MainWindow", "使用自己的命令行参数：我们稍后会将其添加到控制台。"))
         self.rpe_texture.setPlaceholderText(_translate("MainWindow", "设置RPE谱面纹理缩放方法"))
         self.lq_imjscale_x.setPlaceholderText(_translate("MainWindow", "设置低画质渲染缩放"))
         self.groupBox_5.setTitle(_translate("MainWindow", "窗口大小"))
         self.size_x.setPlaceholderText(_translate("MainWindow", "长"))
         self.size_y.setPlaceholderText(_translate("MainWindow", "宽"))
         
-
-
-
-if __name__ == "__main__":
-    import sys
-    #高dpi缩放支持
-    QApplication.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
-    app = QApplication(sys.argv)
-    
-
-    w = MainWindow()
-    w.show()
-    app.exec_()
+QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+app = QApplication(sys.argv)
+w = MainWindow()
+w.show()
+app.exec_()
