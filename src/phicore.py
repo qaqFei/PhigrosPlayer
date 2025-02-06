@@ -38,7 +38,6 @@ class PhiCoreConfig:
     h: int
     chart_information: dict
     chart_obj: chartobj_phi.Phigros_Chart | chartobj_rpe.Rpe_Chart
-    CHART_TYPE: int
     Resource: dict
     globalNoteWidth: float
     note_max_size_half: float
@@ -65,6 +64,12 @@ class PhiCoreConfig:
     clicksound_volume: float
     musicsound_volume: float
     enable_controls: bool
+    
+    def __post_init__(self):
+        if isinstance(self.chart_obj, chartobj_phi.Phigros_Chart):
+            self.CHART_TYPE = const.CHART_TYPE.PHI
+        elif isinstance(self.chart_obj, chartobj_rpe.Rpe_Chart):
+            self.CHART_TYPE = const.CHART_TYPE.RPE
 
 @dataclass
 class PhiCoreConfigEx:

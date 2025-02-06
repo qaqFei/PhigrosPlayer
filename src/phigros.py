@@ -3282,7 +3282,7 @@ def chartPlayerRender(
         root = root, w = w, h = h,
         chart_information = chart_information,
         chart_obj = chart_obj,
-        CHART_TYPE = CHART_TYPE, Resource = Resource,
+        Resource = Resource,
         globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,
