@@ -57,10 +57,10 @@ class SettingsWindow(QWidget):
         return self.chart
 
     def messagebox_when_render_up(self):
-        self.MessageBox1 = Dialog("注意", "要开始渲染谱面了，启动器可能会未响应。如果Windows弹出了未响应窗口，请无视。否则渲染和启动器一块闪退").exec_()
+        Dialog("注意", "要开始渲染谱面了，启动器可能会未响应。如果Windows弹出了未响应窗口，请无视。否则渲染和启动器一块闪退").exec_()
         
     def messagebox_when_render_off(self):
-        self.MessageBox2 = Dialog("渲染结束", "渲染结束，请自行查看渲染结果。如遇到视频损坏或有改进建议，欢迎点击侧边栏的Github Repository来向qaqFei。(当然gui有问题来抽IrCat-Ninth位于natayark@outlook.com)").exec_()
+        Dialog("渲染结束", "渲染结束，请自行查看渲染结果。如遇到视频损坏或有改进建议，欢迎点击侧边栏的Github Repository来向qaqFei。(当然gui有问题来抽IrCat-Ninth位于natayark@outlook.com)").exec_()
   
     def render_chart(self):
         self.messagebox_when_render_up()
@@ -321,6 +321,5 @@ QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPo
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
 QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 app = QApplication(sys.argv)
-w = MainWindow()
-w.show()
+MainWindow().show()
 app.exec_()
