@@ -3851,7 +3851,7 @@ def init():
     
     disengage_webview = "--disengage-webview" in sys.argv
     
-    if disengage_webview in sys.argv:
+    if disengage_webview:
         socket_webviewbridge.hook(root)
         
     webdpr = root.run_js_code("window.devicePixelRatio;")
