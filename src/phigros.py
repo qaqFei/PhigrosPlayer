@@ -3327,7 +3327,7 @@ def chartPlayerRender(
             lambda ts: Resource["Note_Click_Audio"][ts].play()
         )
         
-        convertTime2Chart = lambda t: (t - show_start_time) - (0.0 if CHART_TYPE == const.CHART_TYPE.PHI else chart_obj.META.offset / 1000)
+        convertTime2Chart = lambda t: (t - globals().get("show_start_time", time.time())) - (0.0 if CHART_TYPE == const.CHART_TYPE.PHI else chart_obj.META.offset / 1000)
         root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t, key: pplm.pc_click(convertTime2Chart(t), key)) # 这里没写diswebview的判断, 希望别埋坑..
         root.jsapi.set_attr("PhigrosPlay_KeyUp", lambda t, key: pplm.pc_release(convertTime2Chart(t), key))
         root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000, e.key)}, false);")
