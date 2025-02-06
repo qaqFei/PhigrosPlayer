@@ -3256,8 +3256,7 @@ def chartPlayerRender(
     root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
     chart_image = Image.open(chartImage)
     background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
-    background_image = ImageEnhance.Brightness(background_image_blur).enhance(getUserData("setting-backgroundDim"))
-    respacker.reg_img(background_image, "background")
+    respacker.reg_img(background_image_blur, "background_blur")
     
     chart_image_gradientblack_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
     chart_image_gradientblack_mask.putpixel((0, 4), (0, 0, 0, 204))
@@ -3282,7 +3281,7 @@ def chartPlayerRender(
         root = root, w = w, h = h,
         chart_information = chart_information,
         chart_obj = chart_obj,
-        Resource = Resource,
+        Resource = Resource, backgroundDim = 1.0 - getUserData("setting-backgroundDim"),
         globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,

@@ -319,8 +319,7 @@ def Load_Resource():
     respacker = webcv.PILResourcePacker(root)
     
     background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
-    background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
-    respacker.reg_img(background_image, "background")
+    respacker.reg_img(background_image_blur, "background_blur")
     
     animation_image = chart_image.convert("RGBA")
     tool_funcs.cutAnimationIllImage(animation_image)
@@ -848,7 +847,7 @@ def updateCoreConfig():
         root = root, w = w, h = h,
         chart_information = chart_information,
         chart_obj = chart_obj,
-        Resource = Resource,
+        Resource = Resource, backgroundDim = chart_information["BackgroundDim"],
         globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half, audio_length = audio_length,
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),

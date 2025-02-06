@@ -34,17 +34,21 @@ class PhiCoreConfig:
     SETTER: typing.Callable[[str, typing.Any], typing.Any]
     
     root: webcv.WebCanvas
-    w: int
-    h: int
+    w: int; h: int
+    
     chart_information: dict
     chart_obj: chartobj_phi.Phigros_Chart | chartobj_rpe.Rpe_Chart
+    
     Resource: dict
+    backgroundDim: float
     globalNoteWidth: float
     note_max_size_half: float
     audio_length: float
     raw_audio_length: float
+    
     show_start_time: float
     chart_image: Image.Image
+    
     clickeffect_randomblock: bool
     clickeffect_randomblock_roundn: int
     LoadSuccess: musicCls
@@ -92,7 +96,7 @@ def CoreConfigure(config: PhiCoreConfig):
     global SETTER
     global root, w, h, chart_information
     global chart_obj, CHART_TYPE
-    global Resource
+    global Resource, backgroundDim
     global globalNoteWidth
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
@@ -114,6 +118,7 @@ def CoreConfigure(config: PhiCoreConfig):
     chart_obj = config.chart_obj
     CHART_TYPE = config.CHART_TYPE
     Resource = config.Resource
+    backgroundDim = config.backgroundDim
     globalNoteWidth = config.globalNoteWidth
     note_max_size_half = config.note_max_size_half
     audio_length = config.audio_length
@@ -326,7 +331,14 @@ def stringifyScore(score:float) -> str:
     return f"{score_integer:>7}".replace(" ","0")
 
 def drawBg():
-    drawImage("background", 0, 0, w, h, wait_execute=True)
+    drawImage("background_blur", 0, 0, w, h, wait_execute=True)
+    root.run_js_code(
+        f"ctx.fillRectEx(\
+            0, 0, {w}, {h},\
+            'rgba(0, 0, 0, {backgroundDim})'\
+        );",
+        add_code_array = True
+    )
 
 # color 一定要传 rgba 的
 def draw_ui(
