@@ -834,10 +834,10 @@ def PlayerStart():
         
         root.jsapi.set_attr("loopClick", loopClick)
         root.jsapi.set_attr("continueClick", continueClick)
-        root.run_js_code("_loopClick = (e) => {pywebview.api.call_attr('loopClick', e.clientX * dpr, e.clientY * dpr);}")
-        root.run_js_code("_continueClick = (e) => {pywebview.api.call_attr('continueClick', e.clientX * dpr, e.clientY * dpr);}")
-        root.run_js_code("window.addEventListener('click', _loopClick);")
-        root.run_js_code("window.addEventListener('click', _continueClick);")
+        root.run_js_code("_loopClick = (e) => {pywebview.api.call_attr('loopClick', e.clientX, e.clientY);}")
+        root.run_js_code("_continueClick = (e) => {pywebview.api.call_attr('continueClick', e.clientX, e.clientY);}")
+        root.run_js_code("window.addEventListener('click-np', _loopClick);")
+        root.run_js_code("window.addEventListener('click-np', _continueClick);")
         
         while not a2_break:
             p = (time.time() - animation_2_start_time) / animation_2_time
