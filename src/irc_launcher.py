@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 import subprocess
@@ -106,7 +108,7 @@ class SettingsWindow(QWidget):
         finally:
             self.messagebox_when_render_off()
 
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow: SettingsWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setWindowModality(QtCore.Qt.ApplicationModal)
         MainWindow.resize(974, 601)
@@ -279,7 +281,7 @@ class SettingsWindow(QWidget):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self, MainWindow: SettingsWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Launcher"))
         self.groupBox.setTitle(_translate("MainWindow", "谱面文件"))
