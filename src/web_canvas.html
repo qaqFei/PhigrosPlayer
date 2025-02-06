@@ -315,7 +315,7 @@ void main() {
 
             // 浮点数误差我超死你全家。
             [dx, dy] = [parseInt(dx), parseInt(dy)];
-            
+
             canvasPosD = [dx, dy];
             ctx.translate(dx, dy);
             dialog_canvas_ctx.translate(dx, dy);
@@ -325,10 +325,6 @@ void main() {
     async function loadFont(family, url) {
         let font = new FontFace(family, `url(${url})`);
         document.fonts.add(await font.load());
-    }
-
-    async function async_sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     async function uploadFrame(url) {
