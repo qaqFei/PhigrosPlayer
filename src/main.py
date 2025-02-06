@@ -326,8 +326,8 @@ def Load_Resource():
     tool_funcs.cutAnimationIllImage(animation_image)
     
     chart_image_gradientblack = animation_image.copy()
-    chart_image_gradient = tool_funcs.createDownBlockImageGrd()
-    chart_image_gradientblack.paste(chart_image_gradient.resize(chart_image_gradientblack.size), (0, 0), chart_image_gradient)
+    chart_image_gradient = tool_funcs.createDownBlockImageGrd().resize(chart_image_gradientblack.size)
+    chart_image_gradientblack.paste(chart_image_gradient, (0, 0), chart_image_gradient)
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
@@ -360,7 +360,7 @@ def Load_Resource():
         for line in chart_obj.judgeLineList:
             if line.Texture == "line.png": continue
             if not line.isGif:
-                paths = [
+                paths = [ # fuck charters
                     f"{temp_dir}\\{line.Texture}",
                     f"{temp_dir}\\{line.Texture}.png",
                     f"{temp_dir}\\{line.Texture}.jpg",
