@@ -478,7 +478,6 @@ def Show_Start():
     while time.time() - animationst < 1.0:
         clearCanvas(wait_execute=True)
         phicore.drawBg()
-        phicore.draw_ui(animationing=True)
         p = (time.time() - animationst) / 1.0
         dle_warn((tool_funcs.fixorp(p) - 1.0) ** 4)
         root.run_js_wait_code()
@@ -486,7 +485,6 @@ def Show_Start():
     time.sleep(0.25)
     clearCanvas(wait_execute=True)
     phicore.drawBg()
-    phicore.draw_ui(animationing=True)
     root.run_js_wait_code()
     Thread(target=PlayerStart, daemon=True).start()
 
