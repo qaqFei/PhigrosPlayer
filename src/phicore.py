@@ -1550,7 +1550,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         f"ctx.drawDiagonalRectangleClipImage(\
             {w * 0.690625 - baimg_w / 2}, {h * (476 / 1080) - baimg_h / 2},\
             {w * 0.690625 + baimg_w / 2}, {h * (476 / 1080) + baimg_h / 2},\
-            {root.get_img_jsvarname("begin_animation_image")},\
+            {root.get_img_jsvarname("chart_image")},\
             {baimg_w / 2 - baimg_draww / 2}, {baimg_h / 2 - baimg_drawh / 2},\
             {baimg_draww}, {baimg_drawh}, {dpower}, 1.0\
         );",
@@ -1749,7 +1749,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         f"ctx.drawDiagonalRectangleClipImage(\
             {w * 0.315625 - baimg_w / 2 + im_ease_pos}, {h * (539 / 1080) - baimg_h / 2},\
             {w * 0.315625 + baimg_w / 2 + im_ease_pos}, {h * (539 / 1080) + baimg_h / 2},\
-            {root.get_img_jsvarname("finish_animation_image")},\
+            {root.get_img_jsvarname("chart_image_gradientblack")},\
             {baimg_w / 2 - baimg_draww / 2}, {baimg_h / 2 - baimg_drawh / 2},\
             {baimg_draww}, {baimg_drawh}, {dpower}, 1.0\
         );",

@@ -3257,26 +3257,26 @@ def chartPlayerRender(
     
     respacker = webcv.PILResourcePacker(root)
     
-    root.run_js_code("delete background; delete begin_animation_image; delete finish_animation_image;")
+    root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
     chart_image = Image.open(chartImage)
     background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
     background_image = ImageEnhance.Brightness(background_image_blur).enhance(getUserData("setting-backgroundDim"))
     respacker.reg_img(background_image, "background")
     
-    finish_animation_image_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
-    finish_animation_image_mask.putpixel((0, 4), (0, 0, 0, 204))
-    finish_animation_image_mask.putpixel((0, 3), (0, 0, 0, 128))
-    finish_animation_image_mask.putpixel((0, 2), (0, 0, 0, 64))
+    chart_image_gradientblack_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
+    chart_image_gradientblack_mask.putpixel((0, 4), (0, 0, 0, 204))
+    chart_image_gradientblack_mask.putpixel((0, 3), (0, 0, 0, 128))
+    chart_image_gradientblack_mask.putpixel((0, 2), (0, 0, 0, 64))
     
     animation_image = chart_image.copy().convert("RGBA")
     tool_funcs.cutAnimationIllImage(animation_image)
     
-    finish_animation_image = chart_image.copy().convert("RGBA")
-    finish_animation_image_mask = finish_animation_image_mask.resize(finish_animation_image.size)
-    finish_animation_image.paste(finish_animation_image_mask, (0, 0), finish_animation_image_mask)
+    chart_image_gradientblack = chart_image.copy().convert("RGBA")
+    chart_image_gradientblack_mask = chart_image_gradientblack_mask.resize(chart_image_gradientblack.size)
+    chart_image_gradientblack.paste(chart_image_gradientblack_mask, (0, 0), chart_image_gradientblack_mask)
     
-    respacker.reg_img(chart_image, "begin_animation_image")
-    respacker.reg_img(finish_animation_image, "finish_animation_image")
+    respacker.reg_img(chart_image, "chart_image")
+    respacker.reg_img(chart_image_gradientblack, "chart_image_gradientblack")
     
     respacker.load(*respacker.pack())
     
