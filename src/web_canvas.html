@@ -312,6 +312,10 @@ void main() {
             } else {
                 dy = (h - w / 16 * 9) / 2;
             }
+
+            // 浮点数误差我超死你全家。
+            [dx, dy] = [parseInt(dx), parseInt(dy)];
+            
             canvasPosD = [dx, dy];
             ctx.translate(dx, dy);
             dialog_canvas_ctx.translate(dx, dy);
@@ -964,6 +968,28 @@ void main() {
                 this.restore();
             }
         }
+    }
+
+    CanvasRenderingContext2D.prototype.outOfTransformDrawCoverFullscreenImage = function (img) {
+        const [w, h] = [this.canvas.width, this.canvas.height];
+        let [imw, imh] = [img.width, img.height];
+        const ratio = w / h;
+        const imratio = imw / imh;
+
+        if (imratio > ratio) {
+            imh = w;
+            imw = imh * imratio;
+        } else {
+            imw = w;
+            imh = imw / imratio;
+        }
+
+        const [imx, imy] = [(w - imw) / 2, (h - imh) / 2];
+        this.save();
+        this.resetTransform();
+        this.drawImage(img, imx, imy, imw, imh);
+        this.fillRectEx(imx, imy, imw, imh, `rgba(0.1, 0.1, 0.1, 0.7)`);
+        this.restore();
     }
 
     CanvasRenderingContext2D.prototype.clear = function() {

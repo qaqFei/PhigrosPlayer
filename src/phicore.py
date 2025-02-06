@@ -330,11 +330,24 @@ def stringifyScore(score:float) -> str:
     score_integer = int(score + 0.5)
     return f"{score_integer:>7}".replace(" ","0")
 
+def drawDeepBgAndClipScreen():
+    root.run_js_code(
+        f"ctx.outOfTransformDrawCoverFullscreenImage({root.get_img_jsvarname("background_blur")});",
+        add_code_array = True
+    )
+    root.run_js_code(
+        f"ctx.save(); ctx.rect(0, 0, {w}, {h}); ctx.clip();",
+        add_code_array = True
+    )
+
+def undoClipScreen():
+    root.run_js_code("ctx.restore();", add_code_array = True)
+
 def drawBg():
     drawImage("background_blur", 0, 0, w, h, wait_execute=True)
     root.run_js_code(
         f"ctx.fillRectEx(\
-            0, 0, {w}, {h},\
+            0, 0, {w}, {h}, \
             'rgba(0, 0, 0, {backgroundDim})'\
         );",
         add_code_array = True
@@ -402,7 +415,8 @@ def draw_ui(
     barUI_rotate: float = 0.0
 ):
     if clear: clearCanvas(wait_execute = True)
-    if background: drawBg()
+    if background:
+        drawBg()
     
     pauseImgWidth = w * (32 / 1920)
     pauseImgHeight = pauseImgWidth / 35 * 41
@@ -572,6 +586,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     Task = chartobj_phi.FrameRenderTask([], [])
     if clear: Task(clearCanvas, wait_execute = True)
     rrmStart(Task)
+    Task(drawDeepBgAndClipScreen)
     Task(drawBg)
     if noplaychart: Task.ExTask.append(("break", ))
         
@@ -883,6 +898,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         clear = False,
         background = False
     )
+    Task(undoClipScreen)
     
     rrmEnd(Task)
     if rjc: Task(root.run_js_wait_code)
@@ -896,6 +912,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     Task = chartobj_phi.FrameRenderTask([], [])
     if clear: Task(clearCanvas, wait_execute = True)
     rrmStart(Task)
+    Task(drawDeepBgAndClipScreen)
     Task(drawBg)
     if noplaychart: Task.ExTask.append(("break", ))
     
@@ -1269,6 +1286,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         background = False,
         **delDrawuiDefaultVals(attachUIData)
     )
+    Task(undoClipScreen)
     
     if chart_obj.extra is not None:
         extra_values = chart_obj.extra.getValues(now_t, True)
