@@ -324,17 +324,12 @@ def Load_Resource():
     background_image = ImageEnhance.Brightness(background_image_blur).enhance(1.0 - chart_information["BackgroundDim"])
     respacker.reg_img(background_image, "background")
     
-    chart_image_gradient = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
-    chart_image_gradient.putpixel((0, 4), (0, 0, 0, 204))
-    chart_image_gradient.putpixel((0, 3), (0, 0, 0, 128))
-    chart_image_gradient.putpixel((0, 2), (0, 0, 0, 64))
-    
-    animation_image = chart_image.copy().convert("RGBA")
+    animation_image = chart_image.convert("RGBA")
     tool_funcs.cutAnimationIllImage(animation_image)
     
-    chart_image_gradientblack = chart_image.copy().convert("RGBA")
-    chart_image_gradient = chart_image_gradient.resize(chart_image_gradientblack.size)
-    chart_image_gradientblack.paste(chart_image_gradient, (0, 0), chart_image_gradient)
+    chart_image_gradientblack = animation_image.copy()
+    chart_image_gradient = tool_funcs.createDownBlockImageGrd()
+    chart_image_gradientblack.paste(chart_image_gradient.resize(chart_image_gradientblack.size), (0, 0), chart_image_gradient)
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)

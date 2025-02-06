@@ -337,7 +337,6 @@ def Load_Resource():
     
     updateUserAvatar()
     root._regims.clear()
-    root.run_js_code(f"createChapterBlackGrd({h * (140 / 1080)}, {h * (1.0 - 140 / 1080)});")
     
     logging.info("Load Resource Successfully")
     return Resource

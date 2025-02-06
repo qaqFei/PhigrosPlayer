@@ -36,6 +36,13 @@ def newRandomBlocks() -> tuple[tuple[float, float]]:
         for _ in range(random_block_num)
     )
 
+def createDownBlockImageGrd():
+    grd = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
+    grd.putpixel((0, 4), (0, 0, 0, 204))
+    grd.putpixel((0, 3), (0, 0, 0, 128))
+    grd.putpixel((0, 2), (0, 0, 0, 64))
+    return grd
+
 bae_bs = 2.15
 class begin_animation_eases_class:
     @staticmethod
