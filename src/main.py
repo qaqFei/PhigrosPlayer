@@ -144,7 +144,7 @@ chartimages = {}
 cfrfp_procer: typing.Callable[[str], str] = lambda x: x.replace(f"{temp_dir}\\", "")
 
 for item in tool_funcs.getAllFiles(temp_dir):
-    if item.endswith("info.txt") or item.endswith("info.csv") or item.endswith("info.yml") or item.endswith("extra.json"):
+    if item.endswith("info.txt") or item.endswith("info.csv") or item.endswith("info.yml") or item.endswith("extra.json") or item.endswith(".glsl"):
         continue
     
     item_rawname = cfrfp_procer(item)
@@ -174,7 +174,7 @@ if not files_dict["audio"]:
 
 if not files_dict["images"]:
     logging.warning("No Image File Found")
-    files_dict["images"].append(["default", Image.new("RGB", (16, 9), "#0078d7")])
+    files_dict["images"].append(["default", Image.new("RGB", (16, 9), "black")])
 
 chart_fp: str
 chart_json: dict
