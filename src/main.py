@@ -279,7 +279,6 @@ def Load_Resource():
     global animation_image
     global WaitLoading, LoadSuccess
     global chart_res
-    global ClickEffectFrameCount
     global cksmanager
     
     logging.info("Loading Resource...")
@@ -293,7 +292,6 @@ def Load_Resource():
     
     phi_rpack = phira_resource_pack.PhiraResourcePack(respath)
     phi_rpack.setToGlobal()
-    ClickEffectFrameCount = phi_rpack.effectFrameCount
     
     Resource = {
         "levels":{
@@ -337,7 +335,7 @@ def Load_Resource():
     for k, v in Resource["Notes"].items():
         respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
     
-    for i in range(ClickEffectFrameCount): # reg click effect
+    for i in range(phira_resource_pack.globalPack.effectFrameCount): # reg click effect
         respacker.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
         respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
         
@@ -851,7 +849,6 @@ def updateCoreConfig():
         chart_information = chart_information,
         chart_obj = chart_obj, CHART_TYPE = CHART_TYPE,
         Resource = Resource,
-        ClickEffectFrameCount = ClickEffectFrameCount,
         globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half, audio_length = audio_length,
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),

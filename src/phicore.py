@@ -40,7 +40,6 @@ class PhiCoreConfig:
     chart_obj: chartobj_phi.Phigros_Chart | chartobj_rpe.Rpe_Chart
     CHART_TYPE: int
     Resource: dict
-    ClickEffectFrameCount: int
     globalNoteWidth: float
     note_max_size_half: float
     audio_length: float
@@ -89,7 +88,6 @@ def CoreConfigure(config: PhiCoreConfig):
     global root, w, h, chart_information
     global chart_obj, CHART_TYPE
     global Resource
-    global ClickEffectFrameCount
     global globalNoteWidth
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
@@ -111,7 +109,6 @@ def CoreConfigure(config: PhiCoreConfig):
     chart_obj = config.chart_obj
     CHART_TYPE = config.CHART_TYPE
     Resource = config.Resource
-    ClickEffectFrameCount = config.ClickEffectFrameCount
     globalNoteWidth = config.globalNoteWidth
     note_max_size_half = config.note_max_size_half
     audio_length = config.audio_length
@@ -197,7 +194,6 @@ def processClickEffectBase(
     p: float, rblocks: tuple[tuple[float, float]]|None,
     perfect: bool, noteWidth: float,
     root: webcv.WebCanvas,
-    framecount: int,
     enable_rblocks: bool = True,
     rblocks_roundn: float = 0.0,
     caller: typing.Callable[[typing.Callable, typing.Any], typing.Any] = lambda f, *args, **kwargs: f(*args, **kwargs)
@@ -247,7 +243,7 @@ def processClickEffectBase(
     effectImageSize = effectSize * phira_resource_pack.globalPack.effectScale
     caller(
         drawAlphaImage,
-        f"{imn}_{int(p * (framecount - 1)) + 1}",
+        f"{imn}_{int(p * (phira_resource_pack.globalPack.effectFrameCount - 1)) + 1}",
         x - effectImageSize / 2, y - effectImageSize / 2,
         effectImageSize, effectImageSize, alpha,
         wait_execute = True
@@ -265,7 +261,6 @@ def processClickEffect(
         perfect = perfect,
         noteWidth = globalNoteWidth,
         root = root,
-        framecount = ClickEffectFrameCount,
         caller = caller,
         enable_rblocks = clickeffect_randomblock,
         rblocks_roundn = clickeffect_randomblock_roundn

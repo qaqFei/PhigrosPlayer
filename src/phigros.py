@@ -173,7 +173,6 @@ def Load_Resource():
     global note_max_width, note_max_height
     global note_max_size_half
     global ButtonWidth, ButtonHeight
-    global ClickEffectFrameCount
     global MainUIIconWidth, MainUIIconHeight
     global SettingUIOtherIconWidth, SettingUIOtherIconHeight
     global MessageButtonSize
@@ -191,7 +190,6 @@ def Load_Resource():
     
     phi_rpack = phira_resource_pack.PhiraResourcePack("./resources/resource_packs/default")
     phi_rpack.setToGlobal()
-    ClickEffectFrameCount = phi_rpack.effectFrameCount
     
     Resource = {
         "levels":{
@@ -314,7 +312,7 @@ def Load_Resource():
     for k, v in Resource["Notes"].items():
         respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
     
-    for i in range(ClickEffectFrameCount):
+    for i in range(phira_resource_pack.globalPack.effectFrameCount):
         respacker.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
         respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
 
@@ -1947,8 +1945,7 @@ def settingRender():
                     p = p, rblocks = None,
                     perfect = True,
                     noteWidth = w * 0.1234375 * size,
-                    root = root,
-                    framecount = ClickEffectFrameCount
+                    root = root
                 )
         
         for t, p in CalibrationClickEffectLines: # vn, ? (time, mixer_pos)
@@ -3286,7 +3283,6 @@ def chartPlayerRender(
         chart_information = chart_information,
         chart_obj = chart_obj,
         CHART_TYPE = CHART_TYPE, Resource = Resource,
-        ClickEffectFrameCount = ClickEffectFrameCount,
         globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,
