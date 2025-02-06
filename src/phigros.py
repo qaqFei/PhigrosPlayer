@@ -2,6 +2,7 @@ import err_processer as _
 import init_logging as _
 import fix_workpath as _
 import check_edgechromium as _
+import check_bin as _
 
 import webbrowser
 import typing
@@ -35,10 +36,6 @@ import tempdir
 import socket_webviewbridge
 from dxsmixer import mixer
 from graplib_webview import *
-
-if not exists("./7z.exe") or not exists("./7z.dll"):
-    logging.fatal("7z.exe or 7z.dll Not Found")
-    raise SystemExit
     
 if not exists("./phigros_assets") or not all([
     exists(tool_funcs.gtpresp(i)) for i in [

@@ -1,4 +1,5 @@
 import fix_workpath as _
+import check_bin as _
 
 import json
 import struct
@@ -15,10 +16,6 @@ import UnityPy.files
 import UnityPy.classes
 from UnityPy.enums import ClassIDType
 from fsb5 import FSB5
-
-if not exists("./7z.exe") or not exists("./7z.dll"):
-    print("7z.exe or 7z.dll Not Found")
-    raise SystemExit
     
 class ByteReaderA:
     def __init__(self, data: bytes):

@@ -3,6 +3,7 @@ import init_logging as _
 import fix_workpath as _
 import import_argvs as _
 import check_edgechromium as _
+import check_bin as _
 
 import json
 import sys
@@ -43,10 +44,6 @@ from dxsmixer import mixer
 from graplib_webview import *
 
 import load_extended as _
-
-if not exists("./7z.exe") or not exists("./7z.dll"):
-    logging.fatal("7z.exe or 7z.dll Not Found")
-    raise SystemExit
 
 if len(sys.argv) == 1:
     print(ppr_help.HELP_ZH)
