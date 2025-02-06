@@ -342,15 +342,15 @@ def drawBg():
 
 # color 一定要传 rgba 的
 def draw_ui(
-    process:float = 0.0,
-    score:str = "0000000",
-    combo_state:bool = False,
-    combo:int = 0,
-    acc:str = "100.00%",
-    clear:bool = True,
-    background:bool = True,
-    animationing:bool = False,
-    dy:float = 0.0,
+    process: float = 0.0,
+    score: str = "0000000",
+    combo_state: bool = False,
+    combo: int = 0,
+    acc: str = "100.00%",
+    clear: bool = True,
+    background: bool = True,
+    animationing: bool = False,
+    dy: float = 0.0,
     
     combonumberUI_dx: float = 0.0,
     combonumberUI_dy: float = 0.0,
