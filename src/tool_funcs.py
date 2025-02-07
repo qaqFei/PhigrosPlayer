@@ -530,14 +530,23 @@ class PhigrosPlayLogicManager:
         # self.misseffects: const.MissEffectType = []
     
     def bind_events(self, root: webcv.WebCanvas):
-        root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000, e.key)}, false);")
-        root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000, e.key)}, false);")
+        root.run_js_code("_PhigrosPlay_KeyDown = makePlayKeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000, e.key)}, false);")
+        root.run_js_code("_PhigrosPlay_KeyUp = makePlayKeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000, e.key)}, false);")
+        root.run_js_code("_PhigrosPlay_TouchStart = (e) => pywebview.api.call_attr('PhigrosPlay_TouchStart', new Date().getTime() / 1000, ...fixEventPosition(e.changedTouches[0].clientX, e.changedTouches[0].clientY), e.changedTouches[0].identifier);")
+        root.run_js_code("_PhigrosPlay_TouchMove = (e) => pywebview.api.call_attr('PhigrosPlay_TouchMove', new Date().getTime() / 1000, ...fixEventPosition(e.changedTouches[0].clientX, e.changedTouches[0].clientY), e.changedTouches[0].identifier);")
+        root.run_js_code("_PhigrosPlay_TouchEnd = (e) => pywebview.api.call_attr('PhigrosPlay_TouchEnd', e.changedTouches[0].identifier);")
         root.run_js_code("window.addEventListener('keydown', _PhigrosPlay_KeyDown);")
         root.run_js_code("window.addEventListener('keyup', _PhigrosPlay_KeyUp);")
+        root.run_js_code("window.addEventListener('touchstart', _PhigrosPlay_TouchStart);")
+        root.run_js_code("window.addEventListener('touchmove', _PhigrosPlay_TouchMove);")
+        root.run_js_code("window.addEventListener('touchend', _PhigrosPlay_TouchEnd);")
     
     def unbind_events(self, root: webcv.WebCanvas):
         root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
         root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
+        root.run_js_code("window.removeEventListener('touchstart', _PhigrosPlay_TouchStart);")
+        root.run_js_code("window.removeEventListener('touchmove', _PhigrosPlay_TouchMove);")
+        root.run_js_code("window.removeEventListener('touchend', _PhigrosPlay_TouchEnd);")
     
     def pc_click(self, t: float, key: str) -> None:
         if not PPLM_vaildKey(key): return

@@ -340,11 +340,11 @@ void main() {
         }
     }
 
-    function PhigrosPlay_KeyEvent(cb, rp) {
-        return async function(e) {
+    function makePlayKeyEvent(cb, rp) {
+        return function(e) {
             if (e.isComposing || e.keyCode === 229) return;
             if (!rp && e.repeat) return;
-            cb(e);
+            return cb(e);
         }
     }
 
@@ -1007,11 +1007,28 @@ void main() {
             });
             window.dispatchEvent(mouseEvent);
         });
-    }
+    };
     
     proxyTouchEvent("touchstart", "mousedown");
     proxyTouchEvent("touchmove", "mousemove");
     proxyTouchEvent("touchend", "mouseup");
+
+    const proxyMouseEvent = function (from, to) {
+        window.addEventListener(from, (e) => {
+            let touchEvent = new TouchEvent(to, {
+                changedTouches: [new Touch({
+                    identifier: 1,
+                    clientX: e.clientX,
+                    clientY: e.clientY
+                })]
+            });
+            window.dispatchEvent(touchEvent);
+        });
+    };
+
+    proxyMouseEvent("mousedown", "touchstart");
+    proxyMouseEvent("mousemove", "touchmove");
+    proxyMouseEvent("mouseup", "touchend");
 
     const fixEventPosition = (x, y) => [x * dpr - canvasPosD[0], y * dpr - canvasPosD[1]];
     const proxyNeedPositionEvent = function (from, to, cls) {
