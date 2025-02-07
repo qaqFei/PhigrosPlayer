@@ -594,6 +594,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     noautoplay = pplm is not None # reset a global variable
     if noautoplay:
         pplm.pc_update(now_t)
+        pplm.mob_update(now_t)
     
     for lineIndex, line in enumerate(chart_obj.judgeLineList):
         lineBTime = now_t / line.T
@@ -924,6 +925,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     noautoplay = pplm is not None # reset a global variable
     if noautoplay:
         pplm.pc_update(now_t)
+        pplm.mob_update(now_t)
     
     nowLineColor = phira_resource_pack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()
     normalBeatTime = chart_obj.sec2beat(now_t, 1.0)

@@ -499,10 +499,14 @@ class PPLM_MOB_Touch:
     y: float
     i: int
     
+    clickused: bool = False
+    released: bool = False
+    
     def update(self, t: float, x: float, y: float) -> list[tuple[float, float]]:
         self.x = x
         self.y = y
         ...
+        return []
 
 class PhigrosPlayLogicManager:
     def __init__(
@@ -751,6 +755,7 @@ class PhigrosPlayLogicManager:
         self.mob_touches.remove(touch)
     
     def mob_touchstart(self, t: float, x: float, y: float, i: int):
+        print(t, x, y, i)
         self.mob_touches.append(PPLM_MOB_Touch(t, x, y, i))
 
     def mob_touchmove(self, t: float, x: float, y: float, i: int):
@@ -760,7 +765,10 @@ class PhigrosPlayLogicManager:
         self.mob_flicks.extend(touch.update(t, x, y))
     
     def mob_touchend(self, i: int):
-        self._removemobt_byid(i)
+        touch = self._getmobt_byid(i)
+        if touch is None: return
+        
+        touch.released = True
     
     def mob_update(self, t: float):
         pnotes = self.pp.get_all_pnotes()

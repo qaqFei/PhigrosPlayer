@@ -427,7 +427,8 @@ void main() {
         }
     }
 
-    async function connectToSocketBridge() {
+    async function connectToSocketBridge(e) {
+        if (!e.isTrusted) return;
         window.removeEventListener("touchstart", connectToSocketBridge);
         const addr = prompt("please input the server address: ");
         const port = 8080;
@@ -999,6 +1000,7 @@ void main() {
 
     const proxyTouchEvent = function (from, to) {
         window.addEventListener(from, (e) => {
+            if (!e.isTrusted) return;
             let touch = e.changedTouches[0];
             let mouseEvent = new MouseEvent(to, {
                 clientX: touch.clientX,
@@ -1015,8 +1017,10 @@ void main() {
 
     const proxyMouseEvent = function (from, to) {
         window.addEventListener(from, (e) => {
+            if (!e.isTrusted) return;
             let touchEvent = new TouchEvent(to, {
                 changedTouches: [new Touch({
+                    target: e.target,
                     identifier: 1,
                     clientX: e.clientX,
                     clientY: e.clientY
@@ -1055,20 +1059,12 @@ void main() {
     proxyNeedPositionEvent("mouseup", "mouseup-np", MouseEvent);
     proxyNeedPositionEvent("click", "click-np", MouseEvent);
 
-    window.addEventListener("touchstart", (e) => {
-        try {pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
-        catch (e) {}
-    });
-    window.addEventListener("touchend", (e) => {
-        try {pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
-        catch (e) {}
-    });
-
-    // temp
-    // window.addEventListener("touchstart", () => {
-    //     pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000);
+    // window.addEventListener("touchstart", (e) => {
+    //     try {pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
+    //     catch (e) {}
     // });
-    // window.addEventListener("touchend", () => {
-    //     pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000);
+    // window.addEventListener("touchend", (e) => {
+    //     try {pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
+    //     catch (e) {}
     // });
 </script>
