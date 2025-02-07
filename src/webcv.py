@@ -16,10 +16,13 @@ from ctypes import windll
 from os.path import abspath
 from random import randint
 
-import webview
+disengage_webview = "--disengage-webview" in sys.argv
+
+if not disengage_webview: import webview
 from PIL import Image
 
 import graplib_webview
+import const
 
 current_thread = threading.current_thread
 screen_width = windll.user32.GetSystemMetrics(0)
@@ -266,29 +269,39 @@ class WebCanvas:
             js_api = self.jsapi,
             frameless = frameless,
             hidden = hidden
-        )
-        self.evaljs = lambda x, *args, **kwargs: self.web.evaluate_js(x)
+        ) if not disengage_webview else None
+        self.evaljs = lambda x, *args, **kwargs: (self.web.evaluate_js(x) if not disengage_webview else None)
         self.init = lambda func: (self._init(width, height, x, y), func())
-        self.start = lambda: webview.start(debug=debug)
+        self.start = lambda: webview.start(debug=debug) if not disengage_webview else time.sleep(60 * 60 * 24 * 7 * 4 * 12 * 80)
     
     def _init(self, width: int, height: int, x: int, y: int):
-        self.web.resize(width, height)
-        self.web.move(x, y)
-        self.web.events.closed += self._destroyed.set
+        if not disengage_webview:
+            self.web.resize(width, height)
+            self.web.move(x, y)
+            self.web.events.closed += self._destroyed.set
+            
+            title = self.web.title
+            temp_title = self.web.title + " " * randint(0, 4096)
+            self.web.set_title(temp_title)
+            
+            self.web_hwnd = 0
+            while not self.web_hwnd:
+                self.web_hwnd = windll.user32.FindWindowW(None, temp_title)
+                time.sleep(0.01)
+            self.web.set_title(title)
+        else:
+            self.web_hwnd = -1
         
-        title = self.web.title
-        temp_title = self.web.title + " " * randint(0, 4096)
-        self.web.set_title(temp_title)
-        
-        self.web_hwnd = 0
-        while not self.web_hwnd:
-            self.web_hwnd = windll.user32.FindWindowW(None, temp_title)
-            time.sleep(0.01)
-        self.web.set_title(title)
-        
-        self.web_port = int(self.web._server.address.split(":")[2].split("/")[0])
+        self.fileserver_port = const.BASE_PORT
         WebCanvas_FileServerHandler._canvas = self
-        self.file_server = http.server.HTTPServer(("", self.web_port + 1), WebCanvas_FileServerHandler)
+        
+        while True:
+            try: self.file_server = http.server.HTTPServer(("", self.fileserver_port), WebCanvas_FileServerHandler)
+            except OSError:
+                self.fileserver_port += 1
+                continue
+            break
+        
         threading.Thread(target=self.file_server.serve_forever, daemon=True).start()
         
         self.jsapi.set_attr("_rdcallback", self._rdevent.set)
@@ -296,16 +309,17 @@ class WebCanvas:
         
         graplib_webview.root = self
     
-    def title(self, title: str) -> str: self.web.set_title(title)
+    def title(self, title: str) -> str: self.web.set_title(title) if not disengage_webview else None
     def winfo_screenwidth(self) -> int: return screen_width
     def winfo_screenheight(self) -> int: return screen_height
     def winfo_hwnd(self) -> int: return self.web_hwnd
     def winfo_legacywindowwidth(self) -> int: return self.run_js_code("window.innerWidth;")
     def winfo_legacywindowheight(self) -> int: return self.run_js_code("window.innerHeight;")
 
-    def destroy(self): self.web.destroy()
-    def resize(self, width: int, height: int): self.web.resize(width, height)
-    def move(self, x: int, y:int): self.web.move(x, y)
+    def destroy(self): self.web.destroy() if not disengage_webview else None
+    def resize(self, width: int, height: int): self.web.resize(width, height) if not disengage_webview else None
+    def move(self, x: int, y:int): self.web.move(x, y) if not disengage_webview else None
+    def fullscreen(self): self.web.toggle_fullscreen() if not disengage_webview else None
     
     def run_js_code(self, code: str, add_code_array: bool = False, order: int|None = None, needresult: bool = True):
         if self.jslog and not code.endswith(";"): code += ";"
@@ -386,6 +400,7 @@ class WebCanvas:
         self.wait_loadimgs(self.get_imgcomplete_jseval(self._regims))
     
     def reg_event(self, name: str, callback: typing.Callable) -> None:
+        if disengage_webview: return
         setattr(self.web.events, name, getattr(self.web.events, name) + callback)
     
     def wait_for_close(self) -> None:
@@ -398,7 +413,7 @@ class WebCanvas:
             self.jslog_f.close()
     
     def get_resource_path(self, name: str) -> str:
-        return f"http://{host}:{self.web_port + 1}/{name}"
+        return f"http://{host}:{self.fileserver_port}/{name}"
 
     def wait_jspromise(self, code: str) -> None:
         eid = f"wait_jspromise_{randint(0, 2 << 31)}"
@@ -423,7 +438,7 @@ class WebCanvas:
         if (!window.{jsvarname}){chr(123)}\
             {jsvarname} = document.createElement('img');\
             {jsvarname}.crossOrigin = \"Anonymous\";\
-            {jsvarname}.src = 'http://{host}:{self.web_port + 1}/{imgname}';\
+            {jsvarname}.src = 'http://{host}:{self.fileserver_port}/{imgname}';\
             {jsvarname}.loading = \"eager\";\
         {chr(125)}\
         "

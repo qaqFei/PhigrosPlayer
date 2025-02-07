@@ -3839,21 +3839,19 @@ def init():
     global w, h
     global Resource, eventManager
     
-    disengage_webview = "--disengage-webview" in sys.argv
-    
-    if disengage_webview:
+    if webcv.disengage_webview:
         socket_webviewbridge.hook(root)
         
     webdpr = root.run_js_code("window.devicePixelRatio;")
     root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
 
-    if disengage_webview:
+    if webcv.disengage_webview:
         w, h = root.run_js_code("window.innerWidth;"), root.run_js_code("window.innerHeight;")
     else:
         if "--fullscreen" in sys.argv:
             w, h = root.winfo_screenwidth(), root.winfo_screenheight()
             root.resize(w, h)
-            root.web.toggle_fullscreen()
+            root.fullscreen()
             dw_legacy, dh_legacy = 0, 0
         else:
             if "--size" not in sys.argv:

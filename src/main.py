@@ -903,7 +903,7 @@ def init():
             windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
         if "--fullscreen" in sys.argv:
             w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-            root.web.toggle_fullscreen()
+            root.fullscreen()
         else:
             if "--size" not in sys.argv:
                 w, h = int(root.winfo_screenwidth() * 0.6), int(root.winfo_screenheight() * 0.6)
