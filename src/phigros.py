@@ -3321,10 +3321,10 @@ def chartPlayerRender(
         convertTime2Chart = lambda t: (t - globals().get("show_start_time", time.time())) - (0.0 if CHART_TYPE == const.CHART_TYPE.PHI else chart_obj.META.offset / 1000)
         root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t, key: pplm.pc_click(convertTime2Chart(t), key)) # 这里没写diswebview的判断, 希望别埋坑..
         root.jsapi.set_attr("PhigrosPlay_KeyUp", lambda t, key: pplm.pc_release(convertTime2Chart(t), key))
-        root.run_js_code("_PhigrosPlay_KeyDown = makePlayKeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000, e.key)}, false);")
-        root.run_js_code("_PhigrosPlay_KeyUp = makePlayKeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000, e.key)}, false);")
-        root.run_js_code("window.addEventListener('keydown', _PhigrosPlay_KeyDown);")
-        root.run_js_code("window.addEventListener('keyup', _PhigrosPlay_KeyUp);")
+        root.jsapi.set_attr("PhigrosPlay_TouchStart", lambda t, x, y, i: pplm.mob_touchstart(convertTime2Chart(t), x / w, y / h, i))
+        root.jsapi.set_attr("PhigrosPlay_TouchMove", lambda t, x, y, i: pplm.mob_touchmove(convertTime2Chart(t), x / w, y / h, i))
+        root.jsapi.set_attr("PhigrosPlay_TouchEnd", lambda i: pplm.mob_touchend(i))
+        pplm.bind_events(root)
     else:
         pplm = None
     
@@ -3558,8 +3558,7 @@ def chartPlayerRender(
         root.run_js_wait_code()
     
     if phicore.noautoplay:
-        root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
-        root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
+        pplm.unbind_events(root)
             
     mixer.music.set_volume(1.0)
     cksmanager.stop()
