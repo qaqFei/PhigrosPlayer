@@ -54,7 +54,7 @@ def transform_line(line: dict):
         "Group": 0,
         "Name": "Untitled",
         "Texture": "line.png",
-        "bpmfactor": line["bpm"] / rpeop["BPMList"][0]["bpm"],
+        "bpmfactor": rpeop["BPMList"][0]["bpm"] / line["bpm"],
         "father": -1,
         "isCover": 1,
         "zOrder": 0,
