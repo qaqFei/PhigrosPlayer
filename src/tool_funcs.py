@@ -5,7 +5,7 @@ import time
 import re
 from sys import argv
 from os import environ
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy
 import cv2
@@ -15,6 +15,7 @@ import const
 import rpe_easing
 import phira_resource_pack
 import tempdir
+import webcv
 from light_tool_funcs import *
 
 note_id = -1
@@ -527,6 +528,16 @@ class PhigrosPlayLogicManager:
         self.clickeffects: const.ClickEffectType = []
         self.badeffects: const.BadEffectType = []
         # self.misseffects: const.MissEffectType = []
+    
+    def bind_events(self, root: webcv.WebCanvas):
+        root.run_js_code("_PhigrosPlay_KeyDown = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyDown', new Date().getTime() / 1000, e.key)}, false);")
+        root.run_js_code("_PhigrosPlay_KeyUp = PhigrosPlay_KeyEvent((e) => {pywebview.api.call_attr('PhigrosPlay_KeyUp', new Date().getTime() / 1000, e.key)}, false);")
+        root.run_js_code("window.addEventListener('keydown', _PhigrosPlay_KeyDown);")
+        root.run_js_code("window.addEventListener('keyup', _PhigrosPlay_KeyUp);")
+    
+    def unbind_events(self, root: webcv.WebCanvas):
+        root.run_js_code("window.removeEventListener('keydown', _PhigrosPlay_KeyDown);")
+        root.run_js_code("window.removeEventListener('keyup', _PhigrosPlay_KeyUp);")
     
     def pc_click(self, t: float, key: str) -> None:
         if not PPLM_vaildKey(key): return
