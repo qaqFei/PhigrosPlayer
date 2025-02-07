@@ -12,7 +12,6 @@ import time
 import socket
 import sys
 import logging
-from ctypes import windll
 from os.path import abspath
 from random import randint
 
@@ -24,9 +23,14 @@ from PIL import Image
 import graplib_webview
 import const
 
+if not disengage_webview:
+    from ctypes import windll
+    screen_width = windll.user32.GetSystemMetrics(0)
+    screen_height = windll.user32.GetSystemMetrics(1)
+else:
+    screen_width, screen_height = -1, -1
+
 current_thread = threading.current_thread
-screen_width = windll.user32.GetSystemMetrics(0)
-screen_height = windll.user32.GetSystemMetrics(1)
 host = socket.gethostbyname(socket.gethostname()) if "--nolocalhost" in sys.argv else "127.0.0.1"
 logging.info(f"server host: {host}")
 
