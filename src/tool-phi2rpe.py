@@ -218,9 +218,11 @@ def transform_line(line: dict):
                 elif e_st <= n_st <= n_et <= e_et:
                     e["endTime"] = n2f(n_st)
                 elif e_st <= n_st <= e_et <= n_et:
-                    e["endTime"] = n2f(n_et)
+                    e["endTime"] = n2f(n_st)
                 elif e_st <= e_et <= n_st <= n_et:
                     pass
+                elif n_st <= n_et <= e_st <= e_et:
+                    ses.remove(e)
                 
             hnl["notes"].clear()
             hnl["eventLayers"][0]["alphaEvents"].clear()
