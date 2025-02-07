@@ -18,7 +18,7 @@ from ntpath import basename
 
 import cv2
 import requests
-from PIL import Image, ImageFilter, ImageEnhance
+from PIL import Image, ImageFilter
 from pydub import AudioSegment
 
 import webcv
@@ -28,7 +28,6 @@ import chartobj_rpe
 import chartfuncs_phi
 import chartfuncs_rpe
 import const
-import console_window
 import tool_funcs
 import dialog
 import info_loader
@@ -48,8 +47,6 @@ import load_extended as _
 if len(sys.argv) == 1:
     print(ppr_help.HELP_ZH)
     raise SystemExit
-    
-console_window.Hide() if "--hideconsole" in sys.argv else None
 
 tempdir.clearTempDir()
 temp_dir = tempdir.createTempDir()

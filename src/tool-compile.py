@@ -12,7 +12,7 @@ if "-y" not in argv:
     if input("Sure? (y/n) ").lower() not in ("yes", "y"):
         raise SystemExit
 
-def compile(file:str, hideconsole:bool):
+def compile(file: str, hideconsole: bool):
     system(f"{pyi_makespec} \"{file}\" -i icon.ico {"-w" if hideconsole and not debug else ""}")
     spec = f"{file.replace('.py', '')}.spec"
     with open(spec, "r", encoding="utf-8") as f:
