@@ -84,7 +84,6 @@ wl_more_chinese = "--wl-more-chinese" in sys.argv
 skip_time = float(sys.argv[sys.argv.index("--skip-time") + 1]) if "--skip-time" in sys.argv else 0.0
 enable_jscanvas_bitmap = "--enable-jscanvas-bitmap" in sys.argv
 respath = sys.argv[sys.argv.index("--res") + 1] if "--res" in sys.argv else "./resources/resource_packs/default"
-disengage_webview = "--disengage-webview" in sys.argv
 usu169 = "--usu169" in sys.argv
 render_video = "--render-video" in sys.argv
 render_video_fps = float(sys.argv[sys.argv.index("--render-video-fps") + 1]) if "--render-video-fps" in sys.argv else 60.0
@@ -539,8 +538,8 @@ def PlayerStart():
             )
             
             convertTime2Chart = lambda t: (t - show_start_time) * speed - (0.0 if CHART_TYPE == const.CHART_TYPE.PHI else chart_obj.META.offset / 1000)
-            root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t, key: pplm.pc_click(convertTime2Chart(t) if not disengage_webview else now_t, key))
-            root.jsapi.set_attr("PhigrosPlay_KeyUp", lambda t, key: pplm.pc_release(convertTime2Chart(t) if not disengage_webview else now_t, key))
+            root.jsapi.set_attr("PhigrosPlay_KeyDown", lambda t, key: pplm.pc_click(convertTime2Chart(t) if not webcv.disengage_webview else now_t, key))
+            root.jsapi.set_attr("PhigrosPlay_KeyUp", lambda t, key: pplm.pc_release(convertTime2Chart(t) if not webcv.disengage_webview else now_t, key))
             root.jsapi.set_attr("PhigrosPlay_TouchStart", lambda t, x, y, i: pplm.mob_touchstart(convertTime2Chart(t), x / w, y / h, i))
             root.jsapi.set_attr("PhigrosPlay_TouchMove", lambda t, x, y, i: pplm.mob_touchmove(convertTime2Chart(t), x / w, y / h, i))
             root.jsapi.set_attr("PhigrosPlay_TouchEnd", lambda i: pplm.mob_touchend(i))
@@ -879,13 +878,12 @@ root = webcv.WebCanvas(
 )
 
 def init():
-    global disengage_webview
     global webdpr
     global lowquality, lowquality_scale
     global w, h
     global Resource
     
-    if disengage_webview:
+    if webcv.disengage_webview:
         socket_webviewbridge.hook(root)
 
     webdpr = root.run_js_code("window.devicePixelRatio;")
@@ -896,7 +894,7 @@ def init():
     if lowquality:
         root.run_js_code(f"lowquality_scale = {lowquality_scale};")
 
-    if disengage_webview:
+    if webcv.disengage_webview:
         w, h = root.run_js_code("window.innerWidth;"), root.run_js_code("window.innerHeight;")
     else:
         if "--window-host" in sys.argv:
