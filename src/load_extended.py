@@ -1,5 +1,5 @@
 import importlib.util
-from ctypes import windll
+import platform
 from sys import argv
 from tkinter.messagebox import askokcancel
 
@@ -10,7 +10,11 @@ if "--extended" in argv:
     EN_T = "Warning!!!"
     EN_M = "You are about to load the injection extension,\nplease make sure you know what you are doing and trust the file you are injecting!\nIf you are not sure, please do not load this extension!\nAre you sure you want to load this extension?"
     
-    language = windll.kernel32.GetSystemDefaultUILanguage()
+    if platform.system() == "Windows":
+        from ctypes import windll
+        language = windll.kernel32.GetSystemDefaultUILanguage()
+    else:
+        language = 0x804
 
     T = ZH_T if language == 0x804 else EN_T
     M = ZH_M if language == 0x804 else EN_M

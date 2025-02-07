@@ -10,8 +10,8 @@ import sys
 import time
 import logging
 import typing
+import platform
 from threading import Thread
-from ctypes import windll
 from os import popen
 from os.path import exists
 from ntpath import basename
@@ -40,6 +40,7 @@ import socket_webviewbridge
 import wcv2matlike
 import needrelease
 from dxsmixer import mixer
+from exitfunc import exitfunc
 from graplib_webview import *
 
 import load_extended as _
@@ -894,8 +895,10 @@ def init():
     if webcv.disengage_webview:
         w, h = root.run_js_code("window.innerWidth;"), root.run_js_code("window.innerHeight;")
     else:
-        if "--window-host" in sys.argv:
+        if "--window-host" in sys.argv and platform.system() == "Windows":
+            from ctypes import windll
             windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
+            
         if "--fullscreen" in sys.argv:
             w, h = root.winfo_screenwidth(), root.winfo_screenheight()
             root.fullscreen()
@@ -949,7 +952,7 @@ def init():
 def atexit_run():
     tempdir.clearTempDir()
     needrelease.run()
-    windll.kernel32.ExitProcess(0)
+    exitfunc(0)
 
 Thread(target=root.init, args=(init, ), daemon=True).start()
 root.start()

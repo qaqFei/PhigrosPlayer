@@ -12,13 +12,13 @@ import sys
 import time
 import math
 import logging
+import platform
 from io import BytesIO
 from threading import Thread
-from ctypes import windll
 from os import system
 from os.path import exists
 
-from PIL import Image, ImageFilter, ImageEnhance
+from PIL import Image, ImageFilter
 
 import webcv
 import const
@@ -35,6 +35,7 @@ import phira_resource_pack
 import tempdir
 import socket_webviewbridge
 from dxsmixer import mixer
+from exitfunc import exitfunc
 from graplib_webview import *
     
 if not exists("./phigros_assets") or not all([
@@ -3883,7 +3884,8 @@ def init():
         root.run_js_code("usu169 = true;")
     root.run_js_code(f"resizeCanvas({rw}, {rh});")
 
-    if "--window-host" in sys.argv:
+    if "--window-host" in sys.argv and platform.system() == "Windows":
+        from ctypes import windll
         windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
 
     Load_Chapters()
@@ -3895,7 +3897,7 @@ def init():
     Thread(target=showStartAnimation, daemon=True).start()
         
     root.wait_for_close()
-    windll.kernel32.ExitProcess(0)
+    exitfunc(0)
 
 Thread(target=root.init, args=(init, ), daemon=True).start()
 root.start()
