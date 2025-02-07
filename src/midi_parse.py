@@ -262,6 +262,7 @@ class MidiFile:
         for track in self.tracks:
             for msg in track:
                 msg["sec_time"] = MidiFile.tick2second(msg["now_time"], track, self.tick_per_quarter_note)
+                msg["sec_delta"] = MidiFile.tick2second(msg["delta_time"], track, self.tick_per_quarter_note)
     
     @staticmethod
     def second2tick(t: int|float, track: Track, tick_per_quarter_note: int) -> float:
@@ -300,8 +301,38 @@ class MidiFile:
             else:
                 sec += t * sec_per_beat
         return sec
+    
+    def play(self):
+        msgs = [msg for track in self.tracks for msg in track]
+        msgs.sort(key=lambda msg: msg["sec_time"])
+        for msg in msgs: yield msg
 
 class Track(list):
     def __init__(self):
         list.__init__(self)
         self.bpmList = []
+
+if __name__ == "__main__":
+    import time
+    import tinysoundfont # type: ignore
+    
+    mid = MidiFile(open(input("your midi file: "), "rb").read())
+    sf2 = input("your sf2 file: ")
+    synth = tinysoundfont.Synth()
+    sfid = synth.sfload(sf2)
+    synth.program_select(0, sfid, 0, 0)
+    synth.start()
+    
+    more_delta = 0
+    for msg in mid.play():
+        time.sleep(max(msg["sec_delta"] - more_delta, 0.0))
+        t = time.perf_counter()
+        print(msg)
+        match msg["type"]:
+            case "meta":
+                match msg["meta_type"]:
+                    case "key_signature": synth.program_select(0, msg["key_signature"], 0, 0)
+            case "note_on": synth.noteon(0, msg["note"], msg["velocity"])
+            case "note_off": synth.noteoff(msg["channel"], msg["note"])
+        more_delta = time.perf_counter() - t
+            
