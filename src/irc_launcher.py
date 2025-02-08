@@ -1,17 +1,21 @@
+# -*- coding: utf-8 -*-
+
+
 import os
+import sys
 import subprocess
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QFileDialog, QWidget
-from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QObject, QThread
-from PyQt5.QtGui import QDesktopServices, QIcon
-from qfluentwidgets import FluentWindow, NavigationItemPosition, NavigationAvatarWidget, MessageBoxBase
+from PyQt5.QtWidgets import QApplication,QFileDialog,QMainWindow,QWidget
+from PyQt5.QtCore import QUrl,Qt,pyqtSignal,QObject,QThread,QTimer
+from PyQt5.QtGui import QDesktopServices,QIcon
+
+from qfluentwidgets import FluentWindow,NavigationItemPosition,NavigationAvatarWidget,MessageBoxBase
 from qfluentwidgets import FluentIcon as FIF
-from qfluentwidgets import CheckBox, LineEdit, PrimaryPushButton, PushButton, MessageBox, SplashScreen, PlainTextEdit, SubtitleLabel
+from qfluentwidgets import CheckBox, LineEdit, PrimaryPushButton, PushButton,MessageBox,SplashScreen,PlainTextEdit,SubtitleLabel
 
 class CommandOutputEmitter(QObject):
     output_received = pyqtSignal(str)
-    
 class WorkerThread(QThread):
     def __init__(self, command):
         super().__init__()
@@ -22,12 +26,12 @@ class WorkerThread(QThread):
         # 合并stderr到stdout，并启用行缓冲
         process = subprocess.Popen(
             self.command, 
-            shell = True, 
-            stdout = subprocess.PIPE, 
-            stderr = subprocess.STDOUT,  # 合并错误输出到标准输出
-            text = True, 
-            bufsize = 1,  # 行缓冲
-            universal_newlines = True
+            shell=True, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.STDOUT,  # 合并错误输出到标准输出
+            text=True, 
+            bufsize=1,                 # 行缓冲
+            universal_newlines=True
         )
         # 逐行读取输出
         while True:
@@ -49,7 +53,7 @@ class Ui_command_box(MessageBoxBase):
             self.output.append(line.strip())
         for line in command_p.stderr:
             self.output.append(line.strip())
-
+        
     def setupUi(self, command_box):
         self.subtitle = SubtitleLabel("控制台输出")
         self.output = PlainTextEdit(command_box)
@@ -71,15 +75,15 @@ class Ui_command_box(MessageBoxBase):
         self.worker_thread.start()
 
 class MainWindow(FluentWindow):
+    
     def openrespository(self):
         url = "https://github.com/qaqfei/PhigrosPlayer"
         QDesktopServices.openUrl(QUrl(url))
-        
     def initWindow(self):
         self.resize(1000,600)
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
-        self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
+        self.move(w//2 - self.width()//2, h//2 - self.height()//2)
 
     def __init__(self):
         super().__init__()
@@ -96,71 +100,74 @@ class MainWindow(FluentWindow):
   
     def initNav(self):
         self.startup = SettingsWindow()
-        self.addSubInterface(self.startup, FIF.HOME, "Startup")
+        self.addSubInterface(self.startup, FIF.HOME ,"Startup")
         self.navigationInterface.addWidget(
-            routeKey = "avatar",
-            widget = NavigationAvatarWidget("Github Repository", "icon.ico"),
-            onClick = self.openrespository,
-            position = NavigationItemPosition.BOTTOM
+            routeKey='avatar',
+            widget=NavigationAvatarWidget('Github Repository','icon.ico'),
+            onClick=self.openrespository,
+            position=NavigationItemPosition.BOTTOM,
         )
         self.navigationInterface.setExpandWidth(280)
 
+
+
+
+
 class SettingsWindow(QWidget):
-    chart = ""
     
+    chart = ""
     def __init__(self):
         super().__init__()
         self.setupUi(self)
 
     def openFile(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self, "选择文件", "", "All Files (*)", options=options)
-        if fileName:
-            print(f"选择的文件：{fileName}")
-            self.chart = fileName
-            return fileName
+        fileName, is_ok = QFileDialog.getOpenFileName(self, 
+            "选择谱面文件",
+            "",
+            "Phigros谱面 (*.zip *.pez)")
+        if is_ok:
+            fileName1 = fileName
+            print(f"选择的文件：{fileName1}")
+            self.chart = fileName1
+            return fileName1
         else:
             self.chart = ""
             return ""
-
-    def messagebox_when_render_up(self):
-        self.MessageBox1 = MessageBox("注意", "要开始渲染谱面了，启动器可能会未响应。如果Windows弹出了未响应窗口，请无视。否则渲染和启动器一块闪退", self).exec_()
         
-    def messagebox_when_render_off(self):
-        self.MessageBox2 = MessageBox("渲染开始", "渲染开始，请查看控制台输出，您可在控制台输出结束后关闭提示框。如遇到视频损坏或有改进建议，欢迎点击侧边栏的Github Repository来向qaqFei发issue。(当然gui有问题来抽IrCat-Ninth位于natayark@outlook.com)",self).exec_()
-        #w = MessageBox("哦呼", "渲染结束了！如果渲染了谱面那就赶快看看吧！如果损坏欢迎来GitHub给我提Issue!", self)
+    def messagebox_when_render_up(self):
 
+        self.MessageBox1 = MessageBox("注意", "要开始渲染谱面了，请最后检查一遍设置。",self).exec_()
+
+    
     def render_chart(self):
         command = self.render_charta()
         if self.chart == "" and self.phiraChartID.text() == "":
             return
-        
         try:
             print("调用的命令（出现错误的时候可以看看是不是命令出错了，是的话来抽IrCat-Ninth）："+command)
-            # self.command_p = subprocess.Popen(command, shell=True)
-            # self.command_p.communicate()
-            # output_thread = threading.Thread(target=self.read_output)
-            # output_thread.start()
+            #self.command_p = subprocess.Popen(command, shell=True)
+            #self.command_p.communicate()
+            #output_thread = threading.Thread(target=self.read_output)
+            #output_thread.start()
+
             commandbox = Ui_command_box(command,self)
             commandbox.show()
-            self.messagebox_when_render_off()
+
         except Exception as e:
+
             MessageBox("错误", f"命令执行失败: {e}", self).exec()
-            
     def read_output(self):
         if self.command_p:
             for line in self.command_p.stdout:
                 self.output_emitter.output_received.emit(line.strip())
             for line in self.command_p.stderr:
                 self.output_emitter.output_received.emit(line.strip())
-  
+
     def render_charta(self):
         if self.chart == "" and self.phiraChartID.text() == "":
+
             MessageBox("遇到错误","我们发现你没有选择谱面或输入Phira谱面ID，操作不能继续。请先选择谱面或输入Phira谱面ID。",self).exec()
             return
-    
-        self.messagebox_when_render_up()
         
         def check(checkbox, command):
             return command if checkbox.isChecked() else ""
@@ -364,18 +371,6 @@ class SettingsWindow(QWidget):
         self.size_y.setGeometry(QtCore.QRect(170, 20, 121, 31))
         self.size_y.setObjectName("size_y")
         self.scrollArea_3.setWidget(self.scrollAreaWidgetContents_3)
-        # self.setCentralWidget(self.centralwidget)
-        # self.menubar = QtWidgets.QMenuBar(MainWindow)
-        # self.menubar.setGeometry(QtCore.QRect(0, 0, 974, 23))
-        # self.menubar.setObjectName("menubar")
-        # self.menuGithub_Repository = QtWidgets.QMenu(self.menubar)
-        # # self.menuGithub_Repository.setObjectName("menuGithub_Repository")
-        # MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        # MainWindow.setStatusBar(self.statusbar)
-        # self.menubar.addAction(self.menuGithub_Repository.menuAction())
-
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -418,11 +413,13 @@ class SettingsWindow(QWidget):
         self.size_x.setPlaceholderText(_translate("MainWindow", "长"))
         self.size_y.setPlaceholderText(_translate("MainWindow", "宽"))
         
+
+
+
 if __name__ == "__main__":
-    import sys
-    
     #高dpi缩放支持
-    QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    QApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     app = QApplication(sys.argv)
