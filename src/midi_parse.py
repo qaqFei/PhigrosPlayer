@@ -122,31 +122,31 @@ class MidiFile:
                     
                     case 0x01:
                         msg["meta_type"] = "text"
-                        msg["text"] = msg_data.decode("utf-8")
+                        msg["text"] = msg_data
                     
                     case 0x02:
                         msg["meta_type"] = "copyright"
-                        msg["copyright"] = msg_data.decode("utf-8")
+                        msg["copyright"] = msg_data
                     
                     case 0x03:
                         msg["meta_type"] = "sequence_name"
-                        msg["sequence_name"] = msg_data.decode("utf-8")
+                        msg["sequence_name"] = msg_data
                     
                     case 0x04:
                         msg["meta_type"] = "instrument_name"
-                        msg["instrument_name"] = msg_data.decode("utf-8")
+                        msg["instrument_name"] = msg_data
                     
                     case 0x05:
                         msg["meta_type"] = "lyric"
-                        msg["lyric"] = msg_data.decode("utf-8")
+                        msg["lyric"] = msg_data
                     
                     case 0x06:
                         msg["meta_type"] = "marker"
-                        msg["marker"] = msg_data.decode("utf-8")
+                        msg["marker"] = msg_data
                     
                     case 0x07:
                         msg["meta_type"] = "cue_point"
-                        msg["cue_point"] = msg_data.decode("utf-8")
+                        msg["cue_point"] = msg_data
                     
                     case 0x20:
                         msg["meta_type"] = "midi_channel_prefix"
@@ -260,10 +260,20 @@ class MidiFile:
                 } for msg in track if msg["type"] == "meta" and msg["meta_type"] == "set_tempo"))
         
         for track in self.tracks:
-            for msg in track:
+            for i, msg in enumerate(track):
                 msg["sec_time"] = MidiFile.tick2second(msg["now_time"], track, self.tick_per_quarter_note)
-                msg["sec_delta"] = MidiFile.tick2second(msg["delta_time"], track, self.tick_per_quarter_note)
-    
+                if i != 0:
+                    msg["track_sec_delta"] = msg["sec_time"] - track[i - 1]["sec_time"]
+                else:
+                    msg["track_sec_delta"] = msg["sec_time"]
+        
+        sorted_msgs = sorted((j for i in self.tracks for j in i), key=lambda x: x["sec_time"])
+        for i, msg in enumerate(sorted_msgs):
+            if i != 0:
+                msg["global_sec_delta"] = msg["sec_time"] - sorted_msgs[i - 1]["sec_time"]
+            else:
+                msg["global_sec_delta"] = msg["sec_time"]
+                    
     @staticmethod
     def second2tick(t: int|float, track: Track, tick_per_quarter_note: int) -> float:
         beat = 0.0
@@ -314,25 +324,45 @@ class Track(list):
 
 if __name__ == "__main__":
     import time
+    import sys
     import tinysoundfont # type: ignore
     
     mid = MidiFile(open(input("your midi file: "), "rb").read())
-    sf2 = input("your sf2 file: ")
-    synth = tinysoundfont.Synth()
+    sf2 = input("your sf2 file: ") if "--sf" not in sys.argv else sys.argv[sys.argv.index("--sf") + 1]
+    synth = tinysoundfont.Synth(-5)
     sfid = synth.sfload(sf2)
     synth.program_select(0, sfid, 0, 0)
     synth.start()
     
-    more_delta = 0
+    keymap: dict[int, bool] = {}
+    more_delta = 0.0
     for msg in mid.play():
-        time.sleep(max(msg["sec_delta"] - more_delta, 0.0))
+        dt = msg["global_sec_delta"] - more_delta
+        time.sleep(max(dt, 0.0))
+        
         t = time.perf_counter()
         print(msg)
+        
         match msg["type"]:
-            case "meta":
-                match msg["meta_type"]:
-                    case "key_signature": synth.program_select(0, msg["key_signature"], 0, 0)
-            case "note_on": synth.noteon(0, msg["note"], msg["velocity"])
-            case "note_off": synth.noteoff(msg["channel"], msg["note"])
-        more_delta = time.perf_counter() - t
+            case "program_change":
+                synth.program_change(msg["channel"], msg["program_number"])
             
+            case "controller_change":
+                synth.control_change(msg["channel"], msg["controller_number"], msg["controller_value"])
+                    
+            case "note_on":
+                keyhash = hash((msg["channel"], msg["note"], msg["velocity"]))
+                if keymap.get(keyhash, False): synth.noteoff(msg["channel"], msg["note"])
+                else: keymap[keyhash] = True
+                synth.noteon(0, msg["note"], msg["velocity"])
+                
+            case "note_off":
+                keyhash = hash((msg["channel"], msg["note"], msg["velocity"]))
+                if keymap.get(keyhash, False):
+                    synth.noteoff(msg["channel"], msg["note"])
+                    keymap[keyhash] = False
+                
+        more_delta = time.perf_counter() - t
+    
+    time.sleep(5.0)
+    synth.stop()
