@@ -15,13 +15,14 @@ import logging
 from os.path import abspath
 from random import randint
 
+
 disengage_webview = "--disengage-webview" in sys.argv
 
 if not disengage_webview: import webview
 from PIL import Image
 
 import graplib_webview
-import const
+import tool_funcs
 
 if not disengage_webview:
     from ctypes import windll
@@ -296,16 +297,9 @@ class WebCanvas:
         else:
             self.web_hwnd = -1
         
-        self.fileserver_port = const.BASE_PORT
+        self.fileserver_port = tool_funcs.getNewPort()
         WebCanvas_FileServerHandler._canvas = self
-        
-        while True:
-            try: self.file_server = http.server.HTTPServer(("", self.fileserver_port), WebCanvas_FileServerHandler)
-            except OSError:
-                self.fileserver_port += 1
-                continue
-            break
-        
+        self.file_server = http.server.HTTPServer(("", self.fileserver_port), WebCanvas_FileServerHandler)
         threading.Thread(target=self.file_server.serve_forever, daemon=True).start()
         
         self.jsapi.set_attr("_rdcallback", self._rdevent.set)
