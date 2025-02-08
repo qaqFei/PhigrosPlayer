@@ -329,7 +329,7 @@ if __name__ == "__main__":
     
     mid = MidiFile(open(input("your midi file: "), "rb").read())
     sf2 = input("your sf2 file: ") if "--sf" not in sys.argv else sys.argv[sys.argv.index("--sf") + 1]
-    synth = tinysoundfont.Synth(-5)
+    synth = tinysoundfont.Synth(-7)
     sfid = synth.sfload(sf2)
     synth.program_select(0, sfid, 0, 0)
     synth.start()
@@ -354,7 +354,7 @@ if __name__ == "__main__":
                 keyhash = hash((msg["channel"], msg["note"]))
                 if keymap.get(keyhash, False): synth.noteoff(msg["channel"], msg["note"])
                 else: keymap[keyhash] = True
-                synth.noteon(0, msg["note"], msg["velocity"])
+                synth.noteon(msg["channel"], msg["note"], msg["velocity"])
                 
             case "note_off":
                 keyhash = hash((msg["channel"], msg["note"]))
