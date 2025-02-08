@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 import sys
 import subprocess
@@ -108,10 +105,6 @@ class MainWindow(FluentWindow):
             position=NavigationItemPosition.BOTTOM,
         )
         self.navigationInterface.setExpandWidth(280)
-
-
-
-
 
 class SettingsWindow(QWidget):
     
@@ -413,9 +406,6 @@ class SettingsWindow(QWidget):
         self.size_x.setPlaceholderText(_translate("MainWindow", "长"))
         self.size_y.setPlaceholderText(_translate("MainWindow", "宽"))
         
-
-
-
 if __name__ == "__main__":
     #高dpi缩放支持
     QApplication.setHighDpiScaleFactorRoundingPolicy(
