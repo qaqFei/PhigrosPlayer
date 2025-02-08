@@ -3,8 +3,8 @@ import sys
 import subprocess
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget
-from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QObject, QThread, QTimer
+from PyQt5.QtWidgets import QApplication, QFileDialog, QWidget
+from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QObject, QThread
 from PyQt5.QtGui import QDesktopServices, QIcon
 
 from qfluentwidgets import FluentWindow, NavigationItemPosition, NavigationAvatarWidget, MessageBoxBase
@@ -13,6 +13,7 @@ from qfluentwidgets import CheckBox, LineEdit, PrimaryPushButton, PushButton, Me
 
 class CommandOutputEmitter(QObject):
     output_received = pyqtSignal(str)
+    
 class WorkerThread(QThread):
     def __init__(self, command):
         super().__init__()
@@ -23,12 +24,12 @@ class WorkerThread(QThread):
         # 合并stderr到stdout，并启用行缓冲
         process = subprocess.Popen(
             self.command, 
-            shell=True, 
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.STDOUT,  # 合并错误输出到标准输出
-            text=True, 
-            bufsize=1,                 # 行缓冲
-            universal_newlines=True
+            shell = True,
+            stdout = subprocess.PIPE, 
+            stderr = subprocess.STDOUT,  # 合并错误输出到标准输出
+            text = True, 
+            bufsize = 1,                 # 行缓冲
+            universal_newlines = True
         )
         # 逐行读取输出
         while True:
@@ -62,25 +63,25 @@ class Ui_command_box(MessageBoxBase):
         self.output_emitter.output_received.connect(self.append_output)
 
     def append_output(self, output):
-        # 将输出添加到QPlainTextEdit中
+        "将输出添加到QPlainTextEdit中"
         self.output.appendPlainText(output)
 
     def start_command_p(self, command):
-        # 启动子进程
+        "启动子进程"
         self.worker_thread = WorkerThread(command)
         self.worker_thread.emitter.output_received.connect(self.append_output)
         self.worker_thread.start()
 
 class MainWindow(FluentWindow):
-    
     def openrespository(self):
         url = "https://github.com/qaqfei/PhigrosPlayer"
         QDesktopServices.openUrl(QUrl(url))
+        
     def initWindow(self):
         self.resize(1000,600)
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
-        self.move(w//2 - self.width()//2, h//2 - self.height()//2)
+        self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
 
     def __init__(self):
         super().__init__()
@@ -97,18 +98,18 @@ class MainWindow(FluentWindow):
   
     def initNav(self):
         self.startup = SettingsWindow()
-        self.addSubInterface(self.startup, FIF.HOME ,"Startup")
+        self.addSubInterface(self.startup, FIF.HOME, "Startup")
         self.navigationInterface.addWidget(
-            routeKey='avatar',
-            widget=NavigationAvatarWidget('Github Repository','icon.ico'),
-            onClick=self.openrespository,
-            position=NavigationItemPosition.BOTTOM,
+            routeKey = "avatar",
+            widget = NavigationAvatarWidget("Github Repository", "icon.ico"),
+            onClick = self.openrespository,
+            position = NavigationItemPosition.BOTTOM
         )
         self.navigationInterface.setExpandWidth(280)
 
 class SettingsWindow(QWidget):
-    
     chart = ""
+    
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -128,9 +129,7 @@ class SettingsWindow(QWidget):
             return ""
         
     def messagebox_when_render_up(self):
-
         self.MessageBox1 = MessageBox("注意", "要开始渲染谱面了，请最后检查一遍设置。",self).exec_()
-
     
     def render_chart(self):
         command = self.render_charta()
@@ -138,17 +137,17 @@ class SettingsWindow(QWidget):
             return
         try:
             print("调用的命令（出现错误的时候可以看看是不是命令出错了，是的话来抽IrCat-Ninth）："+command)
-            #self.command_p = subprocess.Popen(command, shell=True)
-            #self.command_p.communicate()
-            #output_thread = threading.Thread(target=self.read_output)
-            #output_thread.start()
+            # self.command_p = subprocess.Popen(command, shell=True)
+            # self.command_p.communicate()
+            # output_thread = threading.Thread(target=self.read_output)
+            # output_thread.start()
 
             commandbox = Ui_command_box(command,self)
             commandbox.show()
 
         except Exception as e:
-
             MessageBox("错误", f"命令执行失败: {e}", self).exec()
+            
     def read_output(self):
         if self.command_p:
             for line in self.command_p.stdout:
@@ -158,7 +157,6 @@ class SettingsWindow(QWidget):
 
     def render_charta(self):
         if self.chart == "" and self.phiraChartID.text() == "":
-
             MessageBox("遇到错误","我们发现你没有选择谱面或输入Phira谱面ID，操作不能继续。请先选择谱面或输入Phira谱面ID。",self).exec()
             return
         
@@ -408,8 +406,7 @@ class SettingsWindow(QWidget):
         
 if __name__ == "__main__":
     #高dpi缩放支持
-    QApplication.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     app = QApplication(sys.argv)
