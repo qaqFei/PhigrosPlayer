@@ -156,6 +156,10 @@ class JsApi:
         except AttributeError:
             return logging.warning(f"JsApi: No such attribute '{name}'")
         return func(*args, **kwargs)
+    
+    @staticmethod
+    def _socket_bridge_error(code: str, err: dict):
+        raise Exception(f"SocketBridge: {err}")
 
 class PILResourcePacker:
     def __init__(self, cv: WebCanvas):
@@ -330,7 +334,11 @@ class WebCanvas:
         self._jscode_orders[order].append((code, add_code_array))
     
     def _rjwc(self, codes: list[str]):
-        framerate: int|float = self.run_js_code(f"{codes}.forEach(r2eval);\nframerate;")
+        try:
+            framerate: int|float = self.run_js_code(f"{codes}.forEach(r2eval);\nframerate;")
+        except Exception as e:
+            logging.error(f"has error in javascript code.")
+            time.sleep(60 * 60 * 24 * 7 * 4 * 12 * 80)
         
         if self.renderdemand:
             self._rdevent.wait()
