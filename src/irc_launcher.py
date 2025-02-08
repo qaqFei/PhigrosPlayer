@@ -3,13 +3,13 @@ import sys
 import subprocess
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication,QFileDialog,QMainWindow,QWidget
-from PyQt5.QtCore import QUrl,Qt,pyqtSignal,QObject,QThread,QTimer
-from PyQt5.QtGui import QDesktopServices,QIcon
+from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget
+from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QObject, QThread, QTimer
+from PyQt5.QtGui import QDesktopServices, QIcon
 
-from qfluentwidgets import FluentWindow,NavigationItemPosition,NavigationAvatarWidget,MessageBoxBase
+from qfluentwidgets import FluentWindow, NavigationItemPosition, NavigationAvatarWidget, MessageBoxBase
 from qfluentwidgets import FluentIcon as FIF
-from qfluentwidgets import CheckBox, LineEdit, PrimaryPushButton, PushButton,MessageBox,SplashScreen,PlainTextEdit,SubtitleLabel
+from qfluentwidgets import CheckBox, LineEdit, PrimaryPushButton, PushButton, MessageBox, SplashScreen, PlainTextEdit, SubtitleLabel
 
 class CommandOutputEmitter(QObject):
     output_received = pyqtSignal(str)
