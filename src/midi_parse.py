@@ -351,13 +351,13 @@ if __name__ == "__main__":
                 synth.control_change(msg["channel"], msg["controller_number"], msg["controller_value"])
                     
             case "note_on":
-                keyhash = hash((msg["channel"], msg["note"], msg["velocity"]))
+                keyhash = hash((msg["channel"], msg["note"]))
                 if keymap.get(keyhash, False): synth.noteoff(msg["channel"], msg["note"])
                 else: keymap[keyhash] = True
                 synth.noteon(0, msg["note"], msg["velocity"])
                 
             case "note_off":
-                keyhash = hash((msg["channel"], msg["note"], msg["velocity"]))
+                keyhash = hash((msg["channel"], msg["note"]))
                 if keymap.get(keyhash, False):
                     synth.noteoff(msg["channel"], msg["note"])
                     keymap[keyhash] = False
