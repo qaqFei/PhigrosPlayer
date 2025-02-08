@@ -341,7 +341,6 @@ if __name__ == "__main__":
         time.sleep(max(dt, 0.0))
         
         t = time.perf_counter()
-        print(msg)
         
         match msg["type"]:
             case "program_change":
