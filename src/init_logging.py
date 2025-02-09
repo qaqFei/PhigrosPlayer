@@ -19,3 +19,4 @@ if not webcv.disengage_webview:
         webview._settings.update({"debug": globals()["__dbg"]}),
         globals().pop("__dbg")
     )[2]
+    

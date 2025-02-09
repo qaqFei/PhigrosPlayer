@@ -10,8 +10,6 @@ from sys import argv
 from os import environ
 from dataclasses import dataclass
 
-import numpy
-import cv2
 from PIL import Image, ImageDraw
 
 import const
@@ -194,7 +192,10 @@ def rpe_text_tween(sv: str, ev: str, t: float, isfill: bool) -> str:
         else:
             return sv.replace("%P%", "")
 
-def bytes2matlike(data: bytes, w: int, h: int) -> cv2.typing.MatLike:
+def bytes2matlike(data: bytes, w: int, h: int):
+    import numpy
+    import cv2
+    
     buf = numpy.frombuffer(data, dtype=numpy.uint8).reshape((h, w, 4))
     matlike = cv2.cvtColor(buf, cv2.COLOR_BGRA2RGBA)
     return matlike[:, :, :3]
@@ -294,6 +295,8 @@ def checkOffset(now_t: float, raw_audio_length: float, mixer):
     return 0.0
 
 def gif2mp4(gif: str):
+    import cv2
+    
     tid = random.randint(0, 2 << 31)
     fp = f"{tempdir.createTempDir()}/{tid}.mp4"
     cap = cv2.VideoCapture(gif)
