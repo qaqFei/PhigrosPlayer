@@ -128,7 +128,7 @@ if "--phira-chart" in sys.argv:
     logging.info("Downloaded phira chart.")
 
 logging.info("Unpack Chart...")
-popen(f"7z x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y >> nul").read()
+popen(f"7z x \"{sys.argv[1]}\" -o\"{temp_dir}\" -y").read()
 
 logging.info("Loading All Files of Chart...")
 files_dict = {
