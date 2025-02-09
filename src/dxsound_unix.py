@@ -2,6 +2,8 @@ import time
 
 from pygame import mixer
 
+mixer.init(channels = 16)
+
 class directSound:
     def __init__(self, data: bytes | str, enable_cache: bool = True):
         self.sounds: list[tuple[mixer.Sound, float]] = [[mixer.Sound(data), float("nan")] for _ in range(10)]
