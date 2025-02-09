@@ -4,7 +4,6 @@ import random
 import logging
 import time
 import sys
-import platform
 from tempfile import gettempdir
 from os import mkdir, listdir
 from shutil import rmtree
@@ -17,13 +16,9 @@ def createTempDir():
     
     if TEMP_DIR is not None: return TEMP_DIR
     
-    temp_dir = f"{gettempdir()}\\qfppr_cctemp_{time.time()}_{THIS_ID}"
-    
-    if platform.system() != "Windows":
-        temp_dir = temp_dir.replace("\\", "/")
-    
+    temp_dir = f"{gettempdir().replace("\\", "/")}/qfppr_cctemp_{time.time()}_{THIS_ID}"
     logging.info(f"create temp dir: {temp_dir}")
-
+    
     try: mkdir(temp_dir)
     except Exception as e: logging.warning(f"error when create temp dir: {e}")
     
@@ -35,7 +30,7 @@ def clearTempDir():
         return
     
     for item in [
-        f"{gettempdir()}\\{item}"
+        f"{gettempdir()}/{item}"
         for item in listdir(gettempdir())
         if item.startswith("qfppr_cctemp_") and THIS_ID not in item
     ]:

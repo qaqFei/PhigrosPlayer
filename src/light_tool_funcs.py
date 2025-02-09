@@ -251,15 +251,16 @@ def getCenterPointByRect(rect: tuple[float, float, float, float]):
     return (rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2
     
 def getAllFiles(path: str) -> list[str]:
-    if path[-1] == "/" or path[:-1] == "\\":
+    path = path.replace("\\", "/")
+    if "/" in (path[-1], path[:-1]):
         path = path[:-1]
-    path = path.replace("/", "\\")
     files = []
     for item in listdir(path):
-        if isfile(f"{path}\\{item}"):
-            files.append(f"{path}\\{item}")
+        item = item.replace("\\", "/")
+        if isfile(f"{path}/{item}"):
+            files.append(f"{path}/{item}")
         else:
-            files.extend(getAllFiles(f"{path}\\{item}"))
+            files.extend(getAllFiles(f"{path}/{item}"))
     return files
 
 def getLineLength(x0: float, y0: float, x1: float, y1: float):
