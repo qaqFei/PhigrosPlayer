@@ -1,0 +1,8 @@
+Pillow==11.0.0
+pydub==0.25.1
+pywebview==5.2
+rjsmin==1.2.3
+requests==2.32.2
+PyYAML==6.0.2
+pygame==2.6.1
+websockets==13.1
