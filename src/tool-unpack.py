@@ -73,7 +73,7 @@ class ByteReaderB:
 
 def getZipItem(path: str) -> str:
     while path[0] in ("/", "\\"): path = path[1:]
-    popen(f".\\7z.exe x \"{pgrapk}\" \"{path}\" -o.\\unpack-temp -y >> nul").read()
+    popen(f".\\7z x \"{pgrapk}\" \"{path}\" -o.\\unpack-temp -y >> nul").read()
     return f".\\unpack-temp\\{path}"
 
 def run(rpe: bool):
@@ -380,7 +380,7 @@ def pack_charts(infos: list[dict], rpe: bool):
                 mkdir(f"./unpack-temp/pack-{rid}")
                 with open(f"./unpack-temp/pack-{rid}/info.csv", "w", encoding="utf-8") as f:
                     f.write(item[5])
-                popen(f".\\7z.exe a .\\unpack-result\\packed\\{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip {" ".join(map(lambda x: f"\"{x}\"", (item[2], item[3], item[4], f"./unpack-temp/pack-{rid}/info.csv")))} -y >> nul").read()
+                popen(f".\\7z a .\\unpack-result\\packed\\{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip {" ".join(map(lambda x: f"\"{x}\"", (item[2], item[3], item[4], f"./unpack-temp/pack-{rid}/info.csv")))} -y >> nul").read()
                 packed_num += 1
             except Exception:
                 pass
