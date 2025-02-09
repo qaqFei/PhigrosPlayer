@@ -1,6 +1,6 @@
 import logging
 
-import webview.http
+import webcv
 
 logging.basicConfig(
     level = logging.INFO,
@@ -9,11 +9,13 @@ logging.basicConfig(
 )
 logging.getLogger("pywebview").disabled = True
 
-_wvsvStart = webview.http.BottleServer.start_server
-webview.http.BottleServer.start_server = lambda *args, **kwargs: (
-    globals().update({"__dbg": webview._settings["debug"]}),
-    webview._settings.update({"debug": False}),
-    _wvsvStart(*args, **kwargs),
-    webview._settings.update({"debug": globals()["__dbg"]}),
-    globals().pop("__dbg")
-)[2]
+if not webcv.disengage_webview:
+    import webview.http
+    _wvsvStart = webview.http.BottleServer.start_server
+    webview.http.BottleServer.start_server = lambda *args, **kwargs: (
+        globals().update({"__dbg": webview._settings["debug"]}),
+        webview._settings.update({"debug": False}),
+        _wvsvStart(*args, **kwargs),
+        webview._settings.update({"debug": globals()["__dbg"]}),
+        globals().pop("__dbg")
+    )[2]
