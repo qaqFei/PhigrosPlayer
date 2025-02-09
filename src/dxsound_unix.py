@@ -4,9 +4,9 @@ import typing
 
 from jnius import autoclass, cast # type: ignore
 
-PythonActivity = autoclass("org.kivy.android.PythonActivity")
+# PythonActivity = autoclass("org.kivy.android.PythonActivity")
 MediaPlayer = autoclass("android.media.MediaPlayer")
-File = autoclass("java.io.File")
+# File = autoclass("java.io.File")
 FileInputStream = autoclass("java.io.FileInputStream")
 FileDescriptor = autoclass("java.io.FileDescriptor")
 
