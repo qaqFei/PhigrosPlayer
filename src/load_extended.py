@@ -1,7 +1,6 @@
 import importlib.util
 import platform
 from sys import argv
-from tkinter.messagebox import askokcancel
 
 if "--extended" in argv:
     ZH_T = "警告!!!"
@@ -19,7 +18,11 @@ if "--extended" in argv:
     T = ZH_T if language == 0x804 else EN_T
     M = ZH_M if language == 0x804 else EN_M
     
-    result = askokcancel(title = T, message = M, default = "cancel", icon = "warning")
+    if platform.system() == "Windows":
+        from tkinter.messagebox import askokcancel
+        result = askokcancel(title = T, message = M, default = "cancel", icon = "warning")
+    else:
+        result = "y" in input(f"{T}\n{M} (y/n): ").lower()
     
     if result:
         spec = importlib.util.spec_from_file_location("ppr-extended", argv[argv.index("--extended") + 1])

@@ -16,7 +16,6 @@ from os import popen
 from os.path import exists
 from ntpath import basename
 
-import cv2
 import requests
 from PIL import Image, ImageFilter
 from pydub import AudioSegment
@@ -723,6 +722,7 @@ def PlayerStart():
             root.destroy()
             return
         
+        import cv2
         writer = cv2.VideoWriter(
             video_fp,
             cv2.VideoWriter.fourcc(*render_video_fourcc),
