@@ -99,7 +99,7 @@ class InfoLoader:
             
             return True
     
-    def get(self, chart, music, image):
+    def get(self, chart: str, music: str, image: str):
         info = self.infomap.get((chart, music, image), self.default_info)
         
         if info is self.default_info: # 谱师们别写错了啊啊啊啊啊啊啊啊啊啊
@@ -107,8 +107,7 @@ class InfoLoader:
         if info is self.default_info:
             info = self.infomap.get((chart, music, image.replace(".png", ".jpg")), self.default_info)
             
-        res = self.default_info.copy()
-        res.update(info)
+        res = self.default_info.copy() | info
         
         try:
             res["BackgroundDim"] = float(res["BackgroundDim"])
