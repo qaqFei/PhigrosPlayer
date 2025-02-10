@@ -25,7 +25,7 @@ def excepthook(etype, value, tb):
             f.write(errortext)
         print(errortext, end="")
         
-        if platform.system == "Windows":
+        if platform.system() == "Windows":
             from ctypes import windll
             windll.user32.MessageBoxW(
             0, f"很抱歉, PhigrosPlayer 发生了错误\n已生成错误文件到: {os.path.abspath(errorfile)}\n请将错误文件发送给开发者以获得帮助\nhttps://github.com/qaqFei/PhigrosPlayer\n\n\n{errortext}",

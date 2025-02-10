@@ -56,7 +56,7 @@ class InfoLoader:
                             for i in self.default_info.keys():
                                 try:
                                     value[i] = line[meta_line.index(i)]
-                                except KeyError:
+                                except ValueError:
                                     logging.warning(f"info file {filename} has no key {i}")
                                 except IndexError:
                                     logging.warning(f"info file {filename} has no column {i}")
@@ -93,7 +93,7 @@ class InfoLoader:
                     
                     case _:
                         return
-            except Exception:
+            except StopAsyncIteration:
                 logging.error(f"info file {filename} parse error")
                 return
             
