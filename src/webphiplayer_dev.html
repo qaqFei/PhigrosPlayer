@@ -160,65 +160,6 @@
         chartData;
     }
 
-    function is_intersect(line_1, line_2) {
-        return !(
-            Math.max(line_1[0][0], line_1[1][0]) < Math.min(line_2[0][0], line_2[1][0]) ||
-            Math.max(line_2[0][0], line_2[1][0]) < Math.min(line_1[0][0], line_1[1][0]) ||
-            Math.max(line_1[0][1], line_1[1][1]) < Math.min(line_2[0][1], line_2[1][1]) ||
-            Math.max(line_2[0][1], line_2[1][1]) < Math.min(line_1[0][1], line_1[1][1])
-        )
-    }
-
-    function batch_is_intersect(linesGroup1, linesGroup2) {
-        let results = [];
-        for (let i of linesGroup1) {
-            for (let j of linesGroup2) {
-                results.push(is_intersect(i, j));
-            }
-        }
-        return results;
-    }
-
-    function noteCanRender_Hold(x, y, holdBodyRange) {
-        for (let point of holdBodyRange) {
-            if (noteCanRender_Note(...point)) return true;
-        }
-
-        return batch_is_intersect(
-            [
-                [holdBodyRange[0], holdBodyRange[1]],
-                [holdBodyRange[1], holdBodyRange[2]],
-                [holdBodyRange[2], holdBodyRange[3]],
-                [holdBodyRange[3], holdBodyRange[0]]
-            ], [
-                [
-                    [0, 0],
-                    [w, 0]
-                ],
-                [
-                    [0, 0],
-                    [0, h]
-                ],
-                [
-                    [w, 0],
-                    [w, h]
-                ],
-                [
-                    [0, h],
-                    [w, h]
-                ]
-            ]
-        ).some((e) => e);
-    }
-
-    function noteCanRender_Note(x, y) {
-        return (-Note_MaxSize / 2 <= x &&
-            x <= w + Note_MaxSize / 2 &&
-            -Note_MaxSize / 2 <= y &&
-            y <= h + Note_MaxSize / 2
-        );
-    }
-
     function procsEffect(curTime, note, t, effectRandomBlocks) {
         let p = (curTime - t * note.master.T) / (0.5 * chartAudio.playbackRate);
         if (!(0.0 <= p <= 1.0)) return;
@@ -550,15 +491,29 @@
     class Line {
         constructor(
             bpms, notes,
-            eventLayers,
-            Extended,
-            beatUnit
+            eventLayers, Extended,
+            beatUnit,
+            cover
         ) {
             this.bpms = bpms;
             this.notes = notes;
             this.eventLayers = eventLayers;
             this.Extended = Extended;
             this.beatUnit = beatUnit;
+            this.cover = cover;
+
+            this.renderNotes = notes.slice(0, notes.length - 1);
+
+            this._init();
+        }
+
+        _init() {
+            for (const note of this.notes) {
+                note.floorPosition = this.getFloorPosition(note.startTime);
+                note.holdFloorPosition = this.getFloorPositionRange(note.startTime, note.endTime);
+                note.secStartTime = this.beat2sec(note.startTime);
+                note.secEndTime = this.beat2sec(note.endTime);
+            }
         }
 
         sec2beat(t) {
@@ -617,6 +572,37 @@
 
             return [alpha, rotate, x, y, color];
         }
+
+        getFloorPosition(t) {
+            let fp = 0.;
+
+            for (const layer of this.eventLayers) {
+                for (const e of layer.speedEvents) {
+                    let [v1, v2] = [null, null];
+                    let [t1, t2] = [null, null];
+
+                    if (e.startTime <= t && t <= e.endTime) {
+                        v1 = e.start; v2 = getEventValue(e, t);
+                        t1 = e.startTime; t2 = t;
+                    } else if (e.startTime < t) {
+                        v1 = e.start; v2 = e.end;
+                        t1 = e.startTime; t2 = e.endTime;
+                    }
+
+                    if (v1 !== null) {
+                        t1 = this.beat2sec(t1); t2 = this.beat2sec(t2);
+                        if (v1 == v2) fp += v1 * (t2 - t1);
+                        else fp += (v1 + v2) / 2 * (t2 - t1);
+                    }
+                }
+            }
+
+            return fp;
+        }
+
+        getFloorPositionRange(t1, t2) {
+            return this.getFloorPosition(t2) - this.getFloorPosition(t1);
+        }
     }
 
     class Note {
@@ -637,6 +623,8 @@
             this.width = width;
             this.alpha = alpha;
             this.isAbove = isAbove;
+
+            this.clicked = false;
         }
     }
 
@@ -691,13 +679,35 @@
             else if ("META" in chartJson) this._rpeParse(chartJson);
             else throw new Error("unknown chart format");
 
+            this._init();
+
             console.log(this);
+        }
+
+        _init() {
+            for (const line of this.lines) {
+                const click_times = {};
+                for (const note of line.notes) {
+                    if (note.secStartTime in click_times) click_times[note.secStartTime] ++;
+                    else click_times[note.secStartTime] = 1;
+                }
+
+                for (const note of line.notes) {
+                    if (click_times[note.secStartTime] > 1) note.morebets = true;
+                    note.img = {
+                        1: note.morebets ? Res_TapDub : Res_Tap,
+                        2: note.morebets ? Res_DragDub : Res_Drag,
+                        3: note.morebets ? Res_HoldDub : Res_Hold,
+                        4: note.morebets ? Res_FlickDub : Res_Flick
+                    }[note.type];
+                }
+            }
         }
 
         _phiParse(chartJson) {
             this.offset = chartJson.offset;
             this.holdHeadCover = true;
-            this.holdSpeedCanChange = false;
+            this.holdSpeedCanChangeWhenClicking = false;
             this.lineWidth = (w, h) => h * 0.0075;
             this.lineHeight = (w, h) => h * 5.76;
 
@@ -847,7 +857,7 @@
                         alphaEvents, rotateEvents,
                         moveXEvents, moveYEvents
                     )],
-                    null, 1.875
+                    null, 1.875, true
                 ));
             }
         }
@@ -866,15 +876,55 @@
         for (const line of chartObject.lines) {
             const beatTime = line.sec2beat(secTime);
             let [lineWidth, lineHeight] = [chartObject.lineWidth(w, h), chartObject.lineHeight(w, h)];
-            let [alpha, rotate, x, y, color] = line.getState(beatTime);
+            let [lineAlpha, lineRotate, lineX, lineY, lineColor] = line.getState(beatTime);
 
-            x *= w; y *= h;
+            lineX *= w; lineY *= h;
             const lineDrawPos = [
-                ...rotatePoint(x, y, rotate, lineHeight / 2),
-                ...rotatePoint(x, y, rotate + 180, lineHeight / 2)
+                ...rotatePoint(lineX, lineY, lineRotate, lineHeight / 2),
+                ...rotatePoint(lineX, lineY, lineRotate + 180, lineHeight / 2)
             ];
 
-            ctx.drawLineEx(...lineDrawPos, lineWidth, `rgba(${color.join(", ")}, ${alpha})`);
+            if (lineAlpha > 0.) {
+                ctx.drawLineEx(...lineDrawPos, lineWidth, `rgba(${lineColor.join(", ")}, ${lineAlpha})`);
+            }
+
+            const lineFloorPosition = line.getFloorPosition(beatTime);
+            let i = 0;
+            for (const note of line.renderNotes) {
+                const noteGetTime = note.startTime <= beatTime;
+                if (note.type != 3 && note.startTime <= beatTime && !note.clicked) {
+                    note.clicked = true;
+                    line.renderNotes = line.renderNotes.removed(note);
+                    continue;
+                }
+                if (note.type == 3 && note.endTime <= beatTime && !note.clicked) {
+                    note.clicked = true;
+                    line.renderNotes = line.renderNotes.removed(note);
+                    continue;
+                }
+                
+                let nowFloorPosition;
+                if (!noteGetTime || chartObject.holdSpeedCanChangeWhenClicking) nowFloorPosition = note.floorPosition - lineFloorPosition;
+                else nowFloorPosition = (note.secEndTime - note.secStartTime) != 0. ? (secTime - note.secStartTime) / (note.secEndTime - note.secStartTime) * note.holdFloorPosition * -1 : 0.;
+                nowFloorPosition *= h;
+
+                if (line.cover) {
+                    if (note.type != 3 && nowFloorPosition < 0.) continue;
+                    if (note.type == 3 && nowFloorPosition < 0. && chartObject.holdHeadCover) continue;
+                }
+
+                const noteAtLinePos = rotatePoint(lineX, lineY, lineRotate, note.positionX * w);
+                const lineToNoteRotate = (note.isAbove ? -90 : 90) + lineRotate;
+                const [x, y] = rotatePoint(...noteAtLinePos, lineToNoteRotate, nowFloorPosition);
+
+                const noteWidth = (0.125 * w + 0.2 * h) / 2;
+                const noteHeight = noteWidth / note.img.width * note.img.height;
+                const noteRotate = lineToNoteRotate + 90;
+
+                ctx.drawRotateImage(note.img, x, y, noteWidth, noteHeight, noteRotate, 1.0);
+
+                i++;
+            }
         }
 
         requestAnimationFrame(() => render(chartObject));
@@ -905,5 +955,13 @@
         String.prototype.endsWith = function (suffix) {
             return this.slice(-suffix.length) === suffix;
         };
+    }
+
+    Array.prototype.removed = function (item) {
+        const arr = new Array();
+        for (const i of this) {
+            if (i !== item) arr.push(i);
+        }
+        return arr;
     }
 </script>
