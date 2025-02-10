@@ -1,5 +1,12 @@
 <html>
-<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="browsermode" content="application">
+<meta name="full-screen" content="yes" />
+<meta name="x5-fullscreen" content="true" />
+<meta name="x5-page-mode" content="app" />
+<meta name="360-fullscreen" content="true" />
 
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
@@ -10,22 +17,21 @@
     <button class="startButton nocanvas">开始</button>
     <audio class="res mainAudio"></audio>
     <img class="bg">
-    <img class="res tap" src="./resources/Notes/Tap.png">
-    <img class="res tapDub" src="./resources/Notes/Tap_dub.png">
-    <img class="res drag" src="./resources/Notes/Drag.png">
-    <img class="res dragDub" src="./resources/Notes/Drag_dub.png">
-    <img class="res flick" src="./resources/Notes/Flick.png">
-    <img class="res flickDub" src="./resources/Notes/Flick_dub.png">
-    <img class="res holdHead" src="./resources/Notes/Hold_Head.png">
-    <img class="res holdHeadDub" src="./resources/Notes/Hold_Head_dub.png">
-    <img class="res holdBody" src="./resources/Notes/Hold_Body.png">
-    <img class="res holdBodyDub" src="./resources/Notes/Hold_Body_dub.png">
-    <img class="res holdEnd" src="./resources/Notes/Hold_End.png">
-    <img class="res holdEndDub" src="./resources/Notes/Hold_End_dub.png">
-    <audio class="res tapSound" src="./resources/Note_Click_Audio/Tap.wav"></audio>
-    <audio class="res dragSound" src="./resources/Note_Click_Audio/Drag.wav"></audio>
-    <audio class="res flickSound" src="./resources/Note_Click_Audio/Flick.wav"></audio>
-    <audio class="res holdSound" src="./resources/Note_Click_Audio/Hold.wav"></audio>
+    <img class="res tap" src="./resources/resource_packs/default/click.png">
+    <img class="res tapDub" src="./resources/resource_packs/default/click_mh.png">
+    <img class="res drag" src="./resources/resource_packs/default/drag.png">
+    <img class="res dragDub" src="./resources/resource_packs/default/drag_mh.png">
+    <img class="res flick" src="./resources/resource_packs/default/flick.png">
+    <img class="res flickDub" src="./resources/resource_packs/default/flick_mh.png">
+    <img class="res hold" src="./resources/resource_packs/default/hold.png">
+    <img class="res holdDub" src="./resources/resource_packs/default/hold_mh.png">
+    <img class="res hitFx" src="./resources/resource_packs/default/hit_fx.png">
+
+    <audio class="res tapSound" src="./resources/resource_default/click.ogg"></audio>
+    <audio class="res dragSound" src="./resources/resource_default/drag.ogg"></audio>
+    <audio class="res flickSound" src="./resources/resource_default/flick.ogg"></audio>
+    <audio class="res holdSound" src="./resources/resource_default/click.ogg"></audio>
+    
     <svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
             <filter id="clickEffectColorFilter">
                 <feColorMatrix type="matrix" values="
@@ -82,37 +88,40 @@
     const Res_DragDub = document.querySelector(".res.dragDub");
     const Res_Flick = document.querySelector(".res.flick");
     const Res_FlickDub = document.querySelector(".res.flickDub");
-    const Res_HoldHead = document.querySelector(".res.holdHead");
-    const Res_HoldHeadDub = document.querySelector(".res.holdHeadDub");
-    const Res_HoldBody = document.querySelector(".res.holdBody");
-    const Res_HoldBodyDub = document.querySelector(".res.holdBodyDub");
-    const Res_HoldEnd = document.querySelector(".res.holdEnd");
-    const Res_HoldEndDub = document.querySelector(".res.holdEndDub");
+    const Res_Hold = document.querySelector(".res.hold");
+    const Res_HoldDub = document.querySelector(".res.holdDub");
+    const Res_HitFx = document.querySelector(".res.hitFx");
+
     const Res_TapSound = document.querySelector(".res.tapSound");
     const Res_DragSound = document.querySelector(".res.dragSound");
     const Res_FlickSound = document.querySelector(".res.flickSound");
     const Res_HoldSound = document.querySelector(".res.holdSound");
+
     const ClickEffectNum = 30;
     const ClickEffects = new Array(ClickEffectNum);
     const log = console.log;
+
+    const easings = [
+    ];
+    const chartInf = 999999.;
 
     alert("!development version!")
     alert("移动端设备可能打击音效会有延迟哦！");
 
     for (let i = 0; i < ClickEffectNum; i++) {
         let img = new Image();
-        img.src = `./resources/Note_Click_Effect/Frames/${(i + 1)}.png`;
-        img.loading = "eager";
-        img._n = i;
-        img.onload = (e) => {
-            let procsCv = document.createElement("canvas");
-            procsCv.width = e.target.width;
-            procsCv.height = e.target.height;
-            let procsCtx = procsCv.getContext("2d");
-            procsCtx.filter = "url(#clickEffectColorFilter)";
-            procsCtx.drawImage(e.target, 0, 0);
-            ClickEffects[e.target._n] = procsCv;
-        };
+        // img.src = `./resources/Note_Click_Effect/Frames/${(i + 1)}.png`;
+        // img.loading = "eager";
+        // img._n = i;
+        // img.onload = (e) => {
+        //     let procsCv = document.createElement("canvas");
+        //     procsCv.width = e.target.width;
+        //     procsCv.height = e.target.height;
+        //     let procsCtx = procsCv.getContext("2d");
+        //     procsCtx.filter = "url(#clickEffectColorFilter)";
+        //     procsCtx.drawImage(e.target, 0, 0);
+        //     ClickEffects[e.target._n] = procsCv;
+        // };
     }
 
     function initCanvas() {
@@ -296,6 +305,13 @@
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.fillRectEx = function(x, y, w, h, color) {
+        this.save();
+        this.fillStyle = color;
+        this.fillRect(x, y, w, h);
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.clear = function() {
         this.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
@@ -388,6 +404,7 @@
     }
 
     document.querySelector(".startButton").addEventListener("click", async () => {
+        document.querySelector(".startButton").remove();
         let res = (await (new JSZip().loadAsync(document.querySelector(".zipFile").files[0])));
         let getText = async (fn) => await res.file(fn).async("string");
         let getBlob = async (fn) => await res.file(fn).async("blob");
@@ -490,29 +507,349 @@
         requestAnimationFrame(() => render(new CommonChart(chartJson)));
     });
 
-    class ChartObjectLine {
+    function initEvents(es) {
+        if (!es) {
+            es.push(new LineEvent(-chartInf, chartInf, 0., 0., 1, 0., 1.));
+            return;
+        }
+
+        for (let i = 0; i < es.length; i++) {
+            if (i != es.length - 1) {
+                const e = es[i];
+                const ne = es[i + 1];
+                if (e.endTime > ne.startTime) e.endTime = ne.startTime;
+                else if (e.endTime < ne.startTime) ne.startTime = e.endTime;
+            }
+        }
+
+        if (es[es.length - 1].start == es[es.length - 1].end) es[es.length - 1].endTime = chartInf;
+        else es.push(new LineEvent(es[es.length - 1].endTime, chartInf, es[es.length - 1].end, es[es.length - 1].end, 1, 0., 1.));
+        es.unshift(new LineEvent(-chartInf, es[0].startTime, 0., 0., 1, 0., 1.));
+    }
+
+    function findEvent(es, t) {
+        if (!es) return new LineEvent(-chartInf, chartInf, 0., 0., 1, 0., 1.); // never
+
+        let [l, r] = [0, es.length - 1];
+
+        while (l <= r) {
+            const m = parseInt((l + r) / 2);
+            const e = es[m];
+            if (e.startTime <= t && e.endTime >= t) return e;
+            else if (e.startTime > t) r = m - 1;
+            else l = m + 1;
+        }
+
+        return new LineEvent(-chartInf, chartInf, 0., 0., 1, 0., 1.); // never
+    }
+
+    function getEventValue(e, t) {
+        return e.easingFunc((t - e.startTime) / (e.endTime - e.startTime)) * (e.end - e.start) + e.start;
+    }
+
+    class Line {
         constructor(
             bpms, notes,
-            speedEvents,
-            alphaEvents,
-            rotateEvents,
-            moveXEvents,
-            moveYEvents,
-            Extended
+            eventLayers,
+            Extended,
+            beatUnit
         ) {
+            this.bpms = bpms;
+            this.notes = notes;
+            this.eventLayers = eventLayers;
+            this.Extended = Extended;
+            this.beatUnit = beatUnit;
+        }
 
+        sec2beat(t) {
+            let beat = 0.;
+            for (let i = 0; i < this.bpms.length; i++) {
+                const e = this.bpms[i];
+                if (i != this.bpms.length - 1) {
+                    const et_beat = this.bpms[i + 1].time - e.time;
+                    const et_sec = et_beat * (this.beatUnit / e.bpm);
+
+                    if (t >= et_sec) {
+                        beat += et_beat;
+                        t -= et_sec;
+                    } else {
+                        beat += t / (this.beatUnit / e.bpm);
+                        break;
+                    }
+                } else {
+                    beat += t / (this.beatUnit / e.bpm);
+                }
+            }
+            return beat;
+        }
+
+        beat2sec(t) {
+            let sec = 0.;
+            for (let i = 0; i < this.bpms.length; i++) {
+                const e = this.bpms[i];
+                if (i != this.bpms.length - 1) {
+                    const et_beat = this.bpms[i + 1].time - e.time;
+                    
+                    if (t >= et_beat) {
+                        sec += et_beat * (this.beatUnit / e.bpm);
+                        t -= et_beat;
+                    } else {
+                        sec += t * (this.beatUnit / e.bpm);
+                        break;
+                    }
+                } else {
+                    sec += t * (this.beatUnit / e.bpm);
+                }
+            }
+            return sec;
+        }
+
+        getState(t) {
+            let [alpha, rotate, x, y] = [0., 0., 0., 0.];
+            let color = [255, 255, 170];
+            
+            for (const layer of this.eventLayers) {
+                alpha += getEventValue(findEvent(layer.alphaEvents, t), t);
+                rotate += getEventValue(findEvent(layer.rotateEvents, t), t);
+                x += getEventValue(findEvent(layer.moveXEvents, t), t);
+                y += getEventValue(findEvent(layer.moveYEvents, t), t);
+            }
+
+            return [alpha, rotate, x, y, color];
+        }
+    }
+
+    class Note {
+        constructor(
+            startTime, endTime,
+            type, positionX,
+            isFake, speed,
+            visibleTime, width,
+            alpha, isAbove
+        ) {
+            this.startTime = startTime;
+            this.endTime = endTime;
+            this.type = type;
+            this.positionX = positionX;
+            this.isFake = isFake;
+            this.speed = speed;
+            this.visibleTime = visibleTime;
+            this.width = width;
+            this.alpha = alpha;
+            this.isAbove = isAbove;
+        }
+    }
+
+    class EventLayer {
+        constructor(
+            speedEvents,
+            alphaEvents, rotateEvents,
+            moveXEvents, moveYEvents
+        ) {
+            this.speedEvents = speedEvents;
+            this.alphaEvents = alphaEvents;
+            this.rotateEvents = rotateEvents;
+            this.moveXEvents = moveXEvents;
+            this.moveYEvents = moveYEvents;
+            this._init();
+        }
+
+        _init() {
+            [
+                this.speedEvents,
+                this.alphaEvents,
+                this.rotateEvents,
+                this.moveXEvents,
+                this.moveYEvents
+            ].map(initEvents);
+        }
+    }
+
+    class LineEvent {
+        constructor(
+            startTime, endTime,
+            start, end,
+            easingType,
+            easingLeft, easingRight
+        ) {
+            this.startTime = startTime;
+            this.endTime = endTime;
+            this.start = start;
+            this.end = end;
+            // this.easingType = easingType;
+            // this.easingLeft = easingLeft;
+            // this.easingRight = easingRight;
+            this.easingFunc = t => t;
         }
     }
 
     class CommonChart {
         constructor(chartJson) {
-            if ("formatVersion" in chartJson) _phiParse();
-            else if ("META" in chartJson) _rpeParse();
+            this.lines = [];
+
+            if ("formatVersion" in chartJson) this._phiParse(chartJson);
+            else if ("META" in chartJson) this._rpeParse(chartJson);
             else throw new Error("unknown chart format");
+
+            console.log(this);
         }
 
         _phiParse(chartJson) {
             this.offset = chartJson.offset;
+            this.holdHeadCover = true;
+            this.holdSpeedCanChange = false;
+            this.lineWidth = (w, h) => h * 0.0075;
+            this.lineHeight = (w, h) => h * 5.76;
+
+            if (!(chartJson.judgeLineList instanceof Array)) {
+                console.warn("judgeLineList is not an array");
+                chartJson.judgeLineList = [];
+            }
+
+            for (const lineJson of chartJson.judgeLineList) {
+                if (!(lineJson instanceof Object)) {
+                    console.warn("line is not an object", lineJson);
+                    continue;
+                }
+
+                lineJson.bpm = parseFloat(lineJson.bpm);
+                if (isNaN(lineJson.bpm)) {
+                    console.warn("bpm is not a number", lineJson.bpm);
+                    lineJson.bpm = 120;
+                } else if (lineJson.bpm <= 0) {
+                    console.warn("bpm is not positive", lineJson.bpm);
+                    lineJson.bpm = 120;
+                }
+
+                const noteConverter = (noteJson, isAbove) => {
+                    noteJson.time = parseFloat(noteJson.time);
+                    if (isNaN(noteJson.time)) {
+                        console.warn("time is not a number", noteJson.time);
+                        return;
+                    }
+
+                    noteJson.holdTime = parseFloat(noteJson.holdTime);
+                    if (isNaN(noteJson.holdTime)) {
+                        console.warn("holdTime is not a number", noteJson.holdTime);
+                        return;
+                    }
+
+                    if (noteJson.holdTime < 0) {
+                        console.warn("holdTime is negative", noteJson.holdTime);
+                        noteJson.holdTime = 0.;
+                    }
+
+                    noteJson.type = parseInt(noteJson.type);
+                    if (isNaN(noteJson.type)) {
+                        console.warn("type is not a number", noteJson.type);
+                        return;
+                    }
+                    if (![1, 2, 3, 4].includes(noteJson.type)) {
+                        console.warn("type is not 1, 2, 3 or 4", noteJson.type);
+                        noteJson.type = 1;
+                    }
+
+                    noteJson.positionX = parseFloat(noteJson.positionX);
+                    if (isNaN(noteJson.positionX)) {
+                        console.warn("positionX is not a number", noteJson.positionX);
+                        return;
+                    }
+
+                    noteJson.speed = parseFloat(noteJson.speed);
+                    if (isNaN(noteJson.speed)) {
+                        console.warn("speed is not a number", noteJson.speed);
+                        return;
+                    }
+
+                    notes.push(new Note(
+                        noteJson.time,
+                        noteJson.time + noteJson.holdTime,
+                        noteJson.type,
+                        noteJson.positionX * 0.05625,
+                        noteJson.speed * 0.6,
+                        NaN, 1.0, 1.0, isAbove
+                    ));
+                };
+
+                const eventConverter = (eventJson, startKey, endKey, startConverter, endConverter) => {
+                    const start = startConverter(eventJson[startKey]);
+                    const end = endConverter(eventJson[endKey]);
+                    if (isNaN(start) || isNaN(end)) {
+                        console.warn("start or end is not a number", start, end);
+                        return;
+                    }
+
+                    return new LineEvent(
+                        eventJson.startTime, eventJson.endTime,
+                        start, end,
+                        1, 0., 1.
+                    );
+                };
+
+                const bpms = [{ time: 0, bpm: lineJson.bpm }];
+                const notes = [];
+
+                if (!(lineJson.notesAbove instanceof Array)) {
+                    console.warn("notesAbove is not an array", lineJson.notesAbove);
+                    lineJson.notesAbove = [];
+                }
+                if (!(lineJson.notesBelow instanceof Array)) {
+                    console.warn("notesBelow is not an array", lineJson.notesBelow);
+                    lineJson.notesBelow = [];
+                }
+
+                lineJson.notesAbove.forEach(noteJson => noteConverter(noteJson, true));
+                lineJson.notesBelow.forEach(noteJson => noteConverter(noteJson, false));
+
+                if (!(lineJson.speedEvents instanceof Array)) {
+                    console.warn("speedEvents is not an array", lineJson.speedEvents);
+                    lineJson.speedEvents = [];
+                }
+                if (!(lineJson.judgeLineDisappearEvents instanceof Array)) {
+                    console.warn("judgeLineDisappearEvents is not an array", lineJson.judgeLineDisappearEvents);
+                    lineJson.judgeLineDisappearEvents = [];
+                }
+                if (!(lineJson.judgeLineRotateEvents instanceof Array)) {
+                    console.warn("judgeLineRotateEvents is not an array", lineJson.judgeLineRotateEvents);
+                    lineJson.judgeLineRotateEvents = [];
+                }
+                if (!(lineJson.judgeLineMoveEvents instanceof Array)) {
+                    console.warn("judgeLineMoveEvents is not an array", lineJson.judgeLineMoveEvents);
+                    lineJson.judgeLineMoveEvents = [];
+                }
+
+                for (let i = 0; i < lineJson.speedEvents.length; i++) {
+                    const e = lineJson.speedEvents[i];
+                    e.startTime = parseFloat(e.startTime);
+
+                    if (isNaN(e.startTime)) {
+                        console.warn("Invalid speed event time", e);
+                        continue;
+                    }
+
+                    if (i == lineJson.speedEvents.length - 1) {
+                        e.endTime = i.startTime + chartInf;
+                    } else {
+                        e.endTime = lineJson.speedEvents[i + 1].startTime;
+                    }
+                }
+
+                const speedEvents = lineJson.speedEvents.map(eventJson => eventConverter(eventJson, "value", "value", x => x * 0.6, x => x * 0.6)).filter(e => e !== undefined);
+                const alphaEvents = lineJson.judgeLineDisappearEvents.map(eventJson => eventConverter(eventJson, "start", "end", x => x, x => x)).filter(e => e !== undefined);
+                const rotateEvents = lineJson.judgeLineRotateEvents.map(eventJson => eventConverter(eventJson, "start", "end", x => -x, x => -x)).filter(e => e !== undefined);
+                const moveXEvents = lineJson.judgeLineMoveEvents.map(eventJson => eventConverter(eventJson, "start", "end", x => x, x => x)).filter(e => e !== undefined);
+                const moveYEvents = lineJson.judgeLineMoveEvents.map(eventJson => eventConverter(eventJson, "start2", "end2", x => 1.-x, x => 1.-x)).filter(e => e !== undefined);
+
+                this.lines.push(new Line(
+                    bpms, notes,
+                    [new EventLayer(
+                        speedEvents,
+                        alphaEvents, rotateEvents,
+                        moveXEvents, moveYEvents
+                    )],
+                    null, 1.875
+                ));
+            }
         }
 
         _rpeParse(chartJson) {
@@ -521,7 +858,33 @@
     }
 
     function render(chartObject) {
+        const secTime = chartAudio.currentTime;
+        const [w, h] = [cv.width, cv.height];
+        ctx.clear();
+        ctx.fillRectEx(0, 0, w, h, "rgba(0, 0, 0, 0.6)");
+
+        for (const line of chartObject.lines) {
+            const beatTime = line.sec2beat(secTime);
+            let [lineWidth, lineHeight] = [chartObject.lineWidth(w, h), chartObject.lineHeight(w, h)];
+            let [alpha, rotate, x, y, color] = line.getState(beatTime);
+
+            x *= w; y *= h;
+            const lineDrawPos = [
+                ...rotatePoint(x, y, rotate, lineHeight / 2),
+                ...rotatePoint(x, y, rotate + 180, lineHeight / 2)
+            ];
+
+            ctx.drawLineEx(...lineDrawPos, lineWidth, `rgba(${color.join(", ")}, ${alpha})`);
+        }
+
         requestAnimationFrame(() => render(chartObject));
+    }
+
+    function rotatePoint(x, y, deg, r) {
+        return [
+            x + r * Math.cos(deg / 180 * Math.PI),
+            y + r * Math.sin(deg / 180 * Math.PI)
+        ];
     }
 
     function hex2str(hex) {
