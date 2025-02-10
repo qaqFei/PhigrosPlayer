@@ -1068,12 +1068,12 @@ void main() {
     proxyNeedPositionEvent("mouseup", "mouseup-np", MouseEvent);
     proxyNeedPositionEvent("click", "click-np", MouseEvent);
 
-    // window.addEventListener("touchstart", (e) => {
-    //     try {pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
-    //     catch (e) {}
-    // });
-    // window.addEventListener("touchend", (e) => {
-    //     try {pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
-    //     catch (e) {}
-    // });
+    window.addEventListener("touchstart", (e) => {
+        try {pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
+        catch (e) {}
+    });
+    window.addEventListener("touchend", (e) => {
+        try {pywebview.api.call_attr("PhigrosPlay_KeyUp", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
+        catch (e) {}
+    });
 </script>
