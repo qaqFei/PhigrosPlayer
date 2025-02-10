@@ -19,7 +19,7 @@ class InfoLoader:
         for file in infofiles:
             self.load(file)
     
-    def load(self, filename, encoding="utf-8", _failed=False):
+    def load(self, filename: str, encoding="utf-8", _failed=False):
         "if load failed, return. else return True"
         
         if not exists(filename):
