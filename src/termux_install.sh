@@ -3,7 +3,8 @@ clear
 apt update && apt upgrade -y
 apt install x11-repo git -y
 
-git clone https://github.com/qaqFei/PhigrosPlayer
+read -p "请输入git clone的地址喵 (例如 github.com): " git_address
+git clone https://$git_address/qaqFei/PhigrosPlayer
 
 if [ ! -d ./PhigrosPlayer ]; then
     echo 请检查网络喵~
