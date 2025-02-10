@@ -41,7 +41,7 @@ class InfoLoader:
                 match file_type:
                     case "csv":
                         csv_reader = csv.reader(raw_data.splitlines())
-                        lines = list(filter(lambda x: x != "", csv_reader))
+                        lines = list(filter(bool, csv_reader))
                         
                         meta_line = lines[0]
                         info_lines = lines[1:]
@@ -56,8 +56,10 @@ class InfoLoader:
                             for i in self.default_info.keys():
                                 try:
                                     value[i] = line[meta_line.index(i)]
-                                except Exception:
-                                    pass
+                                except KeyError:
+                                    logging.warning(f"info file {filename} has no key {i}")
+                                except IndexError:
+                                    logging.warning(f"info file {filename} has no column {i}")
                                 
                             self.infomap[key] = value
                             
@@ -81,17 +83,18 @@ class InfoLoader:
                         for i in self.default_info.keys():
                             try:
                                 value[i] = info[i]
-                            except Exception:
-                                pass
+                            except KeyError:
+                                logging.warning(f"info file {filename} has no key {i}")
                         
                         self.infomap[key] = value
                         
                     case "yml":
-                        return #  i think ... we don't need process yml, becasuse: normal, if yml file is exists, it can process info.txt!
+                        return
                     
                     case _:
                         return
             except Exception:
+                logging.error(f"info file {filename} parse error")
                 return
             
             return True
