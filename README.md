@@ -3,7 +3,6 @@
 ## 环境配置
 
 - Python 版本: `3.12.8`
-
 - Windows
 
 ```batch
