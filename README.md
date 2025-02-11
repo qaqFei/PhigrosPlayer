@@ -12,7 +12,7 @@ pip install -r requirements.txt
 python main.py <chart> [args] [kwargs]
 ```
 
-- Termux
+- Termux (运行 `main.py` 后访问 `https://qaqfei.github.io/PhigrosPlayer/src/web_canvas.html` 并触发 `touchstart` 连接 `127.0.0.1` 即可)
 
 ```bash
 curl https://qaqfei.github.io/PhigrosPlayer/src/termux_install.sh -o install.sh
