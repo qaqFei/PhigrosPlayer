@@ -207,9 +207,9 @@ def LoadChartObject(first: bool = False):
     global chart_obj
     
     if CHART_TYPE == const.CHART_TYPE.PHI:
-        chart_obj = chartfuncs_phi.Load_Chart_Object(chart_json)
+        chart_obj = chartfuncs_phi.loadChartObject(chart_json)
     elif CHART_TYPE == const.CHART_TYPE.RPE:
-        chart_obj = chartfuncs_rpe.Load_Chart_Object(chart_json)
+        chart_obj = chartfuncs_rpe.loadChartObject(chart_json)
         
         chart_obj.META.RPEVersion = (
             sys.argv[sys.argv.index("--rpeversion") + 1]

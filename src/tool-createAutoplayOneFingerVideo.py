@@ -27,7 +27,7 @@ outputVideoFilePath = argv[3]
 with open(chartFile, "r", encoding="utf-8") as f:
     jsonData = json.load(f)
 
-chartObj = chartfuncs_phi.Load_Chart_Object(jsonData) if "formatVersion" in jsonData else chartfuncs_rpe.Load_Chart_Object(jsonData)
+chartObj = chartfuncs_phi.loadChartObject(jsonData) if "formatVersion" in jsonData else chartfuncs_rpe.loadChartObject(jsonData)
 moveDatas = []
 
 if isinstance(chartObj, chartobj_phi.Phigros_Chart):

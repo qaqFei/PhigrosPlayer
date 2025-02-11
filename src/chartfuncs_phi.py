@@ -3,7 +3,7 @@ import logging
 import chartobj_phi
 import tool_funcs
 
-def Load_Chart_Object(phigros_chart: dict):
+def loadChartObject(phigros_chart: dict):
     logging.info("Loading Chart Object, fmt = phi")
     
     fmtVersion = phigros_chart.get("formatVersion", 3)

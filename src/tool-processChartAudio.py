@@ -22,7 +22,7 @@ with open(sys.argv[1], "r", encoding="utf-8") as f:
     Chart = load(f)
 
 if "META" in Chart and "formatVersion" not in Chart:
-    rpeobj = chartfuncs_rpe.Load_Chart_Object(Chart)
+    rpeobj = chartfuncs_rpe.loadChartObject(Chart)
     Chart = {
         "formatVersion": 3,
         "offset": rpeobj.META.offset / 1000,

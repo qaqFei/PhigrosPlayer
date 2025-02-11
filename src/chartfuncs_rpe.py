@@ -53,7 +53,7 @@ def _extended(line: dict):
         gifEvents = _extendedevents(extended_dict, "gifEvents", 0.0),
     )
 
-def Load_Chart_Object(chart: dict):
+def loadChartObject(chart: dict):
     logging.info("Loading Chart Object, fmt = rpe")
     meta = chart.get("META", {})
     rpe_chart_obj = chartobj_rpe.Rpe_Chart(

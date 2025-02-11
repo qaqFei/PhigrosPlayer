@@ -3247,7 +3247,7 @@ def chartPlayerRender(
     CHART_TYPE = const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else const.CHART_TYPE.RPE
     if CHART_TYPE == const.CHART_TYPE.PHI: chartJsonData["offset"] += getUserData("setting-chartOffset") / 1000
     elif CHART_TYPE == const.CHART_TYPE.RPE: chartJsonData["META"]["offset"] += getUserData("setting-chartOffset")
-    chart_obj = chartfuncs_phi.Load_Chart_Object(chartJsonData) if CHART_TYPE == const.CHART_TYPE.PHI else chartfuncs_rpe.Load_Chart_Object(chartJsonData)
+    chart_obj = chartfuncs_phi.loadChartObject(chartJsonData) if CHART_TYPE == const.CHART_TYPE.PHI else chartfuncs_rpe.loadChartObject(chartJsonData)
     mixer.music.load(chartAudio)
     raw_audio_length = mixer.music.get_length()
     audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
