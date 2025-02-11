@@ -140,5 +140,5 @@ class SegMerger:
         return chartAudio
 
 print("Merge...")
-(SegMerger(blocks).merge(chartAudio, blockLength) + 5).export(sys.argv[3])
+SegMerger(blocks).merge(chartAudio, blockLength).export(sys.argv[3])
 print("Done.")
