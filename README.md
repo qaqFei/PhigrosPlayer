@@ -20,7 +20,7 @@ chmod 777 install.sh
 ./install.sh
 
 cd PhigrosPlayer/src
-python main.py <chart> --disenfage-webview [args] [kwargs]
+python main.py <chart> --disengage-webview [args] [kwargs]
 ```
 
 ## 谱面兼容
