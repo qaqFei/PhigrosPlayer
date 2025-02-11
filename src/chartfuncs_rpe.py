@@ -123,11 +123,11 @@ def loadChartObject(chart: dict):
         ]
     )
     
-    logging.info("Load Chart Object Successfully, fmt = rpe")
+    logging.info("loadChart Successfully, fmt = rpe")
     
     return rpe_chart_obj
 
-def loadextra(extra_json: dict):
+def loadExtra(extra_json: dict):
     extra = chartobj_rpe.Extra(
         bpm = [
             chartobj_rpe.BPMEvent(

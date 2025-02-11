@@ -85,5 +85,5 @@ def loadChartObject(phigros_chart: dict):
         ]
     )
     
-    logging.info("Load Chart Object Successfully, fmt = phi")
+    logging.info("loadChart Successfully, fmt = phi")
     return phigros_chart_obj

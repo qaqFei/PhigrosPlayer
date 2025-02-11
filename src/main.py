@@ -195,13 +195,13 @@ else:
 if exists(f"{temp_dir}/extra.json"):
     try:
         logging.info("found extra.json, loading...")
-        extra = chartfuncs_rpe.loadextra(json.load(open(f"{temp_dir}/extra.json", "r", encoding="utf-8")))
+        extra = chartfuncs_rpe.loadExtra(json.load(open(f"{temp_dir}/extra.json", "r", encoding="utf-8")))
         logging.info("loading extra.json successfully")
     except SystemExit as e:
         logging.error("loading extra.json failed")
         
 if "extra" not in globals():
-    extra = chartfuncs_rpe.loadextra({})
+    extra = chartfuncs_rpe.loadExtra({})
     
 def LoadChartObject(first: bool = False):
     global chart_obj
