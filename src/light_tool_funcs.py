@@ -340,7 +340,7 @@ def pec2rpe(pec: str):
     rpey = lambda y: (y / 1400 -  0.5) * const.RPE_HEIGHT
     rpes = lambda s: s / 1400 * const.RPE_HEIGHT
     lines = {}
-                    
+    
     checkLine = lambda k: [
         (
             lines.update({k: {
