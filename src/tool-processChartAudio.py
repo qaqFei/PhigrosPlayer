@@ -2,6 +2,8 @@ import check_bin as _
 
 import sys
 import time
+from itertools import chain
+from os.path import dirname
 from json import load
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
@@ -18,6 +20,8 @@ NoteClickAudios: dict[int, AudioSegment] = {
     const.NOTE_TYPE.FLICK: AudioSegment.from_file("./resources/resource_default/flick.ogg")
 }
 
+ExtendedAudios: dict[str, AudioSegment] = {}
+
 with open(sys.argv[1], "r", encoding="utf-8") as f:
     Chart = load(f)
 
@@ -32,7 +36,8 @@ if "META" in Chart and "formatVersion" not in Chart:
                 "notesAbove": [
                     {
                         "time": note.secst,
-                        "type": note.phitype
+                        "type": note.phitype,
+                        "hitsound": note.hitsound
                     }
                     for note in line.notes if not note.isFake
                 ],
@@ -41,6 +46,16 @@ if "META" in Chart and "formatVersion" not in Chart:
             for line in rpeobj.judgeLineList
         ]
     }
+
+for line in Chart["judgeLineList"]:
+    for note in line["notesAbove"] + line["notesBelow"]:
+        if note["hitsound"] is not None:
+            if note["hitsound"] in ExtendedAudios: continue
+            try:
+                ExtendedAudios[note["hitsound"]] = AudioSegment.from_file(f"{dirname(sys.argv[1])}/{note["hitsound"]}")
+            except Exception as e:
+                print(f"Failed to load extended audio: {repr(e)}")
+                ExtendedAudios[note["hitsound"]] = AudioSegment.silent(0)
 
 delay = (-float(sys.argv[sys.argv.index("--delay") + 1])) if "--delay" in sys.argv else 0.0
 delay += Chart["offset"]
@@ -57,7 +72,7 @@ allLength = chartAudio.duration_seconds
 # 分割次数为 note 数量开根号时, 性能最好
 notesNum = sum(len(l["notesAbove"] + l["notesBelow"]) for l in Chart["judgeLineList"])
 blockLength = chartAudio.duration_seconds * 1000 / max(1.0, notesNum ** 0.5) # ms
-maxCksLength = max(i.duration_seconds for i in NoteClickAudios.values()) * 1000
+maxCksLength = max(i.duration_seconds for i in chain(NoteClickAudios.values(), ExtendedAudios.values())) * 1000
 blockNum = int(allLength / (blockLength / 1000)) + 1
 blocks = [AudioSegment.silent(blockLength + maxCksLength) for _ in range(blockNum)]
 getIndexBySec = lambda sec: int(sec / (blockLength / 1000))
@@ -73,7 +88,7 @@ for line_index, line in enumerate(Chart["judgeLineList"]):
             nt = note["time"] * T
             t_index = getIndexBySec(nt)
             nt %= blockLength / 1000
-            tasks[t_index].append((note["type"], nt * 1000))
+            tasks[t_index].append((note, nt * 1000))
         except IndexError:
             notesNum -= 1
 
@@ -83,8 +98,8 @@ processed = 0
 def merge_seg(raw: AudioSegment, task: list[tuple[int, float]]):
     global processed
     
-    for ntype, nt in task:
-        raw = raw.overlay(NoteClickAudios[ntype], nt)
+    for note, nt in task:
+        raw = raw.overlay(NoteClickAudios[note["type"]] if note["hitsound"] is None else ExtendedAudios[note["hitsound"]], nt)
         processed += 1
     
     return raw
@@ -125,5 +140,5 @@ class SegMerger:
         return chartAudio
 
 print("Merge...")
-SegMerger(blocks).merge(chartAudio, blockLength).export(sys.argv[3])
+(SegMerger(blocks).merge(chartAudio, blockLength) + 5).export(sys.argv[3])
 print("Done.")
