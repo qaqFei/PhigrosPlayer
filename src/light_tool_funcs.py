@@ -184,17 +184,11 @@ def noteLineOutOfScreen(
         ) > 0.0
     )
 
-def ThreadFunc(f):
+def runByThread(f, needjoin: bool = False):
     def wrapper(*args, **kwargs):
         t = Thread(target=f, args=args, kwargs=kwargs, daemon=True)
         t.start()
-        t.join()
-    return wrapper
-
-def NoJoinThreadFunc(f):
-    def wrapper(*args, **kwargs):
-        t = Thread(target=f, args=args, kwargs=kwargs, daemon=True)
-        t.start()
+        if needjoin: t.join()
     return wrapper
 
 def conrpepos(x: float, y: float):

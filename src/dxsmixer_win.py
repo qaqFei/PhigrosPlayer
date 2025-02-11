@@ -72,7 +72,7 @@ class musicCls:
         self._setBufferVolume(self._pause_volume)            
         self._setBufferPosition(self._pause_pos)
     
-    @tool_funcs.NoJoinThreadFunc
+    @tool_funcs.runByThread
     def fadeout(self, t: int):
         if self._paused: return
         

@@ -548,7 +548,7 @@ def PlayerStart():
         
         def _f(): nonlocal play_restart_flag; play_restart_flag = True
         
-        @tool_funcs.NoJoinThreadFunc
+        @tool_funcs.runByThread
         def space():
             global show_start_time
             nonlocal pause_flag, pause_st
