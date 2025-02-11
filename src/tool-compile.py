@@ -35,7 +35,7 @@ res_files = [
     "web_canvas.html",
     "7z.exe", "7z.dll",
     "ecwv_installer.exe",
-    "resources",
+    "resources", "bin",
     "icon.ico",
     "openh264-1.8.0-win64.dll",
     "shaders"
