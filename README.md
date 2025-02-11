@@ -3,8 +3,26 @@
 ## 环境配置
 
 - Python 版本: `3.12.8`
-- Windows 版本需 >= `8.1`
-- 第三方库: [requirements.txt](./src/requirements.txt)
+
+- Windows
+
+```batch
+git clone https://github.com/qaqFei/PhigrosPlayer
+cd PhigrosPlayer\src
+pip install -r requirements.txt
+python main.py <chart> [args] [kwargs]
+```
+
+- Termux
+
+```bash
+curl https://qaqfei.github.io/PhigrosPlayer/src/termux_install.sh -o install.sh
+chmod 777 install.sh
+./install.sh
+
+cd PhigrosPlayer/src
+python main.py <chart> --disenfage-webview [args] [kwargs]
+```
 
 ## 谱面兼容
 
