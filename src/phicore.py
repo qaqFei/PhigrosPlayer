@@ -293,7 +293,7 @@ def processBadEffect(
         wait_execute = True
     )
 
-def getNoteDrawPosition(
+def getHoldDrawPosition(
     x: float, y: float,
     width: float,
     height_b: float,
@@ -706,7 +706,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     noteEndImg = Resource["Notes"][note.img_end_keyname]
                     bodyLength = holdEndFloorPosition if note.clicked else holdLength
                     
-                    headpos, bodypos, endpos, holdrect = getNoteDrawPosition(
+                    headpos, bodypos, endpos, holdrect = getHoldDrawPosition(
                         *(noteAtLinePos if note.clicked else (x, y)),
                         noteWidth, bodyLength,
                         noteImg, noteEndImg,
@@ -1085,7 +1085,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     if line.isCover and holdEndFloorPosition < 0 and not note.clicked:
                         continue
                     
-                    headpos, bodypos, endpos, holdrect = getNoteDrawPosition(
+                    headpos, bodypos, endpos, holdrect = getHoldDrawPosition(
                         *(noteAtLinePos if note.clicked else (x, y)),
                         noteWidth, bodyLength,
                         noteImg, noteEndImg,
