@@ -2,17 +2,23 @@ import json
 import random
 import urllib.parse
 import urllib.request
+import urllib3
 from uuid import uuid4
 from time import time
 from hashlib import md5
 from string import ascii_lowercase, digits
 
+import requests
+
+urllib3.disable_warnings()
+
 def get_download_info(appid: int):
     uid = uuid4()
-    X_UA = f"V=1&PN=TapTap&VN_CODE=206012000&LOC=CN&LANG=zh_CN&CH=default&UID={uid}"
+    VN_CODE = "281001004"
+    X_UA = f"V=1&PN=TapTap&VN_CODE={VN_CODE}&LOC=CN&LANG=zh_CN&CH=default&UID={uid}"
     quoted_X_UA = urllib.parse.quote(X_UA)
     
-    apkid_result = json.load(urllib.request.urlopen(urllib.request.Request(f"https://api.taptapdada.com/app/v2/detail-by-id/{appid}?X-UA={quoted_X_UA}")))
+    apkid_result = requests.get(f"https://api.taptapdada.com/app/v2/detail-by-id/{appid}?X-UA={quoted_X_UA}", verify=False).json()
     apkid = apkid_result["data"]["download"]["apk_id"]
 
     nonce = "".join(random.sample(ascii_lowercase + digits, 5))
