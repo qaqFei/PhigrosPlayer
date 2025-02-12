@@ -109,21 +109,34 @@ def generate_info():
         name = "assets/bin/Data/globalgamemanagers.assets"
     )
     env.load_file(open(getZipItem("/assets/bin/Data/level0"), "rb").read())
+    
+    with open("./resources/pgr_unpack_treetype.json", "r", encoding="utf-8") as f:
+        treetype = json.load(f)
             
     for obj in env.objects:
         if obj.type.name != "MonoBehaviour": continue
         
         try:
             data = obj.read()
-            match data.m_Script.get_obj().read().name:
+            name = data.m_Script.get_obj().read().name
+            match name:
                 case "GameInformation":
-                    information = data.raw_data.tobytes()
+                    information: bytes = data.raw_data.tobytes()
+                    
                 case "GetCollectionControl":
-                    collection = data.raw_data.tobytes()
+                    collection = obj.read_typetree(treetype["GetCollectionControl"])
+                    with open("./unpack-result/collectionItems.json", "w", encoding="utf-8") as f:
+                        json.dump(collection["collectionItems"], f, indent=4, ensure_ascii=False)
+                    
+                    with open("./unpack-result/avatars.json", "w", encoding="utf-8") as f:
+                        json.dump(collection["avatars"], f, indent=4, ensure_ascii=False)
+                        
                 case "TipsProvider":
-                    tips = data.raw_data.tobytes()
+                    tips = obj.read_typetree(treetype["TipsProvider"])
+                    with open("./unpack-result/tips.json", "w", encoding="utf-8") as f:
+                        json.dump(tips["tips"], f, indent=4, ensure_ascii=False)
         except Exception as e:
-            print(e)
+            print(repr(e))
 
     reader = ByteReaderA(information)
     reader.position = information.index(b"\x16\x00\x00\x00Glaciaxion.SunsetRay.0\x00\x00\n") - 4
@@ -186,7 +199,7 @@ def generate_resources():
         catalog = json.load(f)
     
     for i in [
-        "Chart_EZ", "Chart_HD", "Chart_IN", "Chart_AT", "Chart_Legacy",
+        "Chart_EZ", "Chart_HD", "Chart_IN", "Chart_AT", "Chart_Legacy", "Chart_Error",
         "IllustrationBlur", "IllustrationLowRes", "Illustration", "music"
     ]:
         try: rmtree(f"./unpack-result/{i}")
@@ -270,7 +283,11 @@ def generate_resources():
             name = key[:-10]
             fsb = FSB5(memoryview(obj.m_AudioData).tobytes())
             iocommands.append(("save-music", f"music/{name}.ogg", fsb.rebuild_sample(fsb.samples[0])))
-    
+        
+        elif key.endswith("_Error.json"):
+            name = key[:-20]
+            iocommands.append(("save-string", f"Chart_Error/{name}.json", obj.script))
+            
     def io():
         nonlocal keunpack_count, save_string_count
         nonlocal save_pilimg_count, save_music_count
@@ -291,13 +308,16 @@ def generate_resources():
                         for ikey, ientry in env.files.items():
                             save(ikey, ientry, item[2])
                         keunpack_count += 1
+                        
                     case "save-string":
                         with open(f"./unpack-result/{item[1]}", "wb") as f:
                             f.write(item[2].tobytes())
                         save_string_count += 1
+                        
                     case "save-pilimg":
                         item[2].save(f"./unpack-result/{item[1]}", "png")
                         save_pilimg_count += 1
+                        
                     case "save-music":
                         with open(f"./unpack-result/{item[1]}", "wb") as f:
                             f.write(item[2])
@@ -342,23 +362,54 @@ def pack_charts(infos: list[dict], rpe: bool):
     allcount = 0
     for info in infos:
         for li, l in enumerate(info["levels"]):
-            chartFile = f"./unpack-result/Chart_{l}/{info["soundIdBak"]}.json"
-            audioFile = f"./unpack-result/music/{info["soundIdBak"]}.ogg"
-            imageFile = f"./unpack-result/Illustration/{info["soundIdBak"]}.png"
+            levelString = f"{l} Lv.{int(info["difficulty"][li])}"
+            chartExn = "json"
+            audioExn = "ogg"
+            imageExn = "png"
+            
+            chartFile = f"./unpack-result/Chart_{l}/{info["soundIdBak"]}.{chartExn}"
+            audioFile = f"./unpack-result/music/{info["soundIdBak"]}.{audioExn}"
+            imageFile = f"./unpack-result/Illustration/{info["soundIdBak"]}.{imageExn}"
+            
             csvData = "\n".join([
                 "Chart,Music,Image,Name,Artist,Level,Illustrator,Charter,AspectRatio,NoteScale,GlobalAlpha",
                 ",".join(map(lambda x: f"\"{x}\"" if " " in x else x, [
-                    f"{info["soundIdBak"]}.json",
-                    f"{info["soundIdBak"]}.ogg",
-                    f"{info["soundIdBak"]}.png",
+                    f"{info["soundIdBak"]}.{chartExn}",
+                    f"{info["soundIdBak"]}.{audioExn}",
+                    f"{info["soundIdBak"]}.{imageExn}",
                     info["songName"],
                     info["composer"],
-                    f"{l} Lv.{int(info["difficulty"][li])}",
+                    levelString,
                     info["illustrator"],
                     info["charter"][li]
                 ]))
             ])
-            charts.append((info["soundIdBak"], l, chartFile, audioFile, imageFile, csvData))
+            
+            txtData = "\n".join([
+                "#",
+                f"Name: {info["songName"]}",
+                "Path: 0",
+                f"Song: {info["soundIdBak"]}.{audioExn}",
+                f"Picture: {info["soundIdBak"]}.{imageExn}",
+                f"Chart: {info["soundIdBak"]}.{chartExn}",
+                f"Level: {levelString}",
+                f"Composer: {info["composer"]}",
+                f"Charter: {info["charter"][li]}"
+            ])
+            
+            ymlData = "\n".join([
+                f"name: {repr(info["songName"])}",
+                f"difficulty: {info["difficulty"][li]}",
+                f"level: {repr(levelString)}",
+                f"charter: {repr(info["charter"])}",
+                f"composer: {repr(info["composer"])}",
+                f"illustrator: {repr(info["illustrator"])}",
+                f"chart: {repr(info["soundIdBak"] + f".{chartExn}")}",
+                f"music: {repr(info["soundIdBak"] + f".{audioExn}")}",
+                f"illustration: {repr(info["soundIdBak"] + f".{imageExn}")}"
+            ])
+            
+            charts.append((info["soundIdBak"], l, chartFile, audioFile, imageFile, csvData, txtData, ymlData))
             allcount += 1
     
     packthread_num = 32
@@ -377,10 +428,19 @@ def pack_charts(infos: list[dict], rpe: bool):
             
             try:
                 rid = uuid4()
-                mkdir(f"./unpack-temp/pack-{rid}")
-                with open(f"./unpack-temp/pack-{rid}/info.csv", "w", encoding="utf-8") as f:
-                    f.write(item[5])
-                popen(f"7z a .\\unpack-result\\packed\\{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip {" ".join(map(lambda x: f"\"{x}\"", (item[2], item[3], item[4], f"./unpack-temp/pack-{rid}/info.csv")))} -y >> nul").read()
+                rfolder = f"./unpack-temp/pack-{rid}"
+                mkdir(rfolder)
+                with open(f"{rfolder}/info.csv", "w", encoding="utf-8") as f: f.write(item[5])
+                with open(f"{rfolder}/info.txt", "w", encoding="utf-8") as f: f.write(item[6])
+                with open(f"{rfolder}/info.yml", "w", encoding="utf-8") as f: f.write(item[7])
+                
+                command = [
+                    "7z", "a", f"./unpack-result/packed/{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip",
+                    item[2], item[3], item[4],
+                    f"{rfolder}/info.csv", f"{rfolder}/info.txt", f"{rfolder}/info.yml",
+                    "-y"
+                ]
+                popen(" ".join(map(lambda x: f"\"{x}\"", command))).read()
                 packed_num += 1
             except Exception:
                 pass

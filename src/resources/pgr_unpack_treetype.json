@@ -1,0 +1,678 @@
+{
+    "GetCollectionControl": [
+        {
+            "m_Type": "MonoBehaviour",
+            "m_Name": "Base",
+            "m_MetaFlag": 0,
+            "m_Level": 0
+        },
+        {
+            "m_Type": "PPtr\u003CGameObject\u003E",
+            "m_Name": "m_GameObject",
+            "m_MetaFlag": 0,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "m_FileID",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "SInt64",
+            "m_Name": "m_PathID",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "UInt8",
+            "m_Name": "m_Enabled",
+            "m_MetaFlag": 16384,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "PPtr\u003CMonoScript\u003E",
+            "m_Name": "m_Script",
+            "m_MetaFlag": 0,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "m_FileID",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "SInt64",
+            "m_Name": "m_PathID",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "m_Name",
+            "m_MetaFlag": 0,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "List\u00601",
+            "m_Name": "collectionItems",
+            "m_MetaFlag": 0,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "CollectionItemIndex",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "SInt32",
+            "m_Name": "getSong",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "SInt32",
+            "m_Name": "getType",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "SInt32",
+            "m_Name": "getPower",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "getInfo1",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "getInfo2",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "getInfo3",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "key",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "SInt32",
+            "m_Name": "subIndex",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "MultiLanguageTextString",
+            "m_Name": "multiLanguageTitle",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "code",
+            "m_MetaFlag": 0,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "chinese",
+            "m_MetaFlag": 0,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "chineseTraditional",
+            "m_MetaFlag": 0,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "english",
+            "m_MetaFlag": 0,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "japanese",
+            "m_MetaFlag": 0,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "korean",
+            "m_MetaFlag": 0,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "List\u00601",
+            "m_Name": "avatars",
+            "m_MetaFlag": 0,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "AvatarInfo",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "SInt32",
+            "m_Name": "getSong",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "SInt32",
+            "m_Name": "getType",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "SInt32",
+            "m_Name": "getPower",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "getInfo1",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "getInfo2",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "getInfo3",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "name",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "addressableKey",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        }
+    ],
+    "TipsProvider": [
+        {
+            "m_Type": "MonoBehaviour",
+            "m_Name": "Base",
+            "m_MetaFlag": 0,
+            "m_Level": 0
+        },
+        {
+            "m_Type": "PPtr\u003CGameObject\u003E",
+            "m_Name": "m_GameObject",
+            "m_MetaFlag": 0,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "m_FileID",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "SInt64",
+            "m_Name": "m_PathID",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "UInt8",
+            "m_Name": "m_Enabled",
+            "m_MetaFlag": 16384,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "PPtr\u003CMonoScript\u003E",
+            "m_Name": "m_Script",
+            "m_MetaFlag": 0,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "m_FileID",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "SInt64",
+            "m_Name": "m_PathID",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "m_Name",
+            "m_MetaFlag": 0,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "List\u00601",
+            "m_Name": "tips",
+            "m_MetaFlag": 0,
+            "m_Level": 1
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 0,
+            "m_Level": 2
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "TipsCollection",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 3
+        },
+        {
+            "m_Type": "SInt32",
+            "m_Name": "language",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "List\u00601",
+            "m_Name": "tips",
+            "m_MetaFlag": 0,
+            "m_Level": 4
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 0,
+            "m_Level": 5
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "string",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 6
+        },
+        {
+            "m_Type": "Array",
+            "m_Name": "Array",
+            "m_MetaFlag": 16384,
+            "m_Level": 7
+        },
+        {
+            "m_Type": "int",
+            "m_Name": "size",
+            "m_MetaFlag": 0,
+            "m_Level": 8
+        },
+        {
+            "m_Type": "char",
+            "m_Name": "data",
+            "m_MetaFlag": 0,
+            "m_Level": 8
+        }
+    ]
+}
