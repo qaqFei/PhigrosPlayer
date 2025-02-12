@@ -329,7 +329,12 @@ if __name__ == "__main__":
     import sys
     import tinysoundfont # type: ignore
     
-    mid = MidiFile(open(input("your midi file: "), "rb").read())
+    fn = input("your midi file: ")
+    if fn.startswith("& "): fn = fn[2:]
+    if fn.startswith("'") and fn.endswith("'"): fn = fn[1:-1]
+    if fn.startswith("\"") and fn.endswith("\""): fn = fn[1:-1]
+    
+    mid = MidiFile(open(fn, "rb").read())
     sf2 = input("your sf2 file: ") if "--sf" not in sys.argv else sys.argv[sys.argv.index("--sf") + 1]
     synth = tinysoundfont.Synth(-12)
     sfid = synth.sfload(sf2)
