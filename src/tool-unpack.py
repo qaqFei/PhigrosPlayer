@@ -5,11 +5,12 @@ import json
 import struct
 import base64
 from os import mkdir, popen, listdir
-from os.path import exists, isfile
+from os.path import exists, isfile, basename
 from shutil import rmtree
 from threading import Thread
 from time import sleep
 from uuid import uuid4
+from zipfile import ZipFile
 
 import UnityPy
 import UnityPy.files
@@ -17,6 +18,10 @@ import UnityPy.classes
 from UnityPy.enums import ClassIDType
 from fsb5 import FSB5
     
+iothread_num = 32
+packthread_num = 32
+p2rthread_num = 4
+
 class ByteReaderA:
     def __init__(self, data: bytes):
         self.data = data
@@ -70,11 +75,19 @@ class ByteReaderB:
     def readInt(self):
         self.position += 4
         return int.from_bytes(self.data[self.position - 4 : self.position], "little")
+    
+def setApk(path: str):
+    global pgrapk
+    pgrapk = path
 
-def getZipItem(path: str) -> str:
-    while path[0] in ("/", "\\"): path = path[1:]
-    popen(f"7z x \"{pgrapk}\" \"{path}\" -o.\\unpack-temp -y >> nul").read()
-    return f".\\unpack-temp\\{path}"
+def getZipItem(path: str) -> bytes:
+    if path[0] in ("/", "\\"): path = path[1:]
+    return ZipFile(pgrapk).read(path)
+
+def createZip(files: str, to: str):
+    with ZipFile(to, "w") as f:
+        for file in files:
+            f.write(file, arcname=basename(file))
 
 def run(rpe: bool, need_otherillu: bool):
     try: rmtree("unpack-temp")
@@ -105,10 +118,10 @@ def generate_info():
     
     env = UnityPy.Environment()
     env.load_file(
-        open(getZipItem("/assets/bin/Data/globalgamemanagers.assets"), "rb").read(),
+        getZipItem("/assets/bin/Data/globalgamemanagers.assets"),
         name = "assets/bin/Data/globalgamemanagers.assets"
     )
-    env.load_file(open(getZipItem("/assets/bin/Data/level0"), "rb").read())
+    env.load_file(getZipItem("/assets/bin/Data/level0"))
     
     with open("./resources/pgr_unpack_treetype.json", "r", encoding="utf-8") as f:
         treetype = json.load(f)
@@ -195,8 +208,7 @@ def generate_info():
     return chartItems
 
 def generate_resources(need_otherillu: bool = False):
-    with open(getZipItem("/assets/aa/catalog.json"), "r", encoding="utf-8") as f:
-        catalog = json.load(f)
+    catalog = json.loads(getZipItem("/assets/aa/catalog.json").decode("utf-8"))
     
     for i in [
         "Chart_EZ", "Chart_HD", "Chart_IN", "Chart_AT", "Chart_Legacy", "Chart_Error",
@@ -285,7 +297,7 @@ def generate_resources(need_otherillu: bool = False):
             
         elif key.endswith("/music.wav"):
             name = key[:-10]
-            fsb = FSB5(memoryview(obj.m_AudioData).tobytes())
+            fsb = FSB5(obj.m_AudioData.tobytes() if isinstance(obj.m_AudioData, memoryview) else obj.m_AudioData)
             iocommands.append(("save-music", f"music/{name}.ogg", fsb.rebuild_sample(fsb.samples[0])))
         
         elif key.endswith("_Error.json"):
@@ -308,7 +320,7 @@ def generate_resources(need_otherillu: bool = False):
                 match item[0]:
                     case "ke-unpack":
                         env = UnityPy.Environment()
-                        env.load_file(open(getZipItem(f"/assets/aa/Android/{item[2]}"), "rb").read(), name = item[1])
+                        env.load_file(getZipItem(f"/assets/aa/Android/{item[2]}"), name = item[1])
                         for ikey, ientry in env.files.items():
                             save(ikey, ientry, item[2])
                         keunpack_count += 1
@@ -336,7 +348,6 @@ def generate_resources(need_otherillu: bool = False):
     save_pilimg_count = 0
     save_music_count = 0
     
-    iothread_num = 32
     stopthread_count = 0
     iocommands = [None] * iothread_num
     extended_info = []
@@ -351,7 +362,7 @@ def generate_resources(need_otherillu: bool = False):
         print(f"\r{keunpack_count} | {save_string_count} | {save_pilimg_count} | {save_music_count}", end="")
         sleep(0.1)
     
-    with open(f"./unpack-result/extended_info.json", "w", encoding="utf-8") as f:
+    with open(f"./unpack-result/extendedInfo.json", "w", encoding="utf-8") as f:
         json.dump(extended_info, f, indent=4, ensure_ascii=False)
     
     print()
@@ -416,7 +427,6 @@ def pack_charts(infos: list[dict], rpe: bool):
             charts.append((info["soundIdBak"], l, chartFile, audioFile, imageFile, csvData, txtData, ymlData))
             allcount += 1
     
-    packthread_num = 24
     stopthread_count = 0
     packed_num = 0
     charts_bak = charts.copy()
@@ -438,13 +448,10 @@ def pack_charts(infos: list[dict], rpe: bool):
                 with open(f"{rfolder}/info.txt", "w", encoding="utf-8") as f: f.write(item[6])
                 with open(f"{rfolder}/info.yml", "w", encoding="utf-8") as f: f.write(item[7])
                 
-                command = [
-                    "7z", "a", f"./unpack-result/packed/{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip",
+                createZip([
                     item[2], item[3], item[4],
-                    f"{rfolder}/info.csv", f"{rfolder}/info.txt", f"{rfolder}/info.yml",
-                    "-y"
-                ]
-                popen(" ".join(map(lambda x: f"\"{x}\"", command))).read()
+                    f"{rfolder}/info.csv", f"{rfolder}/info.txt", f"{rfolder}/info.yml"
+                ], f"./unpack-result/packed/{item[0]}_{item[1]}{"_RPE" if p2r else ""}.zip")
                 packed_num += 1
             except Exception:
                 pass
@@ -463,7 +470,6 @@ def pack_charts(infos: list[dict], rpe: bool):
     
     p2r = "tool-phi2rpe.py" if exists("tool-phi2rpe.py") and isfile("tool-phi2rpe.py") else "tool-phi2rpe.exe"
     phicharts = [f"./unpack-result/Chart_{l}/{i}" for l in ["EZ", "HD", "IN", "AT", "Legacy"] for i in listdir(f"./unpack-result/Chart_{l}")]
-    p2rthread_num = 4
     p2red_num = 0
     stopthread_count = 0
     
@@ -510,6 +516,15 @@ if __name__ == "__main__":
         print("Usage: tool-unpack <apk>")
         raise SystemExit
     
-    pgrapk = argv[1]
+    if "--iothread" in argv:
+        iothread_num = int(argv[argv.index("--iothread") + 1])
+    
+    if "--packthread" in argv:
+        packthread_num = int(argv[argv.index("--packthread") + 1])
+    
+    if "--p2rthread" in argv:
+        p2rthread_num = int(argv[argv.index("--p2rthread") + 1])
+    
+    setApk(argv[1])
     run("--rpe" in argv, "--need-otherillu" in argv)
     
