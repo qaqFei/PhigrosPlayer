@@ -286,7 +286,7 @@ def generate_resources():
         
         elif key.endswith("_Error.json"):
             name = key[:-20]
-            iocommands.append(("save-string", f"Chart_Error/{name}.json", obj.script))
+            iocommands.append(("save-string", f"Chart_Error/{name}_{key[-13:-11]}.json", obj.script))
             
     def io():
         nonlocal keunpack_count, save_string_count
