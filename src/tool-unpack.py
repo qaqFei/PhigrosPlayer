@@ -20,7 +20,7 @@ from fsb5 import FSB5
 class ByteReaderA:
     def __init__(self, data: bytes):
         self.data = data
-        self.position = 0
+        self.position: int = 0
         self.d = {int: self.readInt, float: self.readFloat, str: self.readString}
 
     def readInt(self):
@@ -48,11 +48,11 @@ class ByteReaderA:
                 for key, value in schema.items():
                     if value in (int, str, float):
                         item[key] = self.d[value]()
-                    elif type(value) == list:
+                    elif isinstance(value, list):
                         item[key] = [self.d[value[0]]() for _ in range(self.readInt())]
-                    elif type(value) == tuple:
+                    elif isinstance(value, tuple):
                         for t in value: self.d[t]()
-                    elif type(value) == dict:
+                    elif isinstance(value, dict):
                         item[key] = self.readSchema(value)
                     else:
                         raise Exception("null")
@@ -76,7 +76,7 @@ def getZipItem(path: str) -> str:
     popen(f"7z x \"{pgrapk}\" \"{path}\" -o.\\unpack-temp -y >> nul").read()
     return f".\\unpack-temp\\{path}"
 
-def run(rpe: bool):
+def run(rpe: bool, need_otherillu: bool):
     try: rmtree("unpack-temp")
     except Exception: pass
     try: mkdir("unpack-temp")
@@ -87,7 +87,7 @@ def run(rpe: bool):
     print("generated info.json")
     
     print("unpack...")
-    generate_resources()
+    generate_resources(need_otherillu)
     print("unpacked")
     
     print("pack charts...")
@@ -194,13 +194,13 @@ def generate_info():
     
     return chartItems
 
-def generate_resources():
+def generate_resources(need_otherillu: bool = False):
     with open(getZipItem("/assets/aa/catalog.json"), "r", encoding="utf-8") as f:
         catalog = json.load(f)
     
     for i in [
         "Chart_EZ", "Chart_HD", "Chart_IN", "Chart_AT", "Chart_Legacy", "Chart_Error",
-        "IllustrationBlur", "IllustrationLowRes", "Illustration", "music"
+        *(("IllustrationBlur", "IllustrationLowRes") if need_otherillu else ()), "Illustration", "music"
     ]:
         try: rmtree(f"./unpack-result/{i}")
         except Exception: pass
@@ -224,10 +224,12 @@ def generate_resources():
                 length = key[key_position]
                 key_position += 4
                 key_value = key[key_position:key_position + length].decode()
+                
             case 1:
                 length = key[key_position]
                 key_position += 4
                 key_value = key[key_position:key_position + length].decode("utf16")
+                
             case 4:
                 key_value = key[key_position]
         
@@ -268,10 +270,12 @@ def generate_resources():
             iocommands.append(("save-string", f"Chart_{key[-11:-5]}/{name}.json", obj.script))
             
         elif key.endswith("/IllustrationBlur.png"):
+            if not need_otherillu: return
             name = key[:-21]
             iocommands.append(("save-pilimg", f"IllustrationBlur/{name}.png", obj.image))
             
         elif key.endswith("/IllustrationLowRes.png"):
+            if not need_otherillu: return
             name = key[:-23]
             iocommands.append(("save-pilimg", f"IllustrationLowRes/{name}.png", obj.image))
             
@@ -412,7 +416,7 @@ def pack_charts(infos: list[dict], rpe: bool):
             charts.append((info["soundIdBak"], l, chartFile, audioFile, imageFile, csvData, txtData, ymlData))
             allcount += 1
     
-    packthread_num = 32
+    packthread_num = 24
     stopthread_count = 0
     packed_num = 0
     charts_bak = charts.copy()
@@ -507,4 +511,5 @@ if __name__ == "__main__":
         raise SystemExit
     
     pgrapk = argv[1]
-    run("--rpe" in argv)
+    run("--rpe" in argv, "--need-otherillu" in argv)
+    
