@@ -290,7 +290,7 @@ class MidiFile:
                     t -= et_sec
                 else:
                     beat += t / sec_per_beat
-                    return beat
+                    break
             else:
                 beat += t / sec_per_beat
         return beat * tick_per_quarter_note
@@ -309,7 +309,7 @@ class MidiFile:
                     t -= et_beat
                 else:
                     sec += t * sec_per_beat
-                    return sec
+                    break
             else:
                 sec += t * sec_per_beat
         return sec
