@@ -9,7 +9,6 @@ from hashlib import md5
 from string import ascii_lowercase, digits
 
 import requests
-import const
 
 urllib3.disable_warnings()
 
