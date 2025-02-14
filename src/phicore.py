@@ -306,8 +306,8 @@ def getHoldDrawPosition(
     height_e = width / img_e.width * img_e.height
     
     headpos = (x, y)
-    bodypos = tool_funcs.rotate_point(*headpos, rotate, height_h / 2) if hadhead else headpos
-    endpos = tool_funcs.rotate_point(*bodypos, rotate, height_b + height_e / 2)
+    bodypos = tool_funcs.rotate_point(*headpos, rotate, height_h / 2) if hadhead and not phira_resource_pack.globalPack.holdCompact else headpos
+    endpos = tool_funcs.rotate_point(*bodypos, rotate, height_b + ((height_e / 2) if not phira_resource_pack.globalPack.holdCompact else 0.0))
     
     _headheadpos = tool_funcs.rotate_point(*headpos, rotate, -height_h / 2)
     _endendpos = tool_funcs.rotate_point(*endpos, rotate, height_e / 2)

@@ -119,7 +119,7 @@ python main.py <chart> --disengage-webview [args] [kwargs]
     - [x] hideParticles
     - [x] holdKeepHead
     - [ ] holdRepeat
-    - [ ] holdCompact
+    - [x] holdCompact
     - [x] colorPerfect
     - [x] colorGood
 
