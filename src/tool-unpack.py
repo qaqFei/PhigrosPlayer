@@ -5,7 +5,7 @@ import json
 import struct
 import base64
 from os import mkdir, popen, listdir
-from os.path import exists, isfile, basename
+from os.path import exists, isfile, basename, dirname
 from shutil import rmtree
 from threading import Thread
 from time import sleep
@@ -273,36 +273,33 @@ def generate_resources(need_otherillu: bool = False):
             "name": obj.name
         })
         
-        if key[-14:-7] == "/Chart_" and key.endswith(".json"):
-            name = key[:-14]
-            iocommands.append(("save-string", f"Chart_{key[-7:-5]}/{name}.json", obj.script))
-            
-        elif key[-18:-11] == "/Chart_" and key.endswith(".json"):
-            name = key[:-18]
-            iocommands.append(("save-string", f"Chart_{key[-11:-5]}/{name}.json", obj.script))
-            
-        elif key.endswith("/IllustrationBlur.png"):
-            if not need_otherillu: return
-            name = key[:-21]
-            iocommands.append(("save-pilimg", f"IllustrationBlur/{name}.png", obj.image))
-            
-        elif key.endswith("/IllustrationLowRes.png"):
-            if not need_otherillu: return
-            name = key[:-23]
-            iocommands.append(("save-pilimg", f"IllustrationLowRes/{name}.png", obj.image))
-            
-        elif key.endswith("/Illustration.png"):
-            name = key[:-17]
-            iocommands.append(("save-pilimg", f"Illustration/{name}.png", obj.image))
-            
-        elif key.endswith("/music.wav"):
-            name = key[:-10]
-            fsb = FSB5(obj.m_AudioData.tobytes() if isinstance(obj.m_AudioData, memoryview) else obj.m_AudioData)
-            iocommands.append(("save-music", f"music/{name}.ogg", fsb.rebuild_sample(fsb.samples[0])))
+        key = key.replace("\\", "/")
+        keyfoldername = dirname(key)
+        keybasename = basename(key)
+        keymainname = ".".join(keybasename.split(".")[:-1])
+        keyextname = keybasename.split(".")[-1]
         
-        elif key.endswith("_Error.json"):
-            name = key[:-20]
-            iocommands.append(("save-string", f"Chart_Error/{name}_{key[-13:-11]}.json", obj.script))
+        if keymainname.startswith("Chart_") and keyextname == "json":
+            if not keymainname.endswith("_Error"):
+                iocommands.append(("save-string", f"{keymainname}/{keyfoldername}.json", obj.script))
+            else:
+                level = keymainname.replace("Chart_", "").replace("_Error", "")
+                iocommands.append(("save-string", f"Chart_Error/{keyfoldername}_{level}.json", obj.script))
+            
+        elif keymainname.startswith("IllustrationBlur") and keyextname in ("png", "jpg", "jpeg"):
+            if not need_otherillu: return
+            iocommands.append(("save-pilimg", f"IllustrationBlur/{keyfoldername}.png", obj.image))
+            
+        elif keymainname.startswith("IllustrationLowRes") and keyextname in ("png", "jpg", "jpeg"):
+            if not need_otherillu: return
+            iocommands.append(("save-pilimg", f"IllustrationLowRes/{keyfoldername}.png", obj.image))
+            
+        elif keymainname.startswith("Illustration") and keyextname in ("png", "jpg", "jpeg"):
+            iocommands.append(("save-pilimg", f"Illustration/{keyfoldername}.png", obj.image))
+            
+        elif keymainname == "music" and keyextname in ("wav", "ogg", "mp3"):
+            fsb = FSB5(obj.m_AudioData.tobytes() if isinstance(obj.m_AudioData, memoryview) else obj.m_AudioData)
+            iocommands.append(("save-music", f"music/{keyfoldername}.ogg", fsb.rebuild_sample(fsb.samples[0])))
             
     def io():
         nonlocal keunpack_count, save_string_count
