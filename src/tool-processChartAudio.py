@@ -49,6 +49,7 @@ if "META" in Chart and "formatVersion" not in Chart:
 
 for line in Chart["judgeLineList"]:
     for note in line["notesAbove"] + line["notesBelow"]:
+        if "hitsound" not in note: note["hitsound"] = None
         if note["hitsound"] is not None:
             if note["hitsound"] in ExtendedAudios: continue
             try:
