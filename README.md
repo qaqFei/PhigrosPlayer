@@ -52,7 +52,7 @@ python main.py <chart> --disengage-webview [args] [kwargs]
     - [x] song
   - [ ] judgeLineList
     - [x] Texture
-    - [x] bpmfactor (?, 按照字母意思: bpm速率进行处理)
+    - [x] bpmfactor
     - [x] father
     - [x] isCover
     - [x] isGif
