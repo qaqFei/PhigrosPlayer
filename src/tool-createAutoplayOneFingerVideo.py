@@ -35,7 +35,7 @@ if isinstance(chartObj, chartobj_phi.Phigros_Chart):
         for note in line.notesAbove + line.notesBelow:
             moveDatas.append({
                 "time": note.time * (1.875 / line.bpm),
-                "pos": note.getNoteClickPos(note.time)
+                "pos": note.getNoteClickPos(note.time)(1.0, 1.0)
             })
             
             if note.ishold:
@@ -45,7 +45,7 @@ if isinstance(chartObj, chartobj_phi.Phigros_Chart):
                     ht += dw
                     moveDatas.append({
                         "time": ht * (1.875 / line.bpm),
-                        "pos": note.getNoteClickPos(ht)
+                        "pos": note.getNoteClickPos(ht)(1.0, 1.0)
                     })
             
             if note.type == const.NOTE_TYPE.FLICK:
