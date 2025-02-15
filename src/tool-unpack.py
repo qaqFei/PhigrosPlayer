@@ -284,30 +284,21 @@ def generate_resources(need_otherillu: bool = False):
         
         if keymainname.startswith("Chart_") and keyextname == "json":
             if not keymainname.endswith("_Error"):
-                ...
-                # iocommands.append(("save-string", f"{keymainname}/{keyfoldername}.json", obj.script))
+                iocommands.append(("save-string", f"{keymainname}/{keyfoldername}.json", obj.script))
             else:
                 level = keymainname.replace("Chart_", "").replace("_Error", "")
-                # iocommands.append(("save-string", f"Chart_Error/{keyfoldername}_{level}.json", obj.script))
-            
-        elif keymainname.startswith("IllustrationBlur") and keyextname in ("png", "jpg", "jpeg"):
+                iocommands.append(("save-string", f"Chart_Error/{keyfoldername}_{level}.json", obj.script))
+        
+        elif keymainname in ("IllustrationBlur", "IllustrationLowRes") and keyextname in ("png", "jpg", "jpeg"):
             if not need_otherillu: return
-            # iocommands.append(("save-pilimg", f"IllustrationBlur/{keyfoldername}.png", obj.image))
-            
-        elif keymainname.startswith("IllustrationLowRes") and keyextname in ("png", "jpg", "jpeg"):
-            if not need_otherillu: return
-            # iocommands.append(("save-pilimg", f"IllustrationLowRes/{keyfoldername}.png", obj.image))
+            iocommands.append(("save-pilimg", f"{keymainname}/{keyfoldername}.png", obj.image))
             
         elif keymainname.startswith("Illustration") and keyextname in ("png", "jpg", "jpeg"):
-            ...
-            # iocommands.append(("save-pilimg", f"Illustration/{keyfoldername}.png", obj.image))
+            iocommands.append(("save-pilimg", f"Illustration/{keyfoldername}.png", obj.image))
             
         elif keymainname == "music" and keyextname in ("wav", "ogg", "mp3"):
             fsb = FSB5(obj.m_AudioData.tobytes() if isinstance(obj.m_AudioData, memoryview) else obj.m_AudioData)
-            # iocommands.append(("save-music", f"music/{keyfoldername}.ogg", fsb.rebuild_sample(fsb.samples[0])))
-        
-        else:
-            print(obj, key)
+            iocommands.append(("save-music", f"music/{keyfoldername}.ogg", fsb.rebuild_sample(fsb.samples[0])))
             
     def io():
         nonlocal keunpack_count, save_string_count
