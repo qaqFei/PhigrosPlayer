@@ -212,7 +212,8 @@ def generate_resources(need_otherillu: bool = False):
     
     for i in [
         "Chart_EZ", "Chart_HD", "Chart_IN", "Chart_AT", "Chart_Legacy", "Chart_Error",
-        *(("IllustrationBlur", "IllustrationLowRes") if need_otherillu else ()), "Illustration", "music"
+        *(("IllustrationBlur", "IllustrationLowRes") if need_otherillu else ()), "Illustration", "music",
+        "avatars"
     ]:
         try: rmtree(f"./unpack-result/{i}")
         except Exception: pass
@@ -254,17 +255,28 @@ def generate_resources(need_otherillu: bool = False):
     for i in range(len(table)):
         if table[i][1] != 65535:
             table[i][1] = table[table[i][1]][0]
-            
-    for i in range(len(table) - 1, -1, -1):
-        if isinstance(table[i][0], int) or table[i][0][:15] == "Assets/Tracks/#" or table[i][0][:14] != "Assets/Tracks/":
-            del table[i]
-        elif table[i][0][:14] == "Assets/Tracks/":
-            table[i][0] = table[i][0][14:]
+    
+    type res_table_item = tuple[str, str]
+    player_res_table: list[res_table_item] = []
+    avatar_res_table: list[res_table_item] = []
+    
+    for i in table:
+        if isinstance(i[0], int): continue
+        
+        if i[0].startswith("Assets/Tracks/") and not i[0].startswith("Assets/Tracks/#"):
+            player_res_table.append((i[0].replace("Assets/Tracks/", "", 1), i[1]))
+        
+        elif i[0].startswith("avatar."):
+            avatar_res_table.append((i[0].replace("avatar.", "", 1), i[1]))
     
     with open("./unpack-result/catalog.json", "w", encoding="utf-8") as f:
-        json.dump(table, f, ensure_ascii=False, indent=4)
+        json.dump({
+            "raw": table,
+            "player_res": player_res_table,
+            "avatar_res": avatar_res_table
+        }, f, ensure_ascii=False, indent=4)
     
-    def save(key: str, entry: UnityPy.files.BundleFile, fn: str):
+    def save_player_res(key: str, entry: UnityPy.files.BundleFile, fn: str):
         obj: UnityPy.classes.TextAsset | UnityPy.classes.Sprite | UnityPy.classes.AudioClip
         obj = next(entry.get_filtered_objects((ClassIDType.TextAsset, ClassIDType.Sprite, ClassIDType.AudioClip))).read()
         extended_info.append({
@@ -282,12 +294,7 @@ def generate_resources(need_otherillu: bool = False):
         keymainname = ".".join(keybasename.split(".")[:-1])
         keyextname = keybasename.split(".")[-1]
         
-        if keymainname in (
-            "Chart_EZ", "Chart_HD",
-            "Chart_IN", "Chart_AT",
-            "Chart_Legacy",
-            "Chart_Error"
-        ) and keyextname == "json":
+        if keymainname.startswith("Chart_") and keyextname == "json":
             if not keymainname.endswith("_Error"):
                 iocommands.append(("save-string", f"{keymainname}/{keyfoldername}.json", obj.script))
             else:
@@ -307,7 +314,20 @@ def generate_resources(need_otherillu: bool = False):
         
         else:
             print(f"Unknown res: {key}: {obj}")
-            
+    
+    def save_avatar_res(key: str, entry: UnityPy.files.BundleFile, fn: str):
+        obj: UnityPy.classes.Sprite
+        obj = next(entry.get_filtered_objects((ClassIDType.Sprite, ))).read()
+        extended_info.append({
+            "key": key,
+            "fn": fn,
+            "type": obj.type.value,
+            "type_string": obj.type.name,
+            "path_id": obj.path_id,
+            "name": obj.name
+        })
+        iocommands.append(("save-pilimg", f"avatars/{key}.png", obj.image))
+    
     def io():
         nonlocal keunpack_count, save_string_count
         nonlocal save_pilimg_count, save_music_count
@@ -322,13 +342,21 @@ def generate_resources(need_otherillu: bool = False):
             
             try:
                 match item[0]:
-                    case "ke-unpack":
+                    case "ke-unpack-player-res":
                         env = UnityPy.Environment()
                         env.load_file(getZipItem(f"/assets/aa/Android/{item[2]}"), name = item[1])
                         for ikey, ientry in env.files.items():
-                            save(ikey, ientry, item[2])
+                            save_player_res(ikey, ientry, item[2])
                         keunpack_count += 1
-                        
+                    
+                    case "ke-unpack-avatar-res":
+                        env = UnityPy.Environment()
+                        env.load_file(getZipItem(f"/assets/aa/Android/{item[2]}"), name = item[1])
+                        for ikey, ientry in env.files.items():
+                            save_avatar_res(ikey, ientry, item[2])
+
+                        keunpack_count += 1
+
                     case "save-string":
                         with open(f"./unpack-result/{item[1]}", "wb") as f:
                             f.write(item[2].tobytes())
@@ -356,8 +384,8 @@ def generate_resources(need_otherillu: bool = False):
     iocommands = [None] * iothread_num
     extended_info = []
     
-    for key, entry in table:
-        iocommands.append(("ke-unpack", key, entry))
+    iocommands.extend(("ke-unpack-player-res", *i) for i in player_res_table)    
+    iocommands.extend(("ke-unpack-avatar-res", *i) for i in avatar_res_table)
 
     iots = [Thread(target=io, daemon=True) for _ in range(iothread_num)]
     (*map(lambda x: x.start(), iots), )
