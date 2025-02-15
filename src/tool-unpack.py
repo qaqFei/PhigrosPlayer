@@ -256,10 +256,13 @@ def generate_resources(need_otherillu: bool = False):
             table[i][1] = table[table[i][1]][0]
             
     for i in range(len(table) - 1, -1, -1):
-        if type(table[i][0]) == int or table[i][0][:15] == "Assets/Tracks/#" or table[i][0][:14] != "Assets/Tracks/":
+        if isinstance(table[i][0], int) or table[i][0][:15] == "Assets/Tracks/#" or table[i][0][:14] != "Assets/Tracks/":
             del table[i]
         elif table[i][0][:14] == "Assets/Tracks/":
             table[i][0] = table[i][0][14:]
+    
+    with open("./unpack-result/catalog.json", "w", encoding="utf-8") as f:
+        json.dump(table, f, ensure_ascii=False, indent=4)
     
     def save(key: str, entry: UnityPy.files.BundleFile, fn: str):
         obj: UnityPy.classes.TextAsset | UnityPy.classes.Sprite | UnityPy.classes.AudioClip
@@ -281,25 +284,30 @@ def generate_resources(need_otherillu: bool = False):
         
         if keymainname.startswith("Chart_") and keyextname == "json":
             if not keymainname.endswith("_Error"):
-                iocommands.append(("save-string", f"{keymainname}/{keyfoldername}.json", obj.script))
+                ...
+                # iocommands.append(("save-string", f"{keymainname}/{keyfoldername}.json", obj.script))
             else:
                 level = keymainname.replace("Chart_", "").replace("_Error", "")
-                iocommands.append(("save-string", f"Chart_Error/{keyfoldername}_{level}.json", obj.script))
+                # iocommands.append(("save-string", f"Chart_Error/{keyfoldername}_{level}.json", obj.script))
             
         elif keymainname.startswith("IllustrationBlur") and keyextname in ("png", "jpg", "jpeg"):
             if not need_otherillu: return
-            iocommands.append(("save-pilimg", f"IllustrationBlur/{keyfoldername}.png", obj.image))
+            # iocommands.append(("save-pilimg", f"IllustrationBlur/{keyfoldername}.png", obj.image))
             
         elif keymainname.startswith("IllustrationLowRes") and keyextname in ("png", "jpg", "jpeg"):
             if not need_otherillu: return
-            iocommands.append(("save-pilimg", f"IllustrationLowRes/{keyfoldername}.png", obj.image))
+            # iocommands.append(("save-pilimg", f"IllustrationLowRes/{keyfoldername}.png", obj.image))
             
         elif keymainname.startswith("Illustration") and keyextname in ("png", "jpg", "jpeg"):
-            iocommands.append(("save-pilimg", f"Illustration/{keyfoldername}.png", obj.image))
+            ...
+            # iocommands.append(("save-pilimg", f"Illustration/{keyfoldername}.png", obj.image))
             
         elif keymainname == "music" and keyextname in ("wav", "ogg", "mp3"):
             fsb = FSB5(obj.m_AudioData.tobytes() if isinstance(obj.m_AudioData, memoryview) else obj.m_AudioData)
-            iocommands.append(("save-music", f"music/{keyfoldername}.ogg", fsb.rebuild_sample(fsb.samples[0])))
+            # iocommands.append(("save-music", f"music/{keyfoldername}.ogg", fsb.rebuild_sample(fsb.samples[0])))
+        
+        else:
+            print(obj, key)
             
     def io():
         nonlocal keunpack_count, save_string_count
