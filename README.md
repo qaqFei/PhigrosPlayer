@@ -23,6 +23,15 @@ cd PhigrosPlayer/src
 python main.py <chart> --disengage-webview [args] [kwargs]
 ```
 
+## 简单的部分功能介绍
+
+- `main.py`: 谱面模拟器
+- `tool-rpe2phi.py`: rpe格式谱面转phi格式
+- `tool-phi2rpe.py`: phi格式谱面转rpe格式
+- `tool-unpack.py`: 自动解包Phigros游戏资源, 目前最新支持版本 `3.11.0 (122)`
+- `tool-getPgrUrl.py`: 通过 `taptap API` 获取 Phigros 下载直链
+- `phigros.py`: 还原Phigros游戏界面, （真的！
+
 ## 谱面兼容
 
 - [x] phi
