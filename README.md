@@ -1,4 +1,4 @@
-# 这是一个使用WebView实现的Phigros谱面的模拟器
+# PhigrosPlayer
 
 ## 环境配置
 
