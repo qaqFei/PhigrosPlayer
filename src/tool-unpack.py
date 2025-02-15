@@ -282,7 +282,12 @@ def generate_resources(need_otherillu: bool = False):
         keymainname = ".".join(keybasename.split(".")[:-1])
         keyextname = keybasename.split(".")[-1]
         
-        if keymainname.startswith("Chart_") and keyextname == "json":
+        if keymainname in (
+            "Chart_EZ", "Chart_HD",
+            "Chart_IN", "Chart_AT",
+            "Chart_Legacy",
+            "Chart_Error"
+        ) and keyextname == "json":
             if not keymainname.endswith("_Error"):
                 iocommands.append(("save-string", f"{keymainname}/{keyfoldername}.json", obj.script))
             else:
@@ -299,6 +304,9 @@ def generate_resources(need_otherillu: bool = False):
         elif keymainname == "music" and keyextname in ("wav", "ogg", "mp3"):
             fsb = FSB5(obj.m_AudioData.tobytes() if isinstance(obj.m_AudioData, memoryview) else obj.m_AudioData)
             iocommands.append(("save-music", f"music/{keyfoldername}.ogg", fsb.rebuild_sample(fsb.samples[0])))
+        
+        else:
+            print(f"Unknown res: {key}: {obj}")
             
     def io():
         nonlocal keunpack_count, save_string_count
