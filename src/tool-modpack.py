@@ -40,7 +40,7 @@ def findexinfo_byinfo(iitem: dict, key: str):
     for i in extended_info:
         if i["key"] == iitem["soundIdBak"] + "/" + key:
             return i
-    return None
+    return None if not key.endswith(".png") else findexinfo_byinfo(iitem, key[:-4] + ".jpg")
 
 def putimto_bundle(bundle: typing.Optional[UnityPy.files.BundleFile], im: Image.Image, pid: int):
     if bundle is None: return
