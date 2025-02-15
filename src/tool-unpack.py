@@ -590,3 +590,5 @@ if __name__ == "__main__":
     setApk(argv[1])
     run("--rpe" in argv, "--need-otherillu" in argv, "--need-other-res" in argv)
     
+    # 耗汁尾汁，好好反思。
+    
