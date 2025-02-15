@@ -1,5 +1,8 @@
 # PhigrosPlayer
 
+![License](https://img.shields.io/badge/license-MIT-yellow)
+![Language](https://img.shields.io/badge/language-python-brightgreen)
+
 ## 环境配置
 
 - Python 版本: `3.12.8`
