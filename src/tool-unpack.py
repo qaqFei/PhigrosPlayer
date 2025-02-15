@@ -19,7 +19,7 @@ from UnityPy.enums import ClassIDType
 from fsb5 import FSB5
     
 iothread_num = 32
-packthread_num = 32
+packthread_num = 1
 p2rthread_num = 4
 
 class ByteReaderA:
