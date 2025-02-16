@@ -1,21 +1,18 @@
 from __future__ import annotations
 
+import init_logging as _
+
 import rjsmin
 import typing
 import json
+import logging
 from dataclasses import dataclass
 
 import const
 import tool_funcs
+import phi_easing
 
-def findevent(
-    events: list[
-        judgeLineDisappearEvent
-        |judgeLineMoveEvent
-        |judgeLineRotateEvent
-        |speedEvent
-    ], t: float
-) -> judgeLineDisappearEvent|judgeLineMoveEvent|judgeLineRotateEvent|speedEvent|None:
+def findevent(events: list[judgeLineBaseEvent|speedEvent], t: float) -> judgeLineBaseEvent|speedEvent|None:
     l, r = 0, len(events) - 1
     
     while l <= r:
@@ -49,6 +46,13 @@ def split_different_speednotes(notes: list[Note]) -> list[list[Note]]:
         tempmap[h].append(n)
     
     return list(tempmap.values())
+
+def other_fv_initevents(es: list[judgeLineBaseEvent|speedEvent]):
+    for i, e in enumerate(es):
+        if i != len(es) - 1:
+            e.endTime = es[i + 1].startTime
+        else:
+            e.endTime = const.PGR_INF
 
 @dataclass
 class Note:
@@ -146,7 +150,6 @@ class Note:
             self.imgname_end = f"Note_{self.img_end_keyname}"
     
     def getNoteClickPos(self, time: float) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
-        linePos = self.master.getMove(time, 1.0, 1.0)
         lineRotate = self.master.getRotate(time)
         
         cached: bool = False
@@ -157,7 +160,7 @@ class Note:
             
             if cached: return cachedata
             cached, cachedata = True, tool_funcs.rotate_point(
-                linePos[0] * w, linePos[1] * h,
+                *self.master.getMove(time, w, h),
                 lineRotate, self.positionX * w * const.PGR_UW
             )
             
@@ -191,11 +194,24 @@ class speedEvent:
         }
 
 @dataclass
-class judgeLineMoveEvent:
+class judgeLineBaseEvent:
     startTime: float
     endTime: float
     start: float
     end: float
+    easeType: int
+    
+    def __post_init__(self):
+        try: self.easeType = int(self.easeType)
+        except Exception as e:
+            logging.warning(f"Failed to parse easeType: {self.easeType} ({repr(e)})")
+            self.easeType = 0
+        
+        self.easeType = self.easeType if (0 <= self.easeType <= len(phi_easing.ease_funcs) - 1) else (0 if self.easeType < 0 else len(phi_easing.ease_funcs) - 1)
+        self.easeFunc = phi_easing.ease_funcs[self.easeType]
+
+@dataclass
+class judgeLineMoveEvent(judgeLineBaseEvent):
     start2: float
     end2: float
     
@@ -210,12 +226,7 @@ class judgeLineMoveEvent:
         }
 
 @dataclass
-class judgeLineRotateEvent:
-    startTime: float
-    endTime: float
-    start: float
-    end: float
-    
+class judgeLineRotateEvent(judgeLineBaseEvent):
     def dump(self):
         return {
             "startTime": self.startTime,
@@ -225,12 +236,7 @@ class judgeLineRotateEvent:
         }
 
 @dataclass
-class judgeLineDisappearEvent:
-    startTime: float
-    endTime: float
-    start: float
-    end: float
-    
+class judgeLineDisappearEvent(judgeLineBaseEvent):
     def dump(self):
         return {
             "startTime": self.startTime,
@@ -248,6 +254,8 @@ class judgeLine:
     judgeLineMoveEvents: list[judgeLineMoveEvent]
     judgeLineRotateEvents: list[judgeLineRotateEvent]
     judgeLineDisappearEvents: list[judgeLineDisappearEvent]
+    
+    master: typing.Optional[Phigros_Chart] = None
     
     def __post_init__(self):
         self.T = 1.875 / self.bpm
@@ -285,35 +293,40 @@ class judgeLine:
         self.judgeLineRotateEvents.sort(key = lambda x: x.startTime)
         self.judgeLineDisappearEvents.sort(key = lambda x: x.startTime)
     
-    def getRotate(self, now_time):
+    def getRotate(self, now_time: float):
         e = findevent(self.judgeLineRotateEvents, now_time)
-        return -tool_funcs.linear_interpolation(
+        return -tool_funcs.easing_interpolation(
             now_time,
-            e.startTime,
-            e.endTime,
-            e.start,
-            e.end
+            e.startTime, e.endTime,
+            e.start, e.end,
+            e.easeFunc
         ) if e is not None else 0.0
     
-    def getAlpha(self, now_time):
+    def getAlpha(self, now_time: float):
         e = findevent(self.judgeLineDisappearEvents, now_time)
-        return tool_funcs.linear_interpolation(
+        return tool_funcs.easing_interpolation(
             now_time,
-            e.startTime,
-            e.endTime,
-            e.start,
-            e.end
+            e.startTime, e.endTime,
+            e.start, e.end,
+            e.easeFunc
         ) if e is not None else 0.0
     
-    def _getMoveRaw(self, now_time):
-        e = findevent(self.judgeLineMoveEvents, now_time)
+    def _getMoveRaw(self, now_time: float):
+        e: judgeLineMoveEvent = findevent(self.judgeLineMoveEvents, now_time)
         return (
-            tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start, e.end),
-            tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2)
+            tool_funcs.easing_interpolation(now_time, e.startTime, e.endTime, e.start, e.end, e.easeFunc),
+            tool_funcs.easing_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2, e.easeFunc)
         ) if e is not None else (0.0, 0.0)
     
-    def getMove(self, now_time, w, h):
+    def getMove(self, now_time: float, w: int, h: int):
         raw = self._getMoveRaw(now_time)
+        
+        if self.master.formatVersion not in (1, 3):
+            return (
+                w / 2 + raw[0] * h * 0.1,
+                h / 2 - raw[1] * h * 0.1
+            )
+        
         return (raw[0] * w, (1.0 - raw[1]) * h)
     
     def dump(self):
@@ -369,6 +382,7 @@ class Phigros_Chart:
         self.note_num = 0
         
         for line in self.judgeLineList:
+            line.master = self
             for note in line.notesAbove + line.notesBelow:
                 note.sec = note.time * line.T
         
@@ -382,6 +396,12 @@ class Phigros_Chart:
             
         for line in self.judgeLineList:
             fp = 0.0
+            
+            if self.formatVersion not in (1, 3):
+                other_fv_initevents(line.speedEvents)
+                other_fv_initevents(line.judgeLineMoveEvents)
+                other_fv_initevents(line.judgeLineDisappearEvents)
+                other_fv_initevents(line.judgeLineRotateEvents)
             
             for e in line.speedEvents:
                 e.floorPosition = fp
