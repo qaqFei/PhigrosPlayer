@@ -12,7 +12,7 @@ import const
 import tool_funcs
 import phi_easing
 
-def findevent(events: list[judgeLineBaseEvent|speedEvent], t: float) -> judgeLineBaseEvent|speedEvent|None:
+def findevent(events: list[judgeLineBaseEvent]|list[speedEvent], t: float) -> judgeLineBaseEvent|speedEvent|None:
     l, r = 0, len(events) - 1
     
     while l <= r:
@@ -47,12 +47,27 @@ def split_different_speednotes(notes: list[Note]) -> list[list[Note]]:
     
     return list(tempmap.values())
 
-def other_fv_initevents(es: list[judgeLineBaseEvent|speedEvent]):
+def other_fv_initevents(es: list[judgeLineBaseEvent]|list[speedEvent]):
+    if not es: return
+    
     for i, e in enumerate(es):
         if i != len(es) - 1:
             e.endTime = es[i + 1].startTime
         else:
             e.endTime = const.PGR_INF
+            
+    if not isinstance(es[0], speedEvent):
+        for i, e in enumerate(es):
+            if i != len(es) - 1:
+                if not e.useEndNode:
+                    e.end = es[i + 1].start
+                    if isinstance(e, judgeLineMoveEvent):
+                        e.end2 = es[i + 1].start2
+            else:
+                if not e.useEndNode:
+                    e.end = e.start
+                    if isinstance(e, judgeLineMoveEvent):
+                        e.end2 = e.start2
 
 @dataclass
 class Note:
@@ -200,6 +215,7 @@ class judgeLineBaseEvent:
     start: float
     end: float
     easeType: int
+    useEndNode: bool
     
     def __post_init__(self):
         try: self.easeType = int(self.easeType)
@@ -321,11 +337,11 @@ class judgeLine:
     def getMove(self, now_time: float, w: int, h: int):
         raw = self._getMoveRaw(now_time)
         
-        if self.master.formatVersion not in (1, 3):
-            return (
-                w / 2 + raw[0] * h * 0.1,
-                h / 2 - raw[1] * h * 0.1
-            )
+        # if self.master.formatVersion not in (1, 3):
+        #     return (
+        #         w / 2 + raw[0] * h * 0.1,
+        #         h / 2 - raw[1] * h * 0.1
+        #     )
         
         return (raw[0] * w, (1.0 - raw[1]) * h)
     
