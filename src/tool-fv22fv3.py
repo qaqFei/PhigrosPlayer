@@ -79,10 +79,9 @@ def SaveAsNewFormat(chart: dict):
                             result[-1]["endTime"] = cyevent["startTime"]
                             result[-1]["end"] = cyevent["start"]
                             if ismove: result[-1]["end2"] = cyevent["start2"]
-                        else:
-                            cyevent["end"] = thise["end"] if thise_uen else nexte["start"]
-                            if ismove: cyevent["end2"] = thise["end2"] if thise_uen else nexte["start2"]
-                        
+                            
+                        cyevent["end"] = thise["end"] if thise_uen else nexte["start"]
+                        if ismove: cyevent["end2"] = thise["end2"] if thise_uen else nexte["start2"]
                         cyevent["endTime"] = nexte["startTime"]
                             
                         result.append(cyevent)
