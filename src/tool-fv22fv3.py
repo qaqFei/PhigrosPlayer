@@ -116,7 +116,7 @@ def SaveAsNewFormat(chart: dict):
             "judgeLineMoveEvents": []
         }
         
-        if len(thisline["speedEvents"]) > 0:
+        if thisline["speedEvents"]:
             for j in range(len(thisline["speedEvents"])):
                 speedEvent = thisline["speedEvents"][j]
                 if j == 0 and speedEvent["startTime"] != 0.0:
