@@ -102,29 +102,27 @@ def SaveAsNewFormat(chart: dict):
             "judgeLineMoveEvents": []
         }
         
-        if len(chart["judgeLineList"][i]["notesAbove"]) > 0:
-            for chartNote in chart["judgeLineList"][i]["notesAbove"]:
-                compatibilityChartNote = {
-                    "time": chartNote["time"],
-                    "type": chartNote["type"],
-                    "positionX": chartNote["positionX"],
-                    "holdTime": chartNote["holdTime"],
-                    "speed": chartNote["speed"] if chartNote["type"] != 3 else chartNote["headSpeed"],
-                    "floorPosition": chartNote["floorPosition"],
-                }
-                compatibilityJudgeLine["notesAbove"].append(compatibilityChartNote)
+        for chartNote in chart["judgeLineList"][i]["notesAbove"]:
+            compatibilityChartNote = {
+                "time": chartNote["time"],
+                "type": chartNote["type"],
+                "positionX": chartNote["positionX"],
+                "holdTime": chartNote["holdTime"],
+                "speed": chartNote["speed"] if chartNote["type"] != 3 else chartNote["headSpeed"],
+                "floorPosition": chartNote["floorPosition"],
+            }
+            compatibilityJudgeLine["notesAbove"].append(compatibilityChartNote)
         
-        if len(chart["judgeLineList"][i]["notesBelow"]) > 0:
-            for chartNote in chart["judgeLineList"][i]["notesBelow"]:
-                compatibilityChartNote = {
-                    "time": chartNote["time"],
-                    "type": chartNote["type"],
-                    "positionX": chartNote["positionX"],
-                    "holdTime": chartNote["holdTime"],
-                    "speed": chartNote["speed"] if chartNote["type"] != 3 else chartNote["headSpeed"],
-                    "floorPosition": chartNote["floorPosition"],
-                }
-                compatibilityJudgeLine["notesBelow"].append(compatibilityChartNote)
+        for chartNote in chart["judgeLineList"][i]["notesBelow"]:
+            compatibilityChartNote = {
+                "time": chartNote["time"],
+                "type": chartNote["type"],
+                "positionX": chartNote["positionX"],
+                "holdTime": chartNote["holdTime"],
+                "speed": chartNote["speed"] if chartNote["type"] != 3 else chartNote["headSpeed"],
+                "floorPosition": chartNote["floorPosition"],
+            }
+            compatibilityJudgeLine["notesBelow"].append(compatibilityChartNote)
         
         if len(chart["judgeLineList"][i]["speedEvents"]) > 0:
             for j in range(len(chart["judgeLineList"][i]["speedEvents"])):
