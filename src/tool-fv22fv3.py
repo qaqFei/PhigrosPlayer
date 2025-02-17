@@ -12,6 +12,144 @@ if len(argv) < 3:
 with open(argv[1], "r", encoding="utf-8") as f:
     fv2 = json.load(f)
 
+def SaveAsNewFormat(chart: dict):
+    def GetEaseProgress(easeType: int, progress: float):
+        return phi_easing.ease_funcs[easeType](progress) if 0.0 <= progress <= 1.0 else (0.0 if progress < 0.0 else 1.0)
+    
+    compatibilityChart = {
+        "formatVersion": 3,
+        "offset": chart["offset"],
+        "numOfNotes": chart["numOfNotes"],
+        "judgeLineList": []
+    }
+    
+    for i in range(min(24, chart["judgeLineList"])):
+        compatibilityJudgeLine = {
+            "bpm": chart["judgeLineList"][i]["bpm"],
+            "numOfNotes": chart["judgeLineList"][i]["numOfNotes"],
+            "numOfNotesAbove": chart["judgeLineList"][i]["numOfNotesAbove"],
+            "numOfNotesBelow": chart["judgeLineList"][i]["numOfNotesBelow"],
+            "notesAbove": [],
+            "notesBelow": [],
+            "speedEvents": [],
+            "judgeLineDisappearEvents": [],
+            "judgeLineRotateEvents": [],
+            "judgeLineMoveEvents": []
+        }
+        
+        if len(chart["judgeLineList"][i]["notesAbove"]) > 0:
+            for chartNote in chart["judgeLineList"][i]["notesAbove"]:
+                compatibilityChartNote = {
+                    "time": chartNote["time"],
+                    "type": chartNote["type"],
+                    "positionX": chartNote["positionX"],
+                    "holdTime": chartNote["holdTime"],
+                    "speed": chartNote["speed"] if chartNote["type"] != 3 else chartNote["headSpeed"],
+                    "floorPosition": chartNote["floorPosition"],
+                }
+                compatibilityJudgeLine["notesAbove"].append(compatibilityChartNote)
+        
+        if len(chart["judgeLineList"][i]["notesBelow"]) > 0:
+            for chartNote in chart["judgeLineList"][i]["notesBelow"]:
+                compatibilityChartNote = {
+                    "time": chartNote["time"],
+                    "type": chartNote["type"],
+                    "positionX": chartNote["positionX"],
+                    "holdTime": chartNote["holdTime"],
+                    "speed": chartNote["speed"] if chartNote["type"] != 3 else chartNote["headSpeed"],
+                    "floorPosition": chartNote["floorPosition"],
+                }
+                compatibilityJudgeLine["notesBelow"].append(compatibilityChartNote)
+        
+        if len(chart["judgeLineList"][i]["speedEvents"]) > 0:
+            for j in range(len(chart["judgeLineList"][i]["speedEvents"])):
+                speedEvent = chart["judgeLineList"][i]["speedEvents"][j]
+                if j == 0 and speedEvent["startTime"] != 0.0:
+                    compatibilitySpeedEvent = {
+                        "startTime": 0.0, "endTime": speedEvent["startTime"],
+                        "floorPosition": 0.0, "value": 1.0
+                    }
+                    compatibilityJudgeLine["speedEvents"].append(compatibilitySpeedEvent)
+                
+                compatibilitySpeedEvent = {
+                    "startTime": speedEvent["startTime"],
+                    "endTime": chart["judgeLineList"][i]["speedEvents"][j + 1]["startTime"] if j < len(chart["judgeLineList"][i]["speedEvents"]) - 1 else 1e09,
+                    "floorPosition": speedEvent["floorPosition"],
+                    "value": speedEvent["value"]
+                }
+                compatibilityJudgeLine["speedEvents"].append(compatibilitySpeedEvent)
+        else:
+            compatibilitySpeedEvent = {
+                "startTime": 0.0, "endTime": 1e09,
+                "floorPosition": 0.0, "value": 1.0
+            }
+            compatibilityJudgeLine["speedEvents"].append(compatibilitySpeedEvent)
+        
+        
+        compatibilityJudgeLineEvent = {
+            "startTime": -999999.0, "endTime": 1e09,
+            "start": 0.0, "end": 0.0
+        }
+        compatibilityJudgeLine["judgeLineDisappearEvents"].append(compatibilityJudgeLineEvent)
+        
+        for k in range(len(chart["judgeLineList"][i]["judgeLineDisappearEvents"])):
+            thise = chart["judgeLineList"][i]["judgeLineDisappearEvents"][k]
+            
+            if k == 0:
+                compatibilityJudgeLineEvent["start"] = thise["start"]
+                compatibilityJudgeLineEvent["end"] = thise["end"]
+                compatibilityJudgeLineEvent["endTime"] = thise["startTime"]
+            
+            if k < len(chart["judgeLineList"][i]["judgeLineDisappearEvents"]) - 1:
+                nexte = chart["judgeLineList"][i]["judgeLineDisappearEvents"][k + 1]
+                
+                if thise.get("easeType", 0) == 0:
+                    compatibilityJudgeLineEvent = {
+                        "startTime": thise["startTime"],
+                        "endTime": nexte["startTime"],
+                        "start": thise["start"],
+                        "end": thise["end"] if thise.get("useEndNode", False) else nexte["start"]
+                    }
+                    compatibilityJudgeLine["judgeLineDisappearEvents"].append(compatibilityJudgeLineEvent)
+                else:
+                    num2 = 0
+                    while num2 + thise["startTime"] < nexte["startTime"]:
+                        compatibilityJudgeLineEvent = {
+                            "startTime": num2 + thise["startTime"],
+                            "start": GetEaseProgress(
+                                thise.get("easeType", 0),
+                                num2 / (nexte["startTime"] - thise["startTime"])
+                            ) * (
+                                (thise["end"] if thise.get("useEndNode", False) else nexte["start"]) - thise["start"]
+                            ) + thise["start"]
+                        }
+                        
+                        if compatibilityJudgeLineEvent["startTime"] != thise["startTime"]:
+                            compatibilityJudgeLine["judgeLineDisappearEvents"][len(compatibilityJudgeLine["judgeLineDisappearEvents"]) - 1]["endTime"] = compatibilityJudgeLineEvent["startTime"]
+                            compatibilityJudgeLine["judgeLineDisappearEvents"][len(compatibilityJudgeLine["judgeLineDisappearEvents"]) - 1]["end"] = compatibilityJudgeLineEvent["start"]
+                            
+                        compatibilityJudgeLineEvent["endTime"] = nexte["startTime"]
+                        compatibilityJudgeLineEvent["end"] = GetEaseProgress(thise.get("easeType", 0), 1.0) * (
+                            (thise["end"] if thise.get("useEndNode", False) else nexte["start"]) - thise["start"]
+                        ) + thise["start"]
+                        compatibilityJudgeLine["judgeLineDisappearEvents"].append(compatibilityJudgeLineEvent)
+                        
+                        dt = nexte["startTime"] - thise["startTime"]
+                        if dt >= 512.0: num2 += 16
+                        elif dt >= 256.0: num2 += 8
+                        elif dt >= 256.0: num2 += 4
+                        else: num2 += 1
+            else:
+                compatibilityJudgeLine = {
+                    "startTime": thise["startTime"],
+                    "endTime": 1e09,
+                    "start": thise["start"],
+                    "end": thise["start"]
+                }
+                compatibilityJudgeLine["judgeLineDisappearEvents"].append(compatibilityJudgeLineEvent)
+
+        compatibilityChart["judgeLineList"].append(compatibilityJudgeLine)
+
 def fv2events2fv3(es: list[dict], isspeed: bool, ismove: bool):
     es.sort(key=lambda e: e["startTime"])
     nes = []
