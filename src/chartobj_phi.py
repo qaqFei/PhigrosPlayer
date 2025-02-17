@@ -299,7 +299,7 @@ class judgeLine:
         self.effectNotes = self.notesAbove + self.notesBelow
         self.effectNotes.sort(key = lambda x: x.time)
         
-        self.renderNotes = split_different_speednotes(self.notesAbove + self.notesBelow)
+        self.renderNotes = split_different_speednotes(self.notesAbove) + split_different_speednotes(self.notesBelow)
         for rnc in self.renderNotes:
             rnc.sort(key = lambda x: x.time)
     
