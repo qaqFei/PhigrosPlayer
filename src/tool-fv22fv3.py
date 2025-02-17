@@ -67,7 +67,7 @@ def SaveAsNewFormat(chart: dict):
                             ) + thise["start"],
                             **({
                                 "start2": GetEaseProgress(
-                                    thise.get("easeType", 0),
+                                    thise.get("easeType2", 0),
                                     num2 / (nexte["startTime"] - thise["startTime"])
                                 ) * (
                                     (thise["end2"] if thise_uen else nexte["start2"]) - thise["start2"]
