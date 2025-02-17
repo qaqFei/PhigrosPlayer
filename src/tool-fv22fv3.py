@@ -117,7 +117,7 @@ def SaveAsNewFormat(chart: dict):
         }
         
         if thisline["speedEvents"]:
-            for j in range(len(thisline["speedEvents"])):
+            for j, speedEvent in enumerate(thisline["speedEvents"]):
                 speedEvent = thisline["speedEvents"][j]
                 if j == 0 and speedEvent["startTime"] != 0.0:
                     compatibilityJudgeLine["speedEvents"].append({
