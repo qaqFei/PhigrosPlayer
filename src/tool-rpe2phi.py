@@ -4,6 +4,7 @@ import copy
 from sys import argv
 
 import rpe_easing
+import light_tool_funcs
 
 if len(argv) < 3:
     print("Usage: tool-rpe2phi <input> <output>")
@@ -47,8 +48,9 @@ def rt2pt(t: list[int]):
 def linear(t: float, st: float, et: float, sv: float, ev: float):
     return (t - st) / (et - st) * (ev - sv) + sv
 
-def easing(t: float, st: float, et: float, sv: float, ev: float, easingType: int):
-    return rpe_easing.ease_funcs[easingType]((t - st) / (et - st)) * (ev - sv) + sv
+def easing(t: float, st: float, et: float, sv: float, ev: float, e: dict):
+    ef = rpe_easing.ease_funcs[e.get("easingType", 1)] if not e.get("bezier", 0) else light_tool_funcs.createBezierFunction(e.get("bezierPoints", [1.0, 1.0, 1.0, 1.0]))
+    return ef((t - st) / (et - st)) * (ev - sv) + sv
 
 def convertEventsTime(es: list[dict]):
     for e in es:
@@ -121,8 +123,8 @@ def splitEvents(es: list[dict], isspeed: bool):
                 nes.append({
                     "startTime": t,
                     "endTime": t + easingSplitTime,
-                    "start": easing(t, e["startTime"], e["endTime"], e["start"], e["end"], etype),
-                    "end": easing(t + easingSplitTime, e["startTime"], e["endTime"], e["start"], e["end"], etype),
+                    "start": easing(t, e["startTime"], e["endTime"], e["start"], e["end"], e),
+                    "end": easing(t + easingSplitTime, e["startTime"], e["endTime"], e["start"], e["end"], e),
                 })
                 t += easingSplitTime
             
@@ -130,7 +132,7 @@ def splitEvents(es: list[dict], isspeed: bool):
                 nes.append({
                     "startTime": t,
                     "endTime": e["endTime"],
-                    "start": easing(t, e["startTime"], e["endTime"], e["start"], e["end"], etype),
+                    "start": easing(t, e["startTime"], e["endTime"], e["start"], e["end"], e),
                     "end": e["end"],
                 })
         
@@ -142,7 +144,7 @@ def splitEvents(es: list[dict], isspeed: bool):
             t = e["startTime"]
             etype = e.get("easingType", 1)
             while t <= e["endTime"]:
-                v = easing(t, e["startTime"], e["endTime"], e["start"], e["end"], etype)
+                v = easing(t, e["startTime"], e["endTime"], e["start"], e["end"], e)
                 nes.append({
                     "startTime": t,
                     "endTime": t + easingSplitTime,
