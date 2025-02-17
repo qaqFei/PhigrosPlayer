@@ -23,27 +23,24 @@ def SaveAsNewFormat(chart: dict):
             "startTime": -999999.0, "endTime": 1e09,
             "start": 0.0, "end": 0.0
         }
-        compatibilityJudgeLine["judgeLineDisappearEvents"].append(cyevent)
+        result.append(cyevent)
         
-        for k in range(len(chart["judgeLineList"][i]["judgeLineDisappearEvents"])):
-            thise = chart["judgeLineList"][i]["judgeLineDisappearEvents"][k]
-            
+        for k, thise in enumerate(events):
             if k == 0:
                 cyevent["start"] = thise["start"]
                 cyevent["end"] = thise["end"]
                 cyevent["endTime"] = thise["startTime"]
             
-            if k < len(chart["judgeLineList"][i]["judgeLineDisappearEvents"]) - 1:
-                nexte = chart["judgeLineList"][i]["judgeLineDisappearEvents"][k + 1]
+            if k < len(events) - 1:
+                nexte = events[k + 1]
                 
                 if thise.get("easeType", 0) == 0:
-                    cyevent = {
+                    result.append({
                         "startTime": thise["startTime"],
                         "endTime": nexte["startTime"],
                         "start": thise["start"],
                         "end": thise["end"] if thise.get("useEndNode", False) else nexte["start"]
-                    }
-                    compatibilityJudgeLine["judgeLineDisappearEvents"].append(cyevent)
+                    })
                 else:
                     num2 = 0
                     while num2 + thise["startTime"] < nexte["startTime"]:
@@ -58,14 +55,14 @@ def SaveAsNewFormat(chart: dict):
                         }
                         
                         if cyevent["startTime"] != thise["startTime"]:
-                            compatibilityJudgeLine["judgeLineDisappearEvents"][len(compatibilityJudgeLine["judgeLineDisappearEvents"]) - 1]["endTime"] = cyevent["startTime"]
-                            compatibilityJudgeLine["judgeLineDisappearEvents"][len(compatibilityJudgeLine["judgeLineDisappearEvents"]) - 1]["end"] = cyevent["start"]
+                            result[len(result) - 1]["endTime"] = cyevent["startTime"]
+                            result[len(result) - 1]["end"] = cyevent["start"]
                             
                         cyevent["endTime"] = nexte["startTime"]
                         cyevent["end"] = GetEaseProgress(thise.get("easeType", 0), 1.0) * (
                             (thise["end"] if thise.get("useEndNode", False) else nexte["start"]) - thise["start"]
                         ) + thise["start"]
-                        compatibilityJudgeLine["judgeLineDisappearEvents"].append(cyevent)
+                        result.append(cyevent)
                         
                         dt = nexte["startTime"] - thise["startTime"]
                         if dt >= 512.0: num2 += 16
@@ -73,13 +70,14 @@ def SaveAsNewFormat(chart: dict):
                         elif dt >= 256.0: num2 += 4
                         else: num2 += 1
             else:
-                cyevent = {
+                result.append({
                     "startTime": thise["startTime"],
                     "endTime": 1e09,
                     "start": thise["start"],
                     "end": thise["start"]
-                }
-                compatibilityJudgeLine["judgeLineDisappearEvents"].append(cyevent)
+                })
+        
+        return result
     
     compatibilityChart = {
         "formatVersion": 3,
