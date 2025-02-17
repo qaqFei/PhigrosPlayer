@@ -160,8 +160,9 @@ def SaveAsNewFormat(chart: dict):
                 "floorPosition": 0.0, "value": 1.0
             })
 
-        cyline["judgeLineDisappearEvents"] = ToCompatibilityEvents(thisline["judgeLineDisappearEvents"])
-        cyline["judgeLineRotateEvents"] = ToCompatibilityEvents(thisline["judgeLineRotateEvents"])
+        cyline["judgeLineDisappearEvents"] = ToCompatibilityEvents(thisline["judgeLineDisappearEvents"], False)
+        cyline["judgeLineRotateEvents"] = ToCompatibilityEvents(thisline["judgeLineRotateEvents"], False)
+        cyline["judgeLineMoveEvents"] = ToCompatibilityEvents(thisline["judgeLineMoveEvents"], True)
         
         compatibilityChart["judgeLineList"].append(cyline)
 
