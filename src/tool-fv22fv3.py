@@ -2,8 +2,6 @@ import json
 from sys import argv
 
 import phi_easing
-import const
-import light_tool_funcs
 
 if len(argv) < 3:
     print("Usage: tool-fv22fv3 <input> <output>")
