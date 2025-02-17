@@ -33,17 +33,17 @@ def SaveAsNewFormat(chart: dict):
             
             if k == 0:
                 cyevent["start"] = thise["start"]
-                cyevent["end"] = thise["end"]
+                cyevent["end"] = thise["start"]
                 cyevent["endTime"] = thise["startTime"]
                 
                 if ismove:
                     cyevent["start2"] = thise["start2"]
-                    cyevent["end2"] = thise["end2"]
+                    cyevent["end2"] = thise["start2"]
             
             if k < len(events) - 1:
                 nexte = events[k + 1]
                 
-                if thise.get("easeType", 0) == 0:
+                if thise.get("easeType", 0) == 0 and (not ismove or thise.get("easeType2", 0) == 0):
                     result.append({
                         "startTime": thise["startTime"],
                         "endTime": nexte["startTime"],
@@ -103,6 +103,17 @@ def SaveAsNewFormat(chart: dict):
                     } if ismove else {})
                 })
         
+        for i, e in enumerate(result):
+            if not ismove: e.update({"start2": 0.0, "end2": 0.0})
+            result[i] = {
+                "startTime": e["startTime"],
+                "endTime": e["endTime"],
+                "start": e["start"],
+                "end": e["end"],
+                "start2": e["start2"],
+                "end2": e["end2"]
+            }
+        
         return result
     
     compatibilityChart = {
@@ -114,30 +125,30 @@ def SaveAsNewFormat(chart: dict):
     
     for i, thisline in enumerate(chart["judgeLineList"][:24]):
         cyline = {
-            "bpm": thisline["bpm"],
             "numOfNotes": thisline["numOfNotes"],
             "numOfNotesAbove": thisline["numOfNotesAbove"],
             "numOfNotesBelow": thisline["numOfNotesBelow"],
+            "bpm": thisline["bpm"],
+            "speedEvents": [],
             "notesAbove": [{
-                "time": chartNote["time"],
                 "type": chartNote["type"],
+                "time": chartNote["time"],
                 "positionX": chartNote["positionX"],
                 "holdTime": chartNote["holdTime"],
                 "speed": chartNote["speed"] if chartNote["type"] != 3 else chartNote["headSpeed"],
                 "floorPosition": chartNote["floorPosition"]
             } for chartNote in thisline["notesAbove"]],
             "notesBelow": [{
-                "time": chartNote["time"],
                 "type": chartNote["type"],
+                "time": chartNote["time"],
                 "positionX": chartNote["positionX"],
                 "holdTime": chartNote["holdTime"],
                 "speed": chartNote["speed"] if chartNote["type"] != 3 else chartNote["headSpeed"],
                 "floorPosition": chartNote["floorPosition"]
             } for chartNote in thisline["notesBelow"]],
-            "speedEvents": [],
             "judgeLineDisappearEvents": [],
-            "judgeLineRotateEvents": [],
-            "judgeLineMoveEvents": []
+            "judgeLineMoveEvents": [],
+            "judgeLineRotateEvents": []
         }
         
         if thisline["speedEvents"]:
@@ -165,6 +176,8 @@ def SaveAsNewFormat(chart: dict):
         cyline["judgeLineMoveEvents"] = ToCompatibilityEvents(thisline["judgeLineMoveEvents"], True)
         
         compatibilityChart["judgeLineList"].append(cyline)
+
+    return compatibilityChart
 
 def fv2events2fv3(es: list[dict], isspeed: bool, ismove: bool):
     es.sort(key=lambda e: e["startTime"])
@@ -284,10 +297,12 @@ def convertLine(fv2line: dict):
     
     return fv2line
 
-fv3 = {
-    "formatVersion": 3,
-    "offset": fv2["offset"],
-    "judgeLineList": list(map(convertLine, fv2["judgeLineList"]))
-}
+# fv3 = {
+#     "formatVersion": 3,
+#     "offset": fv2["offset"],
+#     "judgeLineList": list(map(convertLine, fv2["judgeLineList"]))
+# }
 
-json.dump(fv3, open(argv[2], "w", encoding="utf-8"), ensure_ascii=False)
+fv3 = SaveAsNewFormat(fv2)
+
+json.dump(fv3, open(argv[2], "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
