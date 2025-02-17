@@ -57,8 +57,8 @@ def SaveAsNewFormat(chart: dict):
                         }
                         
                         if cyevent["startTime"] != thise["startTime"]:
-                            result[len(result) - 1]["endTime"] = cyevent["startTime"]
-                            result[len(result) - 1]["end"] = cyevent["start"]
+                            result[-1]["endTime"] = cyevent["startTime"]
+                            result[-1]["end"] = cyevent["start"]
                             
                         cyevent["endTime"] = nexte["startTime"]
                         cyevent["end"] = GetEaseProgress(thise.get("easeType", 0), 1.0) * (
@@ -89,7 +89,7 @@ def SaveAsNewFormat(chart: dict):
     }
     
     for i, thisline in enumerate(chart["judgeLineList"][:24]):
-        compatibilityJudgeLine = {
+        cyline = {
             "bpm": thisline["bpm"],
             "numOfNotes": thisline["numOfNotes"],
             "numOfNotesAbove": thisline["numOfNotesAbove"],
@@ -117,29 +117,29 @@ def SaveAsNewFormat(chart: dict):
         }
         
         if thisline["speedEvents"]:
-            for j, speedEvent in enumerate(thisline["speedEvents"]):
-                speedEvent = thisline["speedEvents"][j]
-                if j == 0 and speedEvent["startTime"] != 0.0:
-                    compatibilityJudgeLine["speedEvents"].append({
-                        "startTime": 0.0, "endTime": speedEvent["startTime"],
+            for j, e in enumerate(thisline["speedEvents"]):
+                if j == 0 and e["startTime"] != 0.0:
+                    cyline["speedEvents"].append({
+                        "startTime": 0.0, "endTime": e["startTime"],
                         "floorPosition": 0.0, "value": 1.0
                     })
                 
-                compatibilityJudgeLine["speedEvents"].append({
-                    "startTime": speedEvent["startTime"],
+                cyline["speedEvents"].append({
+                    "startTime": e["startTime"],
                     "endTime": thisline["speedEvents"][j + 1]["startTime"] if j < len(thisline["speedEvents"]) - 1 else 1e09,
-                    "floorPosition": speedEvent["floorPosition"],
-                    "value": speedEvent["value"]
+                    "floorPosition": e["floorPosition"],
+                    "value": e["value"]
                 })
         else:
-            compatibilityJudgeLine["speedEvents"].append({
+            cyline["speedEvents"].append({
                 "startTime": 0.0, "endTime": 1e09,
                 "floorPosition": 0.0, "value": 1.0
             })
 
-        compatibilityJudgeLine["judgeLineDisappearEvents"] = ToCompatibilityEvents()
+        cyline["judgeLineDisappearEvents"] = ToCompatibilityEvents(thisline["judgeLineDisappearEvents"])
+        cyline["judgeLineRotateEvents"] = ToCompatibilityEvents(thisline["judgeLineRotateEvents"])
         
-        compatibilityChart["judgeLineList"].append(compatibilityJudgeLine)
+        compatibilityChart["judgeLineList"].append(cyline)
 
 def fv2events2fv3(es: list[dict], isspeed: bool, ismove: bool):
     es.sort(key=lambda e: e["startTime"])
