@@ -16,12 +16,15 @@ def SaveAsNewFormat(chart: dict):
     def GetEaseProgress(easeType: int, progress: float):
         return phi_easing.ease_funcs[easeType](progress) if 0.0 <= progress <= 1.0 else (0.0 if progress < 0.0 else 1.0)
     
-    def ToCompatibilityEvents(events: list[dict]):
+    def ToCompatibilityEvents(events: list[dict], ismove: bool):
         result: list[dict] = []
         
         cyevent = {
             "startTime": -999999.0, "endTime": 1e09,
-            "start": 0.0, "end": 0.0
+            **(
+                {"start": 0.5, "end": 0.5, "start2": 0.5, "end2": 0.5}
+                if ismove else {"start": 0.0, "end": 0.0}
+            )
         }
         result.append(cyevent)
         
@@ -32,6 +35,10 @@ def SaveAsNewFormat(chart: dict):
                 cyevent["start"] = thise["start"]
                 cyevent["end"] = thise["end"]
                 cyevent["endTime"] = thise["startTime"]
+                
+                if ismove:
+                    cyevent["start2"] = thise["start2"]
+                    cyevent["end2"] = thise["end2"]
             
             if k < len(events) - 1:
                 nexte = events[k + 1]
@@ -41,7 +48,11 @@ def SaveAsNewFormat(chart: dict):
                         "startTime": thise["startTime"],
                         "endTime": nexte["startTime"],
                         "start": thise["start"],
-                        "end": thise["end"] if thise_uen else nexte["start"]
+                        "end": thise["end"] if thise_uen else nexte["start"],
+                        **({
+                            "start2": thise["start2"],
+                            "end2": thise["end2"] if thise_uen else nexte["start2"],
+                        } if ismove else {})
                     })
                 else:
                     num2 = 0
@@ -53,15 +64,25 @@ def SaveAsNewFormat(chart: dict):
                                 num2 / (nexte["startTime"] - thise["startTime"])
                             ) * (
                                 (thise["end"] if thise_uen else nexte["start"]) - thise["start"]
-                            ) + thise["start"]
+                            ) + thise["start"],
+                            **({
+                                "start2": GetEaseProgress(
+                                    thise.get("easeType", 0),
+                                    num2 / (nexte["startTime"] - thise["startTime"])
+                                ) * (
+                                    (thise["end2"] if thise_uen else nexte["start2"]) - thise["start2"]
+                                ) + thise["start2"]
+                            } if ismove else {})
                         }
                         
                         if cyevent["startTime"] != thise["startTime"]:
                             result[-1]["endTime"] = cyevent["startTime"]
                             result[-1]["end"] = cyevent["start"]
+                            if ismove: result[-1]["end2"] = cyevent["start2"]
                         else:
                             cyevent["endTime"] = nexte["startTime"]
                             cyevent["end"] = thise["end"] if thise_uen else nexte["start"]
+                            if ismove: cyevent["end2"] = thise["end2"] if thise_uen else nexte["start2"]
                             
                         result.append(cyevent)
                         
@@ -75,7 +96,11 @@ def SaveAsNewFormat(chart: dict):
                     "startTime": thise["startTime"],
                     "endTime": 1e09,
                     "start": thise["start"],
-                    "end": thise["start"]
+                    "end": thise["start"],
+                    **({
+                        "start2": thise["start2"],
+                        "end2": thise["start2"],
+                    } if ismove else {})
                 })
         
         return result
