@@ -120,25 +120,25 @@ def SaveAsNewFormat(chart: dict):
             for j in range(len(thisline["speedEvents"])):
                 speedEvent = thisline["speedEvents"][j]
                 if j == 0 and speedEvent["startTime"] != 0.0:
-                    compatibilitySpeedEvent = {
+                    cySpeedEvent = {
                         "startTime": 0.0, "endTime": speedEvent["startTime"],
                         "floorPosition": 0.0, "value": 1.0
                     }
-                    compatibilityJudgeLine["speedEvents"].append(compatibilitySpeedEvent)
+                    compatibilityJudgeLine["speedEvents"].append(cySpeedEvent)
                 
-                compatibilitySpeedEvent = {
+                cySpeedEvent = {
                     "startTime": speedEvent["startTime"],
                     "endTime": thisline["speedEvents"][j + 1]["startTime"] if j < len(thisline["speedEvents"]) - 1 else 1e09,
                     "floorPosition": speedEvent["floorPosition"],
                     "value": speedEvent["value"]
                 }
-                compatibilityJudgeLine["speedEvents"].append(compatibilitySpeedEvent)
+                compatibilityJudgeLine["speedEvents"].append(cySpeedEvent)
         else:
-            compatibilitySpeedEvent = {
+            cySpeedEvent = {
                 "startTime": 0.0, "endTime": 1e09,
                 "floorPosition": 0.0, "value": 1.0
             }
-            compatibilityJudgeLine["speedEvents"].append(compatibilitySpeedEvent)
+            compatibilityJudgeLine["speedEvents"].append(cySpeedEvent)
 
         compatibilityJudgeLine["judgeLineDisappearEvents"] = ToCompatibilityEvents()
         
