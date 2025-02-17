@@ -15,8 +15,7 @@ with open(argv[1], "r", encoding="utf-8") as f:
 
 globalBpm = rpec["BPMList"][0]["bpm"]
 globalT = 1.875 / globalBpm
-easingSplitTimeSec = 0.02
-easingSplitTime = easingSplitTimeSec / globalT
+easingSplitTime = 1
 inft = 1e9
 phic = {
     "formatVersion": 3,
@@ -118,7 +117,6 @@ def splitEvents(es: list[dict], isspeed: bool):
                 continue
             
             t = e["startTime"]
-            etype = e["easingType"]
             while t <= e["endTime"]:
                 nes.append({
                     "startTime": t,
@@ -142,7 +140,6 @@ def splitEvents(es: list[dict], isspeed: bool):
                 continue
             
             t = e["startTime"]
-            etype = e.get("easingType", 1)
             while t <= e["endTime"]:
                 v = easing(t, e["startTime"], e["endTime"], e["start"], e["end"], e)
                 nes.append({
