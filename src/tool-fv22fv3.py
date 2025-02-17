@@ -53,7 +53,7 @@ def SaveAsNewFormat(chart: dict):
                                 num2 / (nexte["startTime"] - thise["startTime"])
                             ) * (
                                 (thise["end"] if thise_uen else nexte["start"]) - thise["start"]
-                            ) + thise["start"],
+                            ) + thise["start"]
                         }
                         
                         if cyevent["startTime"] != thise["startTime"]:
