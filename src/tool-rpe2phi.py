@@ -49,7 +49,7 @@ def linear(t: float, st: float, et: float, sv: float, ev: float):
     return (t - st) / (et - st) * (ev - sv) + sv
 
 def easing(t: float, st: float, et: float, sv: float, ev: float, e: dict):
-    ef = rpe_easing.ease_funcs[e.get("easingType", 1)] if not e.get("bezier", 0) else light_tool_funcs.createBezierFunction(e.get("bezierPoints", [1.0, 1.0, 1.0, 1.0]))
+    ef = rpe_easing.ease_funcs[e.get("easingType", 1) - 1] if not e.get("bezier", 0) else light_tool_funcs.createBezierFunction(e.get("bezierPoints", [1.0, 1.0, 1.0, 1.0]))
     return ef((t - st) / (et - st)) * (ev - sv) + sv
 
 def convertEventsTime(es: list[dict]):
