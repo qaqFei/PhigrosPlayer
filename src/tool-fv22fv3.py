@@ -26,6 +26,8 @@ def SaveAsNewFormat(chart: dict):
         result.append(cyevent)
         
         for k, thise in enumerate(events):
+            thise_uen = thise.get("useEndNode", False)
+            
             if k == 0:
                 cyevent["start"] = thise["start"]
                 cyevent["end"] = thise["end"]
@@ -39,7 +41,7 @@ def SaveAsNewFormat(chart: dict):
                         "startTime": thise["startTime"],
                         "endTime": nexte["startTime"],
                         "start": thise["start"],
-                        "end": thise["end"] if thise.get("useEndNode", False) else nexte["start"]
+                        "end": thise["end"] if thise_uen else nexte["start"]
                     })
                 else:
                     num2 = 0
@@ -50,7 +52,7 @@ def SaveAsNewFormat(chart: dict):
                                 thise.get("easeType", 0),
                                 num2 / (nexte["startTime"] - thise["startTime"])
                             ) * (
-                                (thise["end"] if thise.get("useEndNode", False) else nexte["start"]) - thise["start"]
+                                (thise["end"] if thise_uen else nexte["start"]) - thise["start"]
                             ) + thise["start"]
                         }
                         
@@ -60,7 +62,7 @@ def SaveAsNewFormat(chart: dict):
                             
                         cyevent["endTime"] = nexte["startTime"]
                         cyevent["end"] = GetEaseProgress(thise.get("easeType", 0), 1.0) * (
-                            (thise["end"] if thise.get("useEndNode", False) else nexte["start"]) - thise["start"]
+                            (thise["end"] if thise_uen else nexte["start"]) - thise["start"]
                         ) + thise["start"]
                         result.append(cyevent)
                         
