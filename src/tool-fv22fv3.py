@@ -48,6 +48,7 @@ def SaveAsNewFormat(chart: dict):
                     while num2 + thise["startTime"] < nexte["startTime"]:
                         cyevent = {
                             "startTime": num2 + thise["startTime"],
+                            "endTime": nexte["startTime"],
                             "start": GetEaseProgress(
                                 thise.get("easeType", 0),
                                 num2 / (nexte["startTime"] - thise["startTime"])
@@ -60,7 +61,6 @@ def SaveAsNewFormat(chart: dict):
                             result[-1]["endTime"] = cyevent["startTime"]
                             result[-1]["end"] = cyevent["start"]
                             
-                        cyevent["endTime"] = nexte["startTime"]
                         cyevent["end"] = GetEaseProgress(thise.get("easeType", 0), 1.0) * (
                             (thise["end"] if thise_uen else nexte["start"]) - thise["start"]
                         ) + thise["start"]
