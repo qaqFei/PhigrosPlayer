@@ -270,7 +270,7 @@ def convertNotes(line: dict, notes: typing.Iterable[dict]):
 
 for i, line in enumerate(copy.deepcopy(rpec["judgeLineList"])):
     line: dict
-    print(f"\rconverting line {i}/{len(rpec["judgeLineList"])} ...", end="")
+    print(f"\rconverting line {i + 1}/{len(rpec["judgeLineList"])} ...", end="")
     
     if line.get("father", -1) != -1:
         first_l = line["eventLayers"][0]
