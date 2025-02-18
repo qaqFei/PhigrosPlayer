@@ -269,6 +269,7 @@ def convertNotes(line: dict, notes: typing.Iterable[dict]):
     return nns
 
 for i, line in enumerate(copy.deepcopy(rpec["judgeLineList"])):
+    line: dict
     print(f"\rconverting line {i}/{len(rpec["judgeLineList"])} ...", end="")
     
     if line.get("father", -1) != -1:
@@ -290,6 +291,7 @@ for i, line in enumerate(copy.deepcopy(rpec["judgeLineList"])):
         "judgeLineRotateEvents": [],
         "judgeLineDisappearEvents": []
     }
+    isAttachUI = line.get("attachUI", None) is not None
     
     speedEvents = []
     moveXEvents = []
@@ -299,8 +301,13 @@ for i, line in enumerate(copy.deepcopy(rpec["judgeLineList"])):
     
     for layer in line["eventLayers"]:
         if layer is None: continue
+        
         aes = [layer.get(f"{i}Events", []) for i in ("speed", "moveX", "moveY", "rotate", "alpha")]
+        
         for i, es in enumerate(aes):
+            if isAttachUI and i == 4: # alpha events
+                continue
+                
             convertEventsTime(es)
             sortEvents(es)
             fillEvents(es)
@@ -310,18 +317,21 @@ for i, line in enumerate(copy.deepcopy(rpec["judgeLineList"])):
         moveXEvents.extend(aes[1])
         moveYEvents.extend(aes[2])
         rotateEvents.extend(aes[3])
-        alphaEvents.extend(aes[4])
+        if not isAttachUI: alphaEvents.extend(aes[4])
     
-    aes = [speedEvents, moveXEvents, moveYEvents, rotateEvents, alphaEvents]
-    for es in aes:
-        mergeEvents(es)
+    (*map(mergeEvents, [speedEvents, moveXEvents, moveYEvents, rotateEvents, *((alphaEvents, ) if not isAttachUI else ())]), )
     
     moveEvents = mergeEvents_move(moveXEvents, moveYEvents)
     
     phil["speedEvents"] = convertEvents2Phi_speed(speedEvents, lambda x: x * 120 / 900 / 0.6)
     phil["judgeLineMoveEvents"] = convertEvents2Phi_move(moveEvents, lambda x: (x + 675) / 1350, lambda y: (y + 450) / 900)
     phil["judgeLineRotateEvents"] = convertEvents2Phi(rotateEvents, lambda x: -x)
-    phil["judgeLineDisappearEvents"] = convertEvents2Phi(alphaEvents, lambda x: (255 & int(x)) / 255)
+    phil["judgeLineDisappearEvents"] = convertEvents2Phi(alphaEvents, lambda x: (255 & int(x)) / 255) if not isAttachUI else [{
+        "startTime": -inft,
+        "endTime": inft,
+        "start": 0.0,
+        "end": 0.0
+    }]
     
     if phil["speedEvents"]: phil["speedEvents"][0]["startTime"] = 0.0
     phil["notesAbove"] = convertNotes(phil, filter(lambda x: x["above"] == 1, line.get("notes", [])))
