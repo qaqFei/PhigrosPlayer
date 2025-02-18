@@ -51,7 +51,7 @@ def easing(t: float, st: float, et: float, sv: float, ev: float, e: dict):
     return ef((t - st) / (et - st)) * (ev - sv) + sv
 
 def getDt(big_edt: float):
-    # 谱师你能不能用点缓动切割？
+    # 谱师能不能用点缓动切割
     # if big_edt >= 512: dt = 16
     # elif big_edt >= 256: dt = 8
     # elif big_edt >= 128: dt = 4
@@ -145,7 +145,12 @@ def splitEvents(es: list[dict], isspeed: bool):
         
         else: # isspeed
             if e["start"] == e["end"]:
-                nes.append(e)
+                nes.append({
+                    "startTime": e["startTime"],
+                    "endTime": e["endTime"],
+                    "start": e["start"],
+                    "end": e["start"]
+                })
                 continue
             
             t = e["startTime"]
