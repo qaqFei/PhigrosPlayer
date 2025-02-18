@@ -85,9 +85,9 @@ def SaveAsNewFormat(chart: dict):
                         result.append(cyevent)
                         
                         dt = nexte["startTime"] - thise["startTime"]
-                        if dt >= 512.0: num2 += 16
-                        elif dt >= 256.0: num2 += 8
-                        elif dt >= 256.0: num2 += 4
+                        if dt >= 512: num2 += 16
+                        elif dt >= 256: num2 += 8
+                        elif dt >= 128: num2 += 4
                         else: num2 += 1
             else:
                 result.append({

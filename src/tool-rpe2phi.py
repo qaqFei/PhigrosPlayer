@@ -15,7 +15,6 @@ with open(argv[1], "r", encoding="utf-8") as f:
 
 globalBpm = rpec["BPMList"][0]["bpm"]
 globalT = 1.875 / globalBpm
-easingSplitTime = 1
 inft = 1e9
 phic = {
     "formatVersion": 3,
@@ -50,6 +49,13 @@ def linear(t: float, st: float, et: float, sv: float, ev: float):
 def easing(t: float, st: float, et: float, sv: float, ev: float, e: dict):
     ef = rpe_easing.ease_funcs[e.get("easingType", 1) - 1] if not e.get("bezier", 0) else light_tool_funcs.createBezierFunction(e.get("bezierPoints", [1.0, 1.0, 1.0, 1.0]))
     return ef((t - st) / (et - st)) * (ev - sv) + sv
+
+def getDt(big_edt: float):
+    if big_edt >= 512: dt = 16
+    elif big_edt >= 256: dt = 8
+    elif big_edt >= 128: dt = 4
+    else: dt = 1
+    return dt
 
 def convertEventsTime(es: list[dict]):
     for e in es:
@@ -117,14 +123,15 @@ def splitEvents(es: list[dict], isspeed: bool):
                 continue
             
             t = e["startTime"]
+            dt = getDt(e["endTime"] - e["startTime"])
             while t <= e["endTime"]:
                 nes.append({
                     "startTime": t,
-                    "endTime": t + easingSplitTime,
+                    "endTime": t + dt,
                     "start": easing(t, e["startTime"], e["endTime"], e["start"], e["end"], e),
-                    "end": easing(t + easingSplitTime, e["startTime"], e["endTime"], e["start"], e["end"], e),
+                    "end": easing(t + dt, e["startTime"], e["endTime"], e["start"], e["end"], e),
                 })
-                t += easingSplitTime
+                t += dt
             
             if t < e["endTime"]:
                 nes.append({
@@ -140,15 +147,16 @@ def splitEvents(es: list[dict], isspeed: bool):
                 continue
             
             t = e["startTime"]
+            dt = getDt(e["endTime"] - e["startTime"])
             while t <= e["endTime"]:
                 v = easing(t, e["startTime"], e["endTime"], e["start"], e["end"], e)
                 nes.append({
                     "startTime": t,
-                    "endTime": t + easingSplitTime,
+                    "endTime": t + dt,
                     "start": v,
                     "end": v
                 })
-                t += easingSplitTime
+                t += dt
             
             if t < e["endTime"]:
                 nes.append({
