@@ -51,11 +51,13 @@ def easing(t: float, st: float, et: float, sv: float, ev: float, e: dict):
     return ef((t - st) / (et - st)) * (ev - sv) + sv
 
 def getDt(big_edt: float):
-    if big_edt >= 512: dt = 16
-    elif big_edt >= 256: dt = 8
-    elif big_edt >= 128: dt = 4
-    else: dt = 1
-    return dt
+    # 谱师你能不能用点缓动切割？
+    # if big_edt >= 512: dt = 16
+    # elif big_edt >= 256: dt = 8
+    # elif big_edt >= 128: dt = 4
+    # else: dt = 1
+    # return dt
+    return 2
 
 def convertEventsTime(es: list[dict]):
     for e in es:
