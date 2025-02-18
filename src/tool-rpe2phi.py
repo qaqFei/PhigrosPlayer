@@ -268,7 +268,9 @@ def convertNotes(line: dict, notes: typing.Iterable[dict]):
             pn["speed"] = getSpeedValue(line["speedEvents"], pn["time"])
     return nns
 
-for line in copy.deepcopy(rpec["judgeLineList"]):
+for i, line in enumerate(copy.deepcopy(rpec["judgeLineList"])):
+    print(f"\rconverting line {i}/{len(rpec["judgeLineList"])} ...", end="")
+    
     if line.get("father", -1) != -1:
         first_l = line["eventLayers"][0]
         first_l["moveXEvents"] = first_l.get("moveXEvents", [])
@@ -327,4 +329,5 @@ for line in copy.deepcopy(rpec["judgeLineList"]):
     
     phic["judgeLineList"].append(phil)
 
+print("\nconverting finished.")
 json.dump(phic, open(argv[2], "w", encoding="utf-8"), ensure_ascii=False)
