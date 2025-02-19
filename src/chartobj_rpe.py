@@ -364,7 +364,8 @@ class JudgeLine:
         
         if e is None:
             if t >= es[-1].endTime.value:
-                return es[-1].end
+                default = es[-1].end
+                if isinstance(default, list): default = tuple(default)
             return default
         
         if isinstance(e.start, float|int):

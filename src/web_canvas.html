@@ -247,12 +247,15 @@ void main() {
         constructor() {
             this.items = []
         }
+
         put(element) {
             this.items.push(element)
         }
+
         get() {
             return this.items.shift()
         }
+        
         empty() {
             return this.items.length === 0
         }
