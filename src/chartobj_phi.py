@@ -529,18 +529,6 @@ class FrameRenderTask:
             self.RenderTasks.clear()
 
 @dataclass
-class judgeLine_Config_Item:
-    line: judgeLine
-    rotate: float = 0.0
-    disappear: float = 0.0
-    pos: tuple[float,float] = (0.0, 0.0)
-    time: float = 0.0
-
-@dataclass
-class judgeLine_Configs:
-    Configs: list[judgeLine_Config_Item]
-
-@dataclass
 class FrameTaskRecorder_Meta:
     frame_speed: int
     frame_num: int

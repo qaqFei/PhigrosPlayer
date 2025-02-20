@@ -223,8 +223,8 @@ def processClickEffectBase(
     ) / 255
     
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
-    effectSize = noteWidth * 1.375
-    blockSize = noteWidth / 5
+    effectSize = noteWidth * 1.375 * 1.16
+    blockSize = effectSize / 6.5
     
     if enable_rblocks and not phira_resource_pack.globalPack.hideParticles:
         randomblock_r = effectSize * rpe_easing.ease_funcs[clickEffectEasingType + 1](p) / 1.2
