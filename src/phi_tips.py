@@ -1,4 +1,4 @@
-from random import randint
+import random
 
 pgr_builtin_tips = [
     "!!",
@@ -208,4 +208,10 @@ tips = [
 ]
 
 def get_tip():
-    return tips[randint(0, len(tips) - 1)]
+    rv = random.random()
+    
+    if rv < 0.3:
+        return random.choice(pgr_builtin_tips)
+    else:
+        return random.choice(ppr_extended_tips)
+    
