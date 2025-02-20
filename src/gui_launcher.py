@@ -44,6 +44,7 @@ def opendir_callback(widget: tkinter.Entry):
 
 def launch():
     launch_args = []
+    nowarp_args = []
     chartfp = file_input_entry.get()
     
     if exists(chartfp):
@@ -58,6 +59,7 @@ def launch():
 
     for entry, kwarg in zip(kwarg_widgets, kwarg_setting):
         userinput = entry.get()
+        isnoawrp = False
         if not userinput: continue
         match kwarg[3]:
             case "int":
@@ -75,6 +77,9 @@ def launch():
             case "string":
                 pass
             
+            case "string-nowarp":
+                isnoawrp = True
+            
             case "path":
                 if not (exists(userinput) or isfile(userinput)):
                     showerror(title="错误", message=f"参数 {kwarg[1]} 的值应为存在的文件")
@@ -91,10 +96,14 @@ def launch():
                     return
                 
         if userinput != kwarg[2]:
-            launch_args.append(f"--{kwarg[1]}")
-            launch_args.append(f"{userinput}")
+            if isnoawrp:
+                nowarp_args.append(f"--{kwarg[1]}")
+                nowarp_args.append(f"{userinput}")
+            else:
+                launch_args.append(f"--{kwarg[1]}")
+                launch_args.append(f"{userinput}")
     
-    command = "start " + target_path + " " + " ".join(map(lambda x: f"\"{x}\"", launch_args))
+    command = "start " + target_path + " " + " ".join(map(lambda x: f"\"{x}\"", launch_args)) + " " + " ".join(nowarp_args)
     print(command)
     popen(command)
     
@@ -145,7 +154,7 @@ kwarg_setting = [
     ("打击特效随机块数量", "random-block-num", 4, "int"),
     ("设置音符缩放", "scale-note", 1.0, "float"),
     ("设置 lfdaot 文件路径", "lfdaot-file", None, "path"),
-    ("设置窗口大小 (如: \"1920 1080\")", "size", None, "string"),
+    ("设置窗口大小 (如: \"1920 1080\")", "size", None, "string-nowarp"),
     ("设置生成 lfdaot 文件的帧速度", "lfdaot-frame-speed", 60, "int"),
     ("设置渲染范围更多的缩放", "render-range-more-scale", 2.0, "float"),
     ("设置窗口宿主 (hwnd)", "window-host", None, "int"),
@@ -212,7 +221,7 @@ for i, data in enumerate(kwarg_setting):
     label = tkinter.Label(kwarg_frame, text=f"{data[0]} ({data[3]}): ")
     label.grid(row=i, column=0, sticky="w")
     match data[3]:
-        case "int" | "float" | "string":
+        case "int" | "float" | "string" | "string-nowarp":
             entry = tkinter.Entry(kwarg_frame)
             entry.grid(row=i, column=1, sticky="w")
             kwarg_widgets.append(entry)
