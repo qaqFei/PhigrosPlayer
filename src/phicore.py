@@ -223,8 +223,8 @@ def processClickEffectBase(
     ) / 255
     
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
-    effectSize = noteWidth * 1.375 * 1.16
-    blockSize = effectSize / 6.5
+    effectSize = noteWidth * 1.375 * 1.12
+    blockSize = effectSize / 7.2
     
     if enable_rblocks and not phira_resource_pack.globalPack.hideParticles:
         randomblock_r = effectSize * rpe_easing.ease_funcs[clickEffectEasingType + 1](p) / 1.2
@@ -326,13 +326,13 @@ def getHoldDrawPosition(
         holdrect
     )
 
-def stringifyScore(score:float) -> str:
+def stringifyScore(score: float) -> str:
     score_integer = int(score + 0.5)
     return f"{score_integer:>7}".replace(" ","0")
 
 def drawDeepBgAndClipScreen():
     root.run_js_code(
-        f"ctx.outOfTransformDrawCoverFullscreenImage({root.get_img_jsvarname("background_blur")});",
+        f"ctx.outOfTransformDrawCoverFullscreenChartBackgroundImage({root.get_img_jsvarname("background_blur")});",
         add_code_array = True
     )
     root.run_js_code(
@@ -344,7 +344,7 @@ def undoClipScreen():
     root.run_js_code("ctx.restore();", add_code_array = True)
 
 def drawBg():
-    drawImage("background_blur", 0, 0, w, h, wait_execute=True)
+    drawCoverFullScreenImage("background_blur", wait_execute=True)
     root.run_js_code(
         f"ctx.fillRectEx(\
             0, 0, {w}, {h}, \
@@ -577,6 +577,7 @@ def processExTask(ExTask: list[tuple[str, typing.Any]]):
         match ext[0]:
             case "break":
                 break_flag = True
+                
             case "psound":
                 cksmanager.play(ext[1])
         

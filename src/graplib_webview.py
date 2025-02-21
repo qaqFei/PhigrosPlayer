@@ -16,6 +16,7 @@ __all__ = (
     "drawText",
     "drawPolygon",
     "drawImage",
+    "drawCoverFullScreenImage",
     "drawAlphaImage",
     "drawRotateImage"
 )
@@ -113,6 +114,10 @@ def drawImage(
 ):
     jvn = root.get_img_jsvarname(imname)
     root.run_js_code(f"{ctx}.drawImage({jvn}, {x}, {y}, {width}, {height});", wait_execute, order)
+
+def drawCoverFullScreenImage(imname: str, wait_execute: bool = False):
+    jvn = root.get_img_jsvarname(imname)
+    root.run_js_code(f"{ctx}.drawCoverFullScreenImage({jvn});", wait_execute, order)
 
 def drawAlphaImage(
     imname: str,

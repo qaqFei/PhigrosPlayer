@@ -3256,7 +3256,7 @@ def chartPlayerRender(
     
     root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
     chart_image = Image.open(chartImage)
-    background_image_blur = chart_image.resize((w, h)).filter(ImageFilter.GaussianBlur((w + h) / 50))
+    background_image_blur = chart_image.filter(ImageFilter.GaussianBlur(sum(chart_image.size) / 50))
     respacker.reg_img(background_image_blur, "background_blur")
     
     chart_image_gradientblack_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
