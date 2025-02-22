@@ -3823,7 +3823,7 @@ def applyConfig():
 
 root = webcv.WebCanvas(
     width = 1, height = 1,
-    x = 0, y = 0,
+    x = -webcv.screen_width, y = -webcv.screen_height,
     title = "PhigrosPlayer - Phigros Simulator",
     debug = "--debug" in sys.argv,
     resizable = "--resizeable" in sys.argv,
