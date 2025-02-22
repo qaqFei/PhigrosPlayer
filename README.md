@@ -142,4 +142,4 @@ python main.py <chart> --disengage-webview [args] [kwargs]
 
 ## 声明
 
-- 此项目仅用于学习交流，请勿用于商业用途
+- 此项目仅用于学习交流, 请勿用于商业用途
