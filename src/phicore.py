@@ -49,7 +49,6 @@ class PhiCoreConfig:
     show_start_time: float
     chart_image: Image.Image
     
-    clickeffect_randomblock: bool
     clickeffect_randomblock_roundn: int
     LoadSuccess: musicCls
     chart_res: dict[str, tuple[Image.Image, tuple[int, int]]]
@@ -84,7 +83,6 @@ def CoreConfigure(config: PhiCoreConfig):
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
     global chart_image
-    global clickeffect_randomblock
     global clickeffect_randomblock_roundn, LoadSuccess
     global chart_res, cksmanager
     global enable_clicksound, rtacc, noautoplay
@@ -108,7 +106,6 @@ def CoreConfigure(config: PhiCoreConfig):
     raw_audio_length = config.raw_audio_length
     show_start_time = config.show_start_time
     chart_image = config.chart_image
-    clickeffect_randomblock = config.clickeffect_randomblock
     clickeffect_randomblock_roundn = config.clickeffect_randomblock_roundn
     LoadSuccess = config.LoadSuccess
     chart_res = config.chart_res
@@ -160,7 +157,6 @@ def processClickEffectBase(
     p: float, rblocks: tuple[tuple[float, float]]|None,
     perfect: bool, noteWidth: float,
     root: webcv.WebCanvas,
-    enable_rblocks: bool = True,
     rblocks_roundn: float = 0.0,
     caller: typing.Callable[[typing.Callable, typing.Any], typing.Any] = lambda f, *args, **kwargs: f(*args, **kwargs)
 ):
@@ -182,7 +178,7 @@ def processClickEffectBase(
     effectSize = noteWidth * 1.375 * 1.12
     blockSize = effectSize / 7.2
     
-    if enable_rblocks and not phira_resource_pack.globalPack.hideParticles:
+    if not phira_resource_pack.globalPack.hideParticles:
         randomblock_r = effectSize * rpe_easing.ease_funcs[clickEffectEasingType + 1](p) / 1.2
         nowBlockSize = blockSize * (0.426 * math.sin(p * math.pi / 1.185) + 0.5) # start: 0.5, end: 0.7, max: ~0.925
         
@@ -225,7 +221,6 @@ def processClickEffect(
         noteWidth = globalNoteWidth,
         root = root,
         caller = caller,
-        enable_rblocks = clickeffect_randomblock,
         rblocks_roundn = clickeffect_randomblock_roundn
     )
 

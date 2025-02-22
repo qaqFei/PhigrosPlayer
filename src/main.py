@@ -54,7 +54,6 @@ temp_dir = tempdir.createTempDir()
 enable_clicksound = "--noclicksound" not in sys.argv
 debug = "--debug" in sys.argv
 debug_noshow_transparent_judgeline = "--debug-noshow-transparent-judgeline" in sys.argv
-clickeffect_randomblock = "--noclickeffect-randomblock" not in sys.argv
 loop = "--loop" in sys.argv
 lfdaot = "--lfdaot" in sys.argv
 lfdoat_file = "--lfdaot-file" in sys.argv
@@ -846,7 +845,6 @@ def updateCoreConfig():
         note_max_size_half = note_max_size_half, audio_length = audio_length,
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),
         chart_image = chart_image,
-        clickeffect_randomblock = clickeffect_randomblock,
         clickeffect_randomblock_roundn = clickeffect_randomblock_roundn,
         LoadSuccess = LoadSuccess, chart_res = chart_res,
         cksmanager = cksmanager,
