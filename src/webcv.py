@@ -323,8 +323,6 @@ class WebCanvas:
         graplib_webview.root = self
     
     def title(self, title: str) -> str: self.web.set_title(title) if not disengage_webview else None
-    def winfo_screenwidth(self) -> int: return screen_width
-    def winfo_screenheight(self) -> int: return screen_height
     def winfo_hwnd(self) -> int: return self.web_hwnd
     def winfo_legacywindowwidth(self) -> int: return self.run_js_code("window.innerWidth;")
     def winfo_legacywindowheight(self) -> int: return self.run_js_code("window.innerHeight;")
