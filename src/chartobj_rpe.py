@@ -64,6 +64,9 @@ class Beat:
         self.value = self.v1 + (self.v2 / self.v3)
         self._hash = hash(self.value)
     
+    def dump(self):
+        return [self.v1, self.v2, self.v3]
+    
     def __hash__(self) -> int:
         return self._hash
     
@@ -191,6 +194,19 @@ class Note:
         
         return callback
 
+    def dump(self):
+        return {
+            "type": self.type,
+            "startTime": self.startTime.dump(),
+            "endTime": self.endTime.dump(),
+            "above": self.above,
+            "positionX": self.positionX,
+            "alpha": self.alpha,
+            "isFake": self.isFake,
+            "visibleTime": self.visibleTime,
+            "yOffset": self.yOffset
+        }
+    
     def __eq__(self, value): return self is value
 
 @dataclass
@@ -219,6 +235,19 @@ class LineEvent:
         if self.easingLeft != 0.0 or self.easingRight != 1.0:
             self.easingFunc = tool_funcs.createCuttingEasingFunction(self.easingFunc, self.easingLeft, self.easingRight)
     
+    def dump(self):
+        return {
+            "startTime": self.startTime.dump(),
+            "endTime": self.endTime.dump(),
+            "start": self.start,
+            "end": self.end,
+            "easingType": self.easingType,
+            "easingLeft": self.easingLeft,
+            "easingRight": self.easingRight,
+            "bezier": self.bezier,
+            "bezierPoints": self.bezierPoints
+        }
+    
 @dataclass
 class EventLayer:
     speedEvents: list[LineEvent]
@@ -239,6 +268,15 @@ class EventLayer:
         _init_events(self.moveYEvents)
         _init_events(self.rotateEvents)
         _init_events(self.alphaEvents)
+    
+    def dump(self):
+        return {
+            "speedEvents": [e.dump() for e in self.speedEvents],
+            "moveXEvents": [e.dump() for e in self.moveXEvents],
+            "moveYEvents": [e.dump() for e in self.moveYEvents],
+            "rotateEvents": [e.dump() for e in self.rotateEvents],
+            "alphaEvents": [e.dump() for e in self.alphaEvents]
+        }
         
 @dataclass
 class Extended:
@@ -260,6 +298,15 @@ class Extended:
         _init_events(self.colorEvents)
         _init_events(self.textEvents)
         _init_events(self.gifEvents)
+    
+    def dump(self):
+        return {
+            "scaleXEvents": [e.dump() for e in self.scaleXEvents],
+            "scaleYEvents": [e.dump() for e in self.scaleYEvents],
+            "colorEvents": [e.dump() for e in self.colorEvents],
+            "textEvents": [e.dump() for e in self.textEvents],
+            "gifEvents": [e.dump() for e in self.gifEvents]
+        }
 
 @dataclass
 class ControlItem:
@@ -321,11 +368,30 @@ class MetaData:
     composer: str
     charter: str
     level: str
+    
+    def dump(self):
+        return {
+            "RPEVersion": self.RPEVersion,
+            "background": self.background,
+            "charter": self.charter,
+            "composer": self.composer,
+            "id": self.id,
+            "level": self.level,
+            "name": self.name,
+            "offset": self.offset,
+            "song": self.song
+        }
 
 @dataclass
 class BPMEvent:
     startTime: Beat
     bpm: float
+    
+    def dump(self):
+        return {
+            "bpm": self.bpm,
+            "startTime": self.startTime.dump()
+        }
 
 @dataclass
 class JudgeLine:
@@ -460,6 +526,18 @@ class JudgeLine:
         
         return fp * 120 / const.RPE_HEIGHT
 
+    def dump(self):
+        return {
+            "Texture": self.Texture,
+            "bpmfactor": self.bpmfactor,
+            "father": self.father if isinstance(self.father, int) else self.master.judgeLineList.index(self.father),
+            "isCover": self.isCover,
+            "zOrder": self.zOrder,
+            "eventLayers": [i.dump() for i in self.eventLayers],
+            "extended": self.extended.dump(),
+            "notes": [i.dump() for i in self.notes],
+        }
+    
     def __hash__(self) -> int:
         return id(self)
     
@@ -638,6 +716,13 @@ class Chart:
             else:
                 sec += t * (60 / bpmv)
         return sec
+    
+    def dump(self):
+        return {
+            "META": self.META.dump(),
+            "BPMList": [i.dump() for i in self.BPMList],
+            "judgeLineList": [i.dump() for i in self.judgeLineList],
+        }
 
     def __hash__(self) -> int:
         return id(self)

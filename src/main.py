@@ -564,7 +564,13 @@ def PlayerStart():
         
         @tool_funcs.runByThread
         def dumpChart():
-            print("dumping...")
+            if noautoplay: return
+            
+            fn = dialog.savefile(fn="dump.json")
+            if fn is None: return
+            
+            with open(fn, "w", encoding="utf-8") as f:
+                f.write(json.dumps(chart_obj.dump(), ensure_ascii=False))
                 
         root.jsapi.set_attr("Noautoplay_Restart", _f)
         root.jsapi.set_attr("SpaceClicked", space)
@@ -719,9 +725,7 @@ def PlayerStart():
             
             pst += tool_funcs.checkOffset(now_t, raw_audio_length, mixer)
     elif render_video:
-        video_fp = sys.argv[sys.argv.index("--render-video-savefp") + 1] if "--render-video-savefp" in sys.argv else dialog.savefile(
-            fn = "render_video.mp4"
-        )
+        video_fp = sys.argv[sys.argv.index("--render-video-savefp") + 1] if "--render-video-savefp" in sys.argv else dialog.savefile(fn="render_video.mp4")
         
         if video_fp is None:
             root.destroy()
