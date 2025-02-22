@@ -263,9 +263,9 @@ if CHART_TYPE == const.CHART_TYPE.RPE and chart_information is ChartInfoLoader.d
     chart_information["Charter"] = chart_obj.META.charter
 
 logging.info("Loading Chart Information Successfully")
-logging.info("Inforamtions: ")
+logging.info("Chart Info: ")
 for k,v in chart_information.items():
-    logging.info(f"              {k}: {v}")
+    logging.info(f"           {k}: {v}")
 
 def Load_Resource():
     global globalNoteWidth
@@ -287,6 +287,7 @@ def Load_Resource():
     
     phi_rpack = phira_resource_pack.PhiraResourcePack(respath)
     phi_rpack.setToGlobal()
+    phi_rpack.printInfo()
     
     Resource = {
         "levels":{

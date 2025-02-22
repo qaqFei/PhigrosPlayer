@@ -2,6 +2,7 @@ import fix_workpath as _
 import init_logging as _
 
 import typing
+import logging
 from os.path import exists, isfile, isdir
 
 import yaml
@@ -132,6 +133,7 @@ class PhiraResourcePack:
         self.resource["colorGood"] = info.get("colorGood", 0xebb4e1ff)
         
         self.loaded = True
+        self.name, self.author, self.description = self.resource["name"], self.resource["author"], self.resource["description"]
         self.effectDuration = self.resource["hitFxDuration"]
         self.effectScale = self.resource["hitFxScale"]
         self.effectRotate = self.resource["hitFxRotate"]
@@ -203,4 +205,10 @@ class PhiraResourcePack:
     def setToGlobal(self):
         global globalPack
         globalPack = self
+    
+    def printInfo(self):
+        logging.info("Phria Resource Pack Info: ")
+        logging.info(f"                         name: {self.name}")
+        logging.info(f"                         author: {self.author}")
+        logging.info(f"                         description: {self.description}")
         
