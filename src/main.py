@@ -283,7 +283,7 @@ def Load_Resource():
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
     noteWidth_raw = (0.125 * w + 0.2 * h) / 2
-    globalNoteWidth = (noteWidth_raw) * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
+    globalNoteWidth = noteWidth_raw * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
     
     phi_rpack = phira_resource_pack.PhiraResourcePack(respath)
     phi_rpack.setToGlobal()
