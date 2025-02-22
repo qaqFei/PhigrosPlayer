@@ -3,6 +3,7 @@ import random
 import urllib.parse
 import urllib.request
 import urllib3
+import typing
 from uuid import uuid4
 from time import time
 from hashlib import md5
@@ -12,7 +13,7 @@ import requests
 
 urllib3.disable_warnings()
 
-def get_download_info(appid: int):
+def get_download_info(appid: int, apkid: typing.Optional[int] = None):
     UID = uuid4()
     API = "https://api.taptapdada.com"
     USER_AGENT = "okhttp/3.12.1" # 必须要有, 否则频繁请求会风控
@@ -29,7 +30,7 @@ def get_download_info(appid: int):
     except json.decoder.JSONDecodeError:
         raise Exception("TapTap API 风控")
     
-    apkid = apkid_result["data"]["download"]["apk_id"]
+    apkid = apkid_result["data"]["download"]["apk_id"] if apkid is None else apkid
 
     nonce = "".join(random.sample(ascii_lowercase + digits, 5))
     t = int(time())
