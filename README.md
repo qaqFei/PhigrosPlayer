@@ -119,9 +119,9 @@ python main.py <chart> --disengage-webview [args] [kwargs]
   - [x] flick.ogg
   - [ ] ending.mp3
   - [ ] info.yml
-    - [ ] name
-    - [ ] author
-    - [ ] description
+    - [x] name
+    - [x] author
+    - [x] description
     - [x] hitFx
     - [x] holdAtlas
     - [x] holdAtlasMH
