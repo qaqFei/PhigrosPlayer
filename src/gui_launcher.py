@@ -178,6 +178,7 @@ kwarg_setting = [
     ("设置渲染视频的帧率", "render-video-fps", 60.0, "float"),
     ("设置生成视频编码", "render-video-fourcc", "mp4v", "string"),
     ("设置渲染视频的保存路径", "render-video-savefp", None, "path"),
+    ("手动指定 rpe 谱面版本", "rpeversion", None, "int"),
 ]
 
 arg_widgets = []
