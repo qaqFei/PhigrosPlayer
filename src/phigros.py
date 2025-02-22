@@ -3242,7 +3242,7 @@ def chartPlayerRender(
     )
     note_max_size_half = ((note_max_width ** 2 + note_max_height ** 2) ** 0.5) / 2
     
-    chart_information["BackgroundDim"] = getUserData("setting-backgroundDim")
+    chart_information["BackgroundDim"] = 1.0 - getUserData("setting-backgroundDim")
     chartJsonData: dict = json.loads(open(chartFile, "r", encoding="utf-8").read())
     CHART_TYPE = const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else const.CHART_TYPE.RPE
     if CHART_TYPE == const.CHART_TYPE.PHI: chartJsonData["offset"] += getUserData("setting-chartOffset") / 1000
@@ -3282,7 +3282,7 @@ def chartPlayerRender(
         root = root, w = w, h = h,
         chart_information = chart_information,
         chart_obj = chart_obj,
-        Resource = Resource, backgroundDim = 1.0 - getUserData("setting-backgroundDim"),
+        Resource = Resource,
         globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half,
         audio_length = audio_length, raw_audio_length = raw_audio_length,

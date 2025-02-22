@@ -840,7 +840,7 @@ def updateCoreConfig():
         root = root, w = w, h = h,
         chart_information = chart_information,
         chart_obj = chart_obj,
-        Resource = Resource, backgroundDim = chart_information["BackgroundDim"],
+        Resource = Resource,
         globalNoteWidth = globalNoteWidth,
         note_max_size_half = note_max_size_half, audio_length = audio_length,
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),

@@ -41,7 +41,6 @@ class PhiCoreConfig:
     chart_obj: chartobj_phi.Chart | chartobj_rpe.Chart
     
     Resource: dict
-    backgroundDim: float
     globalNoteWidth: float
     note_max_size_half: float
     audio_length: float
@@ -79,7 +78,7 @@ def CoreConfigure(config: PhiCoreConfig):
     global SETTER
     global root, w, h, chart_information
     global chart_obj, CHART_TYPE
-    global Resource, backgroundDim
+    global Resource
     global globalNoteWidth
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
@@ -100,7 +99,6 @@ def CoreConfigure(config: PhiCoreConfig):
     chart_obj = config.chart_obj
     CHART_TYPE = config.CHART_TYPE
     Resource = config.Resource
-    backgroundDim = config.backgroundDim
     globalNoteWidth = config.globalNoteWidth
     note_max_size_half = config.note_max_size_half
     audio_length = config.audio_length
@@ -291,7 +289,7 @@ def undoClipScreen():
 
 def drawBg():
     drawCoverFullScreenImage("background_blur", w, h, wait_execute=True)
-    fillRectEx(0, 0, w, h, f"rgba(0, 0, 0, {backgroundDim})", wait_execute=True)
+    fillRectEx(0, 0, w, h, f"rgba(0, 0, 0, {chart_information["BackgroundDim"]})", wait_execute=True)
 
 # color 一定要传 rgba 的
 def draw_ui(
