@@ -294,7 +294,7 @@ void main() {
 
     const mainShaderLoader = new ShaderLoader();
 
-    function resizeCanvas(w, h) {
+    function resizeCanvas(w, h, options) {
         if (w === undefined || h === undefined) {
             w = window.innerWidth;
             h = window.innerHeight;
@@ -304,8 +304,8 @@ void main() {
         canvas_ele.height = h;
         dialog_canvas_ele.width = w;
         dialog_canvas_ele.height = h;
-        ctx.reset();
-        dialog_canvas_ctx.reset();
+        ctx = canvas_ele.getContext("2d", {...options, alpha: false});
+        dialog_canvas_ctx = dialog_canvas_ele.getContext("2d", {...options, alpha: false});
 
         if (usu169) {
             const ratio = w / h;

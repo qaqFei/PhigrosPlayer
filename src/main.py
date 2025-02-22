@@ -936,7 +936,7 @@ def init():
         else:
             h = int(w / 16 * 9)
         root.run_js_code("usu169 = true;")
-    root.run_js_code(f"resizeCanvas({rw}, {rh});")
+    root.run_js_code(f"resizeCanvas({rw}, {rh}, {{willReadFrequently: {render_video}}});")
         
     Resource = Load_Resource()
 
