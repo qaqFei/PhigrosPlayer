@@ -33,7 +33,7 @@
 
 - `numOfNotes`
 
-    `int` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在，在较早时期的 `3` 也存在。
+    `int` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在, 在较早时期的 `3` 也存在。
     表示谱面总 `note` 数。
 
 - `judgeLineList`
@@ -44,17 +44,17 @@
 
 - `numOfNotes`
 
-    `int` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在，在较早时期的 `3` 也存在。
+    `int` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在, 在较早时期的 `3` 也存在。
     表示线总 `note` 数。
 
 - `numOfNotesAbove`
 
-    `int` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在，在较早时期的 `3` 也存在。
+    `int` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在, 在较早时期的 `3` 也存在。
     表示线上方总 `note` 数。
 
 - `numOfNotesBelow`
 
-    `int` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在，在较早时期的 `3` 也存在。
+    `int` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在, 在较早时期的 `3` 也存在。
     表示线下方总 `note` 数。
 
 - `bpm`
@@ -97,7 +97,7 @@
 
 - `type`
 
-    `int` 类型，表示 `note` 类型。
+    `int` 类型, 表示 `note` 类型。
     有以下值:
 
   - `1` 表示 `tap`。
@@ -124,24 +124,24 @@
 
     `float` 类型, 表示 `note` 的速度,。
 
-  - 对于非 `hold` 类型 `note`, 可直接乘上相对于判定线的纵坐标，无单位。
-  - 对于 `hold` 类型 `note`, 在打击前相对于判定线的纵坐标无法通过该键改变，该值表示打击时的速度，单位为 `Y/s`。
+  - 对于非 `hold` 类型 `note`, 可直接乘上相对于判定线的纵坐标, 无单位。
+  - 对于 `hold` 类型 `note`, 在打击前相对于判定线的纵坐标无法通过该键改变, 该值表示打击时的速度, 单位为 `Y/s`。
 
 - `floorPosition`
 
-    `float` 类型, 在谱面时间为 `0` (包含 `offset`) 时 `note` 的纵坐标, 单位为 `Y`，仅方便计算。
+    `float` 类型, 在谱面时间为 `0` (包含 `offset`) 时 `note` 的纵坐标, 单位为 `Y`, 仅方便计算。
 
 `speedEvents` 的元素结构:
 
 - `startTime`
 
     `int` 类型, 表示速度事件开始时间, 单位为 `T`。
-    一般与上一个事件的 `endTime` 相同，如果为第一个事件则为 `0`。
+    一般与上一个事件的 `endTime` 相同, 如果为第一个事件则为 `0`。
 
 - `endTime`
 
     `int` 类型, 表示速度事件结束时间, 单位为 `T`。
-    一般与下一个事件的 `startTime` 相同，如果为最后一个事件则为 `1e9`。
+    一般与下一个事件的 `startTime` 相同, 如果为最后一个事件则为 `1e9`。
 
 - `value`
 
@@ -149,68 +149,68 @@
 
 - `floorPosition`
 
-    `float` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在，在较早时期的 `3` 也存在。
+    `float` 类型, 在 `formatVersion` 为 `1` 或 `2` 时存在, 在较早时期的 `3` 也存在。
 
-    表示事件开始时刻判定线流过的速度，单位为 `Y/s`，仅方便计算。
+    表示事件开始时刻判定线流过的速度, 单位为 `Y/s`, 仅方便计算。
 
 `judgeLineDisappearEvents` 的元素结构:
 
 - `startTime`
 
     `int` 类型, 表示透明度事件开始时间, 单位为 `T`。
-    一般与上一个事件的 `endTime` 相同，如果为第一个事件则为 `-1e6+1`。
+    一般与上一个事件的 `endTime` 相同, 如果为第一个事件则为 `-1e6+1`。
 
 - `endTime`
 
     `int` 类型, 表示透明度事件结束时间, 单位为 `T`。
 
-    一般与下一个事件的 `startTime` 相同，如果为最后一个事件则为 `1e9`。
+    一般与下一个事件的 `startTime` 相同, 如果为最后一个事件则为 `1e9`。
 
 - `start`
 
     `float` 类型, 表示透明度事件开始透明度。
 
-    一般地，值为 `0 ~ 1`，表示不透明度。
+    一般地, 值为 `0 ~ 1`, 表示不透明度。
 
 - `end`
 
     `float` 类型, 表示透明度事件结束透明度。
 
-    一般地，值为 `0 ~ 1`，表示不透明度。
+    一般地, 值为 `0 ~ 1`, 表示不透明度。
 
 - `start2` & `end2`
 
-    为 `float` 类型, 在 `formatVersion` 为 `2` 时存在，在较早时期的 `3` 也存在。
+    为 `float` 类型, 在 `formatVersion` 为 `2` 时存在, 在较早时期的 `3` 也存在。
 
-    一般地，值恒为 `0`。
+    一般地, 值恒为 `0`。
 
 `judgeLineMoveEvents` 的元素结构:
 
 - `startTime`
 
     `int` 类型, 表示移动事件开始时间, 单位为 `T`。
-    一般与上一个事件的 `endTime` 相同，如果为第一个事件则为 `-1e6+1`。
+    一般与上一个事件的 `endTime` 相同, 如果为第一个事件则为 `-1e6+1`。
 
 - `endTime`
 
     `int` 类型, 表示移动事件结束时间, 单位为 `T`。
-    一般与下一个事件的 `startTime` 相同，如果为最后一个事件则为 `1e9`。
+    一般与下一个事件的 `startTime` 相同, 如果为最后一个事件则为 `1e9`。
 
 - `start` & `start2`
 
-    `float` 类型，表示移动事件开始位置。
+    `float` 类型, 表示移动事件开始位置。
 
-    `start` 为 x 坐标，`start2` 为 y 坐标。
+    `start` 为 x 坐标, `start2` 为 y 坐标。
 
 - `end` & `end2`
 
-    `float` 类型，表示移动事件结束位置。
+    `float` 类型, 表示移动事件结束位置。
 
-    `end` 为 x 坐标，`end2` 为 y 坐标。
+    `end` 为 x 坐标, `end2` 为 y 坐标。
 
 ！注意: 坐标原点位于屏幕左下角。
 
-对于 `formatVersion` 为 `1` 的谱面，不存在 `start2` 与 `end2`。
+对于 `formatVersion` 为 `1` 的谱面, 不存在 `start2` 与 `end2`。
 
 坐标 x 单位为 `W / 880`, y 单位为 `H / 520`。
 
@@ -225,7 +225,7 @@ start_x, start_y = unpack_pos(event.start)
 end_x, end_y = unpack_pos(event.end)
 ```
 
-对于 `formatVersion` 为 `2` 和 `3` 的谱面，存在 `start2` 与 `end2`，此时的坐标计算如下:
+对于 `formatVersion` 为 `2` 和 `3` 的谱面, 存在 `start2` 与 `end2`, 此时的坐标计算如下:
 
 ```python
 start_x, start_y = event.start * W, event.start2 * H
@@ -237,22 +237,22 @@ end_x, end_y = event.end * W, event.end2 * H
 - `startTime`
 
     `int` 类型, 表示旋转事件开始时间, 单位为 `T`。
-    一般与上一个事件的 `endTime` 相同，如果为第一个事件则为 `-1e6+1`。
+    一般与上一个事件的 `endTime` 相同, 如果为第一个事件则为 `-1e6+1`。
 
 - `endTime`
 
     `int` 类型, 表示旋转事件结束时间, 单位为 `T`。
-    一般与下一个事件的 `startTime` 相同，如果为最后一个事件则为 `1e9`。
+    一般与下一个事件的 `startTime` 相同, 如果为最后一个事件则为 `1e9`。
 
 - `start`
 
-    `float` 类型，表示旋转事件开始角度。
-    单位为 `deg`，逆时针。
+    `float` 类型, 表示旋转事件开始角度。
+    单位为 `deg`, 逆时针。
 
 - `end`
 
-    `float` 类型，表示旋转事件结束角度。
-    单位为 `deg`，逆时针。
+    `float` 类型, 表示旋转事件结束角度。
+    单位为 `deg`, 逆时针。
 
 至此, 基本的谱面格式已经介绍完毕。
 
@@ -264,23 +264,23 @@ end_x, end_y = event.end * W, event.end2 * H
 
 - `headSpeed`
 
-    `float` 类型，在转换为 `formatVersion` 为 `3` 时为 `hold` 类型 `note` 的 `speed` 值。
+    `float` 类型, 在转换为 `formatVersion` 为 `3` 时为 `hold` 类型 `note` 的 `speed` 值。
 
 - `judgeLineIndex`
 
-    `int` 类型，表示 `note` 所在判定线 `index`。
+    `int` 类型, 表示 `note` 所在判定线 `index`。
 
     不影响渲染。
 
 - `isNotesAbove`
 
-    `bool` 类型，表示 `note` 是否在 `notesAbove` 之中。
+    `bool` 类型, 表示 `note` 是否在 `notesAbove` 之中。
 
     不影响渲染。
 
 - `needDelet`
 
-    `bool` 类型，表示 `note` 是否需要删除。
+    `bool` 类型, 表示 `note` 是否需要删除。
 
     不影响渲染。
 
@@ -288,23 +288,23 @@ end_x, end_y = event.end * W, event.end2 * H
 
 - `easeType`
 
-    `int` 类型，表示事件缓动类型。
+    `int` 类型, 表示事件缓动类型。
 
     在下文定义。
 
 - `easeType2`
 
-    `int` 类型，表示事件缓动类型。
+    `int` 类型, 表示事件缓动类型。
 
-    一般地，非移动事件此值恒为 `0`，表示移动事件 y 轴缓动类型。
+    一般地, 非移动事件此值恒为 `0`, 表示移动事件 y 轴缓动类型。
 
     在下文定义。
 
 - `useEndNode`
 
-    `bool` 类型，表示事件是否使用结束节点。
+    `bool` 类型, 表示事件是否使用结束节点。
 
-    在转化为 `formatVersion` 为 `3` 时，如果为 `True`，则 `end` 或 `end2` 值为当前事件的 `end` 或 `end2` 值，否则为下一个事件的 `start` 或 `start2` 值。
+    在转化为 `formatVersion` 为 `3` 时, 如果为 `True`, 则 `end` 或 `end2` 值为当前事件的 `end` 或 `end2` 值, 否则为下一个事件的 `start` 或 `start2` 值。
 
 缓动类型定义:
 
