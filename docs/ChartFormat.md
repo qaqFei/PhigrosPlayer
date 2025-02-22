@@ -334,7 +334,7 @@ ease_funcs: list[typing.Callable[[float], float]] = [
 <details>
   <summary>你知道的太多了。</summary>
 
-  为确保 `formatVersion` 为 `2` 的谱面转化为 `formatVersion` 为 `3` 的谱面的准确性和文档的严谨性:
+  为确保 `formatVersion` 为 `2` 的谱面转化为 `formatVersion` 为 `3` 的谱面的准确性和文档的严谨性 (此处为早期 `formatVersion 3` 谱面, 版本为 `v2.5.0` 以前):
 
   ```C#
   using System;
