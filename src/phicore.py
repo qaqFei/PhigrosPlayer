@@ -244,8 +244,8 @@ def processClickEffectBase(
                 nowBlockSize * rblocks_roundn,
                 wait_execute = True
             )
-    
-        caller(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + (1.0 - p, )}');", add_code_array = True)
+        
+        caller(drawRoundDatas, f"rgba{color + (1.0 - p, )}", wait_execute = True)
     
     effectImageSize = effectSize * phira_resource_pack.globalPack.effectScale
     caller(

@@ -147,3 +147,6 @@ def addRoundRectData(
 ):
     root.run_js_code(f"{ctx}.addRoundRectData({x}, {y}, {w}, {h}, {r});", wait_execute, order)
 
+def drawRoundDatas(color: str, wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.drawRoundDatas('{color}');", wait_execute, order)
+
