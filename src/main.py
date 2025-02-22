@@ -202,7 +202,7 @@ if exists(f"{temp_dir}/extra.json"):
 if "extra" not in globals():
     extra = chartfuncs_rpe.loadExtra({})
     
-def LoadChartObject(first: bool = False):
+def loadChartObject(first: bool = False):
     global chart_obj
     
     if CHART_TYPE == const.CHART_TYPE.PHI:
@@ -220,7 +220,7 @@ def LoadChartObject(first: bool = False):
     if not first:
         updateCoreConfig()
         
-LoadChartObject(True)
+loadChartObject(True)
 
 cimg_index = file_loader.choosefile(
     fns = map(lambda x: x[0], files_dict["images"]),
@@ -249,7 +249,7 @@ if speed != 1.0:
 
 mixer.music.load(audio_fp)
 raw_audio_length = mixer.music.get_length()
-audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
+audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else chart_obj.offset)
 all_inforamtion = {}
 logging.info("Loading Chart Information...")
 
@@ -597,7 +597,7 @@ def PlayerStart():
         
         if play_restart_flag:
             mixer.music.fadeout(250)
-            LoadChartObject()
+            loadChartObject()
             Thread(target=PlayerStart, daemon=True).start()
             return
     elif lfdaot:
@@ -787,7 +787,7 @@ def PlayerStart():
             while True:
                 if a2_loop_clicked or (loop and (time.time() - animation_2_start_time) > 0.25):
                     def _f():
-                        LoadChartObject()
+                        loadChartObject()
                         PlayerStart()
                     Thread(target=_f, daemon=True).start()
                     break
