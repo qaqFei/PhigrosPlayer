@@ -328,20 +328,17 @@ def stringifyScore(score: float) -> str:
     return f"{score_integer:>7}".replace(" ","0")
 
 def drawDeepBgAndClipScreen():
-    root.run_js_code(
-        f"ctx.outOfTransformDrawCoverFullscreenChartBackgroundImage({root.get_img_jsvarname("background_blur")});",
-        add_code_array = True
-    )
-    root.run_js_code(
-        f"ctx.save(); ctx.rect(0, 0, {w}, {h}); ctx.clip();",
-        add_code_array = True
-    )
+    outOfTransformDrawCoverFullscreenChartBackgroundImage("background_blur", wait_execute=True)
+    
+    ctxSave(wait_execute=True)
+    ctxRect(0, 0, w, h, wait_execute=True)
+    ctxClip(wait_execute=True)
 
 def undoClipScreen():
     root.run_js_code("ctx.restore();", add_code_array = True)
 
 def drawBg():
-    drawCoverFullScreenImage("background_blur", wait_execute=True)
+    drawCoverFullScreenImage("background_blur", w, h, wait_execute=True)
     root.run_js_code(
         f"ctx.fillRectEx(\
             0, 0, {w}, {h}, \

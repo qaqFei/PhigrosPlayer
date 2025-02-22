@@ -979,8 +979,7 @@ void main() {
         }
     }
 
-    CanvasRenderingContext2D.prototype.drawCoverFullScreenImage = function (img) {
-        const [w, h] = [this.canvas.width, this.canvas.height];
+    CanvasRenderingContext2D.prototype.drawCoverFullScreenImage = function (img, w, h) {
         let [imw, imh] = [img.width, img.height];
         const ratio = w / h;
         const imratio = imw / imh;
@@ -995,21 +994,21 @@ void main() {
 
         const [imx, imy] = [(w - imw) / 2, (h - imh) / 2];
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 0, w, h);
-        ctx.clip();
+        this.save();
+        this.beginPath();
+        this.rect(0, 0, w, h);
+        this.clip();
 
         this.drawImage(img, imx, imy, imw, imh);
 
-        ctx.restore();
+        this.restore();
         return [imx, imy, imw, imh];
     }
 
     CanvasRenderingContext2D.prototype.outOfTransformDrawCoverFullscreenChartBackgroundImage = function (img) {
         this.save();
         this.resetTransform();
-        const [imx, imy, imw, imh] = this.drawCoverFullScreenImage(img);
+        const [imx, imy, imw, imh] = this.drawCoverFullScreenImage(img, this.canvas.width, this.canvas.height);
         this.fillRectEx(imx, imy, imw, imh, `rgba(0.1, 0.1, 0.1, 0.7)`);
         this.restore();
     }

@@ -40,6 +40,22 @@ def setOrder(n: int|None):
 def getOrder():
     return order
 
+def ctxSave(wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.save();", wait_execute, order)
+
+def ctxRestore(wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.restore();", wait_execute, order)
+
+def ctxRect(
+    x: number, y: number,
+    width: number, height: number,
+    wait_execute: bool = False
+):
+    root.run_js_code(f"{ctx}.rect({x}, {y}, {width}, {height});", wait_execute, order)
+
+def ctxClip(wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.clip();", wait_execute, order)
+
 def clearCanvas(wait_execute: bool = False):
     root.run_js_code(f"{ctx}.clear();", wait_execute, order)
     
@@ -115,9 +131,13 @@ def drawImage(
     jvn = root.get_img_jsvarname(imname)
     root.run_js_code(f"{ctx}.drawImage({jvn}, {x}, {y}, {width}, {height});", wait_execute, order)
 
-def drawCoverFullScreenImage(imname: str, wait_execute: bool = False):
+def drawCoverFullScreenImage(
+    imname: str,
+    w: number, h: number,
+    wait_execute: bool = False
+):
     jvn = root.get_img_jsvarname(imname)
-    root.run_js_code(f"{ctx}.drawCoverFullScreenImage({jvn});", wait_execute, order)
+    root.run_js_code(f"{ctx}.drawCoverFullScreenImage({jvn}, {w}, {h});", wait_execute, order)
 
 def drawAlphaImage(
     imname: str,
@@ -150,3 +170,8 @@ def addRoundRectData(
 def drawRoundDatas(color: str, wait_execute: bool = False):
     root.run_js_code(f"{ctx}.drawRoundDatas('{color}');", wait_execute, order)
 
+def outOfTransformDrawCoverFullscreenChartBackgroundImage(imname: str, wait_execute: bool = False):
+    jvn = root.get_img_jsvarname(imname)
+    root.run_js_code(f"{ctx}.outOfTransformDrawCoverFullscreenChartBackgroundImage({jvn});", wait_execute, order)
+    
+    
