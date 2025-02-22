@@ -24,7 +24,8 @@ from graplib_webview import *
 
 drawUI_Default_Kwargs = {
     f"{k}_{k2}": v
-    for k in ("combonumber", "combo", "score", "name", "level", "pause", "bar") for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
+    for k in ("combonumber", "combo", "score", "name", "level", "pause", "bar")
+    for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
 }
 mainFramerateCalculator = tool_funcs.FramerateCalculator()
 clickEffectEasingType = 16
