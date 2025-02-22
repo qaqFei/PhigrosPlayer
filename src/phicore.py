@@ -75,23 +75,6 @@ class PhiCoreConfig:
         elif isinstance(self.chart_obj, chartobj_rpe.Chart):
             self.CHART_TYPE = const.CHART_TYPE.RPE
 
-@dataclass
-class PhiCoreConfigEx:
-    chart_name_text: str
-    chart_name_font_text_size: float
-    chart_artist_text: str
-    chart_artist_text_font_size: float
-    chart_level_number: str
-    chart_level_number_font_size: float
-    chart_level_text: str
-    chart_level_text_font_size: float
-    tip: str
-    tip_font_size: float
-    chart_charter_text: str
-    chart_illustrator_text: str
-    chart_charter_text_font_size: float
-    chart_illustrator_text_font_size: float
-    
 def CoreConfigure(config: PhiCoreConfig):
     global SETTER
     global root, w, h, chart_information
@@ -149,33 +132,6 @@ def CoreConfigure(config: PhiCoreConfig):
             i.set_volume(config.clicksound_volume)
     
     logging.info("CoreConfigure Done")
-
-def CoreConfigureEx(config: PhiCoreConfigEx):
-    global chart_name_text, chart_name_font_text_size
-    global chart_artist_text, chart_artist_text_font_size
-    global chart_level_number, chart_level_number_font_size
-    global chart_level_text, chart_level_text_font_size
-    global tip, tip_font_size
-    global chart_charter_text
-    global chart_illustrator_text
-    global chart_charter_text_font_size, chart_illustrator_text_font_size
-    
-    chart_name_text = config.chart_name_text
-    chart_name_font_text_size = config.chart_name_font_text_size
-    chart_artist_text = config.chart_artist_text
-    chart_artist_text_font_size = config.chart_artist_text_font_size
-    chart_level_number = config.chart_level_number
-    chart_level_number_font_size = config.chart_level_number_font_size
-    chart_level_text = config.chart_level_text
-    chart_level_text_font_size = config.chart_level_text_font_size
-    tip = config.tip
-    tip_font_size = config.tip_font_size
-    chart_charter_text = config.chart_charter_text
-    chart_illustrator_text = config.chart_illustrator_text
-    chart_charter_text_font_size = config.chart_charter_text_font_size
-    chart_illustrator_text_font_size = config.chart_illustrator_text_font_size
-    
-    logging.info("CoreConfigureEx Done")
 
 class ClickSoundManager:
     def __init__(self, res: dict[int, dxsound.directSound]):
@@ -1588,6 +1544,16 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     return Task
 
 def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None):
+    global chart_name_text, chart_name_font_text_size
+    global chart_artist_text, chart_artist_text_font_size
+    global chart_level_number, chart_level_number_font_size
+    global chart_level_text, chart_level_text_font_size
+    global tip, tip_font_size
+    global chart_charter_text
+    global chart_illustrator_text
+    global chart_charter_text_font_size
+    global chart_illustrator_text_font_size
+    
     animation_time = 4.5
     
     chart_name_text = chart_information["Name"]
@@ -1610,23 +1576,6 @@ def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = 
     
     if len(chart_level_number) == 1:
         chart_level_text_font_size *= 1.35
-    
-    CoreConfigureEx(PhiCoreConfigEx(
-        chart_name_text = chart_name_text,
-        chart_name_font_text_size = chart_name_font_text_size,
-        chart_artist_text = chart_artist_text,
-        chart_artist_text_font_size = chart_artist_text_font_size,
-        chart_level_number = chart_level_number,
-        chart_level_number_font_size = chart_level_number_font_size,
-        chart_level_text = chart_level_text,
-        chart_level_text_font_size = chart_level_text_font_size,
-        tip = tip,
-        tip_font_size = tip_font_size,
-        chart_charter_text = chart_charter_text,
-        chart_illustrator_text = chart_illustrator_text,
-        chart_charter_text_font_size = chart_charter_text_font_size,
-        chart_illustrator_text_font_size = chart_illustrator_text_font_size,
-    ))
     
     LoadSuccess.play()
     
