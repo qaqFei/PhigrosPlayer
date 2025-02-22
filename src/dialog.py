@@ -16,7 +16,8 @@ if platform.system() == "Windows":
             Filter
         )
         dlg.DoModal()
-        return dlg.GetPathName()
+        result = dlg.GetPathName()
+        return result if result != fn else None
 else:
     def _base_dialog(
         bFileOpen: bool,
@@ -25,8 +26,8 @@ else:
     ) -> str:
         return input(f"Enter file path (isopen: {bFileOpen}, filter: {Filter}, fn: {fn}): ")
 
-def openfile(**kwargs) -> str:
+def openfile(**kwargs) -> str|None:
     return _base_dialog(True, **kwargs)
 
-def savefile(**kwargs) -> str:
+def savefile(**kwargs) -> str|None:
     return _base_dialog(False, **kwargs)

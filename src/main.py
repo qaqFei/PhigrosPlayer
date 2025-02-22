@@ -561,13 +561,20 @@ def PlayerStart():
                 mixer.music.unpause()
                 show_start_time += time.time() - pause_st
                 pause_flag = False
+        
+        @tool_funcs.runByThread
+        def dumpChart():
+            print("dumping...")
                 
         root.jsapi.set_attr("Noautoplay_Restart", _f)
         root.jsapi.set_attr("SpaceClicked", space)
+        root.jsapi.set_attr("DumpChart", dumpChart)
         root.run_js_code("_Noautoplay_Restart = (e) => {if (e.altKey && e.ctrlKey && e.repeat && e.key.toLowerCase() == 'r') pywebview.api.call_attr('Noautoplay_Restart');};") # && e.repeat 为了判定长按
         root.run_js_code("_SpaceClicked = (e) => {if (e.key == ' ' && !e.repeat) pywebview.api.call_attr('SpaceClicked');};")
+        root.run_js_code("_DumpChart = (e) => {if (e.altKey && e.ctrlKey && e.repeat && e.key.toLowerCase() == 'd') pywebview.api.call_attr('DumpChart');};")
         root.run_js_code("window.addEventListener('keydown', _Noautoplay_Restart);")
         root.run_js_code("window.addEventListener('keydown', _SpaceClicked);")
+        root.run_js_code("window.addEventListener('keydown', _DumpChart);")
         
         while True:
             while pause_flag: time.sleep(1 / 30)
@@ -600,6 +607,7 @@ def PlayerStart():
             loadChartObject()
             Thread(target=PlayerStart, daemon=True).start()
             return
+        
     elif lfdaot:
         lfdaot_tasks: dict[int, chartobj_phi.FrameRenderTask] = {}
         frame_speed = 60
@@ -627,12 +635,10 @@ def PlayerStart():
             
             if "--lfdaot-file-savefp" in sys.argv:
                 lfdaot_fp = sys.argv[sys.argv.index("--lfdaot-file-savefp") + 1]
-                savelfdaot = True
             else:
                 lfdaot_fp = dialog.savefile(fn="Chart.lfdaot")
-                savelfdaot = lfdaot_fp != "Chart.lfdaot"
             
-            if savelfdaot:
+            if lfdaot_fp is not None:
                 recorder = chartobj_phi.FrameTaskRecorder(
                     meta = chartobj_phi.FrameTaskRecorder_Meta(
                         frame_speed = frame_speed,
@@ -717,7 +723,7 @@ def PlayerStart():
             fn = "render_video.mp4"
         )
         
-        if "--render-video-savefp" not in sys.argv and video_fp == "render_video.mp4":
+        if video_fp is None:
             root.destroy()
             return
         
