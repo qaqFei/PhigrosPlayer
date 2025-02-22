@@ -237,15 +237,12 @@ def processClickEffectBase(
             
             point = tool_funcs.rotate_point(x, y, deg, pointr)
             caller(
-                root.run_js_code,
-                f"ctx.addRoundRectData(\
-                    {point[0] - nowBlockSize / 2},\
-                    {point[1] - nowBlockSize / 2},\
-                    {nowBlockSize},\
-                    {nowBlockSize},\
-                    {nowBlockSize * rblocks_roundn}\
-                );",
-                add_code_array = True
+                addRoundRectData,
+                point[0] - nowBlockSize / 2,
+                point[1] - nowBlockSize / 2,
+                nowBlockSize, nowBlockSize,
+                nowBlockSize * rblocks_roundn,
+                wait_execute = True
             )
     
         caller(root.run_js_code, f"ctx.drawRoundDatas('rgba{color + (1.0 - p, )}');", add_code_array = True)

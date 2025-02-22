@@ -6,20 +6,20 @@ import webcv
 
 root: webcv.WebCanvas
 
-__all__ = (
-    "setCtx",
-    "getCtx",
-    "setOrder",
-    "getOrder",
-    "clearCanvas",
-    "drawLine",
-    "drawText",
-    "drawPolygon",
-    "drawImage",
-    "drawCoverFullScreenImage",
-    "drawAlphaImage",
-    "drawRotateImage"
-)
+# __all__ = (
+#     "setCtx",
+#     "getCtx",
+#     "setOrder",
+#     "getOrder",
+#     "clearCanvas",
+#     "drawLine",
+#     "drawText",
+#     "drawPolygon",
+#     "drawImage",
+#     "drawCoverFullScreenImage",
+#     "drawAlphaImage",
+#     "drawRotateImage"
+# )
 
 transparent = "rgba(0, 0, 0, 0)"
 number = int|float
@@ -138,4 +138,12 @@ def drawRotateImage(
 ):
     jvn = root.get_img_jsvarname(imname)
     root.run_js_code(f"{ctx}.drawRotateImage({jvn}, {x}, {y}, {width}, {height}, {deg}, {alpha});", wait_execute, order)
-    
+
+def addRoundRectData(
+    x: number, y: number,
+    w: number, h: number,
+    r: number,
+    wait_execute: bool = False
+):
+    root.run_js_code(f"{ctx}.addRoundRectData({x}, {y}, {w}, {h}, {r});", wait_execute, order)
+
