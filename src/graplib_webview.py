@@ -174,4 +174,11 @@ def outOfTransformDrawCoverFullscreenChartBackgroundImage(imname: str, wait_exec
     jvn = root.get_img_jsvarname(imname)
     root.run_js_code(f"{ctx}.outOfTransformDrawCoverFullscreenChartBackgroundImage({jvn});", wait_execute, order)
     
+def fillRectEx(
+    x: number, y: number,
+    w: number, h: number,
+    color: str,
+    wait_execute: bool = False
+):
+    root.run_js_code(f"{ctx}.fillRectEx({x}, {y}, {w}, {h}, '{color}');", wait_execute, order)
     

@@ -339,13 +339,7 @@ def undoClipScreen():
 
 def drawBg():
     drawCoverFullScreenImage("background_blur", w, h, wait_execute=True)
-    root.run_js_code(
-        f"ctx.fillRectEx(\
-            0, 0, {w}, {h}, \
-            'rgba(0, 0, 0, {backgroundDim})'\
-        );",
-        add_code_array = True
-    )
+    fillRectEx(0, 0, w, h, f"rgba(0, 0, 0, {backgroundDim})", wait_execute=True)
 
 # color 一定要传 rgba 的
 def draw_ui(
