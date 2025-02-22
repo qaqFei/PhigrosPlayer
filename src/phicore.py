@@ -54,20 +54,20 @@ class PhiCoreConfig:
     LoadSuccess: musicCls
     chart_res: dict[str, tuple[Image.Image, tuple[int, int]]]
     cksmanager: ClickSoundManager
-    enable_clicksound: bool
-    rtacc: bool
-    noautoplay: bool
-    showfps: bool
-    lfdaot: bool
-    speed: float
-    render_range_more: bool
-    render_range_more_scale: float
-    debug: bool
-    combotips: bool
-    noplaychart: bool
-    clicksound_volume: float
-    musicsound_volume: float
-    enable_controls: bool
+    enable_clicksound: bool = True
+    rtacc: bool = False
+    noautoplay: bool = False
+    showfps: bool = False
+    lfdaot: bool = False
+    speed: float = 1.0
+    render_range_more: bool = False
+    render_range_more_scale: float = 2.0
+    debug: bool = False
+    combotips: str = "AUTOPLAY"
+    noplaychart: bool = False
+    clicksound_volume: float = 1.0
+    musicsound_volume: float = 1.0
+    enable_controls: bool = False
     
     def __post_init__(self):
         if isinstance(self.chart_obj, chartobj_phi.Phigros_Chart):

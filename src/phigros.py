@@ -3292,14 +3292,11 @@ def chartPlayerRender(
         LoadSuccess = LoadSuccess, chart_res = {},
         cksmanager = cksmanager,
         enable_clicksound = getUserData("setting-enableClickSound"),
-        rtacc = False, noautoplay = "--debug" not in sys.argv, showfps = "--debug" in sys.argv,
-        lfdaot = False, speed = 1.0, render_range_more = False,
-        render_range_more_scale = 1.0,
+        noautoplay = "--debug" not in sys.argv, showfps = "--debug" in sys.argv,
         debug = "--debug" in sys.argv,
-        combotips = "COMBO" if "--debug" not in sys.argv else "AUTOPLAY", noplaychart = False,
+        combotips = "COMBO" if "--debug" not in sys.argv else "AUTOPLAY",
         clicksound_volume = getUserData("setting-clickSoundVolume"),
-        musicsound_volume = getUserData("setting-musicVolume"),
-        enable_controls = False
+        musicsound_volume = getUserData("setting-musicVolume")
     )
     phicore.CoreConfigure(coreConfig)
     
