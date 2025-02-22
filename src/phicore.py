@@ -37,7 +37,7 @@ class PhiCoreConfig:
     w: int; h: int
     
     chart_information: dict
-    chart_obj: chartobj_phi.Phigros_Chart | chartobj_rpe.Rpe_Chart
+    chart_obj: chartobj_phi.Chart | chartobj_rpe.Chart
     
     Resource: dict
     backgroundDim: float
@@ -70,9 +70,9 @@ class PhiCoreConfig:
     enable_controls: bool = False
     
     def __post_init__(self):
-        if isinstance(self.chart_obj, chartobj_phi.Phigros_Chart):
+        if isinstance(self.chart_obj, chartobj_phi.Chart):
             self.CHART_TYPE = const.CHART_TYPE.PHI
-        elif isinstance(self.chart_obj, chartobj_rpe.Rpe_Chart):
+        elif isinstance(self.chart_obj, chartobj_rpe.Chart):
             self.CHART_TYPE = const.CHART_TYPE.RPE
 
 @dataclass

@@ -30,7 +30,7 @@ with open(chartFile, "r", encoding="utf-8") as f:
 chartObj = chartfuncs_phi.loadChartObject(jsonData) if "formatVersion" in jsonData else chartfuncs_rpe.loadChartObject(jsonData)
 moveDatas = []
 
-if isinstance(chartObj, chartobj_phi.Phigros_Chart):
+if isinstance(chartObj, chartobj_phi.Chart):
     for line in chartObj.judgeLineList:
         for note in line.notesAbove + line.notesBelow:
             moveDatas.append({
@@ -54,7 +54,7 @@ if isinstance(chartObj, chartobj_phi.Phigros_Chart):
                     "time": e["time"] + 0.05,
                     "pos": (e["pos"][0], e["pos"][1] - 0.1)
                 })
-elif isinstance(chartObj, chartobj_rpe.Rpe_Chart): # eq else
+elif isinstance(chartObj, chartobj_rpe.Chart): # eq else
     for line in chartObj.judgeLineList:
         for note in line.notes:
             moveDatas.append({

@@ -271,7 +271,7 @@ class judgeLine:
     judgeLineRotateEvents: list[judgeLineRotateEvent]
     judgeLineDisappearEvents: list[judgeLineDisappearEvent]
     
-    master: typing.Optional[Phigros_Chart] = None
+    master: typing.Optional[Chart] = None
     
     def __post_init__(self):
         self.T = 1.875 / self.bpm
@@ -357,7 +357,7 @@ class judgeLine:
         }
 
 @dataclass
-class Phigros_Chart:
+class Chart:
     formatVersion: int
     offset: float
     judgeLineList: list[judgeLine]
@@ -452,7 +452,7 @@ class Phigros_Chart:
         }
     
 class PPLMPHI_Proxy(tool_funcs.PPLM_ProxyBase):
-    def __init__(self, cobj: Phigros_Chart): self.cobj = cobj
+    def __init__(self, cobj: Chart): self.cobj = cobj
     
     def get_lines(self) -> list[judgeLine]: return self.cobj.judgeLineList
     def get_all_pnotes(self) -> list[Note]: return self.cobj.playerNotes

@@ -56,7 +56,7 @@ def _extended(line: dict):
 def loadChartObject(chart: dict):
     logging.info("Loading Chart Object, fmt = rpe")
     meta = chart.get("META", {})
-    rpe_chart_obj = chartobj_rpe.Rpe_Chart(
+    rpe_chart_obj = chartobj_rpe.Chart(
         META = chartobj_rpe.MetaData(
             RPEVersion = meta.get("RPEVersion", -1),
             offset = meta.get("offset", 0),

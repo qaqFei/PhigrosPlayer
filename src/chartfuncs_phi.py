@@ -44,7 +44,7 @@ def loadChartObject(phigros_chart: dict):
                     ) for e in es
                 ]
     
-    phigros_chart_obj = chartobj_phi.Phigros_Chart(
+    phigros_chart_obj = chartobj_phi.Chart(
         formatVersion = fmtVersion,
         offset = phigros_chart.get("offset", 0.0),
         judgeLineList = [

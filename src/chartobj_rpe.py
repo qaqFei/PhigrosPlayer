@@ -88,7 +88,7 @@ class Note:
     hitsound: str|None
     
     masterLine: JudgeLine|None = None
-    master: Rpe_Chart|None = None
+    master: Chart|None = None
     clicked: bool = False
     morebets: bool = False
     floorPosition: float = 0.0
@@ -342,7 +342,7 @@ class JudgeLine:
     
     controlEvents: ControlEvents
     
-    master: Rpe_Chart|None = None
+    master: Chart|None = None
     index: int = -1
     playingFloorPosition: float = 0.0
     textureSize: tuple[int|float, int|float] = (0.0, 0.0)
@@ -467,7 +467,7 @@ class JudgeLine:
         return self is oth
 
 class PPLMRPE_Proxy(tool_funcs.PPLM_ProxyBase):
-    def __init__(self, cobj: Rpe_Chart): self.cobj = cobj
+    def __init__(self, cobj: Chart): self.cobj = cobj
     
     def get_lines(self): return self.cobj.judgeLineList
     def get_all_pnotes(self): return self.cobj.playerNotes
@@ -523,7 +523,7 @@ class PPLMRPE_Proxy(tool_funcs.PPLM_ProxyBase):
     def nproxy_set_pbadtime(self, n: Note, time: float): n.player_badtime = time
     
 @dataclass
-class Rpe_Chart:
+class Chart:
     META: MetaData
     BPMList: list[BPMEvent]
     judgeLineList: list[JudgeLine]
@@ -687,7 +687,7 @@ class Extra:
     effects: list[ExtraEffect]
     
     def getValues(self, t: float, isglobal: bool):
-        beat = Rpe_Chart.sec2beat(None, t, 1.0, self.bpm)
+        beat = Chart.sec2beat(None, t, 1.0, self.bpm)
         result = []
         
         for e in self.effects:
