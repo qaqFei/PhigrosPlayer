@@ -1597,8 +1597,8 @@ class BPMEvent:
     为 `0` 是表示不使用，为 `1` 是表示使用。
 
     对于使用 `Re:PhiEdit` 生成的 `rpe` 谱面文件:
-  - 当 `cover` 启用且 `note` 为非 `hold`，且 `note` 纵坐标小于 `0` 时，不渲染。
-  - 当 `cover` 启用且 `note` 为 `hold` 时, 且 `hold` 尾部纵坐标小于 `0` 时，不渲染。
+    - 当 `cover` 启用且 `note` 为非 `hold`，且 `note` 纵坐标小于 `0` 时，不渲染。
+    - 当 `cover` 启用且 `note` 为 `hold` 时, 且 `hold` 尾部纵坐标小于 `0` 时，不渲染。
 
     对于使用 `pec` 谱面转换的 `rpe` 谱面文件:
-  - 当 `cover` 启用且 `note` 纵坐标小于 `0` 时，不渲染。
+    - 当 `cover` 启用且 `note` 纵坐标小于 `0` 时，不渲染。
