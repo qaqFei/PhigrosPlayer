@@ -439,7 +439,9 @@ def pack_charts(infos: list[dict], rpe: bool):
     allcount = 0
     for info in infos:
         for li, l in enumerate(info["levels"]):
-            levelString = f"{l} Lv.{int(info["difficulty"][li])}"
+            # tip: 2 spaces
+            levelString = f"{l}  Lv.{int(info["difficulty"][li])}"
+            
             chartExn = "json"
             audioExn = "ogg"
             imageExn = "png"
