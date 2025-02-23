@@ -825,7 +825,537 @@ ease_funcs: list[typing.Callable[[float], float]] = [
       }
   }
   ```
+
 </details>
 
 ## PhiEdit Chart
 
+`pec` 谱面为命令型文本格式，通常读取文件到 `str`, 然后使用 `\n` 分割为数组。
+
+对于谱面第一行，表示为谱面 `offset`，单位为 `ms`，减去 `150` 即可转化为 `rpe` 格式的 `offset`。
+
+例如: `pec` 文件第一行为 `150`，则 `offset` 为 `150 - 150 = 0 (ms)`。
+
+读取完成 `offset` 后可删除第一行，以便于后续读取。
+
+<details>
+  <summary>这种谱面规范吗 （？</summary>
+
+  在一些谱面中, 需要将 `" #"` 替换为 `"\n#"`, `" &"` 替换为 `"\n&"`。
+</details>
+
+每行可被 `" " (空格)` 分割为许多 `token`，我们跳过空行。
+
+至此，我们得到了一个 `token` 数组，即 `list[list[str]]`。
+
+我们定义:
+
+```python
+rpex = lambda x: (x / 2048 - 0.5) * 1350
+rpey = lambda y: (y / 1400 -  0.5) * 900
+rpes = lambda s: s / 1400 * 900
+
+def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
+    """用于瞬时事件后的事件寻找开始值。"""
+    if not events: return default
+    
+    ets = list(map(lambda x: abs(x["endTime"][0] - t), events))
+    return events[ets.index(min(ets))]["end"]
+```
+
+格式说明 (对于第一个 `token`):
+
+- `bp`
+
+    表示谱面 `bpm` 事件，格式为 `bp startTime bpm`。
+
+    类型为 `bp <float> <float>`。
+
+    对应的 `rpe` 格式为:
+
+    ```python
+    {
+        "startTime": [float(tokens[1]), 0, 1],
+        "bpm": [float(tokens[2]), 0, 1]
+    }
+    ```
+
+- `n1` & `n2` & `n3` & `n4`
+
+    表示判定线 `note`。
+
+    对于 `n2 (hold)`，格式为 `n2 lineIndex startTime endTime positionX isAbove isFake`，
+    
+    类型为 `n2 <int> <float> <float> <float> <int> <int>`。
+
+    对于其他, 格式为 `n1 lineIndex startTime positionX isAbove isFake`，
+
+    类型为 `n1 <int> <float> <float> <int> <int>`。
+
+    该命令的下两行为 `speed` 和 `size`，格式为 `# speed` `& size`。
+
+    示例：
+
+    ```txt
+    n2 0 10 15 0 1 0
+    # 1.2
+    & 1.4
+    ```
+
+    转化为 `rpe` 格式为:
+
+    ```python
+    et = None
+    if tokens[0] == "n2":
+        et = [float(tokens.pop(3)), 0, 1]
+    
+    ntype = {"n1": 1, "n2": 2, "n3": 3, "n4": 4}[tokens[0]]
+    k = int(tokens[1])
+    st = [float(tokens[2]), 0, 1]
+    x = float(tokens[3])
+
+    if et is None: et = st.copy()
+
+    above = int(tokens[4])
+    fake = bool(int(tokens[5]))
+    speed = float(speed) # 例如该命令的一下行为 `# 1.2`, 则 speed 为 `1.2`
+    size = float(size) # 例如该命令的一下行为 `& 1.4`, 则 size 为 `1.4`
+
+    judgeLineList[k]["notes"].append({
+        "type": ntype,
+        "startTime": st,
+        "endTime": et,
+        "positionX": x / 2048 * 1350,
+        "above": above,
+        "isFake": fake,
+        "speed": speed,
+        "size": size
+    })
+    ```
+
+- `cp`
+
+    表示判定线瞬时移动事件，格式为 `cp lineIndex time x y`，
+
+    类型为 `cp <int> <float> <float> <float>`。
+
+    对应的 `rpe` 格式为:
+
+    ```python
+    k = int(tokens[1])
+    st = [float(tokens[2]), 0, 1]
+    x = float(tokens[3])
+    y = float(tokens[4])
+
+    judgeLineList[k]["eventLayers"][0]["moveXEvents"].append({
+        "startTime": t, "endTime": t,
+        "start": rpex(x), "end": rpex(x),
+        "easingType": 1
+    })
+
+    judgeLineList[k]["eventLayers"][0]["moveYEvents"].append({
+        "startTime": t, "endTime": t,
+        "start": rpey(y), "end": rpey(y),
+        "easingType": 1
+    })
+    ```
+
+- `cd`
+
+    表示判定线瞬时旋转事件, 格式为 `cd lineIndex time deg`，
+
+    类型为 `cd <int> <float> <float>`。
+
+    对应的 `rpe` 格式为:
+
+    ```python
+    k = int(tokens[1])
+    t = [float(tokens[2]), 0, 1]
+    v = float(tokens[3])
+
+    judgeLineList[k]["eventLayers"][0]["rotateEvents"].append({
+        "startTime": t, "endTime": t,
+        "start": v, "end": v,
+        "easingType": 1
+    })
+    ```
+
+- `ca`
+
+    表示判定线瞬时透明度事件，格式为 `ca lineIndex time alpha`，
+
+    类型为 `ca <int> <float> <float>`。
+
+    对应的 `rpe` 格式为:
+
+    ```python
+    k = int(tokens[1])
+    t = [float(tokens[2]), 0, 1]
+    v = float(tokens[3])
+
+    judgeLineList[k]["eventLayers"][0]["alphaEvents"].append({
+        "startTime": t, "endTime": t,
+        "start": v, "end": v,
+        "easingType": 1
+    })
+
+- `cv`
+
+    表示判定线瞬时速度事件, 格式为 `cv lineIndex time speed`，
+
+    类型为 `cv <int> <float> <float>`。
+
+    对应的 `rpe` 格式为:
+
+    ```python
+    k = int(tokens[1])
+    t = [float(tokens[2]), 0, 1]
+    v = float(tokens[3])
+
+    judgeLineList[k]["eventLayers"][0]["speedEvents"].append({
+        "startTime": t, "endTime": t,
+        "start": v, "end": v,
+        "easingType": 1
+    })
+    ```
+
+- `cm`
+
+    表示判定线移动事件, 格式为 `cm lineIndex startTime endTime endX endY ease`，
+
+    类型为 `cm <int> <float> <float> <float> <float> <int>`。
+
+    对应的 `rpe` 格式为:
+
+    ```python
+    k = int(tokens[1])
+    st = [float(tokens[2]), 0, 1]
+    et = [float(tokens[3]), 0, 1]
+    ex = float(tokens[4])
+    ey = float(tokens[5])
+    ease = int(tokens[6])
+
+    mxes = judgeLineList[k]["eventLayers"][0]["moveXEvents"]
+    myes = judgeLineList[k]["eventLayers"][0]["moveYEvents"]
+    sx = pec2rpe_findevent_bytime(mxes, st[0], rpex(ex))
+    sy = pec2rpe_findevent_bytime(myes, st[0], rpey(ey))
+    
+    mxes.append({
+        "startTime": st, "endTime": et,
+        "start": sx, "end": rpex(ex),
+        "easingType": ease
+    })
+
+    myes.append({
+        "startTime": st, "endTime": et,
+        "start": sy, "end": rpey(ey),
+        "easingType": ease
+    })
+    ```
+
+- `cr`
+
+    表示判定线旋转事件, 格式为 `cr lineIndex startTime endTime endDeg ease`，
+
+    格式为 `cr <int> <float> <float> <float> <int>`。
+
+    对应的 `rpe` 格式为:
+
+    ```python
+    k = int(tokens[1])
+    st = [float(tokens[2]), 0, 1]
+    et = [float(tokens[3]), 0, 1]
+    ev = float(tokens[4])
+    ease = int(tokens[5])
+
+    res = judgeLineList[k]["eventLayers"][0]["rotateEvents"]
+    sv = pec2rpe_findevent_bytime(res, st[0], ev)
+
+    res.append({
+        "startTime": st, "endTime": et,
+        "start": sv, "end": ev,
+        "easingType": ease
+    })
+    ```
+
+- `cf`
+
+    表示判定线透明度事件, 格式为 `cf lineIndex startTime endTime endAlpha`，
+
+    格式为 `cf <int> <float> <float> <float>`。
+
+    是不是觉得怪怪的？ 对！, `cf` 居然没有 `ease` 参数。
+
+    对应的 `rpe` 格式为:
+
+    ```python
+    k = int(tokens[1])
+    st = [float(tokens[2]), 0, 1]
+    et = [float(tokens[3]), 0, 1]
+    ev = float(tokens[4])
+
+    aes = judgeLineList[k]["eventLayers"][0]["alphaEvents"]
+    sv = pec2rpe_findevent_bytime(aes, st[0], ev)
+
+    aes.append({
+        "startTime": st, "endTime": et,
+        "start": sv, "end": ev,
+        "easingType": 1
+    })
+    ```
+
+至此，我们了解了 `pec` 文件的格式，为保证文档的严谨性, 在此贴出 `pec` 转 `rpe` 格式的 `python` 示例代码 (为最小化 `rpe` 格式, 默认项省略):
+
+<details>
+  <summary>展开</summary>
+
+  ```python
+
+  def isallnum(lst: list[str], l: int|None = None):
+        return (len(lst) >= l or l is None) and all(map(lambda x: isfloatable(x), lst))
+
+  def pec2rpe_findevent_bytime(es: list[dict], t: float, default: float):
+      if not es: return default
+      
+      ets = list(map(lambda x: abs(x["endTime"][0] - t), es))
+      return es[ets.index(min(ets))]["end"]
+  
+  def pec2rpe(pec: str):
+      errs = []
+      peclines = pec.replace(" #", "\n#").replace(" &", "\n&").split("\n")
+      result = {
+          "META": {},
+          "BPMList": [],
+          "judgeLineList": []
+      }
+      
+      result["META"]["offset"] = float(peclines.pop(0)) - 150
+      
+      peclines = list(
+          map(
+              lambda x: list(filter(lambda x: x, x)),
+              map(lambda x: x.split(" "), peclines)
+          )
+      )
+      
+      pecbpms = list(filter(lambda x: x and x[0] == "bp" and isallnum(x[1:], 2), peclines))
+      pecnotes = list(filter(lambda x: x and x[0] in ("n1", "n2", "n3", "n4") and isallnum(x[1:], 5 if x[0] != "n2" else 6), peclines))
+      pecnotespeeds = list(filter(lambda x: x and x[0] == "#" and isallnum(x[1:], 1), peclines))
+      pecnotesizes = list(filter(lambda x: x and x[0] == "&" and isallnum(x[1:], 1), peclines))
+      peccps = list(filter(lambda x: x and x[0] == "cp" and isallnum(x[1:], 4), peclines))
+      peccds = list(filter(lambda x: x and x[0] == "cd" and isallnum(x[1:], 3), peclines))
+      peccas = list(filter(lambda x: x and x[0] == "ca" and isallnum(x[1:], 3), peclines))
+      peccvs = list(filter(lambda x: x and x[0] == "cv" and isallnum(x[1:], 3), peclines))
+      peccms = list(filter(lambda x: x and x[0] == "cm" and isallnum(x[1:], 6), peclines))
+      peccrs = list(filter(lambda x: x and x[0] == "cr" and isallnum(x[1:], 5), peclines))
+      peccfs = list(filter(lambda x: x and x[0] == "cf" and isallnum(x[1:], 4), peclines))
+      
+      pecbpms.sort(key = lambda x: float(x[1]))
+      
+      notezip = list(zip(pecnotes, pecnotespeeds, pecnotesizes))
+      notezip.sort(key = lambda x: float(x[0][2]))
+      
+      peccps.sort(key = lambda x: float(x[1]))
+      peccds.sort(key = lambda x: float(x[1]))
+      peccas.sort(key = lambda x: float(x[1]))
+      peccvs.sort(key = lambda x: float(x[1]))
+      peccms.sort(key = lambda x: float(x[1]))
+      peccrs.sort(key = lambda x: float(x[1]))
+      peccfs.sort(key = lambda x: float(x[1]))
+      
+      rpex = lambda x: (x / 2048 - 0.5) * const.RPE_WIDTH
+      rpey = lambda y: (y / 1400 -  0.5) * const.RPE_HEIGHT
+      rpes = lambda s: s / 1400 * const.RPE_HEIGHT
+      lines = {}
+      
+      checkLine = lambda k: [
+          (
+              lines.update({k: {
+                  "eventLayers": [{
+                      "speedEvents": [],
+                      "moveXEvents": [],
+                      "moveYEvents": [],
+                      "rotateEvents": [],
+                      "alphaEvents": []
+                  }],
+                  "notes": []
+              }}),
+              result["judgeLineList"].append(lines[k])
+          ) if k not in lines else None,
+      ]
+      
+      for e in pecbpms:
+          try:
+              result["BPMList"].append({
+                  "startTime": [float(e[1]), 0, 1],
+                  "bpm": float(e[2])
+              })
+          except Exception as e:
+              errs.append(e)
+      
+      for e, sp, si in notezip:
+          try:
+              et = None
+              if e[0] == "n2": et = [float(e.pop(3)), 0, 1]
+              ntype = {"n1": 1, "n2": 2, "n3": 3, "n4": 4}[e[0]]
+              k = int(e[1])
+              st = [float(e[2]), 0, 1]
+              x = float(e[3])
+              if et is None: et = st.copy()
+              above = int(e[4])
+              fake = bool(int(e[5]))
+              speed = float(sp[1])
+              size = float(si[1])
+              
+              checkLine(k)
+              lines[k]["notes"].append({
+                  "type": ntype,
+                  "startTime": st,
+                  "endTime": et,
+                  "positionX": x / 2048 * const.RPE_WIDTH,
+                  "above": above,
+                  "isFake": fake,
+                  "speed": speed,
+                  "size": size
+              })
+          except Exception as e:
+              errs.append(e)
+      
+      for e in peccps:
+          try:
+              k = int(e[1])
+              t = [float(e[2]), 0, 1]
+              x = float(e[3])
+              y = float(e[4])
+              
+              checkLine(k)
+              lines[k]["eventLayers"][0]["moveXEvents"].append({
+                  "startTime": t, "endTime": t,
+                  "start": rpex(x), "end": rpex(x),
+                  "easingType": 1
+              })
+              lines[k]["eventLayers"][0]["moveYEvents"].append({
+                  "startTime": t, "endTime": t,
+                  "start": rpey(y), "end": rpey(y),
+                  "easingType": 1
+              })
+          except Exception as e:
+              errs.append(e)
+  
+      for e in peccds:
+          try:
+              k = int(e[1])
+              t = [float(e[2]), 0, 1]
+              v = float(e[3])
+              
+              checkLine(k)
+              lines[k]["eventLayers"][0]["rotateEvents"].append({
+                  "startTime": t, "endTime": t,
+                  "start": v, "end": v,
+                  "easingType": 1
+              })
+          except Exception as e:
+              errs.append(e)
+      
+      for e in peccas:
+          try:
+              k = int(e[1])
+              t = [float(e[2]), 0, 1]
+              v = float(e[3])
+  
+              checkLine(k)
+              lines[k]["eventLayers"][0]["alphaEvents"].append({
+                  "startTime": t, "endTime": t,
+                  "start": v, "end": v,
+                  "easingType": 1
+              })
+          except Exception as e:
+              errs.append(e)
+      
+      for e in peccvs:
+          try:
+              k = int(e[1])
+              t = [float(e[2]), 0, 1]
+              v = float(e[3])
+  
+              checkLine(k)
+              lines[k]["eventLayers"][0]["speedEvents"].append({
+                  "startTime": t, "endTime": t,
+                  "start": rpes(v), "end": rpes(v),
+                  "easingType": 1
+              })
+          except Exception as e:
+              errs.append(e)
+      
+      for e in peccms:
+          try:
+              k = int(e[1])
+              st = [float(e[2]), 0, 1]
+              et = [float(e[3]), 0, 1]
+              ex = float(e[4])
+              ey = float(e[5])
+              ease = int(e[6])
+              
+              checkLine(k)
+              mxes = lines[k]["eventLayers"][0]["moveXEvents"]
+              myes = lines[k]["eventLayers"][0]["moveYEvents"]
+              sx = pec2rpe_findevent_bytime(mxes, st[0], rpex(ex))
+              sy = pec2rpe_findevent_bytime(myes, st[0], rpey(ey))
+  
+              mxes.append({
+                  "startTime": st, "endTime": et,
+                  "start": sx, "end": rpex(ex),
+                  "easingType": ease
+              })
+              myes.append({
+                  "startTime": st, "endTime": et,
+                  "start": sy, "end": rpey(ey),
+                  "easingType": ease
+              })
+          except Exception as e:
+              errs.append(e)
+      
+      for e in peccrs:
+          try:
+              k = int(e[1])
+              st = [float(e[2]), 0, 1]
+              et = [float(e[3]), 0, 1]
+              ev = float(e[4])
+              ease = int(e[5])
+  
+              checkLine(k)
+              res = lines[k]["eventLayers"][0]["rotateEvents"]
+              sv = pec2rpe_findevent_bytime(res, st[0], ev)
+  
+              res.append({
+                  "startTime": st, "endTime": et,
+                  "start": sv, "end": ev,
+                  "easingType": ease
+              })
+          except Exception as e:
+              errs.append(e)
+      
+      for e in peccfs:
+          try:
+              k = int(e[1])
+              st = [float(e[2]), 0, 1]
+              et = [float(e[3]), 0, 1]
+              ev = float(e[4])
+  
+              checkLine(k)
+              aes = lines[k]["eventLayers"][0]["alphaEvents"]
+              sv = pec2rpe_findevent_bytime(aes, st[0], ev)
+  
+              aes.append({
+                  "startTime": st, "endTime": et,
+                  "start": sv, "end": ev,
+                  "easingType": 1
+              })
+          except Exception as e:
+              errs.append(e)
+      
+      return result, errs
+  ```
+</details>
+
+## Re:PhiEdit 谱面

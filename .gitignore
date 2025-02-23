@@ -14,3 +14,5 @@ unpack-temp
 
 ffmpeg.exe
 ffprobe.exe
+
+need-ignore-*
