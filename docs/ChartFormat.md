@@ -1111,8 +1111,12 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
   ```python
 
+  def isfloatable(s: str):
+      try: float(s); return True
+      except: return False
+
   def isallnum(lst: list[str], l: int|None = None):
-        return (len(lst) >= l or l is None) and all(map(lambda x: isfloatable(x), lst))
+      return (len(lst) >= l or l is None) and all(map(lambda x: isfloatable(x), lst))
 
   def pec2rpe_findevent_bytime(es: list[dict], t: float, default: float):
       if not es: return default
