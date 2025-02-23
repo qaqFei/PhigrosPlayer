@@ -1592,6 +1592,8 @@ class BPMEvent:
 
     ！注意, 不是乘以这个值, 而是除以这个值！
 
+    ~~你 ysj 的文档还写错 😡👊~~
+
 - `alphaControl` & `posControl` & `sizeControl` & `skewControl` & `yControl`
 
     待补充, 行为难以确定。
