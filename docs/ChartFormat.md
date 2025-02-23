@@ -830,13 +830,13 @@ ease_funcs: list[typing.Callable[[float], float]] = [
 
 ## PhiEdit Chart
 
-`pec` 谱面为命令型文本格式，通常读取文件到 `str`, 然后使用 `\n` 分割为数组。
+`pec` 谱面为命令型文本格式, 通常读取文件到 `str`, 然后使用 `\n` 分割为数组。
 
-对于谱面第一行，表示为谱面 `offset`，单位为 `ms`，减去 `150` 即可转化为 `rpe` 格式的 `offset`。
+对于谱面第一行, 表示为谱面 `offset`, 单位为 `ms`, 减去 `150` 即可转化为 `rpe` 格式的 `offset`。
 
-例如: `pec` 文件第一行为 `150`，则 `offset` 为 `150 - 150 = 0 (ms)`。
+例如: `pec` 文件第一行为 `150`, 则 `offset` 为 `150 - 150 = 0 (ms)`。
 
-读取完成 `offset` 后可删除第一行，以便于后续读取。
+读取完成 `offset` 后可删除第一行, 以便于后续读取。
 
 <details>
   <summary>这种谱面规范吗 （？</summary>
@@ -844,9 +844,9 @@ ease_funcs: list[typing.Callable[[float], float]] = [
   在一些谱面中, 需要将 `" #"` 替换为 `"\n#"`, `" &"` 替换为 `"\n&"`。
 </details>
 
-每行可被 `" " (空格)` 分割为许多 `token`，我们跳过空行。
+每行可被 `" " (空格)` 分割为许多 `token`, 我们跳过空行。
 
-至此，我们得到了一个 `token` 数组，即 `list[list[str]]`。
+至此, 我们得到了一个 `token` 数组, 即 `list[list[str]]`。
 
 我们定义:
 
@@ -867,7 +867,7 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
 - `bp`
 
-    表示谱面 `bpm` 事件，格式为 `bp startTime bpm`。
+    表示谱面 `bpm` 事件, 格式为 `bp startTime bpm`。
 
     类型为 `bp <float> <float>`。
 
@@ -884,15 +884,15 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
     表示判定线 `note`。
 
-    对于 `n2 (hold)`，格式为 `n2 lineIndex startTime endTime positionX isAbove isFake`，
-    
+    对于 `n2 (hold)`, 格式为 `n2 lineIndex startTime endTime positionX isAbove isFake`,
+
     类型为 `n2 <int> <float> <float> <float> <int> <int>`。
 
-    对于其他, 格式为 `n1 lineIndex startTime positionX isAbove isFake`，
+    对于其他, 格式为 `n1 lineIndex startTime positionX isAbove isFake`,
 
     类型为 `n1 <int> <float> <float> <int> <int>`。
 
-    该命令的下两行为 `speed` 和 `size`，格式为 `# speed` `& size`。
+    该命令的下两行为 `speed` 和 `size`, 格式为 `# speed` `& size`。
 
     示例：
 
@@ -935,7 +935,7 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
 - `cp`
 
-    表示判定线瞬时移动事件，格式为 `cp lineIndex time x y`，
+    表示判定线瞬时移动事件, 格式为 `cp lineIndex time x y`,
 
     类型为 `cp <int> <float> <float> <float>`。
 
@@ -962,7 +962,7 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
 - `cd`
 
-    表示判定线瞬时旋转事件, 格式为 `cd lineIndex time deg`，
+    表示判定线瞬时旋转事件, 格式为 `cd lineIndex time deg`,
 
     类型为 `cd <int> <float> <float>`。
 
@@ -982,7 +982,7 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
 - `ca`
 
-    表示判定线瞬时透明度事件，格式为 `ca lineIndex time alpha`，
+    表示判定线瞬时透明度事件, 格式为 `ca lineIndex time alpha`,
 
     类型为 `ca <int> <float> <float>`。
 
@@ -1001,7 +1001,7 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
 - `cv`
 
-    表示判定线瞬时速度事件, 格式为 `cv lineIndex time speed`，
+    表示判定线瞬时速度事件, 格式为 `cv lineIndex time speed`,
 
     类型为 `cv <int> <float> <float>`。
 
@@ -1021,7 +1021,7 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
 - `cm`
 
-    表示判定线移动事件, 格式为 `cm lineIndex startTime endTime endX endY ease`，
+    表示判定线移动事件, 格式为 `cm lineIndex startTime endTime endX endY ease`,
 
     类型为 `cm <int> <float> <float> <float> <float> <int>`。
 
@@ -1055,7 +1055,7 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
 - `cr`
 
-    表示判定线旋转事件, 格式为 `cr lineIndex startTime endTime endDeg ease`，
+    表示判定线旋转事件, 格式为 `cr lineIndex startTime endTime endDeg ease`,
 
     格式为 `cr <int> <float> <float> <float> <int>`。
 
@@ -1080,7 +1080,7 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
 - `cf`
 
-    表示判定线透明度事件, 格式为 `cf lineIndex startTime endTime endAlpha`，
+    表示判定线透明度事件, 格式为 `cf lineIndex startTime endTime endAlpha`,
 
     格式为 `cf <int> <float> <float> <float>`。
 
@@ -1104,7 +1104,7 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
     })
     ```
 
-至此，我们了解了 `pec` 文件的格式，为保证文档的严谨性, 在此贴出 `pec` 转 `rpe` 格式的 `python` 示例代码 (为最小化 `rpe` 格式, 默认项省略):
+至此, 我们了解了 `pec` 文件的格式, 为保证文档的严谨性, 在此贴出 `pec` 转 `rpe` 格式的 `python` 示例代码 (为最小化 `rpe` 格式, 默认项省略):
 
 <details>
   <summary>展开</summary>
@@ -1360,6 +1360,245 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
       
       return result, errs
   ```
+
 </details>
 
 ## Re:PhiEdit 谱面
+
+`rpe` 格式谱面为 `json` 格式。
+
+（此处不介绍 < `140` 版本的任何特性）
+
+谱面根结构:
+
+- `BPMList`
+
+    `list[dict]` 类型，表示谱面的 `BPM` 列表。
+
+- `META`
+
+    `dict` 类型，表示谱面的元数据。
+
+- `judgeLineGroup`
+
+    `list[str]` 类型，表示谱面的判定线组。
+
+    渲染不使用。
+
+- `judgeLineList`
+
+    `list[dict]` 类型，表示谱面的判定线列表。
+
+我们在此定义大小单位 `W` 与 `H`, 为屏幕的宽度与高度。
+
+让我们了解一下 `BPMList`:
+
+在此之前我们定义类型 `Beat` 与 `BPMEvent`:
+
+```python
+@dataclass
+class Beat:
+    v1: float; v2: float; v3: float
+    
+    def __post_init__(self):
+        self.value = self.v1 + self.v2 / self.v3
+
+@dataclass
+class BPMEvent:
+    startTime: Beat
+    bpm: float
+```
+
+`Beat` 在谱面中的表示方式为 `[v1, v2, v3]`。
+
+`BPMList` 的每个元素是一个 `dict`，表示一个 `BPMEvent`。
+
+例如:
+
+```json5
+{
+    "BPMList": [
+        {
+            "bpm": 120,
+            "startTime": [0, 0, 1] // 0 + 0 / 1 = 0
+        },
+        {
+            "bpm": 180,
+            "startTime": [16, 1, 2] // 16 + 1 / 2 = 16.5
+        }
+    ]
+}
+```
+
+为确保文档的严谨性，我们在此给出简单的秒与 `Beat` 的转换函数:
+
+<details>
+  <summary>展开</summary>
+
+  ```python
+  def sec2beat(t: float, bpmfactor: float, BPMList: typing.Optional[list  [BPMEvent]] = None):
+      beat = 0.0
+      for i, e in enumerate(BPMList):
+          bpmv = e.bpm / bpmfactor
+          if i != len(BPMList) - 1:
+              et_beat = BPMList[i + 1].startTime.value - e.startTime.value
+              et_sec = et_beat * (60 / bpmv)
+              
+              if t >= et_sec:
+                  beat += et_beat
+                  t -= et_sec
+              else:
+                  beat += t / (60 / bpmv)
+                  break
+          else:
+              beat += t / (60 / bpmv)
+      return beat
+  
+  def beat2sec(t: float, bpmfactor: float, BPMList: typing.Optional[list  [BPMEvent]] = None):
+      sec = 0.0
+      for i, e in enumerate(BPMList):
+          bpmv = e.bpm / bpmfactor
+          if i != len(BPMList) - 1:
+              et_beat = BPMList[i + 1].startTime.value - e.startTime.value
+              
+              if t >= et_beat:
+                  sec += et_beat * (60 / bpmv)
+                  t -= et_beat
+              else:
+                  sec += t * (60 / bpmv)
+                  break
+          else:
+              sec += t * (60 / bpmv)
+      return sec
+  ```
+
+</details>
+
+让我们了解一下 `META`:
+
+- `RPEVersion`
+
+    `int` 类型，表示谱面的 `Re:PhiEdit` 版本。
+
+    例如 `v1.4.0` 的版本号为 `140`。
+
+- `offset`
+
+    `int` 类型，表示谱面的偏移量，单位为 `ms`。
+
+    计算方式与 `phi` 谱面一致。
+
+- `name`
+
+    `str` 类型，表示谱面的名称。
+
+    可在谱面渲染时用到。
+
+    在 `phira` 中，此字段优先级高于 `info` 文件。
+
+- `id`
+
+    `str` 类型，表示谱面的 `id`。
+
+    仅在 `Re:PhiEdit` 中使用。
+
+    不影响渲染。
+
+- `song`
+
+    `str` 类型，表示谱面音频的相对路径，辅助资源读取。
+
+    例如 `123.ogg`。
+
+- `background`
+
+    `str` 类型，表示谱面背景的相对路径，辅助资源读取。
+
+    例如 `123.png`。
+
+- `composer`
+
+    `str` 类型，表示谱面的作曲家。
+
+    可在谱面渲染时用到。
+
+    在 `phira` 中，此字段优先级高于 `info` 文件。
+
+- `charter`
+
+    `str` 类型，表示谱面的谱师。
+
+    可在谱面渲染时用到。
+
+    在 `phira` 中，此字段优先级高于 `info` 文件。
+
+- `level`
+
+    `int` 类型，表示谱面的难度。
+
+    可在谱面渲染时用到。
+
+    在 `phira` 中，此字段优先级高于 `info` 文件。
+
+让我们了解一下 `judgeLineList` 的单个元素结构:
+
+- `Group`
+
+    `int` 类型，表示判定线所属的判定线组。
+
+    渲染不使用。
+
+- `Name`
+
+    `str` 类型，表示判定线的名称。
+
+    渲染不使用。
+
+- `Texture`
+
+    `str` 类型，表示判定线的贴图的相对路径。
+
+    默认为 `line.png`，在 `Re:PhiEdit` 中为一张 `4000x5` 的图片，推荐实际渲染时使用对于图形 `API` 绘制线，而不是使用贴图。
+
+    对于渲染时贴图的缩放，我们假如图片大小实际为 `image_w` 与 `image_h`，则实际渲染到屏幕上的大小为 (不考虑缩放):
+
+    ```python
+    real_w = image_w / 1350 * W
+    real_h = real_w / image_w * image_h # 至少 Re:PhiEdit 是这样做的。
+    ```
+
+    对于判定线渲染，我们不建议使用上面的缩放，而是单独计算长与宽，例如:
+
+    ```python
+    line_w = 4000 / 1350 * W
+    line_h = 5 / 900 * H
+    ```
+
+- `bpmfactor`
+
+    判定线的 `bpm` 速率。
+
+    ！注意，不是乘以这个值，而是除以这个值！
+
+- `alphaControl` & `posControl` & `sizeControl` & `skewControl` & `yControl`
+
+    待补充，行为难以确定。
+
+- `father`
+
+    `int` 类型，表示判定线的父线。
+
+    为 `-1` 是表示没有父线。
+
+- `isCover`
+
+    `int` 类型，表示判定线是否使用 `note` 遮罩。
+
+    为 `0` 是表示不使用，为 `1` 是表示使用。
+
+    对于使用 `Re:PhiEdit` 生成的 `rpe` 谱面文件:
+  - 当 `cover` 启用且 `note` 为非 `hold`，且 `note` 纵坐标小于 `0` 时，不渲染。
+  - 当 `cover` 启用且 `note` 为 `hold` 时, 且 `hold` 尾部纵坐标小于 `0` 时，不渲染。
+
+    对于使用 `pec` 谱面转换的 `rpe` 谱面文件:
+  - 当 `cover` 启用且 `note` 纵坐标小于 `0` 时，不渲染。
