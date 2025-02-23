@@ -936,7 +936,7 @@ void main() {
 
             if (i.type == "text") {
                 this.save();
-                this.font = `${i.fontsize}px PhigrosFont`;
+                this.font = `${i.weight ? `${i.weight} ` : ""}${i.fontsize}px PhigrosFont`;
                 this.textBaseline = i.textBaseline;
                 this.textAlign = i.textAlign;
                 this.fillStyle = i.color;
