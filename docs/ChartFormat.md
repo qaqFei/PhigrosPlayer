@@ -1373,21 +1373,21 @@ def pec2rpe_findevent_bytime(events: list[dict], t: float, default: float):
 
 - `BPMList`
 
-    `list[dict]` 类型，表示谱面的 `BPM` 列表。
+    `list[dict]` 类型, 表示谱面的 `BPM` 列表。
 
 - `META`
 
-    `dict` 类型，表示谱面的元数据。
+    `dict` 类型, 表示谱面的元数据。
 
 - `judgeLineGroup`
 
-    `list[str]` 类型，表示谱面的判定线组。
+    `list[str]` 类型, 表示谱面的判定线组。
 
     渲染不使用。
 
 - `judgeLineList`
 
-    `list[dict]` 类型，表示谱面的判定线列表。
+    `list[dict]` 类型, 表示谱面的判定线列表。
 
 我们在此定义大小单位 `W` 与 `H`, 为屏幕的宽度与高度。
 
@@ -1411,7 +1411,7 @@ class BPMEvent:
 
 `Beat` 在谱面中的表示方式为 `[v1, v2, v3]`。
 
-`BPMList` 的每个元素是一个 `dict`，表示一个 `BPMEvent`。
+`BPMList` 的每个元素是一个 `dict`, 表示一个 `BPMEvent`。
 
 例如:
 
@@ -1430,7 +1430,7 @@ class BPMEvent:
 }
 ```
 
-为确保文档的严谨性，我们在此给出简单的秒与 `Beat` 的转换函数 (`bpmfactor` 在下文有所提及):
+为确保文档的严谨性, 我们在此给出简单的秒与 `Beat` 的转换函数 (`bpmfactor` 在下文有所提及):
 
 <details>
   <summary>展开</summary>
@@ -1478,27 +1478,27 @@ class BPMEvent:
 
 - `RPEVersion`
 
-    `int` 类型，表示谱面的 `Re:PhiEdit` 版本。
+    `int` 类型, 表示谱面的 `Re:PhiEdit` 版本。
 
     例如 `v1.4.0` 的版本号为 `140`。
 
 - `offset`
 
-    `int` 类型，表示谱面的偏移量，单位为 `ms`。
+    `int` 类型, 表示谱面的偏移量, 单位为 `ms`。
 
     计算方式与 `phi` 谱面一致。
 
 - `name`
 
-    `str` 类型，表示谱面的名称。
+    `str` 类型, 表示谱面的名称。
 
     可在谱面渲染时用到。
 
-    在 `phira` 中，此字段优先级高于 `info` 文件。
+    在 `phira` 中, 此字段优先级高于 `info` 文件。
 
 - `id`
 
-    `str` 类型，表示谱面的 `id`。
+    `str` 类型, 表示谱面的 `id`。
 
     仅在 `Re:PhiEdit` 中使用。
 
@@ -1506,68 +1506,68 @@ class BPMEvent:
 
 - `song`
 
-    `str` 类型，表示谱面音频的相对路径，辅助资源读取。
+    `str` 类型, 表示谱面音频的相对路径, 辅助资源读取。
 
     例如 `123.ogg`。
 
 - `background`
 
-    `str` 类型，表示谱面背景的相对路径，辅助资源读取。
+    `str` 类型, 表示谱面背景的相对路径, 辅助资源读取。
 
     例如 `123.png`。
 
 - `composer`
 
-    `str` 类型，表示谱面的作曲家。
+    `str` 类型, 表示谱面的作曲家。
 
     可在谱面渲染时用到。
 
-    在 `phira` 中，此字段优先级高于 `info` 文件。
+    在 `phira` 中, 此字段优先级高于 `info` 文件。
 
 - `charter`
 
-    `str` 类型，表示谱面的谱师。
+    `str` 类型, 表示谱面的谱师。
 
     可在谱面渲染时用到。
 
-    在 `phira` 中，此字段优先级高于 `info` 文件。
+    在 `phira` 中, 此字段优先级高于 `info` 文件。
 
 - `level`
 
-    `int` 类型，表示谱面的难度。
+    `int` 类型, 表示谱面的难度。
 
     可在谱面渲染时用到。
 
-    在 `phira` 中，此字段优先级高于 `info` 文件。
+    在 `phira` 中, 此字段优先级高于 `info` 文件。
 
 让我们了解一下 `judgeLineList` 的单个元素结构:
 
 - `Group`
 
-    `int` 类型，表示判定线所属的判定线组。
+    `int` 类型, 表示判定线所属的判定线组。
 
     渲染不使用。
 
 - `Name`
 
-    `str` 类型，表示判定线的名称。
+    `str` 类型, 表示判定线的名称。
 
     渲染不使用。
 
 - `Texture`
 
-    `str` 类型，表示判定线的贴图的相对路径。
+    `str` 类型, 表示判定线的贴图的相对路径。
 
-    默认为 `line.png`，在 `Re:PhiEdit` 中为一张 `4000x5` 的图片，推荐实际渲染时使用对于图形 `API` 绘制线，而不是使用贴图。
+    默认为 `line.png`, 在 `Re:PhiEdit` 中为一张 `4000x5` 的图片, 推荐实际渲染时使用对于图形 `API` 绘制线, 而不是使用贴图。
 
-    对于渲染时贴图的缩放，我们假如图片大小实际为 `image_w` 与 `image_h`，则实际渲染到屏幕上的大小为 (不考虑缩放):
+    对于渲染时贴图的缩放, 我们假如图片大小实际为 `image_w` 与 `image_h`, 则实际渲染到屏幕上的大小为 (不考虑缩放):
 
     ```python
     real_w = image_w / 1350 * W
     real_h = real_w / image_w * image_h # 至少 Re:PhiEdit 是这样做的。
     ```
 
-    对于判定线渲染，我们不建议使用上面的缩放，而是单独计算长与宽，例如:
+    对于判定线渲染, 我们不建议使用上面的缩放, 而是单独计算长与宽, 例如:
 
     ```python
     line_w = 4000 / 1350 * W
@@ -1578,44 +1578,44 @@ class BPMEvent:
 
     判定线的 `bpm` 速率。
 
-    ！注意，不是乘以这个值，而是除以这个值！
+    ！注意, 不是乘以这个值, 而是除以这个值！
 
 - `alphaControl` & `posControl` & `sizeControl` & `skewControl` & `yControl`
 
-    待补充，行为难以确定。
+    待补充, 行为难以确定。
 
 - `father`
 
-    `int` 类型，表示判定线的父线。
+    `int` 类型, 表示判定线的父线。
 
     为 `-1` 是表示没有父线。
 
-    不只是坐标相加，而是改变坐标系原点，更多的细节下文会解释。
+    不只是坐标相加, 而是改变坐标系原点, 更多的细节下文会解释。
 
 - `isCover`
 
-    `int` 类型，表示判定线是否使用 `note` 遮罩。
+    `int` 类型, 表示判定线是否使用 `note` 遮罩。
 
-    为 `0` 是表示不使用，为 `1` 是表示使用。
+    为 `0` 是表示不使用, 为 `1` 是表示使用。
 
     对于使用 `Re:PhiEdit` 生成的 `rpe` 谱面文件:
-    - 当 `cover` 启用且 `note` 为非 `hold`，且 `note` 纵坐标小于 `0` 时，不渲染。
-    - 当 `cover` 启用且 `note` 为 `hold` 时, 且 `hold` 尾部纵坐标小于 `0` 时，不渲染。
+    - 当 `cover` 启用且 `note` 为非 `hold`, 且 `note` 纵坐标小于 `0` 时, 不渲染。
+    - 当 `cover` 启用且 `note` 为 `hold` 时, 且 `hold` 尾部纵坐标小于 `0` 时, 不渲染。
 
     对于使用 `pec` 谱面转换的 `rpe` 谱面文件:
-    - 当 `cover` 启用且 `note` 纵坐标小于 `0` 时，不渲染。
+    - 当 `cover` 启用且 `note` 纵坐标小于 `0` 时, 不渲染。
 
 - `numOfNotes`
 
-    `int` 类型，表示判定线上的 `note` 数量。
+    `int` 类型, 表示判定线上的 `note` 数量。
 
     渲染不使用。
 
 - `zOrder`
 
-    `int` 类型，表示判定线的 `z` 轴顺序。
+    `int` 类型, 表示判定线的 `z` 轴顺序。
 
-    使用升序排列，应使用具有[稳定性](https://baike.baidu.com/item/排序算法稳定性/9763250)的排序算法。
+    使用升序排列, 应使用具有[稳定性](https://baike.baidu.com/item/排序算法稳定性/9763250)的排序算法。
 
     渲染时先渲染 `zOrder` 较小的判定线。
 
@@ -1642,23 +1642,23 @@ class BPMEvent:
     }
     ```
 
-    对于某一时刻的事件值，为所有有效事件层的数值之和。
+    对于某一时刻的事件值, 为所有有效事件层的数值之和。
 
     更多的细节下文会解释。
 
     <details>
       <summary>你知道的太多了！</summary>
 
-    一般来说，`eventLayers` 的长度为 `5`。
+    一般来说, `eventLayers` 的长度为 `5`。
 
-    注意！这并不是规范，仅仅是 `Re:PhiEdit` 这么做。
+    注意！这并不是规范, 仅仅是 `Re:PhiEdit` 这么做。
     </details>
 
 - `extended`
 
-    `typing.Optional[dict[str, list]]` 类型，一般来说这里存在一个 `inclineEvents` 的垫底事件。
+    `typing.Optional[dict[str, list]]` 类型, 一般来说这里存在一个 `inclineEvents` 的垫底事件。
 
-    这里的事件为可选的，可就是可以不存在。
+    这里的事件为可选的, 可就是可以不存在。
 
     更多的细节下文会解释。
 
@@ -1679,6 +1679,147 @@ class BPMEvent:
 
 - `notes`
 
-    `list[dict]` 类型，表示判定线上的 `note`。
+    `list[dict]` 类型, 表示判定线上的 `note`。
 
     更多的细节下文会解释。
+
+我们定义缓动模块 `rpe_easing`, 函数 `geteasing_func, createBezierFunction, createCuttingEasingFunction` 和 类型 `LineEvent`:
+
+<details>
+  <summary>展开</summary>
+  
+  ```python
+  # rpe_easing.py
+  
+  import math
+  import typing
+  
+  ease_funcs: list[typing.Callable[[float], float]] = [
+      lambda t: t, # linear - 1
+      lambda t: math.sin((t * math.pi) / 2), # out sine - 2
+      lambda t: 1 - math.cos((t * math.pi) / 2), # in sine - 3
+      lambda t: 1 - (1 - t) * (1 - t), # out quad - 4
+      lambda t: t ** 2, # in quad - 5
+      lambda t: -(math.cos(math.pi * t) - 1) / 2, # io sine - 6
+      lambda t: 2 * (t ** 2) if t < 0.5 else 1 - (-2 * t + 2) ** 2 / 2, # io quad - 7
+      lambda t: 1 - (1 - t) ** 3, # out cubic - 8
+      lambda t: t ** 3, # in cubic - 9
+      lambda t: 1 - (1 - t) ** 4, # out quart - 10
+      lambda t: t ** 4, # in quart - 11
+      lambda t: 4 * (t ** 3) if t < 0.5 else 1 - (-2 * t + 2) ** 3 / 2, # io cubic - 12
+      lambda t: 8 * (t ** 4) if t < 0.5 else 1 - (-2 * t + 2) ** 4 / 2, # io quart - 13
+      lambda t: 1 - (1 - t) ** 5, # out quint - 14
+      lambda t: t ** 5, # in quint - 15
+      lambda t: 1 if t == 1 else 1 - 2 ** (-10 * t), # out expo - 16
+      lambda t: 0 if t == 0 else 2 ** (10 * t - 10), # in expo - 17
+      lambda t: (1 - (t - 1) ** 2) ** 0.5, # out circ - 18
+      lambda t: 1 - (1 - t ** 2) ** 0.5, # in circ - 19
+      lambda t: 1 + 2.70158 * ((t - 1) ** 3) + 1.70158 * ((t - 1) ** 2), # out back - 20
+      lambda t: 2.70158 * (t ** 3) - 1.70158 * (t ** 2), # in back - 21
+      lambda t: (1 - (1 - (2 * t) ** 2) ** 0.5) / 2 if t < 0.5 else (((1 - (-2 * t + 2) ** 2) ** 0.5) + 1) / 2, # io circ - 22
+      lambda t: ((2 * t) ** 2 * ((2.5949095 + 1) * 2 * t - 2.5949095)) / 2 if t < 0.5 else ((2 * t - 2) ** 2 * ((2.5949095 + 1) * (t * 2 - 2) + 2.5949095) + 2) / 2, # io back - 23
+      lambda t: 0 if t == 0 else (1 if t == 1 else 2 ** (-10 * t) * math.sin((t * 10 - 0.75) * (2 * math.pi / 3)) + 1), # out elastic - 24
+      lambda t: 0 if t == 0 else (1 if t == 1 else - 2 ** (10 * t - 10) * math.sin((t * 10 - 10.75) * (2 * math.pi / 3))), # in elastic - 25
+      lambda t: 7.5625 * (t ** 2) if (t < 1 / 2.75) else (7.5625 * (t - (1.5 / 2.75)) * (t - (1.5 / 2.75)) + 0.75 if (t < 2 / 2.75) else (7.5625 * (t - (2.25 / 2.75)) * (t - (2.25 / 2.75)) + 0.9375 if (t < 2.5 / 2.75) else (7.5625 * (t - (2.625 / 2.75)) * (t - (2.625 / 2.75)) + 0.984375))), # out bounce - 26
+      lambda t: 1 - (7.5625 * ((1 - t) ** 2) if ((1 - t) < 1 / 2.75) else (7.5625 * ((1 - t) - (1.5 / 2.75)) * ((1 - t) - (1.5 / 2.75)) + 0.75 if ((1 - t) < 2 / 2.75) else (7.5625 * ((1 - t) - (2.25 / 2.75)) * ((1 - t) - (2.25 / 2.75)) + 0.9375 if ((1 - t) < 2.5 / 2.75) else (7.5625 * ((1 - t) - (2.625 / 2.75)) * ((1 - t) - (2.625 / 2.75)) + 0.984375)))), # in bounce - 27
+      lambda t: (1 - (7.5625 * ((1 - 2 * t) ** 2) if ((1 - 2 * t) < 1 / 2.75) else (7.5625 * ((1 - 2 * t) - (1.5 / 2.75)) * ((1 - 2 * t) - (1.5 / 2.75)) + 0.75 if ((1 - 2 * t) < 2 / 2.75) else (7.5625 * ((1 - 2 * t) - (2.25 / 2.75)) * ((1 - 2 * t) - (2.25 / 2.75)) + 0.9375 if ((1 - 2 * t) < 2.5 / 2.75) else (7.5625 * ((1 - 2 * t) - (2.625 / 2.75)) * ((1 - 2 * t) - (2.625 / 2.75)) + 0.984375))))) / 2 if t < 0.5 else (1 +(7.5625 * ((2 * t - 1) ** 2) if ((2 * t - 1) < 1 / 2.75) else (7.5625 * ((2 * t - 1) - (1.5 / 2.75)) * ((2 * t - 1) - (1.5 / 2.75)) + 0.75 if ((2 * t - 1) < 2 / 2.75) else (7.5625 * ((2 * t - 1) - (2.25 / 2.75)) * ((2 * t - 1) - (2.25 / 2.75)) + 0.9375 if ((2 * t - 1) < 2.5 / 2.75) else (7.5625 * ((2 * t - 1) - (2.625 / 2.75)) * ((2 * t - 1) - (2.625 / 2.75)) + 0.984375))))) / 2, # io bounce - 28
+      lambda t: 0 if t == 0 else (1 if t == 0 else (-2 ** (20 * t - 10) * math.sin((20 * t - 11.125) * ((2 * math.pi) / 4.5))) / 2 if t < 0.5 else (2 ** (-20 * t + 10) * math.sin((20 * t - 11.125) * ((2 * math.pi) / 4.5))) / 2 + 1) # io elastic - 29
+  ]
+  ```
+  
+  ```python
+  def geteasing_func(t: int):
+      """通过 easingType 获取缓动函数, 返回值为 typing.Callable[[float], float]。"""
+      try:
+          if not isinstance(t, int): t = 1
+          t = 1 if t < 1 else (len(rpe_easing.ease_funcs) if t > len(rpe_easing.ease_funcs) else t)
+          return rpe_easing.ease_funcs[int(t) - 1]
+      except Exception as e:
+          return rpe_easing.ease_funcs[0]
+  
+  def createBezierFunction(ps: list[float]) -> typing.Callable[[float], float]:
+      """获取贝塞尔曲线函数, 返回值为 typing.Callable[[float], float]。"""
+      return lambda t: sum([ps[i] * (1 - t) ** (len(ps) - i - 1) * t ** i for i in range(len(ps))])
+  
+  def createCuttingEasingFunction(f: typing.Callable[[float], float], l: float, r: float):
+      """缓动切割。"""
+      if l > r: return lambda t: t
+      s, e = f(l), f(r)
+      return lambda t: (f(t * (r - l) + l) - s) / (e - s)
+  
+  @dataclass
+  class LineEvent:
+      startTime: Beat
+      endTime: Beat 
+      start: float|str|list[int]
+      end: float|str|list[int]
+      easingType: int = 1
+      easingLeft: float = 0.0
+      easingRight: float = 1.0
+  
+      def __post_init__(self):
+          self.easingFunc = geteasing_func(self.easingType) if not self.bezier else createBezierFunction(self.bezierPoints)
+          self.easingLeft = max(0.0, min(1.0, self.easingLeft))
+          self.easingRight = max(0.0, min(1.0, self.easingRight))
+          
+          if self.easingLeft != 0.0 or self.easingRight != 1.0:
+              self.easingFunc = createCuttingEasingFunction(self.easingFunc, self.easingLeft, self.easingRight)
+  ```
+
+</details>
+
+`rpe` 的坐标系位于屏幕中心, 向右为 x 轴正方向, 向上为 y 轴正方向。
+
+x 轴单位为 `W / 1350`, y 轴单位为 `H / 900`。
+
+一般的, 单个 `LineEvent` 的 `start` 和 `end` 均为同种类型, 可以是 `float`、`str` 或 `list[int]`。 ~~这里示例代码好像没有做好类型标注~~
+
+一般来说, 假如缓动函数为 `f: typing.Callable[[float], float]`, 则 `f(0.0) = 0.0`, `f(1.0) = 1.0`。
+
+`eventLayers` 的单个元素结构:
+
+- `speedEvents`
+
+    `list[dict]` 类型, 表示判定线上的 `speed` 事件。
+
+  - `startTime` `Beat` 类型, 表示 `speed` 事件开始的时间。
+  - `endTime` `Beat` 类型, 表示 `speed` 事件结束的时间。
+  - `start` `float` 类型, 表示 `speed` 事件开始时的速度。
+  - `end` `float` 类型, 表示 `speed` 事件结束时的速度。
+  - `easingType` `typing.Literal[1]` 类型, 表示 `speed` 事件的缓动。
+
+      其实就是 `linear`。
+
+    单位为 `120` 个 y 轴单位 `/ s`，即 `(H / 900 * 120) / s = (H / 7.5) / s`。
+
+    让我们来计算一个 `speed` 事件吧！
+
+    例如当前 `bpm` 为 `120`，当前时间为 `1.5 beat`，`speed` 事件为 (默认键省去):
+
+    ```json
+    {
+        "startTime": [0, 0, 1],
+        "endTime": [5, 1, 2],
+        "start": 10.0,
+        "end": 25.0,
+        "easingType": 1
+    }
+    ```
+
+    那么当前我们来计算这个 `speed` 事件流过的距离:
+
+    ```python
+    eventTime = event.endTime.value - event.startTime.value
+    eventProgress = (1.5 - event.startTime.value) / eventTime
+
+    startSpeed = event.start
+    nowSpeed = event.start + (event.end - event.start) * eventProgress
+
+    timeSecond = beat2sec(1.5, 1.0, [BpmEvent(
+        bpm = 120,
+        startTime = Beat(0, 0, 1)
+    )])
+
+    result = (nowSpeed + startSpeed) * timeSecond / 2
+    result *= H / 900 * 120
+    ```
