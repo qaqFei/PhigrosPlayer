@@ -46,6 +46,12 @@ def ctxSave(wait_execute: bool = False):
 def ctxRestore(wait_execute: bool = False):
     root.run_js_code(f"{ctx}.restore();", wait_execute, order)
 
+def ctxTranslate(x: number, y: number, wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.translate({x}, {y});", wait_execute, order)
+
+def ctxScale(x: number, y: number, wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.scale({x}, {y});", wait_execute, order)
+
 def ctxRect(
     x: number, y: number,
     width: number, height: number,

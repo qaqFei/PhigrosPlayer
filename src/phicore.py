@@ -285,7 +285,7 @@ def drawDeepBgAndClipScreen():
     ctxClip(wait_execute=True)
 
 def undoClipScreen():
-    root.run_js_code("ctx.restore();", add_code_array = True)
+    ctxRestore(wait_execute=True)
 
 def drawBg():
     drawCoverFullScreenImage("background_blur", w, h, wait_execute=True)
@@ -494,19 +494,13 @@ def rrmStart(Task: chartobj_phi.FrameRenderTask):
     lr, lt = w / 2 - lw / 2, h / 2 - lh / 2
     rms = 1 / render_range_more_scale
     
-    Task(
-        root.run_js_code,
-        f"ctx.save(); ctx.translate({lr}, {lt}); ctx.scale({rms}, {rms});",
-        add_code_array = True
-    )
+    Task(ctxSave, wait_execute=True)
+    Task(ctxTranslate, lr, lt, wait_execute=True)
+    Task(ctxScale, rms, rms, wait_execute=True)
 
 def rrmEnd(Task: chartobj_phi.FrameRenderTask):
     if not render_range_more: return
-    Task(
-        root.run_js_code,
-        "ctx.restore();",
-        add_code_array = True
-    )
+    Task(ctxRestore, wait_execute=True)
     
 def processExTask(ExTask: list[tuple[str, typing.Any]]):
     break_flag = False
