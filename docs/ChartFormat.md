@@ -1436,7 +1436,7 @@ class BPMEvent:
   <summary>展开</summary>
 
   ```python
-  def sec2beat(t: float, bpmfactor: float, BPMList: typing.Optional[list  [BPMEvent]] = None):
+  def sec2beat(t: float, bpmfactor: float, BPMList: list[BPMEvent]):
       beat = 0.0
       for i, e in enumerate(BPMList):
           bpmv = e.bpm / bpmfactor
@@ -1454,7 +1454,7 @@ class BPMEvent:
               beat += t / (60 / bpmv)
       return beat
   
-  def beat2sec(t: float, bpmfactor: float, BPMList: typing.Optional[list  [BPMEvent]] = None):
+  def beat2sec(t: float, bpmfactor: float, BPMList: list[BPMEvent]):
       sec = 0.0
       for i, e in enumerate(BPMList):
           bpmv = e.bpm / bpmfactor

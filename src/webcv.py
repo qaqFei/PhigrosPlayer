@@ -87,6 +87,16 @@ def _parseRangeHeader(data: bytes, rg: typing.Optional[str], setrep_header: typi
     setrep_header("Content-Length", str(end - start + 1))
     return data[start:end+1]
 
+def _img2bytes(im: Image.Image):
+    try:
+        from numpy import array as nparr
+        from cv2 import imencode, cvtColor, COLOR_RGBA2BGRA
+        return imencode(".png", cvtColor(nparr(im), COLOR_RGBA2BGRA))[1].tobytes()
+    except (ImportError, ModuleNotFoundError):
+        bio = io.BytesIO()
+        im.save(bio, "png")
+        return bio.getvalue()
+
 class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
     _canvas: WebCanvas
     
@@ -194,9 +204,7 @@ class PILResourcePacker:
                     if id(img) in cache:
                         data = cache[id(img)]
                     else:
-                        btio = io.BytesIO()
-                        img.save(btio, "png") # toooooooooooooo slow
-                        data = btio.getvalue()
+                        data = _img2bytes(img)
                         cache[id(img)] = data
             else:
                 data = img
