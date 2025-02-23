@@ -144,3 +144,11 @@ python main.py <chart> --disengage-webview [args] [kwargs]
 ## 声明
 
 - 此项目仅用于学习交流, 请勿用于商业用途
+
+### 鸣谢
+
+- [7z](https://github.com/ip7z/7zip)
+- [openh264](https://github.com/cisco/openh264)
+- [libogg](https://github.com/gcp/libogg)
+- [libvorbis](https://github.com/xiph/vorbis)
+- [oggvorbis2fsb5](https://github.com/uyjulian/oggvorbis2fsb5)
