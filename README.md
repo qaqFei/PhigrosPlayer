@@ -41,6 +41,7 @@ python main.py <chart> --disengage-webview [args] [kwargs]
 - [x] phi
   - [x] formatVersion
     - [x] 1
+    - [x] 2
     - [x] 3
   - [x] offset
   - [x] judgeLineList
