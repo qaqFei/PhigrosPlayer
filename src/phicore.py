@@ -28,7 +28,6 @@ drawUI_Default_Kwargs = {
     for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
 }
 mainFramerateCalculator = tool_funcs.FramerateCalculator()
-clickEffectEasingType = 16
 
 @dataclass
 class PhiCoreConfig:
@@ -178,7 +177,7 @@ def processClickEffectBase(
     blockSize = effectSize / 7.2
     
     if not phira_resource_pack.globalPack.hideParticles:
-        randomblock_r = effectSize * rpe_easing.ease_funcs[clickEffectEasingType + 1](p) / 1.2
+        randomblock_r = effectSize * (1 - (1 - p) ** 3.8) / 1.17
         nowBlockSize = blockSize * (0.426 * math.sin(p * math.pi / 1.185) + 0.5) # start: 0.5, end: 0.7, max: ~0.925
         
         for deg, randdr in rblocks:
