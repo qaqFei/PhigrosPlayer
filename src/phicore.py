@@ -940,21 +940,21 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     order = const.CHART_RENDER_ORDERS.LINE
                 )
             
-            if debug and tool_funcs.pointInScreen(linePos, w, h):
-                drawDebugText(f"{line.index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
-                
-                Task(
-                    root.run_js_code,
-                    f"ctx.fillRectEx(\
-                        {linePos[0] - (w + h) / 250},\
-                        {linePos[1] - (w + h) / 250},\
-                        {(w + h) / 250 * 2},\
-                        {(w + h) / 250 * 2},\
-                        'rgb(238, 130, 238)'\
-                    );",
-                    add_code_array = True,
-                    order = const.CHART_RENDER_ORDERS.DEBUG
-                )
+        if debug:
+            drawDebugText(f"{line.index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
+            
+            Task(
+                root.run_js_code,
+                f"ctx.fillRectEx(\
+                    {linePos[0] - (w + h) / 250},\
+                    {linePos[1] - (w + h) / 250},\
+                    {(w + h) / 250 * 2},\
+                    {(w + h) / 250 * 2},\
+                    'rgb(238, 130, 238)'\
+                );",
+                add_code_array = True,
+                order = const.CHART_RENDER_ORDERS.DEBUG
+            )
         
         line.playingFloorPosition = line.GetFloorPositionByTime(now_t)
         
