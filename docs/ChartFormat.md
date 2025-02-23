@@ -1430,7 +1430,7 @@ class BPMEvent:
 }
 ```
 
-为确保文档的严谨性，我们在此给出简单的秒与 `Beat` 的转换函数:
+为确保文档的严谨性，我们在此给出简单的秒与 `Beat` 的转换函数 (`bpmfactor` 在下文有所提及):
 
 <details>
   <summary>展开</summary>
@@ -1590,6 +1590,8 @@ class BPMEvent:
 
     为 `-1` 是表示没有父线。
 
+    不只是坐标相加，而是改变坐标系原点，更多的细节下文会解释。
+
 - `isCover`
 
     `int` 类型，表示判定线是否使用 `note` 遮罩。
@@ -1602,3 +1604,81 @@ class BPMEvent:
 
     对于使用 `pec` 谱面转换的 `rpe` 谱面文件:
     - 当 `cover` 启用且 `note` 纵坐标小于 `0` 时，不渲染。
+
+- `numOfNotes`
+
+    `int` 类型，表示判定线上的 `note` 数量。
+
+    渲染不使用。
+
+- `zOrder`
+
+    `int` 类型，表示判定线的 `z` 轴顺序。
+
+    使用升序排列，应使用具有[稳定性](https://baike.baidu.com/item/排序算法稳定性/9763250)的排序算法。
+
+    渲染时先渲染 `zOrder` 较小的判定线。
+
+- `eventLayers`
+
+    `list[typing.Optional[dict[str, list]]]` 类型, 表示判定线上的事件层。
+
+    当一个层级为 `None`, 表示该层级没有事件。
+
+    示例:
+
+    ```python
+    {
+        "eventLayers": [
+            {
+                "speedEvents": [],
+                "moveXEvents": [],
+                "moveYEvents": [],
+                "rotateEvents": [],
+                "alphaEvents": []
+            },
+            ..., ..., None, None
+        ]
+    }
+    ```
+
+    对于某一时刻的事件值，为所有有效事件层的数值之和。
+
+    更多的细节下文会解释。
+
+    <details>
+      <summary>你知道的太多了！</summary>
+
+    一般来说，`eventLayers` 的长度为 `5`。
+
+    注意！这并不是规范，仅仅是 `Re:PhiEdit` 这么做。
+    </details>
+
+- `extended`
+
+    `typing.Optional[dict[str, list]]` 类型，一般来说这里存在一个 `inclineEvents` 的垫底事件。
+
+    这里的事件为可选的，可就是可以不存在。
+
+    更多的细节下文会解释。
+
+    例如:
+
+    ```json
+    {
+        "extended": {
+            "inclineEvents": [],
+            "scaleXEvents": [],
+            "scaleYEvents": [],
+            "colorEvents": [],
+            "textEvents": [],
+            "gifEvents": []
+        }
+    }
+    ```
+
+- `notes`
+
+    `list[dict]` 类型，表示判定线上的 `note`。
+
+    更多的细节下文会解释。
