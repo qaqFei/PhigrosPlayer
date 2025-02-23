@@ -636,7 +636,7 @@ void main() {
         this.fillStyle = color;
         this.textAlign = "center";
         this.textBaseline = "middle";
-        this.font = `${fontsize}px PhigrosFont`;
+        this.font = `${fontsize}px pgrFont`;
 
         if (text.includes("\n") && RPEVersion >= 150) {
             let texts = text.split("\n");
@@ -662,7 +662,7 @@ void main() {
         this.fillStyle = color;
         this.textAlign = "center";
         this.textBaseline = "middle";
-        this.font = `${fontsize}px PhigrosFont`;
+        this.font = `${fontsize}px pgrFont`;
         this.fillText(text, 0, 0);
         this.restore();
     }
@@ -936,7 +936,7 @@ void main() {
 
             if (i.type == "text") {
                 this.save();
-                this.font = `${i.weight ? `${i.weight} ` : ""}${i.fontsize}px PhigrosFont`;
+                this.font = `${i.weight ? `${i.weight} ` : ""}${i.fontsize}px pgrFont`;
                 this.textBaseline = i.textBaseline;
                 this.textAlign = i.textAlign;
                 this.fillStyle = i.color;

@@ -1265,7 +1265,7 @@ def getLevelText() -> str:
     return chart_information["Level"].split(" ")[0]
 
 def getFontSize(text: str, maxwidth: str, maxsize: float):
-    w1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(text)}).width;") / 50
+    w1px = root.run_js_code(f"ctx.font='50px pgrFont'; ctx.measureText({root.string2sctring_hqm(text)}).width;") / 50
     if w1px == 0: w1px = 1.0
     return min(maxsize, maxwidth / w1px)
 
@@ -1347,7 +1347,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         w * 0.1,
         h * (416 / 1080),
         text = chart_name_text,
-        font = f"{(chart_name_font_text_size)}px PhigrosFont",
+        font = f"{(chart_name_font_text_size)}px pgrFont",
         textAlign = "left",
         textBaseline = "middle",
         fillStyle = "white",
@@ -1359,7 +1359,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         w * 0.0984375,
         h * (467 / 1080),
         text = chart_artist_text,
-        font = f"{(chart_artist_text_font_size)}px PhigrosFont",
+        font = f"{(chart_artist_text_font_size)}px pgrFont",
         textAlign = "left",
         textBaseline = "middle",
         fillStyle = "white",
@@ -1371,7 +1371,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         w * 0.390625,
         h * (424 / 1080),
         text = chart_level_number,
-        font = f"{(chart_level_number_font_size)}px PhigrosFont",
+        font = f"{(chart_level_number_font_size)}px pgrFont",
         textAlign = "center",
         textBaseline = "middle",
         fillStyle = "#2F2F2F",
@@ -1383,7 +1383,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         w * 0.390625,
         h * (467 / 1080),
         text = chart_level_text,
-        font = f"{(chart_level_text_font_size)}px PhigrosFont",
+        font = f"{(chart_level_text_font_size)}px pgrFont",
         textAlign = "center",
         textBaseline = "middle",
         fillStyle = "#2F2F2F",
@@ -1396,7 +1396,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         w * 0.053125,
         h * (1004 / 1080),
         text = f"Tip: {tip}",
-        font = f"{tip_font_size}px PhigrosFont",
+        font = f"{tip_font_size}px pgrFont",
         textAlign = "left",
         textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {tipalpha})",
@@ -1437,7 +1437,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
                 {loadingBlockX + loadingBlockWidth / 2},\
                 {loadingBlockY + loadingBlockHeight / 2},\
                 'center', 'middle', '{color}',\
-                '{(w + h) / 100}px PhigrosFont',\
+                '{(w + h) / 100}px pgrFont',\
                 {x0}, {x1}\
             );",
             add_code_array = True
@@ -1454,7 +1454,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         w * 0.1265625 + info_charter_dx,
         h * (561 / 1080),
         text = "Chart",
-        font = f"{w / 98}px PhigrosFont",
+        font = f"{w / 98}px pgrFont",
         textAlign = "left",
         textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value})",
@@ -1466,7 +1466,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         w * 0.1265625 + info_charter_dx,
         h * (590 / 1080),
         text = chart_charter_text,
-        font = f"{chart_charter_text_font_size}px PhigrosFont",
+        font = f"{chart_charter_text_font_size}px pgrFont",
         textAlign = "left",
         textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value})",
@@ -1478,7 +1478,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         w * 0.1125 + info_ill_dx,
         h * (645 / 1080),
         text = "Illustration",
-        font = f"{w / 98}px PhigrosFont",
+        font = f"{w / 98}px pgrFont",
         textAlign = "left",
         textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value_2})",
@@ -1490,7 +1490,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         w * 0.1109375 + info_ill_dx,
         h * (677 / 1080),
         text = chart_illustrator_text,
-        font = f"{chart_illustrator_text_font_size}px PhigrosFont",
+        font = f"{chart_illustrator_text_font_size}px pgrFont",
         textAlign = "left",
         textBaseline = "middle",
         fillStyle = f"rgba(255, 255, 255, {info_data_ease_value_2})",
@@ -1665,9 +1665,9 @@ def initSettlementAnimation(pplm: tool_funcs.PhigrosPlayLogicManager|None = None
     MaxCombo = chart_obj.note_num if not noautoplay else pplm.ppps.getMaxCombo()
     AccString = f"{(Acc * 100):.2f}%"
     ChartNameString = chart_information["Name"]
-    ChartNameStringFontSize = w * im_size * 0.65 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(ChartNameString)}).width;") / 50)
+    ChartNameStringFontSize = w * im_size * 0.65 / (root.run_js_code(f"ctx.font='50px pgrFont'; ctx.measureText({root.string2sctring_hqm(ChartNameString)}).width;") / 50)
     ChartLevelString = chart_information["Level"]
-    ChartLevelStringFontSize = w * im_size * 0.275 / (root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(ChartLevelString)}).width;") / 50)
+    ChartLevelStringFontSize = w * im_size * 0.275 / (root.run_js_code(f"ctx.font='50px pgrFont'; ctx.measureText({root.string2sctring_hqm(ChartLevelString)}).width;") / 50)
     if ChartNameStringFontSize > w * 0.0275:
         ChartNameStringFontSize = w * 0.0275
     if ChartLevelStringFontSize > w * 0.0275 * 0.55:
@@ -1718,7 +1718,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         w * 0.0828125 + im_ease_pos,
         h * (815 / 1080),
         text = ChartNameString,
-        font = f"{ChartNameStringFontSize}px PhigrosFont",
+        font = f"{ChartNameStringFontSize}px pgrFont",
         textAlign = "left",
         textBaseline = "bottom",
         fillStyle = "#FFFFFF", 
@@ -1729,7 +1729,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         w * 0.48125 + im_ease_pos,
         h * (822 / 1080),
         text = ChartLevelString,
-        font = f"{ChartLevelStringFontSize}px PhigrosFont",
+        font = f"{ChartLevelStringFontSize}px pgrFont",
         textAlign = "right",
         textBaseline = "bottom",
         fillStyle = "#FFFFFF", 
@@ -1768,7 +1768,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         w * 0.584375 + data_block_1_ease_pos,
         h * (467 / 1080),
         text = ScoreString,
-        font = f"{(w + h) / 38}px PhigrosFont",
+        font = f"{(w + h) / 38}px pgrFont",
         textAlign = "left",
         textBaseline = "bottom",
         fillStyle = f"rgba(255, 255, 255, {tool_funcs.finish_animation_eases.score_alpha_ease(p)})",
@@ -1797,7 +1797,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         textAlign = "left",
         textBaseline = "bottom",
         fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 65}px PhigrosFont",
+        font = f"{(w + h) / 65}px pgrFont",
         wait_execute = True
     )
     
@@ -1808,7 +1808,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         textAlign = "left",
         textBaseline = "bottom",
         fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 125}px PhigrosFont",
+        font = f"{(w + h) / 125}px pgrFont",
         wait_execute = True
     )
     
@@ -1819,7 +1819,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         textAlign = "right",
         textBaseline = "bottom",
         fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 65}px PhigrosFont",
+        font = f"{(w + h) / 65}px pgrFont",
         wait_execute = True
     )
     
@@ -1830,7 +1830,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         textAlign = "right",
         textBaseline = "bottom",
         fillStyle = "#FFFFFF",
-        font = f"{(w + h) / 125}px PhigrosFont",
+        font = f"{(w + h) / 125}px pgrFont",
         wait_execute = True
     )
     
@@ -1847,7 +1847,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = "white",
-            font = f"{(w + h) / 185}px PhigrosFont",
+            font = f"{(w + h) / 185}px pgrFont",
             wait_execute = True
         )
         
@@ -1858,7 +1858,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = "white",
-            font = f"{(w + h) / 75}px PhigrosFont",
+            font = f"{(w + h) / 75}px pgrFont",
             wait_execute = True
         )
     
@@ -1870,7 +1870,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
             textAlign = "left",
             textBaseline = "bottom",
             fillStyle = "white",
-            font = f"{(w + h) / 146}px PhigrosFont",
+            font = f"{(w + h) / 146}px pgrFont",
             wait_execute = True
         )
         
@@ -1881,7 +1881,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
             textAlign = "right",
             textBaseline = "bottom",
             fillStyle = "white",
-            font = f"{(w + h) / 146}px PhigrosFont",
+            font = f"{(w + h) / 146}px pgrFont",
             wait_execute = True
         )
         

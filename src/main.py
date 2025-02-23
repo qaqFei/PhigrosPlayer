@@ -382,12 +382,14 @@ def Load_Resource():
                 root.reg_res(mp4data, f"{name}.mp4")
                 root.wait_jspromise(f"loadvideo(\"{root.get_resource_path(f"{name}.mp4")}\", '{name}_img');")
     
-    with open("./resources/font.ttf", "rb") as f:
-        root.reg_res(f.read(),"PhigrosFont.ttf")
+    root.reg_res(open("./resources/font.ttf", "rb").read(), "pgrFont.ttf")
+    root.reg_res(open("./resources/font-thin.ttf", "rb").read(), "pgrFontThin.ttf")
     respacker.load(*respacker.pack())
     
-    root.wait_jspromise(f"loadFont('PhigrosFont',\"{root.get_resource_path("PhigrosFont.ttf")}\");")
-    root.unreg_res("PhigrosFont.ttf")
+    root.wait_jspromise(f"loadFont('pgrFont', \"{root.get_resource_path("pgrFont.ttf")}\");")
+    root.wait_jspromise(f"loadFont('pgrFontThin', \"{root.get_resource_path("pgrFontThin.ttf")}\");")
+    root.unreg_res("pgrFont.ttf")
+    root.unreg_res("pgrFontThin.ttf")
     
     # root.file_server.shutdown()
     note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE

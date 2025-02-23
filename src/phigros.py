@@ -327,12 +327,14 @@ def Load_Resource():
     for index, avatar in enumerate(assetConfig["avatars"]):
         respacker.reg_img(open(tool_funcs.gtpresp(avatar), "rb").read(), f"avatar_{index}")
     
-    with open("./resources/font.ttf", "rb") as f:
-        root.reg_res(f.read(), "PhigrosFont.ttf")
+    root.reg_res(open("./resources/font.ttf", "rb").read(), "pgrFont.ttf")
+    root.reg_res(open("./resources/font-thin.ttf", "rb").read(), "pgrFontThin.ttf")
     respacker.load(*respacker.pack())
     
-    root.wait_jspromise(f"loadFont('PhigrosFont', \"{root.get_resource_path("PhigrosFont.ttf")}\");")
-    root.unreg_res("PhigrosFont.ttf")
+    root.wait_jspromise(f"loadFont('pgrFont', \"{root.get_resource_path("pgrFont.ttf")}\");")
+    root.wait_jspromise(f"loadFont('pgrFontThin', \"{root.get_resource_path("pgrFontThin.ttf")}\");")
+    root.unreg_res("pgrFont.ttf")
+    root.unreg_res("pgrFontThin.ttf")
     
     updateUserAvatar()
     root._regims.clear()
@@ -506,7 +508,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
         f"ctx.drawRotateText2(\
             '{processStringToLiteral(item.name)}',\
             {chapterRect[2] - dPower * chapterWidth - (w + h) / 150}, {chapterRect[3] - (w + h) / 150},\
-            -75, 'rgba(255, 255, 255, {0.95 * (1.0 - tool_funcs.PhigrosChapterNameAlphaValueTransfrom(p))})', '{(w + h) / 50}px PhigrosFont',\
+            -75, 'rgba(255, 255, 255, {0.82 * (1.0 - tool_funcs.PhigrosChapterNameAlphaValueTransfrom(p))})', '{(w + h) / 50}px pgrFont',\
             'left', 'bottom'\
         );",
         add_code_array = True
@@ -517,7 +519,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[2] - (w + h) / 50,
             chapterRect[1] + (w + h) / 90,
             item.cn_name,
-            font = f"{(w + h) / 75}px PhigrosFont",
+            font = f"{(w + h) / 75}px pgrFont",
             textAlign = "right",
             textBaseline = "top",
             fillStyle = f"rgba(255, 255, 255, {p ** 2})", # ease again
@@ -528,7 +530,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[0] + dPower * chapterWidth + (w + h) / 125,
             chapterRect[1] + (w + h) / 90,
             item.o_name,
-            font = f"{(w + h) / 115}px PhigrosFont",
+            font = f"{(w + h) / 115}px pgrFont",
             textAlign = "left",
             textBaseline = "top",
             fillStyle = f"rgba(255, 255, 255, {p ** 2})", # ease again
@@ -575,7 +577,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             playButtonRect[0] + (playButtonRect[2] - playButtonRect[0]) * 0.35,
             playButtonRect[1] + (playButtonRect[3] - playButtonRect[1]) * 0.5,
             "P L A Y",
-            font = f"{(w + h) / 65}px PhigrosFont",
+            font = f"{(w + h) / 65}px pgrFont",
             textAlign = "left",
             textBaseline = "middle",
             fillStyle = f"rgba(49, 49, 49, {playButtonAlpha})",
@@ -589,7 +591,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[0] + chapterWidth * 0.075,
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
             "All",
-            font = f"{(w + h) / 175}px PhigrosFont",
+            font = f"{(w + h) / 175}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
@@ -600,7 +602,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[0] + chapterWidth * 0.075,
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
             f"{len(item.songs)}",
-            font = f"{(w + h) / 95}px PhigrosFont",
+            font = f"{(w + h) / 95}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
@@ -611,7 +613,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[0] + chapterWidth * (0.075 + 0.095),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
             "Clear",
-            font = f"{(w + h) / 175}px PhigrosFont",
+            font = f"{(w + h) / 175}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
@@ -622,7 +624,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[0] + chapterWidth * (0.075 + 0.095),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
             "-",
-            font = f"{(w + h) / 95}px PhigrosFont",
+            font = f"{(w + h) / 95}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
@@ -633,7 +635,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 2),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
             "Full Combo",
-            font = f"{(w + h) / 175}px PhigrosFont",
+            font = f"{(w + h) / 175}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
@@ -644,7 +646,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 2),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
             "-",
-            font = f"{(w + h) / 95}px PhigrosFont",
+            font = f"{(w + h) / 95}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
@@ -655,7 +657,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 3),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
             "Phi",
-            font = f"{(w + h) / 175}px PhigrosFont",
+            font = f"{(w + h) / 175}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
@@ -666,7 +668,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 3),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
             "-",
-            font = f"{(w + h) / 95}px PhigrosFont",
+            font = f"{(w + h) / 95}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
@@ -763,7 +765,7 @@ def drawDialog(
             '{processStringToLiteral(noText)}',\
             '{processStringToLiteral(yesText)}',\
             'rgba(255, 255, 255, {p})',\
-            '{(w + h) / 95 * (0.65 + p * 0.35)}px PhigrosFont'\
+            '{(w + h) / 95 * (0.65 + p * 0.35)}px pgrFont'\
         );",
         add_code_array = True
     )
@@ -900,7 +902,7 @@ def showStartAnimation():
             w / 2,
             h * (155 / 230),
             text = "点  击  屏  幕  开  始",
-            font = f"{(w + h) / 125}px PhigrosFont",
+            font = f"{(w + h) / 125}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = "#FFFFFF",
@@ -916,7 +918,7 @@ def showStartAnimation():
             w / 2,
             h * 0.98,
             text = f"Version: {const.PHIGROS_VERSION}",
-            font = f"{(w + h) / 250}px PhigrosFont",
+            font = f"{(w + h) / 250}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
             fillStyle = "#888888",
@@ -1355,7 +1357,7 @@ def renderPhigrosWidgets(
         if isinstance(widget, phigame_obj.PhiLabel):
             _temp = lambda text, align: drawText(
                 x + (max_width if align == "right" else 0.0), y, text, 
-                font = f"{widget.fontsize}px PhigrosFont",
+                font = f"{widget.fontsize}px pgrFont",
                 textAlign = align,
                 textBaseline = "top",
                 fillStyle = widget.color,
@@ -1468,7 +1470,7 @@ def renderPhigrosWidgets(
         elif isinstance(widget, phigame_obj.PhiCheckbox):
             drawText(
                 x, y, widget.text,
-                font = f"{widget.fontsize}px PhigrosFont",
+                font = f"{widget.fontsize}px pgrFont",
                 textAlign = "left",
                 textBaseline = "top",
                 fillStyle = "rgb(255, 255, 255)",
@@ -1538,7 +1540,7 @@ def renderPhigrosWidgets(
             drawText(
                 buttonRect[0] + (buttonRect[2] - buttonRect[0]) / 2, buttonRect[1] + (buttonRect[3] - buttonRect[1]) / 2,
                 widget.text,
-                font = f"{widget.fontsize}px PhigrosFont",
+                font = f"{widget.fontsize}px pgrFont",
                 textAlign = "center",
                 textBaseline = "middle",
                 fillStyle = "rgb(0, 0, 0)",
@@ -1589,7 +1591,7 @@ def settingRender():
         f"ctx.drawRectMultilineText(\
             -{w}, -{h}, 0, 0,\
             {root.string2sctring_hqm(const.PHI_OPENSOURCELICENSE)},\
-            'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
+            'rgb(255, 255, 255)', '{(w + h) / 145}px pgrFont', {(w + h) / 145}, 1.25\
         );"
     ) + h * (143 / 1080) * 2 - h
     
@@ -1986,7 +1988,7 @@ def settingRender():
         drawText(
             w * 0.1765625, h * 0.2,
             "玩家信息",
-            font = f"{(w + h) / 75}px PhigrosFont",
+            font = f"{(w + h) / 75}px pgrFont",
             textAlign = "left",
             textBaseline = "bottom",
             fillStyle = "rgb(255, 255, 255)",
@@ -2107,7 +2109,7 @@ def settingRender():
         drawText(
             w * 0.234375, h * (340 / 1080),
             getUserData("userdata-userName"),
-            font = f"{userName_FontSize}px PhigrosFont",
+            font = f"{userName_FontSize}px pgrFont",
             textAlign = "left",
             textBaseline = "middle",
             fillStyle = "rgb(255, 255, 255)",
@@ -2132,7 +2134,7 @@ def settingRender():
         drawText(
             (rankingScoreRect[0] + rankingScoreRect[2]) / 2, (rankingScoreRect[1] + rankingScoreRect[3]) / 2,
             f"{getUserData("userdata-rankingScore"):.2f}",
-            font = f"{(rankingScoreRect[3] - rankingScoreRect[1]) * 0.8}px PhigrosFont",
+            font = f"{(rankingScoreRect[3] - rankingScoreRect[1]) * 0.8}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = "rgb(83, 83, 83)",
@@ -2145,7 +2147,7 @@ def settingRender():
                 {w * 0.1484375}, {h * (447 / 1080)},\
                 {w * 0.4546875}, {h * (660 / 1080)},\
                 {root.string2sctring_hqm(getUserData("userdata-selfIntroduction"))},\
-                'rgb(255, 255, 255)', '{selfIntroduction_fontSize}px PhigrosFont',\
+                'rgb(255, 255, 255)', '{selfIntroduction_fontSize}px pgrFont',\
                 {selfIntroduction_fontSize}, 1.15\
             );",
             add_code_array = True
@@ -2167,7 +2169,7 @@ def settingRender():
         drawText(
             (editButtonRect[0] + editButtonRect[2]) / 2, (editButtonRect[1] + editButtonRect[3]) / 2,
             "编辑" if not editingUserData else "完成",
-            font = f"{(editButtonRect[3] - editButtonRect[1]) * 0.7}px PhigrosFont",
+            font = f"{(editButtonRect[3] - editButtonRect[1]) * 0.7}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = "rgb(83, 83, 83)",
@@ -2177,7 +2179,7 @@ def settingRender():
         drawText(
             w * 0.46875, h * (805 / 1080),
             "登录以使用云存档功能",
-            font = f"{(w + h) / 90}px PhigrosFont",
+            font = f"{(w + h) / 90}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = f"rgba(255, 255, 255, {1.0 if not editingUserData else 0.75})",
@@ -2226,7 +2228,7 @@ def settingRender():
         drawText(
             (chartDataDifRect[0] + chartDataDifRect[2]) / 2, (chartDataDifRect[1] + chartDataDifRect[3]) / 2,
             "IN",
-            font = f"{(chartDataDifRect[3] - chartDataDifRect[1]) * 0.55}px PhigrosFont",
+            font = f"{(chartDataDifRect[3] - chartDataDifRect[1]) * 0.55}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = "rgb(50, 50, 50)",
@@ -2250,7 +2252,7 @@ def settingRender():
         
         def _drawChartDataItem(x: float, text: str):
             root.run_js_code(
-                f"ctx.save(); ctx.font = '{(w + h) / 125}px PhigrosFont'; SlashWidth = ctx.measureText('/').width; ctx.restore();",
+                f"ctx.save(); ctx.font = '{(w + h) / 125}px pgrFont'; SlashWidth = ctx.measureText('/').width; ctx.restore();",
                 add_code_array = True
             )
             
@@ -2259,7 +2261,7 @@ def settingRender():
             root.run_js_code(
                 f"ctx.drawTextEx(\
                     '/',\
-                    {x}, {textHeight}, '{(w + h) / 125}px PhigrosFont',\
+                    {x}, {textHeight}, '{(w + h) / 125}px pgrFont',\
                     'rgb(255, 255, 255)', 'center', 'bottom'\
                 );",
                 add_code_array = True
@@ -2268,7 +2270,7 @@ def settingRender():
             root.run_js_code(
                 f"ctx.drawTextEx(\
                     '-',\
-                    {x} + SlashWidth, {textHeight}, '{(w + h) / 125}px PhigrosFont',\
+                    {x} + SlashWidth, {textHeight}, '{(w + h) / 125}px pgrFont',\
                     'rgb(255, 255, 255)', 'left', 'bottom'\
                 );",
                 add_code_array = True
@@ -2277,7 +2279,7 @@ def settingRender():
             root.run_js_code(
                 f"ctx.drawTextEx(\
                     '0',\
-                    {x} - SlashWidth, {textHeight}, '{(w + h) / 85}px PhigrosFont',\
+                    {x} - SlashWidth, {textHeight}, '{(w + h) / 85}px pgrFont',\
                     'rgb(255, 255, 255)', 'right', 'bottom'\
                 );",
                 add_code_array = True
@@ -2286,7 +2288,7 @@ def settingRender():
             drawText(
                 x, h * (648 / 1080),
                 text,
-                font = f"{(w + h) / 180}px PhigrosFont",
+                font = f"{(w + h) / 180}px pgrFont",
                 textAlign = "center",
                 textBaseline = "middle",
                 fillStyle = "rgb(255, 255, 255)",
@@ -2364,7 +2366,7 @@ def settingRender():
             drawText(
                 textX, textY,
                 text,
-                font = f"{(w + h) / 75}px PhigrosFont",
+                font = f"{(w + h) / 75}px pgrFont",
                 textAlign = "left",
                 textBaseline = "middle",
                 fillStyle = "rgb(255, 255, 255)",
@@ -2503,7 +2505,7 @@ def settingRender():
         drawText(
             w * 0.5703125, h * (308 / 1080),
             f"Version: {const.PHIGROS_VERSION}",
-            font = f"{(w + h) /125}px PhigrosFont",
+            font = f"{(w + h) /125}px pgrFont",
             textAlign = "left",
             textBaseline = "middle",
             fillStyle = "rgb(138, 138, 138, 0.95)",
@@ -2513,7 +2515,7 @@ def settingRender():
         drawText(
             w * 0.5703125, h * (361 / 1080),
             f"Device: {const.DEVICE}",
-            font = f"{(w + h) /125}px PhigrosFont",
+            font = f"{(w + h) /125}px pgrFont",
             textAlign = "left",
             textBaseline = "middle",
             fillStyle = "rgb(138, 138, 138, 0.95)",
@@ -2526,7 +2528,7 @@ def settingRender():
             w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.575),
             h * 0.575,
             "音频问题疑难解答",
-            font = f"{(w + h) / 90}px PhigrosFont",
+            font = f"{(w + h) / 90}px pgrFont",
             textAlign = "left",
             textBaseline = "top",
             fillStyle = "rgb(255, 255, 255)",
@@ -2537,7 +2539,7 @@ def settingRender():
             w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.575),
             h * 0.575,
             "开源许可证",
-            font = f"{(w + h) / 90}px PhigrosFont",
+            font = f"{(w + h) / 90}px pgrFont",
             textAlign = "left",
             textBaseline = "top",
             fillStyle = "rgb(255, 255, 255)",
@@ -2548,7 +2550,7 @@ def settingRender():
             w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.675),
             h * 0.675,
             "观看教学",
-            font = f"{(w + h) / 90}px PhigrosFont",
+            font = f"{(w + h) / 90}px pgrFont",
             textAlign = "left",
             textBaseline = "top",
             fillStyle = "rgb(255, 255, 255)",
@@ -2559,7 +2561,7 @@ def settingRender():
             w * (0.0515625 + 0.0265625 + 0.4015625) + getShadowDiagonalXByY(h * 0.675),
             h * 0.675,
             "隐私政策",
-            font = f"{(w + h) / 90}px PhigrosFont",
+            font = f"{(w + h) / 90}px pgrFont",
             textAlign = "left",
             textBaseline = "top",
             fillStyle = "rgb(255, 255, 255)",
@@ -2570,7 +2572,7 @@ def settingRender():
             w * (0.0515625 + 0.0265625) + getShadowDiagonalXByY(h * 0.775),
             h * 0.775,
             "关于我们",
-            font = f"{(w + h) / 90}px PhigrosFont",
+            font = f"{(w + h) / 90}px pgrFont",
             textAlign = "left",
             textBaseline = "top",
             fillStyle = "rgb(255, 255, 255)",
@@ -2584,7 +2586,7 @@ def settingRender():
             w * 0.5453125,
             h * (1031 / 1080),
             const.OTHERSERTTING_RIGHTDOWN_TEXT,
-            font = f"{(w + h) / 135}px PhigrosFont",
+            font = f"{(w + h) / 135}px pgrFont",
             textAlign = "left",
             textBaseline = "middle",
             fillStyle = "rgba(255, 255, 255, 0.5)",
@@ -2603,7 +2605,7 @@ def settingRender():
         drawText(
             w * 0.0875, h * (1031 / 1080),
             const.OTHER_SETTING_LB_STRINGS.TWITTER,
-            font = f"{(w + h) / 135}px PhigrosFont",
+            font = f"{(w + h) / 135}px pgrFont",
             textAlign = "left",
             textBaseline = "middle",
             fillStyle = "rgba(255, 255, 255, 0.5)",
@@ -2622,7 +2624,7 @@ def settingRender():
         drawText(
             w * 0.2171875, h * (1031 / 1080),
             const.OTHER_SETTING_LB_STRINGS.BILIBILI,
-            font = f"{(w + h) / 135}px PhigrosFont",
+            font = f"{(w + h) / 135}px pgrFont",
             textAlign = "left",
             textBaseline = "middle",
             fillStyle = "rgba(255, 255, 255, 0.5)",
@@ -2641,7 +2643,7 @@ def settingRender():
         drawText(
             w * 0.346875, h * (1031 / 1080),
             const.OTHER_SETTING_LB_STRINGS.QQ,
-            font = f"{(w + h) / 135}px PhigrosFont",
+            font = f"{(w + h) / 135}px pgrFont",
             textAlign = "left",
             textBaseline = "middle",
             fillStyle = "rgba(255, 255, 255, 0.5)",
@@ -2848,7 +2850,7 @@ def settingRender():
         drawText(
             w * 0.209375, settingTextY,
             "游玩",
-            font = f"{(w + h) / 100 * PlayTextFontScale}px PhigrosFont",
+            font = f"{(w + h) / 100 * PlayTextFontScale}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = f"rgba{PlayTextColor}",
@@ -2858,7 +2860,7 @@ def settingRender():
         drawText(
             w * 0.3296875, settingTextY,
             "账号与统计",
-            font = f"{(w + h) / 100 * AccountAndCountTextFontScale}px PhigrosFont",
+            font = f"{(w + h) / 100 * AccountAndCountTextFontScale}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = f"rgba{AccountAndCountTextColor}",
@@ -2868,7 +2870,7 @@ def settingRender():
         drawText(
             w * 0.4484375, settingTextY,
             "其他",
-            font = f"{(w + h) / 100 * OtherTextFontScale}px PhigrosFont",
+            font = f"{(w + h) / 100 * OtherTextFontScale}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = f"rgba{OtherTextColor}",
@@ -2905,7 +2907,7 @@ def settingRender():
                     f"ctx.drawRectMultilineText(\
                         {w * 0.2}, {settingUIOpenSourceLicenseSlideControler.getDy() + h * (143 / 1080)}, {w * 0.8}, {h},\
                         {root.string2sctring_hqm(const.PHI_OPENSOURCELICENSE)},\
-                        'rgb(255, 255, 255)', '{(w + h) / 145}px PhigrosFont', {(w + h) / 145}, 1.25\
+                        'rgb(255, 255, 255)', '{(w + h) / 145}px pgrFont', {(w + h) / 145}, 1.25\
                     );",
                     add_code_array = True
                 )
@@ -3035,7 +3037,7 @@ def audioQARender():
         drawText(
             w * 0.3, h * (98 / 1080),
             "音频问题疑难解答",
-            font = f"{(w + h) / 62.5}px PhigrosFont",
+            font = f"{(w + h) / 62.5}px pgrFont",
             textAlign = "left",
             textBaseline = "top",
             fillStyle = "rgb(255, 255, 255)",
@@ -3047,7 +3049,7 @@ def audioQARender():
                 {w * 0.28125}, {h * (241 / 1080)},\
                 {w * 0.7984375}, {h}, {root.string2sctring_hqm(const.DSP_SETTING_TIP)},\
                 'rgb(255, 255, 255)',\
-                '{(w + h) / 120}px PhigrosFont', {(w + h) / 120}, {- w * 0.0046875}, 1.25\
+                '{(w + h) / 120}px pgrFont', {(w + h) / 120}, {- w * 0.0046875}, 1.25\
             );",
             add_code_array = True
         )
@@ -3131,7 +3133,7 @@ def aboutUsRender():
             drawText(
                 w * 0.5015625, h * (733 / 1080),
                 text = "t   o   u   c   h      t   o      s   t   a   r   t",
-                font = f"{(w + h) / 80 * (1.0 + (math.sin(time.time() * 1.5) + 1.1) / 35)}px PhigrosFont",
+                font = f"{(w + h) / 80 * (1.0 + (math.sin(time.time() * 1.5) + 1.1) / 35)}px pgrFont",
                 textAlign = "center",
                 textBaseline = "middle",
                 fillStyle = f"rgba(255, 255, 255, {alpha})",
@@ -3148,7 +3150,7 @@ def aboutUsRender():
                 f"aboutus_textheight = ctx.drawRectMultilineTextCenter(\
                     {w * 0.05}, {dy}, {w * 0.95}, {h},\
                     {root.string2sctring_hqm(const.PHI_ABOUTUSTEXT)},\
-                    'rgb(255, 255, 255)', '{fontsize}px PhigrosFont', {fontsize}, 1.4\
+                    'rgb(255, 255, 255)', '{fontsize}px pgrFont', {fontsize}, 1.4\
                 );",
                 add_code_array = True
             )
@@ -3171,7 +3173,7 @@ def aboutUsRender():
             drawText(
                 w * 0.028125, h * (50 / 1080),
                 "长按以跳过",
-                font = f"{(w + h) / 80}px PhigrosFont",
+                font = f"{(w + h) / 80}px pgrFont",
                 textAlign = "left",
                 textBaseline = "top",
                 fillStyle = f"rgba(255, 255, 255, {p})",
@@ -3465,7 +3467,7 @@ def chartPlayerRender(
                 drawText(
                     x, h / 2,
                     number,
-                    font = f"{(w + h) / 30}px PhigrosFont",
+                    font = f"{(w + h) / 30}px pgrFont",
                     textAlign = "center",
                     textBaseline = "middle",
                     fillStyle = f"rgba(255, 255, 255, {alpha})",
@@ -3695,7 +3697,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         drawText(
             w * 0.1484375, h * (34 / 1080),
             "排序方式",
-            font = f"{(w + h) / 135}px PhigrosFont",
+            font = f"{(w + h) / 135}px pgrFontThin",
             textAlign = "left",
             textBaseline = "top",
             fillStyle = f"rgb(255, 255, 255)",
@@ -3715,7 +3717,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         drawText(
             w * 0.16875, h * (69 / 1080),
             const.PHI_SORTMETHOD_STRING_MAP[choose_state.sort_method],
-            font = f"{(w + h) / 100}px PhigrosFont",
+            font = f"{(w + h) / 100}px pgrFontThin",
             textAlign = "left",
             textBaseline = "top",
             fillStyle = f"rgb(255, 255, 255)",
@@ -3757,7 +3759,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
 def updateFontSizes():
     global userName_FontSize
     
-    userName_Width1px = root.run_js_code(f"ctx.font='50px PhigrosFont'; ctx.measureText({root.string2sctring_hqm(getUserData("userdata-userName"))}).width;") / 50
+    userName_Width1px = root.run_js_code(f"ctx.font='50px pgrFont'; ctx.measureText({root.string2sctring_hqm(getUserData("userdata-userName"))}).width;") / 50
     userName_FontSize = w * 0.209375 / (userName_Width1px if userName_Width1px != 0.0 else 1.0)
     if userName_FontSize > w * 0.0234375:
         userName_FontSize = w * 0.0234375
