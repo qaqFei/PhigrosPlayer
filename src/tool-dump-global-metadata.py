@@ -21,7 +21,7 @@ class MemReader:
 
 so = ctypes.CDLL("./libUnityPlugin.so")
 getGlobalMetadata: typing.Callable[[bytes], int] = so._Z26il2cpp_get_global_metadataPKc
-getGlobalMetadata.argtypes = ctypes.c_char_p,
+getGlobalMetadata.argtypes = (ctypes.c_char_p, )
 getGlobalMetadata.restype = ctypes.c_void_p
 ggmresult_addr: int = getGlobalMetadata(b"./game.dat")
 
