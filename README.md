@@ -10,6 +10,9 @@
 - `tool-phi2rpe.py`: phi格式谱面转rpe格式
 - `tool-unpack.py`: 自动解包 Phigros 游戏资源, 目前最新支持版本 `3.11.0 (122)`
 - `tool-modpack.py`: 自动改包 Phigros （rpe谱面也可以！！
+- `tool-dump-global-metadata.py`: 通过 `libUnityPlugin.so` 和 `game.dat` 生成 `global-metadata.dat`
+- `tool-fv22fv3`: 将 `formatVersion 2` 谱面转换为 `formatVersion 3`
+- `tool-fv32fv2`: 将 `formatVersion 3` 谱面转换为 `formatVersion 2`
 - `tool-getPgrUrl.py`: 通过 `taptap API` 获取 Phigros 下载直链
 - `phigros.py`: 还原Phigros游戏界面, （真的！
 
