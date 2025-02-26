@@ -360,6 +360,7 @@ def generate_resources(need_otherillu: bool = False, need_other_res: bool = Fals
             try:
                 item = iocommands.pop()
                 if item is None: break
+                item = list(item)
             except IndexError:
                 break
             
@@ -392,6 +393,13 @@ def generate_resources(need_otherillu: bool = False, need_other_res: bool = Fals
                         save_string_count += 1
                         
                     case "save-pilimg":
+                        replace_exnames = [".jpg", ".jpeg"]
+                        
+                        for name in replace_exnames:
+                            if item[1].endswith(name):
+                                item[1] = item[1][-len(name):] + ".png"
+                                break
+                            
                         item[2].save(f"./unpack-result/{item[1]}", "png")
                         save_pilimg_count += 1
                         
