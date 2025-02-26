@@ -322,7 +322,7 @@ def loadResource():
         im = Image.open(BytesIO(chapterimbytes))
         chapter.im = im
         respacker.reg_img(chapterimbytes, f"chapter_{chapter.chapterId}_raw")
-        respacker.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 100)), f"chapter_{chapter.chapterId}_blur")
+        respacker.reg_img(im.filter(ImageFilter.GaussianBlur(radius = (im.width + im.height) / 45)), f"chapter_{chapter.chapterId}_blur")
     
     for index, avatar in enumerate(assetConfig["avatars"]):
         respacker.reg_img(open(tool_funcs.gtpresp(avatar), "rb").read(), f"avatar_{index}")
@@ -480,6 +480,14 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
                 {root.get_img_jsvarname(f"chapter_{item.chapterId}_blur")},\
                 {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
                 {dPower}, 1.0\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, chapterRect))},\
+                {dPower}, 'rgba(0, 0, 0, 0.5)'\
             );",
             add_code_array = True
         )
