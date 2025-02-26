@@ -116,7 +116,7 @@ setting = phigame_obj.Setting()
 PlaySettingWidgets: dict[str, phigame_obj.PhiBaseWidget] = {}
 dspSettingWidgets: dict[str, phigame_obj.PhiBaseWidget] = {}
 
-def Load_Chapters():
+def loadChapters():
     global Chapters, ChaptersMaxDx
     jsonData = json.loads(open(tool_funcs.gtpresp("chapters.json"), "r", encoding="utf-8").read())
     Chapters = phigame_obj.Chapters(
@@ -170,7 +170,7 @@ def updateUserAvatar():
         logging.warning("User avatar not found, reset to default")
     root.run_js_code(f"{root.get_img_jsvarname("userAvatar")} = {root.get_img_jsvarname(f"avatar_{assetConfig["avatars"].index(getUserData("userdata-userAvatar"))}")};")
 
-def Load_Resource():
+def loadResource():
     global note_max_width, note_max_height
     global note_max_size_half
     global ButtonWidth, ButtonHeight
@@ -3840,37 +3840,9 @@ def init():
     
     if webcv.disengage_webview:
         socket_webviewbridge.hook(root)
-        
-    webdpr = root.run_js_code("window.devicePixelRatio;")
+    
+    w, h, webdpr, dw_legacy, dh_legacy = root.init_window_size_and_position(0.6)
     root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
-
-    if webcv.disengage_webview:
-        w, h = root.run_js_code("window.innerWidth;"), root.run_js_code("window.innerHeight;")
-    else:
-        if "--fullscreen" in sys.argv:
-            w, h = webcv.screen_width, webcv.screen_height
-            root.resize(w, h)
-            root.fullscreen()
-            dw_legacy, dh_legacy = 0, 0
-        else:
-            if "--size" not in sys.argv:
-                w, h = int(webcv.screen_width * 0.6), int(webcv.screen_height * 0.6)
-            else:
-                w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
-            winw, winh = (
-                w if w <= webcv.screen_width else int(webcv.screen_width * 0.75),
-                h if h <= webcv.screen_height else int(webcv.screen_height * 0.75)
-            )
-            root.resize(winw, winh)
-            w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
-            dw_legacy, dh_legacy = winw - w_legacy, winh - h_legacy
-            dw_legacy *= webdpr; dh_legacy *= webdpr
-            dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
-            del w_legacy, h_legacy
-            root.resize(winw + dw_legacy, winh + dh_legacy)
-            root.move(int(webcv.screen_width / 2 - (winw + dw_legacy) / webdpr / 2), int(webcv.screen_height / 2 - (winh + dh_legacy) / webdpr / 2))
-
-    w *= webdpr; h *= webdpr; w = int(w); h = int(h)
 
     rw, rh = w, h
     if "--usu169" in sys.argv:
@@ -3882,12 +3854,8 @@ def init():
         root.run_js_code("usu169 = true;")
     root.run_js_code(f"resizeCanvas({rw}, {rh});")
 
-    if "--window-host" in sys.argv and platform.system() == "Windows":
-        from ctypes import windll
-        windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
-
-    Load_Chapters()
-    Resource = Load_Resource()
+    loadChapters()
+    Resource = loadResource()
     eventManager = phigame_obj.EventManager()
     bindEvents()
     updateFontSizes()

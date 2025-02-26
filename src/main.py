@@ -267,7 +267,7 @@ logging.info("Chart Info: ")
 for k,v in chart_information.items():
     logging.info(f"           {k}: {v}")
 
-def Load_Resource():
+def loadResource():
     global globalNoteWidth
     global note_max_width, note_max_height
     global note_max_size_half
@@ -457,7 +457,7 @@ def WaitLoading_FadeIn():
         WaitLoading.set_volume((i + 1) / 100)
         time.sleep(2 / 100)
 
-def Show_Start():
+def showStart():
     WaitLoading.fadeout(450)
     
     def dle_warn(a: float):
@@ -484,7 +484,7 @@ def Show_Start():
     clearCanvas(wait_execute=True)
     phicore.drawBg()
     root.run_js_wait_code()
-    Thread(target=PlayerStart, daemon=True).start()
+    Thread(target=playerStart, daemon=True).start()
 
 def checkOffset(now_t: float):
     global show_start_time
@@ -507,7 +507,7 @@ def getLfdaotFuncs():
         
     return result
 
-def PlayerStart():
+def playerStart():
     global show_start_time, cksmanager
     
     Resource["Over"].stop()
@@ -614,7 +614,7 @@ def PlayerStart():
         if play_restart_flag:
             mixer.music.fadeout(250)
             loadChartObject()
-            Thread(target=PlayerStart, daemon=True).start()
+            Thread(target=playerStart, daemon=True).start()
             return
         
     elif lfdaot:
@@ -801,7 +801,7 @@ def PlayerStart():
                 if a2_loop_clicked or (loop and (time.time() - animation_2_start_time) > 0.25):
                     def _f():
                         loadChartObject()
-                        PlayerStart()
+                        playerStart()
                     Thread(target=_f, daemon=True).start()
                     break
                 
@@ -895,6 +895,8 @@ def init():
     if webcv.disengage_webview:
         socket_webviewbridge.hook(root)
 
+    w, h, webdpr, _, _ = root.init_window_size_and_position(0.6)
+    
     webdpr = root.run_js_code("window.devicePixelRatio;")
     if webdpr != 1.0:
         lowquality = True
@@ -902,37 +904,6 @@ def init():
 
     if lowquality:
         root.run_js_code(f"lowquality_scale = {lowquality_scale};")
-
-    if webcv.disengage_webview:
-        w, h = root.run_js_code("window.innerWidth;"), root.run_js_code("window.innerHeight;")
-    else:
-        if "--window-host" in sys.argv and platform.system() == "Windows":
-            from ctypes import windll
-            windll.user32.SetParent(root.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
-            
-        if "--fullscreen" in sys.argv:
-            w, h = webcv.screen_width, webcv.screen_height
-            root.fullscreen()
-        else:
-            if "--size" not in sys.argv:
-                w, h = int(webcv.screen_width * 0.6), int(webcv.screen_height * 0.6)
-            else:
-                w, h = int(eval(sys.argv[sys.argv.index("--size") + 1])), int(eval(sys.argv[sys.argv.index("--size") + 2]))
-                
-            winw, winh = (
-                w if w <= webcv.screen_width else int(webcv.screen_width * 0.75),
-                h if h <= webcv.screen_height else int(webcv.screen_height * 0.75)
-            )
-            root.resize(winw, winh)
-            w_legacy, h_legacy = root.winfo_legacywindowwidth(), root.winfo_legacywindowheight()
-            dw_legacy, dh_legacy = winw - w_legacy, winh - h_legacy
-            dw_legacy *= webdpr; dh_legacy *= webdpr
-            dw_legacy, dh_legacy = int(dw_legacy), int(dh_legacy)
-            del w_legacy, h_legacy
-            root.resize(winw + dw_legacy, winh + dh_legacy)
-            root.move(int(webcv.screen_width / 2 - (winw + dw_legacy) / webdpr / 2), int(webcv.screen_height / 2 - (winh + dh_legacy) / webdpr / 2))
-
-    w *= webdpr; h *= webdpr; w = int(w); h = int(h)
 
     root.run_js_code(f"lowquality_imjscvscale_x = {lowquality_imjscvscale_x};")
     root.run_js_code(f"lowquality_imjs_maxsize = {lowquality_imjs_maxsize};")
@@ -949,14 +920,14 @@ def init():
         root.run_js_code("usu169 = true;")
     root.run_js_code(f"resizeCanvas({rw}, {rh}, {{willReadFrequently: {render_video}}});")
         
-    Resource = Load_Resource()
+    Resource = loadResource()
 
     if wl_more_chinese:
         root.run_js_code("setWlMoreChinese();")
 
     updateCoreConfig()
 
-    Thread(target=Show_Start, daemon=True).start()
+    Thread(target=showStart, daemon=True).start()
     root.wait_for_close()
     atexit_run()
 

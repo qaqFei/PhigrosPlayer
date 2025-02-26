@@ -12,6 +12,7 @@ import time
 import socket
 import sys
 import logging
+import platform
 from os.path import abspath
 from random import randint
 
@@ -454,6 +455,50 @@ class WebCanvas:
         ete.wait()
         delattr(self.jsapi, ecbname)
         return result
+    
+    def init_window_size_and_position(
+        self,
+        scrsize: float,
+        outscr_maxsize: float = 0.75
+    ):
+        webdpr = self.run_js_code("window.devicePixelRatio;")
+        
+        if disengage_webview:
+            w, h = self.run_js_code("window.innerWidth;"), self.run_js_code("window.innerHeight;")
+        else:
+            if "--window-host" in sys.argv and platform.system() == "Windows":
+                from ctypes import windll
+                windll.user32.SetParent(self.winfo_hwnd(), eval(sys.argv[sys.argv.index("--window-host") + 1]))
+            
+            if "--fullscreen" in sys.argv:
+                w, h = screen_width, screen_height
+                self.fullscreen()
+            else:
+                if "--size" in sys.argv:
+                    w, h = int(sys.argv[sys.argv.index("--size") + 1]), int(sys.argv[sys.argv.index("--size") + 2])
+                else:
+                    w, h = int(screen_width * scrsize), int(screen_height * scrsize)
+
+                winw, winh = (
+                    w if w <= screen_width else int(screen_width * outscr_maxsize),
+                    h if h <= screen_height else int(screen_height * outscr_maxsize)
+                )
+                
+                self.resize(winw, winh)
+                
+                w_legacy, h_legacy = self.winfo_legacywindowwidth(), self.winfo_legacywindowheight()
+                dw_legacy, dh_legacy = winw - w_legacy, winh - h_legacy
+                dw_legacy *= webdpr; dh_legacy *= webdpr
+                dw_legacy = int(dw_legacy); dh_legacy = int(dh_legacy)
+                self.resize(winw + dw_legacy, winh + dh_legacy)
+                self.move(
+                    int((screen_width - (winw + dw_legacy) / webdpr) / 2),
+                    int((screen_height - (winh + dh_legacy) / webdpr) / 2)
+                )
+        
+        w *= webdpr; h *= webdpr
+        
+        return w, h, webdpr, dw_legacy, dh_legacy
     
     def _load_img(self, imgname: str) -> None:
         jsvarname = self.get_img_jsvarname(imgname)

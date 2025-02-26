@@ -17,7 +17,7 @@ NoteClickAudios: dict[int, AudioSegment] = {
     const.NOTE_TYPE.TAP: AudioSegment.from_file("./resources/resource_default/click.ogg"),
     const.NOTE_TYPE.DRAG: AudioSegment.from_file("./resources/resource_default/drag.ogg"),
     const.NOTE_TYPE.HOLD: AudioSegment.from_file("./resources/resource_default/click.ogg"),
-    const.NOTE_TYPE.FLICK: AudioSegment.from_file("./resources/resource_default/flick.ogg")
+    const.NOTE_TYPE.FLICK: AudioSegment.from_file("./resources/resource_default/flick.ogg"),
 }
 
 ExtendedAudios: dict[str, AudioSegment] = {}
