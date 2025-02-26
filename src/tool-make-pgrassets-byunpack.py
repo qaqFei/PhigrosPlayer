@@ -1,6 +1,9 @@
 import fix_workpath as _
 
 import json
+import hashlib
+import random
+import string
 from os import mkdir
 from os.path import isdir
 from sys import argv
@@ -15,7 +18,10 @@ output_dir = argv[2]
 
 try: rmtree(output_dir)
 except FileNotFoundError: pass
+
 try: mkdir(output_dir)
+except FileExistsError: pass
+try: mkdir(f"{output_dir}/res")
 except FileExistsError: pass
 
 if not isdir(f"{unpack_result}/other_res"):
@@ -54,13 +60,68 @@ class splitSongManager:
 
         return result
 
+class resourceManager:
+    def __init__(self):
+        self.resmap: dict[str, str] = {}
+    
+    def getres(self, path: str):
+        with open(f"{unpack_result}/{path}", "rb") as f:
+            data = f.read()
+        
+        md5value = hashlib.md5(data).hexdigest()
+        
+        if md5value in self.resmap:
+            return self.resmap[md5value]
+        
+        newpath = f"/res/{"".join(random.sample(string.ascii_letters, 8))}." + path.split(".")[-1]
+        with open(f"{output_dir}/{newpath}", "wb") as f:
+            f.write(data)
+
+        self.resmap[md5value] = newpath
+        
+        return newpath
+        
 ssm = splitSongManager(upk_info)
+resm = resourceManager()
 chapters = {"chapters": []}
 
-for ciindex, cinfo in enumerate(pgr_chapters_info):
+for cinfo in pgr_chapters_info:
     songs = ssm.get_songs(cinfo["split"], cinfo["count"], cinfo.get("jumps", []))
 
     if cinfo.get("reverse", False):
         songs.reverse()
     
+    chapters_item = {
+        "name": cinfo["name"],
+        "cn-name": cinfo["cn-name"],
+        "o-name": cinfo["o-name"],
+        "image": resm.getres(cinfo["image"]),
+        "songs": []
+    }
     
+    for s in songs:
+        chapters_item["songs"].append({
+            "name": s["songName"],
+            "composer": s["composer"],
+            "image": resm.getres(f"/Illustration/{s["songIdBak"]}.png"),
+            "preview": resm.getres(f"/music/{s["songIdBak"]}.ogg"),
+            "difficlty": [
+                {
+                    "name": level,
+                    "level": s["difficulty"][level_i],
+                    "chart_audio": resm.getres(f"/music/{s["songIdBak"]}.ogg"),
+                    "chart_image": resm.getres(f"/Illustration/{s["songIdBak"]}.png"),
+                    "chart_file": resm.getres(f"/Chart_{level}/{s["songIdBak"]}.json"),
+                    "charter": s["charter"][level_i],
+                    "iller": s["illustrator"]
+                }
+                for level_i, level in enumerate(s["levels"])
+            ]
+        })
+    
+    if cinfo.get("insert", None) is not None:
+        chapters["chapters"].insert(cinfo["insert"], chapters_item)
+    else:
+        chapters["chapters"].append(chapters_item)
+
+json.dump(chapters, open(f"{output_dir}/chapters.json", "w", encoding="utf-8"), ensure_ascii=False, indent=4)
