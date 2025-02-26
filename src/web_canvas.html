@@ -1035,9 +1035,9 @@ void main() {
         });
     };
     
-    proxyTouchEvent("touchstart", "mousedown");
-    proxyTouchEvent("touchmove", "mousemove");
-    proxyTouchEvent("touchend", "mouseup");
+    // proxyTouchEvent("touchstart", "mousedown");
+    // proxyTouchEvent("touchmove", "mousemove");
+    // proxyTouchEvent("touchend", "mouseup");
 
     const proxyMouseEvent = function (from, to) {
         window.addEventListener(from, (e) => {
