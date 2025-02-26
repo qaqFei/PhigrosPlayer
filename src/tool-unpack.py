@@ -188,7 +188,7 @@ def generate_info():
                     item["charter"].pop(i)
                     item["levels"].pop(i)
 
-                item["soundIdBak"] = item["songId"]
+                item["songIdBak"] = item["songId"]
                 if item["songId"][-2:] == ".0": item["songId"] = item["songId"][:-2]
                 item["difficulty"] = list(map(lambda x: round(x, 1), item["difficulty"]))
                 del item["songTitle"]
@@ -397,7 +397,7 @@ def generate_resources(need_otherillu: bool = False, need_other_res: bool = Fals
                         
                         for name in replace_exnames:
                             if item[1].endswith(name):
-                                item[1] = item[1][-len(name):] + ".png"
+                                item[1] = item[1][:-len(name)] + ".png"
                                 break
                             
                         item[2].save(f"./unpack-result/{item[1]}", "png")
@@ -454,16 +454,16 @@ def pack_charts(infos: list[dict], rpe: bool):
             audioExn = "ogg"
             imageExn = "png"
             
-            chartFile = f"./unpack-result/Chart_{l}/{info["soundIdBak"]}.{chartExn}"
-            audioFile = f"./unpack-result/music/{info["soundIdBak"]}.{audioExn}"
-            imageFile = f"./unpack-result/Illustration/{info["soundIdBak"]}.{imageExn}"
+            chartFile = f"./unpack-result/Chart_{l}/{info["songIdBak"]}.{chartExn}"
+            audioFile = f"./unpack-result/music/{info["songIdBak"]}.{audioExn}"
+            imageFile = f"./unpack-result/Illustration/{info["songIdBak"]}.{imageExn}"
             
             csvData = "\n".join([
                 "Chart,Music,Image,Name,Artist,Level,Illustrator,Charter,AspectRatio,NoteScale,GlobalAlpha",
                 ",".join(map(lambda x: f"\"{x}\"" if " " in x else x, [
-                    f"{info["soundIdBak"]}.{chartExn}",
-                    f"{info["soundIdBak"]}.{audioExn}",
-                    f"{info["soundIdBak"]}.{imageExn}",
+                    f"{info["songIdBak"]}.{chartExn}",
+                    f"{info["songIdBak"]}.{audioExn}",
+                    f"{info["songIdBak"]}.{imageExn}",
                     info["songName"],
                     info["composer"],
                     levelString,
@@ -476,9 +476,9 @@ def pack_charts(infos: list[dict], rpe: bool):
                 "#",
                 f"Name: {info["songName"]}",
                 "Path: 0",
-                f"Song: {info["soundIdBak"]}.{audioExn}",
-                f"Picture: {info["soundIdBak"]}.{imageExn}",
-                f"Chart: {info["soundIdBak"]}.{chartExn}",
+                f"Song: {info["songIdBak"]}.{audioExn}",
+                f"Picture: {info["songIdBak"]}.{imageExn}",
+                f"Chart: {info["songIdBak"]}.{chartExn}",
                 f"Level: {levelString}",
                 f"Composer: {info["composer"]}",
                 f"Charter: {info["charter"][li]}"
@@ -491,12 +491,12 @@ def pack_charts(infos: list[dict], rpe: bool):
                 f"charter: {repr(info["charter"])}",
                 f"composer: {repr(info["composer"])}",
                 f"illustrator: {repr(info["illustrator"])}",
-                f"chart: {repr(info["soundIdBak"] + f".{chartExn}")}",
-                f"music: {repr(info["soundIdBak"] + f".{audioExn}")}",
-                f"illustration: {repr(info["soundIdBak"] + f".{imageExn}")}"
+                f"chart: {repr(info["songIdBak"] + f".{chartExn}")}",
+                f"music: {repr(info["songIdBak"] + f".{audioExn}")}",
+                f"illustration: {repr(info["songIdBak"] + f".{imageExn}")}"
             ])
             
-            charts.append((info["soundIdBak"], l, chartFile, audioFile, imageFile, csvData, txtData, ymlData))
+            charts.append((info["songIdBak"], l, chartFile, audioFile, imageFile, csvData, txtData, ymlData))
             allcount += 1
     
     stopthread_count = 0

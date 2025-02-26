@@ -38,7 +38,7 @@ def findinfo_byname(name: str):
 
 def findexinfo_byinfo(iitem: dict, key: str):
     for i in extended_info:
-        if i["key"] == iitem["soundIdBak"] + "/" + key:
+        if i["key"] == iitem["songIdBak"] + "/" + key:
             return i
     return None if not key.endswith(".png") else findexinfo_byinfo(iitem, key[:-4] + ".jpg")
 
