@@ -19,7 +19,7 @@ class ByteReader:
         self.index += n
         
         if len(result) != n:
-            raise EOFError(f"Unexpected EOF")
+            raise EOFError("Unexpected EOF")
         
         return result
     
