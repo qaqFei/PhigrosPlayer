@@ -465,6 +465,8 @@ class WebCanvas:
         
         if disengage_webview:
             w, h = self.run_js_code("window.innerWidth;"), self.run_js_code("window.innerHeight;")
+            
+            dw_legacy, dh_legacy = 0, 0
         else:
             if "--window-host" in sys.argv and platform.system() == "Windows":
                 from ctypes import windll
@@ -473,6 +475,8 @@ class WebCanvas:
             if "--fullscreen" in sys.argv:
                 w, h = screen_width, screen_height
                 self.fullscreen()
+            
+                dw_legacy, dh_legacy = 0, 0
             else:
                 if "--size" in sys.argv:
                     w, h = int(sys.argv[sys.argv.index("--size") + 1]), int(sys.argv[sys.argv.index("--size") + 2])
