@@ -166,7 +166,7 @@ def updateUserAvatar():
         setUserData("userdata-userAvatar", userData_default["userdata-userAvatar"])
         if udAvatar not in assetConfig["avatars"]:
             udAvatar = assetConfig["avatars"][0]
-        saveUserData()
+        saveUserData(userData)
         logging.warning("User avatar not found, reset to default")
     root.run_js_code(f"{root.get_img_jsvarname("userAvatar")} = {root.get_img_jsvarname(f"avatar_{assetConfig["avatars"].index(getUserData("userdata-userAvatar"))}")};")
 
@@ -1616,7 +1616,13 @@ def settingRender():
     
     def updatebg():
         ubgjsname = root.get_img_jsvarname("userBackground")
-        bgimname = f"background_{assetConfig["backgrounds"].index(getUserData("userdata-userBackground"))}"
+        
+        try:
+            bgimname = f"background_{assetConfig["backgrounds"].index(getUserData("userdata-userBackground"))}"
+        except ValueError:
+            setUserData("userdata-userBackground", assetConfig["backgrounds"][0])
+            return updatebg()
+        
         root.run_js_code(f"{ubgjsname} = blurImg({root.get_img_jsvarname(bgimname)}, {(w + h) / 125});")
     
     def unregEvents():

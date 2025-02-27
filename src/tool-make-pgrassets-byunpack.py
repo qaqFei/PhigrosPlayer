@@ -4,7 +4,7 @@ import json
 import hashlib
 import random
 import string
-from os import mkdir
+from os import mkdir, listdir
 from os.path import isdir
 from sys import argv
 from shutil import rmtree
@@ -83,7 +83,9 @@ class resourceManager:
         
 ssm = splitSongManager(upk_info)
 resm = resourceManager()
-chapters = {"chapters": []}
+chapters = {
+    "chapters": []
+}
 
 for cinfo in pgr_chapters_info:
     songs = ssm.get_songs(cinfo["split"], cinfo["count"], cinfo.get("jumps", []))
@@ -125,3 +127,23 @@ for cinfo in pgr_chapters_info:
         chapters["chapters"].append(chapters_item)
 
 json.dump(chapters, open(f"{output_dir}/chapters.json", "w", encoding="utf-8"), ensure_ascii=False, indent=4)
+
+config = {
+    "avatars": [],
+    "backgrounds": [resm.getres(f"/Illustration/聖夜讃歌.A39沙包P.0.png")]
+}
+
+default_avatar = "Introduction.png"
+
+avatar_files = listdir(f"{unpack_result}/avatars")
+for i in avatar_files:
+    config["avatars"].append(resm.getres(f"/avatars/{i}"))
+    
+if default_avatar in avatar_files:
+    config["default-avatar"] = resm.getres(f"/avatars/{default_avatar}")
+else:
+    config["default-avatar"] = config["avatars"][0]
+    
+config["default-background"] = config["backgrounds"][0]
+
+json.dump(config, open(f"{output_dir}/config.json", "w", encoding="utf-8"), ensure_ascii=False, indent=4)
