@@ -473,6 +473,14 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
     
     chapterRect = getChapterRect(dx, chapterWidth)
     
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangleShadow(\
+            {",".join(map(str, chapterRect))},\
+            {dPower}, 'rgb(16, 16, 16)', 'rgba(16, 16, 16, 0.7)', {(w + h) / 125}\
+        );",
+        add_code_array = True
+    )
+    
     if p != 1.0:
         root.run_js_code(
             f"ctx.drawDiagonalRectangleClipImage(\

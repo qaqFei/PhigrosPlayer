@@ -798,6 +798,17 @@ void main() {
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawDiagonalRectangleShadow = function(x0, y0, x1, y1, power, color, shadowColor, shadowBlur) {
+        this.save();
+        this.shadowColor = shadowColor;
+        this.shadowBlur = shadowBlur;
+        this.fillStyle = color;
+        this.beginPath();
+        this._diagonalRectangle(x0, y0, x1, y1, power);
+        this.fill();
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.drawDiagonalDialogRectangleText = function(x0, y0, x1, y1, power, text1, text2, color, font) {
         this.save();
         this.fillStyle = color;
