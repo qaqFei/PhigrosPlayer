@@ -13,7 +13,6 @@ import sys
 import time
 import math
 import logging
-import platform
 from io import BytesIO
 from threading import Thread
 from os import system

@@ -588,9 +588,18 @@ void main() {
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
-        args[0] = toLowQualityImage(args[0]);
-        if (!this.globalAlpha) return;
-        return this._drawImage(...args);
+        try {
+            args[0] = toLowQualityImage(args[0]);
+            if (!this.globalAlpha) return;
+            return this._drawImage(...args);
+        } catch (e) {
+            console.error(e);
+            this.save();
+            this.fillStyle = "rgb(32, 32, 32)";
+            this.fillRect(args[1], args[2], args[3], args[4]);
+            this.restore();
+            return;
+        }
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center

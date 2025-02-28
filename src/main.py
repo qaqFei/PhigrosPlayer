@@ -10,7 +10,6 @@ import sys
 import time
 import logging
 import typing
-import platform
 from threading import Thread
 from os import popen
 from os.path import exists
