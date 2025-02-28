@@ -98,22 +98,28 @@ def _img2bytes(im: Image.Image):
         im.save(bio, "png")
         return bio.getvalue()
 
+def _packerimg2bytes(im: Image.Image|bytes|str):
+    if isinstance(im, Image.Image):
+        if hasattr(im, "byteData"):
+            return im.byteData
+        else:
+            return _img2bytes(im)
+    elif isinstance(im, bytes):
+        return im
+    elif isinstance(im, str):
+        return _packerimg2bytes(Image.open(im))
+
 class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
     _canvas: WebCanvas
     
     def do_GET(self):
         if self.path[1:] in self._canvas._regims:
             im: Image.Image = self._canvas._regims[self.path[1:]]
-            if hasattr(im, "byteData"):
-                data = im.byteData
-            else:
-                temp_btyeio = io.BytesIO()
-                im.save(temp_btyeio, "png")
-                data = temp_btyeio.getvalue()
+            data = _packerimg2bytes(im)
             ctype = "image/png"
                 
-        elif self.path[1:] in self._canvas._regres:
-            data = self._canvas._regres[self.path[1:]]
+        elif self.path[1:] in self._canvas._regres or self.path[1:] in self._canvas._regres_cb:
+            data = self._canvas._regres[self.path[1:]] if self.path[1:] in self._canvas._regres else self._canvas._regres_cb[self.path[1:]]()
             
             if self.path.endswith(".png"): ctype = "image/png"
             elif self.path.endswith(".js"): ctype = "application/javascript"
@@ -198,17 +204,11 @@ class PILResourcePacker:
         datacount = 0
         cache = {}
         for name, img in self.imgs:
-            if isinstance(img, Image.Image):
-                if hasattr(img, "byteData"):
-                    data = img.byteData
-                else:
-                    if id(img) in cache:
-                        data = cache[id(img)]
-                    else:
-                        data = _img2bytes(img)
-                        cache[id(img)] = data
+            if id(img) in cache:
+                data = cache[id(img)]
             else:
-                data = img
+                data = _packerimg2bytes(img)
+                cache[id(img)] = data
                 
             datas.append(data)
             dataindexs.append([name, [datacount, len(data)]])
@@ -277,6 +277,7 @@ class WebCanvas:
         self._destroyed = threading.Event()
         self._regims: dict[str, Image.Image] = {}
         self._regres: dict[str, bytes] = {}
+        self._regres_cb: dict[str, typing.Callable[[], bytes]] = {}
         self._is_loadimg: dict[str, bool] = {}
         self._jscodes: list[str] = []
         self._framerate: int|float = -1
@@ -411,6 +412,12 @@ class WebCanvas:
     
     def unreg_res(self, name: str) -> None:
         self._regres.pop(name)
+    
+    def reg_rescb(self, cb: typing.Callable[[], bytes], name: str) -> None:
+        self._regres_cb[name] = cb
+    
+    def unreg_rescb(self, name: str) -> None:
+        self._regres_cb.pop(name)
     
     def get_imgcomplete_jseval(self, ns: list[str]) -> str:
         return f"[{",".join([f"{self.get_img_jsvarname(item)}.complete" for item in ns])}]"
