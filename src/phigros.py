@@ -1,6 +1,7 @@
 import err_processer as _
 import init_logging as _
 import fix_workpath as _
+import import_argvs as _
 import check_edgechromium as _
 import check_bin as _
 
@@ -3850,7 +3851,9 @@ root = webcv.WebCanvas(
     title = "PhigrosPlayer - Phigros Simulator",
     debug = "--debug" in sys.argv,
     resizable = "--resizeable" in sys.argv,
-    frameless = "--frameless" in sys.argv
+    frameless = "--frameless" in sys.argv,
+    renderdemand = "--renderdemand" in sys.argv,
+    renderasync = "--renderasync" in sys.argv
 )
 
 def init():
