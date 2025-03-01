@@ -309,7 +309,7 @@ class LazyPILResPacker:
             
         self.cv.run_js_code("".join(codes))
 
-if "--forced-lazy-respacker":
+if "--forced-lazy-respacker" in sys.argv:
     PILResPacker = LazyPILResPacker
 
 # def ban_threadtest_current_thread():
