@@ -3585,6 +3585,7 @@ def chartPlayerRender(
             
     mixer.music.set_volume(1.0)
     cksmanager.stop()
+    respacker.unload(respacker.getnames())
 
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
     illrespacker = webcv.PILResourcePacker(root)
