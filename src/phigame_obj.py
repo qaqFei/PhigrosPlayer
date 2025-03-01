@@ -744,6 +744,14 @@ class ChooseChartControler:
     @property
     def vaildNowIndex(self):
         return max(0, min(self.nowIndex, len(self._chapter.songs) - 1))
+    
+    @property
+    def vaildNextIndex(self):
+        return max(0, min(self.nowIndex + 1, len(self._chapter.songs) - 1))
+    
+    @property
+    def vaildNowFloatIndex(self):
+        return max(0, min(-self.itemNowDy, len(self._chapter.songs) - 1))
         
 @dataclass
 class ChartChooseUI_State:

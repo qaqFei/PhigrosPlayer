@@ -244,11 +244,15 @@ class PILResPacker:
         return [name for name, _ in self.imgs]
 
     def unload(self, names: list[str]):
+        codes = []
+        
         for name in names:
             self._imgopted[name].wait()
             self._imgopted.pop(name)
+            jvn = self.cv.get_img_jsvarname(name)
+            codes.append(f"deleteLowQualityImage({jvn}); delete {jvn};")
             
-        self.cv.run_js_code(f"{";".join(map(lambda x: f"delete {self.cv.get_img_jsvarname(x)}", names))};")
+        self.cv.run_js_code("".join(codes))
 
 class LazyPILResPacker:
     def __init__(self, cv: WebCanvas):
@@ -295,11 +299,15 @@ class LazyPILResPacker:
         return [name for name, _ in self.imgs]
     
     def unload(self, names: list[str]):
+        codes = []
+        
         for name in names:
             self.cv.unreg_rescb(name)
             self._loadcbs.pop(name)
+            jvn = self.cv.get_img_jsvarname(name)
+            codes.append(f"deleteLowQualityImage({jvn}); delete {jvn};")
             
-        self.cv.run_js_code(f"{";".join(map(lambda x: f"delete {self.cv.get_img_jsvarname(x)}", names))};")
+        self.cv.run_js_code("".join(codes))
 
 if "--forced-lazy-respacker":
     PILResPacker = LazyPILResPacker

@@ -549,6 +549,10 @@ void main() {
         }
     }
 
+    function deleteLowQualityImage(im) {
+        if (lowquality_imweakmap.has(im)) lowquality_imweakmap.delete(im);
+    }
+
     function toLowQualityImage(im) {
         if (im.tagName && im.tagName.toLowerCase() == "video") return im;
         if (im.nobitmap_tag) return im;
@@ -592,14 +596,27 @@ void main() {
         return im;
     }
 
+    Image.prototype._lazy_load = function () {
+        if (self._lazy_seted) return;
+
+        this._lazy_seted = true;
+        this._lazy_loaded = false;
+        this.src = this._lazy_realsrc;
+        const rawonload = this.onload;
+
+        this.onload = () => {
+            this._lazy_loaded = true;
+            if (rawonload) rawonload();
+        };
+    }
+
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
         let need_logerr = false;
 
         if (args[0]._lazy_realsrc && !args[0]._lazy_loaded) {
-            args[0]._lazy_loaded = true;
-            args[0].src = args[0]._lazy_realsrc;
+            args[0]._lazy_load();
             args[0] = null;
             need_logerr = false;
         }
@@ -860,10 +877,17 @@ void main() {
 
     CanvasRenderingContext2D.prototype.drawDiagonalRectangleClipImageOnlyHeight = function(x0, y0, x1, y1, im, imh, power, alpha) {
         let imw = imh * im.width / im.height;
+
         if (imw < x1 - x0) {
             imw = x1 - x0;
             imh = imw * im.height / im.width;
         }
+
+        if (isNaN(imw) || isNaN(imh)){
+            imw = this.canvas.width;
+            imh = this.canvas.height;
+        }
+
         let imx = (x1 - x0) / 2 - imw / 2;
         let imy = (y1 - y0) / 2 - imh / 2;
         return this.drawDiagonalRectangleClipImage(x0, y0, x1, y1, im, imx, imy, imw, imh, power, alpha);

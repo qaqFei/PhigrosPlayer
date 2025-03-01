@@ -3740,6 +3740,30 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             fillStyle = "rgb(50, 50, 50)",
             wait_execute = True
         )
+        
+        def drawParallax(x0: float, y0: float, x1: float, y1: float):
+            dpower = tool_funcs.getDPower(*tool_funcs.getSizeByRect((x0, y0, x1, y1)), 75)
+            clipY = (1.0 - (chooseControler.vaildNowFloatIndex % 1.0)) * (y1 - y0) + y0
+            thisSong = chapter_item.songs[chooseControler.vaildNowIndex]
+            nextSong = chapter_item.songs[chooseControler.vaildNextIndex]
+            
+            ctxSave(wait_execute=True)
+            ctxRect(0, 0, w, clipY)
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
+                    {",".join(map(str, (x0, y0, x1, y1)))},\
+                    {root.get_img_jsvarname(f"songill_{thisSong.songId}")},\
+                    {y1 - y0}, {dpower}, 1.0\
+                );",
+                add_code_array = True
+            )
+            ctxRestore(wait_execute=True)
+
+        drawParallax(
+            w * 0.4375, h * (219 / 1080),
+            w * 0.9453125, h * (733 / 1080)
+        )
 
     def clickEventCallback(x, y):
         nonlocal nextUI, tonextUI, tonextUISt
