@@ -165,7 +165,7 @@ class Song:
     iller: str
     image: str
     preview: str
-    previre_start: float
+    preview_start: float
     preview_end: float
     difficlty: list[SongDifficlty]
     
