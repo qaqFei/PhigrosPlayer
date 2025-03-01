@@ -169,6 +169,8 @@ class Song:
     preview_end: float
     difficlty: list[SongDifficlty]
     
+    chooseSongs_fontSize: float = float("nan")
+    
     def __post_init__(self):
         self.songId = int(uniform(0.0, 1.0) * (2 << 31))
 

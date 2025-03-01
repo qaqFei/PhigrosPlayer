@@ -1263,8 +1263,8 @@ def getLevelNumber() -> str:
 def getLevelText() -> str:
     return chart_information["Level"].split(" ")[0]
 
-def getFontSize(text: str, maxwidth: str, maxsize: float):
-    w1px = root.run_js_code(f"ctx.font='50px pgrFont'; ctx.measureText({root.string2sctring_hqm(text)}).width;") / 50
+def getFontSize(text: str, maxwidth: float, maxsize: float, font: str = "pgrFont"):
+    w1px = root.run_js_code(f"ctx.font='50px {font}'; ctx.measureText({root.string2sctring_hqm(text)}).width;") / 50
     if w1px == 0: w1px = 1.0
     return min(maxsize, maxwidth / w1px)
 

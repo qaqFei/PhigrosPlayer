@@ -3659,10 +3659,14 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             x = w * -0.009375 + chartsShadowWidth * chartsShadowDPower * (1.0 - y / h)
             song = chapter_item.songs[songIndex]
             
+            if math.isnan(song.chooseSongs_fontSize):
+                phicore.root = root
+                song.chooseSongs_fontSize = phicore.getFontSize(song.name, chartsShadowWidth * (1.0 - chartsShadowDPower) * 0.6, (w + h) / 80, "pgrFont")
+            
             drawText(
                 x + w * 0.025, y,
                 song.name,
-                font = f"{(w + h) / 60}px pgrFont",
+                font = f"{song.chooseSongs_fontSize}px pgrFont",
                 textAlign = "left",
                 textBaseline = "middle",
                 fillStyle = "white",
