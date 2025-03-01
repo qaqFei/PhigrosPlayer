@@ -265,7 +265,6 @@ class LazyPILResPacker:
     
     def _create_loadcb(self, name: str):
         def loadcb():
-            print(name)
             if name in self._imgcache:
                 return self._imgcache[name]
             

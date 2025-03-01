@@ -256,7 +256,7 @@ def loadResource():
     imageBlackMask.putpixel((0, imageBlackMaskHeight - 2), (0, 0, 0, 32))
     imageBlackMask.putpixel((0, imageBlackMaskHeight - 1), (0, 0, 0, 64))
     
-    respacker = webcv.LazyPILResPacker(root)
+    respacker = webcv.PILResPacker(root)
     respacker.reg_img(imageBlackMask.resize((1, 500)), "imageBlackMask")
     respacker.reg_img(Resource["Retry"], "Retry")
     respacker.reg_img(Resource["PauseImg"], "PauseImg")
