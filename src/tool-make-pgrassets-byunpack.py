@@ -5,9 +5,9 @@ import hashlib
 import random
 import string
 from os import mkdir, listdir
-from os.path import isdir
+from os.path import isdir, normpath
 from sys import argv
-from shutil import rmtree
+from shutil import rmtree, copyfile
 
 if len(argv) < 3:
     print("Usage: tool-make-pgrassets-byunpack <unpack-result> <output-dir>")
@@ -67,27 +67,16 @@ class splitSongManager:
 class resourceManager:
     def __init__(self):
         self.resmap: dict[str, str] = {}
-        self.pathmap: dict[str, str] = {}
     
     def getres(self, path: str):
-        if path in self.pathmap:
-            return self.resmap[self.pathmap[path]]
+        path = normpath(path)
         
-        with open(f"{unpack_result}/{path}", "rb") as f:
-            data = f.read()
-        
-        md5value = hashlib.md5(data).hexdigest()
-        
-        if md5value in self.resmap:
-            return self.resmap[md5value]
+        if path in self.resmap:
+            return self.resmap[path]
         
         newpath = f"/res/{"".join(random.sample(string.ascii_letters, 8))}." + path.split(".")[-1]
-        with open(f"{output_dir}/{newpath}", "wb") as f:
-            f.write(data)
-
-        self.resmap[md5value] = newpath
-        self.pathmap[path] = md5value
-        
+        copyfile(f"{unpack_result}{path}", f"{output_dir}{newpath}")
+        self.resmap[path] = newpath
         return newpath
         
 ssm = splitSongManager(upk_info)
