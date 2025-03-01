@@ -257,7 +257,7 @@ class LazyPILResPacker:
         self._imgcache: dict[str, bytes] = {}
         self._loadcbs: dict[str, typing.Callable[[], bytes]] = {}
     
-    def reg_img(self, img: str, name: str):
+    def reg_img(self, img: Image.Image|bytes|str, name: str):
         self.imgs.append((name, img))
     
     def pack(self):

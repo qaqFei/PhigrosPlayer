@@ -1586,7 +1586,7 @@ def settingRender():
     
     bgrespacker = webcv.LazyPILResPacker(root)
     for i, bg in enumerate(assetConfig["backgrounds"]):
-        bgrespacker.reg_img(open(tool_funcs.gtpresp(bg), "rb").read(), f"background_{i}")
+        bgrespacker.reg_img(tool_funcs.gtpresp(bg), f"background_{i}")
     bgrespacker.load(*bgrespacker.pack())
     
     settingState = phigame_obj.SettingState()
@@ -2422,15 +2422,17 @@ def settingRender():
             root.run_js_code(f"ctx.save(); ctx.clipRect(0.0, {min(clipy0, clipy1)}, {w}, {max(clipy0, clipy1)});", add_code_array = True)
             
             for imgindex, img in enumerate(imgs):
-                root.run_js_code(
-                    f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
-                        {imgx}, {imgy},\
-                        {imgx + imgwidth}, {imgy + imgheight},\
-                        {root.get_img_jsvarname(img)},\
-                        {imgheight}, {imgdp}, 1.0\
-                    );",
-                    add_code_array = True
-                )
+                if imgy >= 0:
+                    root.run_js_code(
+                        f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
+                            {imgx}, {imgy},\
+                            {imgx + imgwidth}, {imgy + imgheight},\
+                            {root.get_img_jsvarname(img)},\
+                            {imgheight}, {imgdp}, 1.0\
+                        );",
+                        add_code_array = True
+                    )
+                    
                 chooseRects[dialogrectname][imgindex] = (
                     imgx, imgy,
                     imgx + imgwidth, imgy + imgheight
@@ -3590,7 +3592,7 @@ def chartPlayerRender(
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
     illrespacker = webcv.LazyPILResPacker(root)
     for song in chapter_item.songs:
-        illrespacker.reg_img(open(tool_funcs.gtpresp(song.image), "rb").read(), f"songill_{song.songId}")
+        illrespacker.reg_img(tool_funcs.gtpresp(song.image), f"songill_{song.songId}")
     illrespacker.load(*illrespacker.pack())
     
     chooseChartControl = phigame_obj.ChooseChartControl(chapter_item, w, h)
