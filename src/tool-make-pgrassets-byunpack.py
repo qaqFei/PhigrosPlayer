@@ -28,6 +28,10 @@ if not isdir(f"{unpack_result}/other_res"):
     print("fatal: unpack result need other res (--need-other-res in unpack).")
     raise SystemExit
 
+if not isdir(f"{unpack_result}/IllustrationLowRes"):
+    print("fatal: unpack result need other illu (--need-other-illu in unpack).")
+    raise SystemExit
+
 pgr_chapters_info = json.load(open("./resources/pgr_chapters.json", "r", encoding="utf-8"))
 upk_info = json.load(open(f"{unpack_result}/info.json", "r", encoding="utf-8"))
 unp_all_ids = [i["songIdBak"] for i in upk_info]
@@ -66,6 +70,9 @@ class resourceManager:
         self.pathmap: dict[str, str] = {}
     
     def getres(self, path: str):
+        if path in self.pathmap:
+            return self.resmap[self.pathmap[path]]
+        
         with open(f"{unpack_result}/{path}", "rb") as f:
             data = f.read()
         
@@ -73,9 +80,6 @@ class resourceManager:
         
         if md5value in self.resmap:
             return self.resmap[md5value]
-        
-        if path in self.pathmap:
-            return self.resmap[self.pathmap[path]]
         
         newpath = f"/res/{"".join(random.sample(string.ascii_letters, 8))}." + path.split(".")[-1]
         with open(f"{output_dir}/{newpath}", "wb") as f:
@@ -137,10 +141,11 @@ json.dump(chapters, open(f"{output_dir}/chapters.json", "w", encoding="utf-8"), 
 
 config = {
     "avatars": [],
-    "backgrounds": [resm.getres(f"/Illustration/聖夜讃歌.A39沙包P.0.png")]
+    "backgrounds": []
 }
 
 default_avatar = "Introduction.png"
+default_bg = "Introduction.png"
 
 avatar_files = listdir(f"{unpack_result}/avatars")
 for i in avatar_files:
@@ -150,7 +155,14 @@ if default_avatar in avatar_files:
     config["default-avatar"] = resm.getres(f"/avatars/{default_avatar}")
 else:
     config["default-avatar"] = config["avatars"][0]
-    
-config["default-background"] = config["backgrounds"][0]
+
+bg_files = listdir(f"{unpack_result}/IllustrationLowRes")
+for i in bg_files:
+    config["backgrounds"].append(resm.getres(f"/IllustrationLowRes/{i}"))
+
+if default_bg in bg_files:
+    config["default-background"] = resm.getres(f"/IllustrationLowRes/{default_bg}")
+else:
+    config["default-background"] = config["backgrounds"][0]
 
 json.dump(config, open(f"{output_dir}/config.json", "w", encoding="utf-8"), ensure_ascii=False, indent=4)
