@@ -1584,7 +1584,7 @@ def settingRender():
     
     inSettingUI = True
     
-    bgrespacker = webcv.PILResPacker(root)
+    bgrespacker = webcv.LazyPILResPacker(root)
     for i, bg in enumerate(assetConfig["backgrounds"]):
         bgrespacker.reg_img(open(tool_funcs.gtpresp(bg), "rb").read(), f"background_{i}")
     bgrespacker.load(*bgrespacker.pack())
@@ -3588,7 +3588,7 @@ def chartPlayerRender(
     respacker.unload(respacker.getnames())
 
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
-    illrespacker = webcv.PILResPacker(root)
+    illrespacker = webcv.LazyPILResPacker(root)
     for song in chapter_item.songs:
         illrespacker.reg_img(open(tool_funcs.gtpresp(song.image), "rb").read(), f"songill_{song.songId}")
     illrespacker.load(*illrespacker.pack())

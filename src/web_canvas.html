@@ -381,11 +381,18 @@ void main() {
 
     function blurImg(im, r) {
         let cv = document.createElement("canvas");
-        cv.width = im.width;
-        cv.height = im.height;
-        let ctx = cv.getContext("2d");
-        ctx.filter = `blur(${r}px)`;
-        ctx.drawImage(im, 0, 0);
+        const _draw = () => {
+            cv.width = im.width;
+            cv.height = im.height;
+            let ctx = cv.getContext("2d");
+            ctx.filter = `blur(${r}px)`;
+            ctx.drawImage(im, 0, 0);
+            return cv;
+        }
+        _draw();
+        if (im instanceof HTMLImageElement) {
+            im.onload = _draw;
+        }
         return cv;
     }
 
@@ -588,17 +595,22 @@ void main() {
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
+        let need_logerr = true;
+
         if (args[0]._lazy_realsrc && !args[0]._lazy_loaded) {
             args[0]._lazy_loaded = true;
             args[0].src = args[0]._lazy_realsrc;
+            args[0] = null;
+            need_logerr = false;
         }
 
         try {
+            if (args[0] === null) throw "";
             args[0] = toLowQualityImage(args[0]);
             if (!this.globalAlpha) return;
             return this._drawImage(...args);
         } catch (e) {
-            console.error(e);
+            if (need_logerr) console.error(e, args);
             this.save();
             this.fillStyle = "rgb(32, 32, 32)";
             this.fillRect(args[1], args[2], args[3], args[4]);

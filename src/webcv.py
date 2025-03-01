@@ -297,7 +297,7 @@ class LazyPILResPacker:
     
     def unload(self, names: list[str]):
         for name in names:
-            self.cv.unreg_res(name)
+            self.cv.unreg_rescb(name)
             self._loadcbs.pop(name)
             
         self.cv.run_js_code(f"{";".join(map(lambda x: f"delete {self.cv.get_img_jsvarname(x)}", names))};")
