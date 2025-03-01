@@ -533,6 +533,9 @@ class SlideControler:
         self._lastclickx, self._lastclicky = 0.0, 0.0
         self._dx, self._dy = 0.0, 0.0
         self._mouseDown = False
+        
+        self.startcallback = lambda: None
+        self.endcallback = lambda: None
     
     def mouseDown(self, x: int, y: int):
         if not self.eventRect(x, y):
@@ -541,12 +544,14 @@ class SlideControler:
         self._lastclickx, self._lastclicky = x, y
         self._lastlastclickx, self._lastlastclicky = x, y
         self._mouseDown = True
+        self.startcallback()
     
     def mouseUp(self, x: int, y: int):
         if self._mouseDown:
             threading.Thread(target=self._easeSroll, daemon=True).start()
             
         self._mouseDown = False
+        self.endcallback()
     
     def mouseMove(self, x: int, y: int):
         if not self._mouseDown:
@@ -577,34 +582,37 @@ class SlideControler:
             # 往右 = 负, 左 = 正, 反的, 所以`- self._d(x / y)`
             
             if - self._dx <= - self.minValueX or - self._dx >= self.maxValueX - self.minValueX:
-                threading.Thread(target=self._easeBackX, daemon=True).start()
+                threading.Thread(target=self.easeBackX, daemon=True).start()
                 called_easeBackX = True
                 dx = 0.0
             
             if - self._dy <= - self.minValueY or - self._dy >= self.maxValueY - self.minValueY:
-                threading.Thread(target=self._easeBackY, daemon=True).start()
+                threading.Thread(target=self.easeBackY, daemon=True).start()
                 called_easeBackY = True
                 dy = 0.0
             
             time.sleep(1 / 120)
             
         if not called_easeBackX:
-            threading.Thread(target=self._easeBackX, daemon=True).start()
+            threading.Thread(target=self.easeBackX, daemon=True).start()
         if not called_easeBackY:
-            threading.Thread(target=self._easeBackY, daemon=True).start()
+            threading.Thread(target=self.easeBackY, daemon=True).start()
     
-    def _easeBackX(self):
+    def easeBackX(self, target: typing.Optional[float] = None):
         cdx = - self._dx
         if self.minValueX <= cdx <= self.maxValueX:
             return
         
-        if cdx < 0:
-            dx = - cdx
+        if target is None:
+            if cdx < 0:
+                dx = - cdx
+            else:
+                dx = self.maxValueX - cdx
+            dx *= -1 # 前面cdx = 负的, 所以变回来
+            if self._dx + dx > 0: # 超出左界
+                dx = - self._dx
         else:
-            dx = self.maxValueX - cdx
-        dx *= -1 # 前面cdx = 负的, 所以变回来
-        if self._dx + dx > 0: # 超出左界
-            dx = - self._dx
+            dx = cdx - target
         
         lastv, av, ast = 0.0, 0.0, time.time()
         while True:
@@ -623,18 +631,21 @@ class SlideControler:
 
             time.sleep(1 / 120)
     
-    def _easeBackY(self):
+    def easeBackY(self, target: typing.Optional[float] = None):
         cdy = - self._dy
         if self.minValueY <= cdy <= self.maxValueY:
             return
         
-        if cdy < 0:
-            dy = - cdy
+        if target is None:
+            if cdy < 0:
+                dy = - cdy
+            else:
+                dy = self.maxValueY - cdy
+            dy *= -1 # 前面cdy = 负的, 所以变回来
+            if self._dy + dy > 0: # 超出左界
+                dy = - self._dy
         else:
-            dy = self.maxValueY - cdy
-        dy *= -1 # 前面cdy = 负的, 所以变回来
-        if self._dy + dy > 0: # 超出左界
-            dy = - self._dy
+            dy = cdy - target
         
         lastv, av, ast = 0.0, 0.0, time.time()
         while True:
@@ -670,6 +681,8 @@ class ChooseChartControl:
             w * 0.4921875, h
         )
         self._chartsShadowRectDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(self._chartsShadowRect), 75)
+        self.itemHeight = h / 10
+        self.itemNowDy = 0.0
         
         self._slideControl = SlideControler(
             eventRect = lambda x, y: tool_funcs.indrect(x, y, self._chartsShadowRect, self._chartsShadowRectDPower),
@@ -681,10 +694,19 @@ class ChooseChartControl:
         self.scter_mousedown = self._slideControl.mouseDown
         self.scter_mouseup = self._slideControl.mouseUp
         self.scter_mousemove = self._slideControl.mouseMove
+        self._slideControl.endcallback = self._scoll_end
+        self._slideControl.maxValueY = self.itemHeight * (len(self._chapter.songs) - 1)
     
     def _slide_setfunc(self, x: float, y: float):
-        print(y)
-
+        self.itemNowDy = y / self.itemHeight
+    
+    def _scoll_end(self):
+        if self.itemNowDy < 0: return
+        if self.itemNowDy >= len(self._chapter.songs) - 1: return
+        
+        targetDy = min(max(0, round(self.itemNowDy, 1)), len(self._chapter.songs) - 1) * self.itemHeight
+        self._slideControl.easeBackY(-targetDy)
+        
 @dataclass
 class ChartChooseUI_State:
     sliding_index: int = 0

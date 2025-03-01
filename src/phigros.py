@@ -3779,7 +3779,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         drawText(
             *tool_funcs.getCenterPointByRect(mirrorButtonRect),
             "Mirror",
-            font = f"{(w + h) / 125}px pgrFontThin",
+            font = f"{(w + h) / 125}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
             fillStyle = "rgba(255, 255, 255, 0.8)" if not choose_state.is_mirror else "rgb(0, 0, 0, 0.8)",
