@@ -595,7 +595,7 @@ void main() {
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
-        let need_logerr = true;
+        let need_logerr = false;
 
         if (args[0]._lazy_realsrc && !args[0]._lazy_loaded) {
             args[0]._lazy_loaded = true;
