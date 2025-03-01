@@ -222,6 +222,7 @@ def loadResource():
         "UISound_2": mixer.Sound("./resources/UISound_2.wav"),
         "UISound_3": mixer.Sound("./resources/UISound_3.wav"),
         "UISound_4": mixer.Sound("./resources/UISound_4.wav"),
+        "UISound_5": mixer.Sound("./resources/UISound_5.wav"),
         "JoinQQGuildPromo": Image.open("./resources/JoinQQGuildPromo.png"),
         "Arrow_Left": Image.open("./resources/Arrow_Left.png"),
         "Arrow_Right": Image.open("./resources/Arrow_Right.png"),
@@ -3604,7 +3605,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         illrespacker.reg_img(tool_funcs.gtpresp(song.image), f"songill_{song.songId}")
     illrespacker.load(*illrespacker.pack())
     
-    chooseControler = phigame_obj.ChooseChartControler(chapter_item, w, h)
+    chooseControler = phigame_obj.ChooseChartControler(chapter_item, w, h, Resource["UISound_5"])
     eventManager.regClickEventFs(chooseControler.scter_mousedown, False)
     eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(chooseControler.scter_mouseup))
     eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseControler.scter_mousemove))
@@ -3658,26 +3659,88 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             chartsShadowWidth = tool_funcs.getSizeByRect(chartsShadowRect)[0]
             x = w * -0.009375 + chartsShadowWidth * chartsShadowDPower * (1.0 - y / h)
             song = chapter_item.songs[songIndex]
+            cuttedWidth = chartsShadowWidth * (1.0 - chartsShadowDPower)
             
-            if math.isnan(song.chooseSongs_fontSize):
+            if math.isnan(song.chooseSongs_nameFontSize):
                 phicore.root = root
-                song.chooseSongs_fontSize = phicore.getFontSize(song.name, chartsShadowWidth * (1.0 - chartsShadowDPower) * 0.6, (w + h) / 80, "pgrFont")
+                song.chooseSongs_nameFontSize = phicore.getFontSize(song.name, cuttedWidth * 0.6, (w + h) / 80, "pgrFont")
             
             drawText(
                 x + w * 0.025, y,
                 song.name,
-                font = f"{song.chooseSongs_fontSize}px pgrFont",
+                font = f"{song.chooseSongs_nameFontSize}px pgrFont",
                 textAlign = "left",
                 textBaseline = "middle",
                 fillStyle = "white",
                 wait_execute = True
             )
             
+            if choose_state.diff_index <= len(song.difficlty):
+                drawText(
+                    x + cuttedWidth - w * 0.027625, y,
+                    song.difficlty[choose_state.diff_index].strdiffnum,
+                    font = f"{(w + h) / 57}px pgrFont",
+                    textAlign = "right",
+                    textBaseline = "middle",
+                    fillStyle = "white",
+                    wait_execute = True
+                )
+            
             songIndex += 1
             nowDy += chooseControler.itemHeight
         
         ctxRestore(wait_execute=True)
-            
+        
+        currectSong = chapter_item.songs[chooseControler.vaildNowIndex]
+        drawText(
+            w * 0.1, h * (415 / 1080),
+            currectSong.name,
+            font = f"{currectSong.chooseSongs_nameFontSize}px pgrFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "white",
+            wait_execute = True
+        )
+        
+        if math.isnan(currectSong.currSong_composerFontSize):
+            phicore.root = root
+            currectSong.currSong_composerFontSize = phicore.getFontSize(currectSong.composer, cuttedWidth * 0.6, (w + h) / 80, "pgrFont") * 0.75
+        
+        drawText(
+            w * 0.1, h * (470 / 1080),
+            currectSong.composer,
+            font = f"{currectSong.currSong_composerFontSize}px pgrFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "white",
+            wait_execute = True
+        )
+        
+        if choose_state.diff_index > len(currectSong.difficlty):
+            return
+        
+        diff = currectSong.difficlty[choose_state.diff_index]
+        
+        drawText(
+            w * 0.390655, h * (419 / 1080),
+            diff.strdiffnum,
+            font = f"{(w + h) / 44.5}px pgrFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgb(50, 50, 50)",
+            wait_execute = True
+        )
+        
+        drawText(
+            w * 0.390655, h * (466 / 1080),
+            diff.name,
+            font = f"{(w + h) / 125}px pgrFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgb(50, 50, 50)",
+            wait_execute = True
+        )
+
     def clickEventCallback(x, y):
         nonlocal nextUI, tonextUI, tonextUISt
         
@@ -3755,6 +3818,19 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             add_code_array = True
         )
         
+        difRect = (
+            w * 0.340625, h * (355 / 1080),
+            w * 0.440625, h * (513 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, difRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(difRect), 75)},\
+                'rgb(255, 255, 255)'\
+            );",
+            add_code_array = True
+        )
+        
         drawSongItems()
         
         barShadowRect = (
@@ -3766,19 +3842,6 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 {",".join(map(str, barShadowRect))},\
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(barShadowRect), 75)},\
                 'rgba(0, 0, 0, 0.6)'\
-            );",
-            add_code_array = True
-        )
-        
-        difRect = (
-            w * 0.340625, h * (355 / 1080),
-            w * 0.440625, h * (513 / 1080)
-        )
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, difRect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(difRect), 75)},\
-                'rgb(255, 255, 255)'\
             );",
             add_code_array = True
         )

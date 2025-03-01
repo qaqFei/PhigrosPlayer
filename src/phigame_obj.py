@@ -11,6 +11,7 @@ from PIL import Image
 import tool_funcs
 import const
 import rpe_easing
+import dxsound
 
 @dataclass
 class ClickEvent:
@@ -152,11 +153,14 @@ class FaculaAnimationManager:
 @dataclass
 class SongDifficlty:
     name: str
-    level: str
+    level: float
     chart_audio: str
     chart_image: str
     chart_file: str
     charter: str
+    
+    def __post_init__(self):
+        self.strdiffnum = str(round(self.level))
     
 @dataclass
 class Song:
@@ -169,7 +173,8 @@ class Song:
     preview_end: float
     difficlty: list[SongDifficlty]
     
-    chooseSongs_fontSize: float = float("nan")
+    chooseSongs_nameFontSize: float = float("nan")
+    currSong_composerFontSize: float = float("nan")
     
     def __post_init__(self):
         self.songId = int(uniform(0.0, 1.0) * (2 << 31))
@@ -684,19 +689,19 @@ class SlideControler:
 class ChooseChartControler:
     def __init__(
         self, chapter: Chapter,
-        w: int, h: int # screen size
+        w: int, h: int, # screen size
+        changeUisound: dxsound.directSound
     ):
         self._chapter = chapter
-        self._songIndex = 0
-        self._songLastIndex = 0
-        self._songLastChooseSt = -float("inf")
         self._chartsShadowRect = (
             w * -0.009375, 0,
             w * 0.4921875, h
         )
         self._chartsShadowRectDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(self._chartsShadowRect), 75)
-        self.itemHeight = h / 10
+        self.changeUisound = changeUisound
+        self.itemHeight = h * (120 / 1080)
         self.itemNowDy = 0.0
+        self._itemLastDy = 0.0
         
         self._slideControl = SlideControler(
             eventRect = lambda x, y: tool_funcs.indrect(x, y, self._chartsShadowRect, self._chartsShadowRectDPower),
@@ -712,8 +717,18 @@ class ChooseChartControler:
         self._slideControl.easeScrollCallback = self._scoll_end
         self._slideControl.maxValueY = self.itemHeight * (len(self._chapter.songs) - 1)
     
+    def _vaild_index(self, i: int):
+        return 0 <= i <= len(self._chapter.songs) - 1
+    
     def _slide_setfunc(self, x: float, y: float):
         self.itemNowDy = y / self.itemHeight
+        
+        v1, v2 = round(-self.itemNowDy), round(-self._itemLastDy)
+        
+        if v1 != v2 and self._vaild_index(v1) and self._vaild_index(v2):
+            self.changeUisound.play()
+        
+        self._itemLastDy = self.itemNowDy
     
     def _scoll_end(self):
         if -self.itemNowDy < 0: return
@@ -721,14 +736,21 @@ class ChooseChartControler:
         
         targetDy = min(max(0, round(-self.itemNowDy)), len(self._chapter.songs) - 1) * self.itemHeight
         self._slideControl.easeBackY(targetDy, False)
+    
+    @property
+    def nowIndex(self):
+        return int(round(-self.itemNowDy))
+    
+    @property
+    def vaildNowIndex(self):
+        return max(0, min(self.nowIndex, len(self._chapter.songs) - 1))
         
 @dataclass
 class ChartChooseUI_State:
-    sliding_index: int = 0
-    song_index: int = 0
     sort_reverse: bool = False
     sort_method: int = const.PHI_SORTMETHOD.DEFAULT
     is_mirror: bool = False
+    diff_index: int = 0
 
     def next_sort_method(self):
         tempmethod = self.sort_method + 1
