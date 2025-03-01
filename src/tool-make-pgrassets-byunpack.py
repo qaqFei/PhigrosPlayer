@@ -63,6 +63,7 @@ class splitSongManager:
 class resourceManager:
     def __init__(self):
         self.resmap: dict[str, str] = {}
+        self.pathmap: dict[str, str] = {}
     
     def getres(self, path: str):
         with open(f"{unpack_result}/{path}", "rb") as f:
@@ -73,11 +74,15 @@ class resourceManager:
         if md5value in self.resmap:
             return self.resmap[md5value]
         
+        if path in self.pathmap:
+            return self.resmap[self.pathmap[path]]
+        
         newpath = f"/res/{"".join(random.sample(string.ascii_letters, 8))}." + path.split(".")[-1]
         with open(f"{output_dir}/{newpath}", "wb") as f:
             f.write(data)
 
         self.resmap[md5value] = newpath
+        self.pathmap[path] = md5value
         
         return newpath
         
@@ -105,8 +110,11 @@ for cinfo in pgr_chapters_info:
         chapters_item["songs"].append({
             "name": s["songName"],
             "composer": s["composer"],
+            "iller": s["illustrator"],
             "image": resm.getres(f"/Illustration/{s["songIdBak"]}.png"),
             "preview": resm.getres(f"/music/{s["songIdBak"]}.ogg"),
+            "preview_start": s["previewTimeStart"],
+            "preview_end": s["previewTimeEnd"],
             "difficlty": [
                 {
                     "name": level,
@@ -114,8 +122,7 @@ for cinfo in pgr_chapters_info:
                     "chart_audio": resm.getres(f"/music/{s["songIdBak"]}.ogg"),
                     "chart_image": resm.getres(f"/Illustration/{s["songIdBak"]}.png"),
                     "chart_file": resm.getres(f"/Chart_{level}/{s["songIdBak"]}.json"),
-                    "charter": s["charter"][level_i],
-                    "iller": s["illustrator"]
+                    "charter": s["charter"][level_i]
                 }
                 for level_i, level in enumerate(s["levels"])
             ]

@@ -157,14 +157,16 @@ class SongDifficlty:
     chart_image: str
     chart_file: str
     charter: str
-    iller: str
     
 @dataclass
 class Song:
     name: str
     composer: str
+    iller: str
     image: str
     preview: str
+    previre_start: float
+    preview_end: float
     difficlty: list[SongDifficlty]
     
     def __post_init__(self):

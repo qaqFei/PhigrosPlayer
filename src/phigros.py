@@ -130,8 +130,11 @@ def loadChapters():
                     phigame_obj.Song(
                         name = song["name"],
                         composer = song["composer"],
+                        iller = song["iller"],
                         image = song["image"],
                         preview = song["preview"],
+                        preview_start = song["preview_start"],
+                        preview_end = song["preview_end"],
                         difficlty = [
                             phigame_obj.SongDifficlty(
                                 name = diff["name"],
@@ -139,8 +142,7 @@ def loadChapters():
                                 chart_audio = diff["chart_audio"],
                                 chart_image = diff["chart_image"],
                                 chart_file = diff["chart_file"],
-                                charter = diff["charter"],
-                                iller = diff["iller"]
+                                charter = diff["charter"]
                             )
                             for diff in song["difficlty"]
                         ]
