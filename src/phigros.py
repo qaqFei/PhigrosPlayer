@@ -256,7 +256,7 @@ def loadResource():
     imageBlackMask.putpixel((0, imageBlackMaskHeight - 2), (0, 0, 0, 32))
     imageBlackMask.putpixel((0, imageBlackMaskHeight - 1), (0, 0, 0, 64))
     
-    respacker = webcv.PILResourcePacker(root)
+    respacker = webcv.LazyPILResPacker(root)
     respacker.reg_img(imageBlackMask.resize((1, 500)), "imageBlackMask")
     respacker.reg_img(Resource["Retry"], "Retry")
     respacker.reg_img(Resource["PauseImg"], "PauseImg")
@@ -1584,7 +1584,7 @@ def settingRender():
     
     inSettingUI = True
     
-    bgrespacker = webcv.PILResourcePacker(root)
+    bgrespacker = webcv.PILResPacker(root)
     for i, bg in enumerate(assetConfig["backgrounds"]):
         bgrespacker.reg_img(open(tool_funcs.gtpresp(bg), "rb").read(), f"background_{i}")
     bgrespacker.load(*bgrespacker.pack())
@@ -3278,7 +3278,7 @@ def chartPlayerRender(
     raw_audio_length = mixer.music.get_length()
     audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
     
-    respacker = webcv.PILResourcePacker(root)
+    respacker = webcv.PILResPacker(root)
     
     root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
     chart_image = Image.open(chartImage)
@@ -3588,7 +3588,7 @@ def chartPlayerRender(
     respacker.unload(respacker.getnames())
 
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
-    illrespacker = webcv.PILResourcePacker(root)
+    illrespacker = webcv.PILResPacker(root)
     for song in chapter_item.songs:
         illrespacker.reg_img(open(tool_funcs.gtpresp(song.image), "rb").read(), f"songill_{song.songId}")
     illrespacker.load(*illrespacker.pack())

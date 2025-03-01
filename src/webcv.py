@@ -189,7 +189,7 @@ class JsApi:
     def _socket_bridge_error(code: str, err: dict):
         raise Exception(f"SocketBridge: {err}")
 
-class PILResourcePacker:
+class PILResPacker:
     def __init__(self, cv: WebCanvas):
         self.cv = cv
         self.imgs: list[tuple[str, Image.Image|bytes]] = []
@@ -247,6 +247,58 @@ class PILResourcePacker:
         for name in names:
             self._imgopted[name].wait()
             self._imgopted.pop(name)
+            
+        self.cv.run_js_code(f"{";".join(map(lambda x: f"delete {self.cv.get_img_jsvarname(x)}", names))};")
+
+class LazyPILResPacker:
+    def __init__(self, cv: WebCanvas):
+        self.cv = cv
+        self.imgs: list[tuple[str, Image.Image|bytes|str]] = []
+        self._imgcache: dict[str, bytes] = {}
+        self._loadcbs: dict[str, typing.Callable[[], bytes]] = {}
+    
+    def reg_img(self, img: str, name: str):
+        self.imgs.append((name, img))
+    
+    def pack(self):
+        return ()
+    
+    def _create_loadcb(self, name: str):
+        def loadcb():
+            print(name)
+            if name in self._imgcache:
+                return self._imgcache[name]
+            
+            data = _packerimg2bytes([i for i in self.imgs if i[0] == name][0][1])
+            self._imgcache[name] = data
+            return data
+        
+        return loadcb
+    
+    def load(self):
+        imnames = self.getnames()
+        loadcbs: dict[str, typing.Callable[[], bytes]] = {
+            name: self._create_loadcb(name)
+            for name in imnames
+        }
+        codes = []
+        
+        for name, cb in loadcbs.items():
+            self.cv.reg_rescb(cb, name)
+            codes.append(f"{self.cv.get_img_jsvarname(name)} = new Image();")
+            codes.append(f"{self.cv.get_img_jsvarname(name)}._lazy_realsrc = '{self.cv.get_resource_path(name)}';")
+        
+        self.cv.run_js_code("".join(codes))
+        
+        self._loadcbs.update(loadcbs)
+    
+    def getnames(self):
+        return [name for name, _ in self.imgs]
+    
+    def unload(self, names: list[str]):
+        for name in names:
+            self.cv.unreg_res(name)
+            self._loadcbs.pop(name)
             
         self.cv.run_js_code(f"{";".join(map(lambda x: f"delete {self.cv.get_img_jsvarname(x)}", names))};")
 

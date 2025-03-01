@@ -311,7 +311,7 @@ def loadResource():
     
     Resource.update(phi_rpack.createResourceDict())
     
-    respacker = webcv.PILResourcePacker(root)
+    respacker = webcv.PILResPacker(root)
     
     background_image_blur = chart_image.filter(ImageFilter.GaussianBlur(sum(chart_image.size) / 50))
     respacker.reg_img(background_image_blur, "background_blur")

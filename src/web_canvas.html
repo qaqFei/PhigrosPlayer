@@ -588,6 +588,11 @@ void main() {
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
+        if (args[0]._lazy_realsrc && !args[0]._lazy_loaded) {
+            args[0]._lazy_loaded = true;
+            args[0].src = args[0]._lazy_realsrc;
+        }
+
         try {
             args[0] = toLowQualityImage(args[0]);
             if (!this.globalAlpha) return;
