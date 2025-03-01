@@ -186,6 +186,8 @@ def loadResource():
     global TapTapIconWidth, TapTapIconHeight
     global CheckedIconWidth, CheckedIconHeight
     global SortIconWidth, SortIconHeight
+    global RandomIconWidth, RandomIconHeight
+    global ChartChooseSettingIconWidth, ChartChooseSettingIconHeight
     global LoadSuccess
     
     logging.info("Loading Resource...")
@@ -239,6 +241,7 @@ def loadResource():
         "edit": Image.open("./resources/edit.png"),
         "close": Image.open("./resources/close.png"),
         "sort": Image.open("./resources/sort.png"),
+        "Random": Image.open("./resources/Random.png"),
     }
     
     Resource.update(phi_rpack.createResourceDict())
@@ -286,6 +289,7 @@ def loadResource():
     respacker.reg_img(Resource["edit"], "edit")
     respacker.reg_img(Resource["close"], "close")
     respacker.reg_img(Resource["sort"], "sort")
+    respacker.reg_img(Resource["Random"], "Random")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -308,6 +312,10 @@ def loadResource():
     CheckedIconHeight = CheckedIconWidth / Resource["checked"].width * Resource["checked"].height
     SortIconWidth = w * 0.0171875
     SortIconHeight = SortIconWidth / Resource["sort"].width * Resource["sort"].height
+    RandomIconWidth = w * 0.0244375
+    RandomIconHeight = RandomIconWidth / Resource["Random"].width * Resource["Random"].height
+    ChartChooseSettingIconWidth = w * 0.018
+    ChartChooseSettingIconHeight = ChartChooseSettingIconWidth / Resource["setting"].width * Resource["setting"].height
     
     for k,v in Resource["levels"].items():
         respacker.reg_img(v, f"Level_{k}")
@@ -1577,7 +1585,7 @@ def renderPhigrosWidgets(
     
     return widgets_height
         
-def settingRender():
+def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
     global inSettingUI, settingState
     global settingPlayWidgetsDy
     global PlaySettingWidgets
@@ -1638,8 +1646,9 @@ def settingRender():
         
         if not clickedBackButton and inSettingUI:
             unregEvents()
-            nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
+            nextUI, tonextUI, tonextUISt = backUI, True, time.time()
             Resource["UISound_4"].play()
+            mixer.music.fadeout(500)
     
     clickBackButtonEvent = phigame_obj.ClickEvent(
         rect = (0, 0, ButtonWidth, ButtonHeight),
@@ -3605,13 +3614,16 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     clickedBackButton = False
     choose_state = phigame_obj.ChartChooseUI_State()
     
+    def unregEvents():
+        eventManager.unregEvent(clickBackButtonEvent)
+        eventManager.unregEvent(clickEvent)
+    
     def clickBackButtonCallback(*args):
         nonlocal clickedBackButton
         nonlocal nextUI, tonextUI, tonextUISt
         
         if not clickedBackButton:
-            eventManager.unregEvent(clickBackButtonEvent)
-            eventManager.unregEvent(clickEvent)
+            unregEvents()
             nextUI, tonextUI, tonextUISt = mainRender, True, time.time()
             mixer.music.fadeout(500)
             Resource["UISound_4"].play()
@@ -3624,6 +3636,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     eventManager.regClickEvent(clickBackButtonEvent)
     
     def clickEventCallback(x, y):
+        nonlocal nextUI, tonextUI, tonextUISt
+        
         # 反转排序
         if tool_funcs.inrect(x, y, (
             w * 0.14843750, h * (72 / 1080),
@@ -3637,6 +3651,31 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.1953125, h * (96 / 1080)
         )):
             choose_state.next_sort_method()
+        
+        # 镜像
+        if tool_funcs.inrect(x, y, mirrorButtonRect):
+            choose_state.change_mirror()
+        
+        # 随机
+        if tool_funcs.inrect(x, y, (
+            w * 0.375825 - RandomIconWidth / 2,
+            h * (53 / 1080) - RandomIconHeight / 2,
+            w * 0.375825 + RandomIconWidth / 2,
+            h * (53 / 1080) + RandomIconHeight / 2
+        )):
+            print("random")
+        
+        # 设置
+        if tool_funcs.inrect(x, y, (
+            w * 0.4476315 - ChartChooseSettingIconWidth / 2,
+            h * (53 / 1080) - ChartChooseSettingIconHeight / 2,
+            w * 0.4476315 + ChartChooseSettingIconWidth / 2,
+            h * (53 / 1080) + ChartChooseSettingIconHeight / 2
+        )):
+            unregEvents()
+            nextUI, tonextUI, tonextUISt = lambda: settingRender(lambda: chooseChartRender(chapter_item)), True, time.time()
+            mixer.music.fadeout(500)
+            Resource["UISound_2"].play()
     
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
@@ -3711,6 +3750,86 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             add_code_array = True
         )
         
+        diffchoosebarRect = (
+            w * 0.41875, h * (779 / 1080),
+            w * 0.865625, h * (857 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, diffchoosebarRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(diffchoosebarRect), 75)},\
+                'rgba(0, 0, 0, 0.3)'\
+            );",
+            add_code_array = True
+        )
+        
+        mirrorButtonRect = (
+            w * 0.40625, h * (897 / 1080),
+            w * 0.4828125, h * (947 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, mirrorButtonRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(mirrorButtonRect), 75)},\
+                '{"rgba(0, 0, 0, 0.55)" if not choose_state.is_mirror else "rgb(255, 255, 255)"}'\
+            );",
+            add_code_array = True
+        )
+        
+        drawText(
+            *tool_funcs.getCenterPointByRect(mirrorButtonRect),
+            "Mirror",
+            font = f"{(w + h) / 125}px pgrFontThin",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgba(255, 255, 255, 0.8)" if not choose_state.is_mirror else "rgb(0, 0, 0, 0.8)",
+            wait_execute = True
+        )
+        
+        drawImage(
+            "Random",
+            w * 0.375825 - RandomIconWidth / 2,
+            h * (53 / 1080) - RandomIconHeight / 2,
+            RandomIconWidth, RandomIconHeight,
+            wait_execute = True
+        )
+        
+        drawText(
+            w * 0.375825, h * (89 / 1080),
+            "随机",
+            font = f"{(w + h) / 152}px pgrFontThin",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = f"rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        drawLine(
+            w * 0.415625, h * (41 / 1080),
+            w * 0.4078315, h * (92 / 1080),
+            lineWidth = w / 3000,
+            strokeStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        drawImage(
+            "setting",
+            w * 0.4476315 - ChartChooseSettingIconWidth / 2,
+            h * (53 / 1080) - ChartChooseSettingIconHeight / 2,
+            ChartChooseSettingIconWidth, ChartChooseSettingIconHeight,
+            wait_execute = True
+        )
+        
+        drawText(
+            w * 0.4476315, h * (89 / 1080),
+            "设置",
+            font = f"{(w + h) / 152}px pgrFontThin",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = f"rgb(255, 255, 255)",
+            wait_execute = True
+        )
+
         root.run_js_code(
             f"ctx.drawTriangleFrame(\
                 {w * 0.93125}, {h * (905 / 1080)},\

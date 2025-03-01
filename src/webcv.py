@@ -301,6 +301,9 @@ class LazyPILResPacker:
             
         self.cv.run_js_code(f"{";".join(map(lambda x: f"delete {self.cv.get_img_jsvarname(x)}", names))};")
 
+if "--forced-lazy-respacker":
+    PILResPacker = LazyPILResPacker
+
 # def ban_threadtest_current_thread():
 #     obj = current_thread()
 #     obj.name = "MainThread"

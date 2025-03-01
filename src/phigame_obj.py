@@ -691,6 +691,7 @@ class ChartChooseUI_State:
     song_index: int = 0
     sort_reverse: bool = False
     sort_method: int = const.PHI_SORTMETHOD.DEFAULT
+    is_mirror: bool = False
 
     def next_sort_method(self):
         tempmethod = self.sort_method + 1
@@ -699,3 +700,7 @@ class ChartChooseUI_State:
             tempmethod = const.PHI_SORTMETHOD.DEFAULT
             
         self.sort_method = tempmethod
+    
+    def change_mirror(self):
+        self.is_mirror = not self.is_mirror
+        
