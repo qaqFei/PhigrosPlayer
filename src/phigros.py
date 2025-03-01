@@ -3743,13 +3743,20 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
         def drawParallax(x0: float, y0: float, x1: float, y1: float):
             dpower = tool_funcs.getDPower(*tool_funcs.getSizeByRect((x0, y0, x1, y1)), 75)
-            clipY = (1.0 - (chooseControler.vaildNowFloatIndex % 1.0)) * (y1 - y0) + y0
-            thisSong = chapter_item.songs[chooseControler.vaildNowIndex]
-            nextSong = chapter_item.songs[chooseControler.vaildNextIndex]
+            thisSong = chapter_item.songs[chooseControler.vaildNowCeil]
+            nextSong = chapter_item.songs[chooseControler.vaildNowNextCeil]
+            
+            clipY = y1 - (chooseControler.vaildNowFloatIndex % 1) * (y1 - y0)
             
             ctxSave(wait_execute=True)
-            ctxRect(0, 0, w, clipY)
+            ctxBeginPath(wait_execute=True)
+            ctxRect(0, 0, w, clipY, wait_execute=True)
+            ctxClip(wait_execute=True)
+            parallaxN = 1.5
+            thisSongDy = (clipY - y0) / parallaxN - (y1 - y0) / parallaxN
+            thisSongDx = (x1 - x0) * dpower * (-thisSongDy / (y1 - y0))
             
+            root.run_js_code(f"ctx.drawImageDx = {thisSongDx}; ctx.drawImageDy = {thisSongDy};", add_code_array=True)
             root.run_js_code(
                 f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
                     {",".join(map(str, (x0, y0, x1, y1)))},\
@@ -3758,6 +3765,26 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 );",
                 add_code_array = True
             )
+            root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", add_code_array=True)
+            ctxRestore(wait_execute=True)
+            
+            ctxSave(wait_execute=True)
+            ctxBeginPath(wait_execute=True)
+            ctxRect(0, clipY, w, h, wait_execute=True)
+            ctxClip(wait_execute=True)
+            nextSongDy = (clipY - y0)
+            nextSongDx = (x1 - x0) * dpower * (-nextSongDy / (y1 - y0))
+            
+            root.run_js_code(f"ctx.drawImageDx = {nextSongDx}; ctx.drawImageDy = {nextSongDy};", add_code_array=True)
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
+                    {",".join(map(str, (x0, y0, x1, y1)))},\
+                    {root.get_img_jsvarname(f"songill_{nextSong.songId}")},\
+                    {y1 - y0}, {dpower}, 1.0\
+                );",
+                add_code_array = True
+            )
+            root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", add_code_array=True)
             ctxRestore(wait_execute=True)
 
         drawParallax(

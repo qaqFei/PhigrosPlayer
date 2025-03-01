@@ -613,6 +613,9 @@ void main() {
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
+        args[1] += this.drawImageDx ? this.drawImageDx : 0;
+        args[2] += this.drawImageDy ? this.drawImageDy : 0;
+
         let need_logerr = false;
 
         if (args[0]._lazy_realsrc && !args[0]._lazy_loaded) {

@@ -742,6 +742,14 @@ class ChooseChartControler:
         return int(round(-self.itemNowDy))
     
     @property
+    def vaildNowCeil(self):
+        return max(0, min(int(-self.itemNowDy), len(self._chapter.songs) - 1))
+    
+    @property
+    def vaildNowNextCeil(self):
+        return max(0, min(int(-self.itemNowDy) + 1, len(self._chapter.songs) - 1))
+    
+    @property
     def vaildNowIndex(self):
         return max(0, min(self.nowIndex, len(self._chapter.songs) - 1))
     
