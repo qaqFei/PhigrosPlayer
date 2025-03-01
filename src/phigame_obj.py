@@ -92,7 +92,7 @@ class EventManager:
             except ValueError:
                 pass
     
-    def unregEventByChooseChartControl(self, ccc: ChooseChartControl):
+    def unregEventByChooseChartControl(self, ccc: ChooseChartControler):
         for e in self.clickEvents:
             if e.callback is ccc.scter_mousedown:
                 self.unregEvent(e)
@@ -536,6 +536,9 @@ class SlideControler:
         
         self.startcallback = lambda: None
         self.endcallback = lambda: None
+        self.easeEndXCallback = lambda: None
+        self.easeEndYCallback = lambda: None
+        self.easeScrollCallback = lambda: None
     
     def mouseDown(self, x: int, y: int):
         if not self.eventRect(x, y):
@@ -548,7 +551,7 @@ class SlideControler:
     
     def mouseUp(self, x: int, y: int):
         if self._mouseDown:
-            threading.Thread(target=self._easeSroll, daemon=True).start()
+            threading.Thread(target=self.easeSroll, daemon=True).start()
             
         self._mouseDown = False
         self.endcallback()
@@ -568,7 +571,7 @@ class SlideControler:
     def getDx(self): return self._dx
     def getDy(self): return self._dy
     
-    def _easeSroll(self):
+    def easeSroll(self):
         dx = self._lastclickx - self._lastlastclickx
         dy = self._lastclicky - self._lastlastclicky
         called_easeBackX, called_easeBackY = False, False
@@ -592,15 +595,18 @@ class SlideControler:
                 dy = 0.0
             
             time.sleep(1 / 120)
-            
+        
         if not called_easeBackX:
             threading.Thread(target=self.easeBackX, daemon=True).start()
+            
         if not called_easeBackY:
             threading.Thread(target=self.easeBackY, daemon=True).start()
+        
+        self.easeScrollCallback()
     
-    def easeBackX(self, target: typing.Optional[float] = None):
+    def easeBackX(self, target: typing.Optional[float] = None, need_callback: bool = True):
         cdx = - self._dx
-        if self.minValueX <= cdx <= self.maxValueX:
+        if self.minValueX <= cdx <= self.maxValueX and target is None:
             return
         
         if target is None:
@@ -630,10 +636,13 @@ class SlideControler:
             lastv = v
 
             time.sleep(1 / 120)
+        
+        if need_callback:
+            self.easeEndXCallback()
     
-    def easeBackY(self, target: typing.Optional[float] = None):
+    def easeBackY(self, target: typing.Optional[float] = None, need_callback: bool = True):
         cdy = - self._dy
-        if self.minValueY <= cdy <= self.maxValueY:
+        if self.minValueY <= cdy <= self.maxValueY and target is None:
             return
         
         if target is None:
@@ -663,11 +672,14 @@ class SlideControler:
             lastv = v
 
             time.sleep(1 / 120)
+        
+        if need_callback:
+            self.easeEndYCallback()
 
     def _set(self):
         self.setFunc(self._dx, self._dy)
 
-class ChooseChartControl:
+class ChooseChartControler:
     def __init__(
         self, chapter: Chapter,
         w: int, h: int # screen size
@@ -694,18 +706,19 @@ class ChooseChartControl:
         self.scter_mousedown = self._slideControl.mouseDown
         self.scter_mouseup = self._slideControl.mouseUp
         self.scter_mousemove = self._slideControl.mouseMove
-        self._slideControl.endcallback = self._scoll_end
+        self._slideControl.easeEndYCallback = self._scoll_end
+        self._slideControl.easeScrollCallback = self._scoll_end
         self._slideControl.maxValueY = self.itemHeight * (len(self._chapter.songs) - 1)
     
     def _slide_setfunc(self, x: float, y: float):
         self.itemNowDy = y / self.itemHeight
     
     def _scoll_end(self):
-        if self.itemNowDy < 0: return
-        if self.itemNowDy >= len(self._chapter.songs) - 1: return
+        if -self.itemNowDy < 0: return
+        if -self.itemNowDy >= len(self._chapter.songs) - 1: return
         
-        targetDy = min(max(0, round(self.itemNowDy, 1)), len(self._chapter.songs) - 1) * self.itemHeight
-        self._slideControl.easeBackY(-targetDy)
+        targetDy = min(max(0, round(-self.itemNowDy)), len(self._chapter.songs) - 1) * self.itemHeight
+        self._slideControl.easeBackY(targetDy, False)
         
 @dataclass
 class ChartChooseUI_State:

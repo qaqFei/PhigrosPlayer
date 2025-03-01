@@ -3604,10 +3604,10 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         illrespacker.reg_img(tool_funcs.gtpresp(song.image), f"songill_{song.songId}")
     illrespacker.load(*illrespacker.pack())
     
-    chooseChartControl = phigame_obj.ChooseChartControl(chapter_item, w, h)
-    eventManager.regClickEventFs(chooseChartControl.scter_mousedown, False)
-    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(chooseChartControl.scter_mouseup))
-    eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseChartControl.scter_mousemove))
+    chooseControler = phigame_obj.ChooseChartControler(chapter_item, w, h)
+    eventManager.regClickEventFs(chooseControler.scter_mousedown, False)
+    eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(chooseControler.scter_mouseup))
+    eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseControler.scter_mousemove))
     
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
@@ -3635,6 +3635,45 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     )
     eventManager.regClickEvent(clickBackButtonEvent)
     
+    def drawSongItems():
+        ctxSave(wait_execute=True)
+        ctxBeginPath(wait_execute=True)
+        ctxRect(0, 0, w, h, wait_execute=True)
+        ctxRect(*tool_funcs.xxyy_rect2_xywh(songShadowRect), wait_execute=True)
+        ctxClip("evenodd", wait_execute=True)
+        
+        startDy = h * (434 / 1080) + chooseControler.itemNowDy * chooseControler.itemHeight
+        nowDy = 0.0
+        songIndex = 0
+        
+        while (y := startDy + nowDy) < h + chooseControler.itemHeight:
+            if songIndex > len(chapter_item.songs) - 1:
+                break
+            
+            if y < -chooseControler.itemHeight:
+                songIndex += 1
+                nowDy += chooseControler.itemHeight
+                continue
+            
+            chartsShadowWidth = tool_funcs.getSizeByRect(chartsShadowRect)[0]
+            x = w * -0.009375 + chartsShadowWidth * chartsShadowDPower * (1.0 - y / h)
+            song = chapter_item.songs[songIndex]
+            
+            drawText(
+                x + w * 0.025, y,
+                song.name,
+                font = f"{(w + h) / 60}px pgrFont",
+                textAlign = "left",
+                textBaseline = "middle",
+                fillStyle = "white",
+                wait_execute = True
+            )
+            
+            songIndex += 1
+            nowDy += chooseControler.itemHeight
+        
+        ctxRestore(wait_execute=True)
+            
     def clickEventCallback(x, y):
         nonlocal nextUI, tonextUI, tonextUISt
         
@@ -3689,10 +3728,11 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * -0.009375, 0,
             w * 0.4921875, h
         )
+        chartsShadowDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(chartsShadowRect), 75)
         root.run_js_code(
             f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, chartsShadowRect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(chartsShadowRect), 75)},\
+                {chartsShadowDPower},\
                 'rgba(0, 0, 0, 0.3)'\
             );",
             add_code_array = True
@@ -3710,6 +3750,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             );",
             add_code_array = True
         )
+        
+        drawSongItems()
         
         barShadowRect = (
             w * 0.121875, h * (12 / 1080),
@@ -3899,7 +3941,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
         root.run_js_wait_code()
         
-    eventManager.unregEventByChooseChartControl(chooseChartControl)
+    eventManager.unregEventByChooseChartControl(chooseControler)
     illrespacker.unload(illrespacker.getnames())
     
 def updateFontSizes():

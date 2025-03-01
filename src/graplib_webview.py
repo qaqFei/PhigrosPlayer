@@ -59,8 +59,11 @@ def ctxRect(
 ):
     root.run_js_code(f"{ctx}.rect({x}, {y}, {width}, {height});", wait_execute, order)
 
-def ctxClip(wait_execute: bool = False):
-    root.run_js_code(f"{ctx}.clip();", wait_execute, order)
+def ctxBeginPath(wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.beginPath();", wait_execute, order)
+
+def ctxClip(rule: str = "nonzero", wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.clip('{rule}');", wait_execute, order)
 
 def clearCanvas(wait_execute: bool = False):
     root.run_js_code(f"{ctx}.clear();", wait_execute, order)
