@@ -3636,6 +3636,58 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     )
     eventManager.regClickEvent(clickBackButtonEvent)
     
+    def drawParallax(x0: float, y0: float, x1: float, y1: float, full: bool = False):
+        dpower = tool_funcs.getDPower(*tool_funcs.getSizeByRect((x0, y0, x1, y1)), 75)
+        
+        if full:
+            x0 -= dpower * (x1 - x0)
+            x1 += dpower * (x1 - x0)
+            return drawParallax(x0, y0, x1, y1)
+        
+        thisSong = chapter_item.songs[chooseControler.vaildNowCeil]
+        nextSong = chapter_item.songs[chooseControler.vaildNowNextCeil]
+        
+        clipY = y1 - (chooseControler.vaildNowFloatIndex % 1) * (y1 - y0)
+        
+        ctxSave(wait_execute=True)
+        ctxBeginPath(wait_execute=True)
+        ctxRect(0, 0, w, clipY, wait_execute=True)
+        ctxClip(wait_execute=True)
+        parallaxN = 1.5
+        thisSongDy = (clipY - y0) / parallaxN - (y1 - y0) / parallaxN
+        thisSongDx = (x1 - x0) * dpower * (-thisSongDy / (y1 - y0))
+        
+        root.run_js_code(f"ctx.drawImageDx = {thisSongDx}; ctx.drawImageDy = {thisSongDy};", add_code_array=True)
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
+                {",".join(map(str, (x0, y0, x1, y1)))},\
+                {root.get_img_jsvarname(f"songill_{thisSong.songId}")},\
+                {y1 - y0}, {dpower}, 1.0\
+            );",
+            add_code_array = True
+        )
+        root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", add_code_array=True)
+        ctxRestore(wait_execute=True)
+        
+        ctxSave(wait_execute=True)
+        ctxBeginPath(wait_execute=True)
+        ctxRect(0, clipY, w, h, wait_execute=True)
+        ctxClip(wait_execute=True)
+        nextSongDy = (clipY - y0)
+        nextSongDx = (x1 - x0) * dpower * (-nextSongDy / (y1 - y0))
+        
+        root.run_js_code(f"ctx.drawImageDx = {nextSongDx}; ctx.drawImageDy = {nextSongDy};", add_code_array=True)
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
+                {",".join(map(str, (x0, y0, x1, y1)))},\
+                {root.get_img_jsvarname(f"songill_{nextSong.songId}")},\
+                {y1 - y0}, {dpower}, 1.0\
+            );",
+            add_code_array = True
+        )
+        root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", add_code_array=True)
+        ctxRestore(wait_execute=True)
+            
     def drawSongItems():
         ctxSave(wait_execute=True)
         ctxBeginPath(wait_execute=True)
@@ -3740,52 +3792,6 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             fillStyle = "rgb(50, 50, 50)",
             wait_execute = True
         )
-        
-        def drawParallax(x0: float, y0: float, x1: float, y1: float):
-            dpower = tool_funcs.getDPower(*tool_funcs.getSizeByRect((x0, y0, x1, y1)), 75)
-            thisSong = chapter_item.songs[chooseControler.vaildNowCeil]
-            nextSong = chapter_item.songs[chooseControler.vaildNowNextCeil]
-            
-            clipY = y1 - (chooseControler.vaildNowFloatIndex % 1) * (y1 - y0)
-            
-            ctxSave(wait_execute=True)
-            ctxBeginPath(wait_execute=True)
-            ctxRect(0, 0, w, clipY, wait_execute=True)
-            ctxClip(wait_execute=True)
-            parallaxN = 1.5
-            thisSongDy = (clipY - y0) / parallaxN - (y1 - y0) / parallaxN
-            thisSongDx = (x1 - x0) * dpower * (-thisSongDy / (y1 - y0))
-            
-            root.run_js_code(f"ctx.drawImageDx = {thisSongDx}; ctx.drawImageDy = {thisSongDy};", add_code_array=True)
-            root.run_js_code(
-                f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
-                    {",".join(map(str, (x0, y0, x1, y1)))},\
-                    {root.get_img_jsvarname(f"songill_{thisSong.songId}")},\
-                    {y1 - y0}, {dpower}, 1.0\
-                );",
-                add_code_array = True
-            )
-            root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", add_code_array=True)
-            ctxRestore(wait_execute=True)
-            
-            ctxSave(wait_execute=True)
-            ctxBeginPath(wait_execute=True)
-            ctxRect(0, clipY, w, h, wait_execute=True)
-            ctxClip(wait_execute=True)
-            nextSongDy = (clipY - y0)
-            nextSongDx = (x1 - x0) * dpower * (-nextSongDy / (y1 - y0))
-            
-            root.run_js_code(f"ctx.drawImageDx = {nextSongDx}; ctx.drawImageDy = {nextSongDy};", add_code_array=True)
-            root.run_js_code(
-                f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
-                    {",".join(map(str, (x0, y0, x1, y1)))},\
-                    {root.get_img_jsvarname(f"songill_{nextSong.songId}")},\
-                    {y1 - y0}, {dpower}, 1.0\
-                );",
-                add_code_array = True
-            )
-            root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", add_code_array=True)
-            ctxRestore(wait_execute=True)
 
         drawParallax(
             w * 0.4375, h * (219 / 1080),
@@ -3839,7 +3845,17 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     while True:
         clearCanvas(wait_execute = True)
         
-        drawBackground()
+        ctxSave(wait_execute=True)
+        bgBlurRadio = (w + h) / 60
+        bgScale = max((w + bgBlurRadio) / w, (h + bgBlurRadio) / h)
+        root.run_js_code(f"ctx.filter = 'blur({bgBlurRadio}px)';", add_code_array=True)
+        ctxTranslate(w / 2, h / 2, wait_execute=True)
+        ctxScale(bgScale, bgScale, wait_execute=True)
+        ctxTranslate(-w / 2 * bgScale, -h / 2 * bgScale, wait_execute=True)
+        drawParallax(0, 0, w, h, True)
+        ctxRestore(wait_execute=True)
+        fillRectEx(0, 0, w, h, "rgba(0, 0, 0, 0.75)", wait_execute=True)
+        
         drawFaculas()
         
         chartsShadowRect = (
