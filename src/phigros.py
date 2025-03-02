@@ -3258,13 +3258,23 @@ def chartPlayerRender(
     blackIn: bool,
     foregroundFrameRender: typing.Callable[[], typing.Any],
     renderRelaser: typing.Callable[[], typing.Any],
-    nextUI: typing.Callable[[], typing.Any]
+    nextUI: typing.Callable[[], typing.Any],
+    font_options: typing.Optional[dict] = None
 ):
     global show_start_time
     global note_max_width, note_max_height
     global note_max_size_half
     global raw_audio_length
     global coreConfig
+    
+    loaded_event = ThreadEvent()
+    
+    def _fgrender():
+        while not loaded_event.is_set():
+            foregroundFrameRender()
+            root.run_js_wait_code()
+    
+    Thread(target=_fgrender, daemon=True).start()
     
     globalNoteWidth = w * 0.1234375 * getUserData("setting-noteScale")
     note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
@@ -3339,9 +3349,11 @@ def chartPlayerRender(
         musicsound_volume = getUserData("setting-musicVolume")
     )
     phicore.CoreConfigure(coreConfig)
+    loaded_event.set()
     
     if startAnimation:
-        phicore.loadingAnimation(False, foregroundFrameRender)
+        phicore.loadingAnimation(False, foregroundFrameRender, font_options)
+        phicore.lineOpenAnimation()
         
     renderRelaser()
     

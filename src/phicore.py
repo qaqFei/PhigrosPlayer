@@ -1509,7 +1509,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     
     root.run_js_wait_code()
 
-def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None):
+def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None, font_options: typing.Optional[dict] = None):
     global chart_name_text, chart_name_font_text_size
     global chart_artist_text, chart_artist_text_font_size
     global chart_level_number, chart_level_number_font_size
@@ -1519,6 +1519,9 @@ def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = 
     global chart_illustrator_text
     global chart_charter_text_font_size
     global chart_illustrator_text_font_size
+    
+    if font_options is None:
+        font_options = {}
     
     animation_time = 4.5
     
