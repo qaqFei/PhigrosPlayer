@@ -110,6 +110,9 @@ def run(rpe: bool, need_otherillu: bool, need_other_res: bool):
     try: rmtree("unpack-temp")
     except Exception: pass
 
+def merge_list(lsts: list):
+    return [item for lst in lsts for item in lst]
+
 def generate_info():
     try: rmtree("unpack-result")
     except Exception: pass
@@ -135,6 +138,7 @@ def generate_info():
             match name:
                 case "GameInformation":
                     information: bytes = data.raw_data.tobytes()
+                    information_ftt = obj.read_typetree(treetype["GameInformation"])
                     
                 case "GetCollectionControl":
                     collection = obj.read_typetree(treetype["GetCollectionControl"])
@@ -151,6 +155,9 @@ def generate_info():
         except Exception as e:
             print(repr(e))
 
+    with open("./unpack-result/info_ftt.json", "w", encoding="utf-8") as f:
+        json.dump(information_ftt, f, indent=4, ensure_ascii=False)
+                        
     reader = ByteReaderA(information)
     reader.position = information.index(b"\x16\x00\x00\x00Glaciaxion.SunsetRay.0\x00\x00\n") - 4
     
@@ -177,6 +184,17 @@ def generate_info():
         "magic": int
     }
     
+    def fttinfo_fromid(ftt: dict, key: str, songid: str):
+        for i in ftt:
+            if i[key] == songid: return i
+        assert False, f"song {songid} not found in fttinfo"
+    
+    ftt_allsongs = merge_list(information_ftt["song"].values())
+    ftt_keystore = information_ftt["keyStore"]
+    
+    with open("./unpack-result/chapters_info.json", "w", encoding="utf-8") as f:
+        json.dump(information_ftt["chapters"], f, indent=4, ensure_ascii=False)
+    
     chartItems = []
     
     while True:
@@ -201,6 +219,19 @@ def generate_info():
             break
         except Exception as e:
             print(e)
+    
+    for i in chartItems:
+        fttinfo = fttinfo_fromid(ftt_allsongs, "songsId", i["songIdBak"])
+        i.update({k: fttinfo[k] for k in [
+            "unlockInfo", "levelMods",
+            "isCnLimited"
+        ]})
+        
+        fttinfo = fttinfo_fromid(ftt_keystore, "keyName", i["songKey"])
+        i.update({"keyStore": {k: fttinfo[k] for k in [
+            "unlockedTimes", "kindOfKey",
+            "unlockTimes"
+        ]}})
     
     with open("./unpack-result/info.json", "w", encoding="utf-8") as f:
         json.dump(chartItems, f, ensure_ascii=False, indent=4)
