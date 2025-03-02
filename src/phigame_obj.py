@@ -182,6 +182,9 @@ class Song:
         self.songId = int(uniform(0.0, 1.0) * (2 << 31))
         self.difficlty = self.difficlty[:4]
         self.level_bar_rightx_max = const.LEVEL_BAR_END_XMAP[len(self.difficlty) - 1]
+    
+    def __eq__(self, value: typing.Any):
+        return self is value
         
 @dataclass
 class Chapter:
@@ -194,6 +197,7 @@ class Chapter:
     
     def __post_init__(self):
         self.chapterId = int(uniform(0.0, 1.0) * (2 << 31))
+        self.scsd_songs = self.songs.copy()
     
     def __hash__(self):
         return id(self)
@@ -706,6 +710,15 @@ class SlideControler:
         if need_callback:
             self.easeEndYCallback()
 
+    def stopAllEase(self):
+        for e in self._easeBackXEvents.copy():
+            e.clear()
+            self._easeBackXEvents.remove(e)
+
+        for e in self._easeBackYEvents.copy():
+            e.clear()
+            self._easeBackYEvents.remove(e)
+    
     def _set(self):
         self.setFunc(self._dx, self._dy)
 
@@ -729,7 +742,10 @@ class ChooseChartControler:
         self._itemLastDy = 0.0
         
         self._slideControl = SlideControler(
-            eventRect = lambda x, y: tool_funcs.indrect(x, y, self._chartsShadowRect, self._chartsShadowRectDPower),
+            eventRect = lambda x, y: (
+                tool_funcs.indrect(x, y, self._chartsShadowRect, self._chartsShadowRectDPower)
+                and y > h * (123 / 1080)
+            ),
             setFunc = self._slide_setfunc,
             minValueX = 0.0, maxValueX = 0.0,
             minValueY = 0.0, maxValueY = 0.0,
@@ -761,7 +777,7 @@ class ChooseChartControler:
         )
         self._set_level_bar_rightx()
         
-        song = self.chapter.songs[self.vaildNowIndex]
+        song = self.chapter.scsd_songs[self.vaildNowIndex]
         self.uistate.max_diffindex = len(song.difficlty) - 1
         self.set_level_callback = self._set_level_bar_rightx
         
@@ -769,7 +785,7 @@ class ChooseChartControler:
         self._preview_checker()
     
     def _set_level_bar_rightx(self):
-        song = self.chapter.songs[self.vaildNowIndex]
+        song = self.chapter.scsd_songs[self.vaildNowIndex]
         self.level_bar_rightx.target = song.level_bar_rightx_max
         
         for i in range(len(song.difficlty)):
@@ -778,7 +794,7 @@ class ChooseChartControler:
         self._set_level_choose_x()
     
     def _set_level_choose_x(self):
-        song = self.chapter.songs[self.vaildNowIndex]
+        song = self.chapter.scsd_songs[self.vaildNowIndex]
         xs = const.LEVEL_CHOOSE_XMAP[len(song.difficlty) - 1]
         self.level_choose_x.target = xs[min(self.uistate.diff_index, len(xs) - 1)]
         self._set_level_color()
@@ -790,37 +806,37 @@ class ChooseChartControler:
             self.level_color[i].target = v
     
     def _set_level_diffnumber(self):
-        song = self.chapter.songs[self.vaildNowIndex]
+        song = self.chapter.scsd_songs[self.vaildNowIndex]
         self.level_diffnumber.target = song.difficlty[min(self.uistate.diff_index, len(song.difficlty) - 1)].level
     
     def get_level_color(self):
         return tuple(map(lambda x: x.value, self.level_color))
     
     def _vaild_index(self, i: int):
-        return 0 <= i <= len(self.chapter.songs) - 1
+        return 0 <= i <= len(self.chapter.scsd_songs) - 1
     
-    def _slide_setfunc(self, x: float, y: float):
+    def _slide_setfunc(self, x: float, y: float, _fromsetto: bool = False):
         self.itemNowDy = y / self.itemHeight
         
         v1, v2 = round(-self.itemNowDy), round(-self._itemLastDy)
         
-        v1_vaild = max(0, min(v1, len(self.chapter.songs) - 1))
-        v2_vaild = max(0, min(v2, len(self.chapter.songs) - 1))
+        v1_vaild = max(0, min(v1, len(self.chapter.scsd_songs) - 1))
+        v2_vaild = max(0, min(v2, len(self.chapter.scsd_songs) - 1))
         
-        for _ in range(int(abs(v1_vaild - v2_vaild))):
+        for _ in range(int(abs(v1_vaild - v2_vaild)) if not _fromsetto else 0):
             self.changeUisound.play()
             self._start_preview()
             self._set_level_bar_rightx()
-            song = self.chapter.songs[self.vaildNowIndex]
+            song = self.chapter.scsd_songs[self.vaildNowIndex]
             self.uistate.max_diffindex = len(song.difficlty) - 1
         
         self._itemLastDy = self.itemNowDy
     
     def _scoll_end(self):
         if -self.itemNowDy < 0: return
-        if -self.itemNowDy >= len(self.chapter.songs) - 1: return
+        if -self.itemNowDy >= len(self.chapter.scsd_songs) - 1: return
         
-        targetDy = min(max(0, round(-self.itemNowDy)), len(self.chapter.songs) - 1) * self.itemHeight
+        targetDy = min(max(0, round(-self.itemNowDy)), len(self.chapter.scsd_songs) - 1) * self.itemHeight
         self._slideControl.easeBackY(targetDy, False)
     
     def _toae(self):
@@ -837,7 +853,7 @@ class ChooseChartControler:
     @tool_funcs.runByThread
     def _start_preview(self):
         myevent = self._toae()
-        song = self.chapter.songs[self.vaildNowIndex]
+        song = self.chapter.scsd_songs[self.vaildNowIndex]
         mixer = self.mixer
         self._preview_playing = song
         
@@ -900,6 +916,12 @@ class ChooseChartControler:
                 
                 self._start_preview()
     
+    def setto_index(self, index: int):
+        targetDy = min(max(0, index), len(self.chapter.scsd_songs) - 1) * self.itemHeight
+        self._slideControl.stopAllEase()
+        self._slideControl.setDy(-targetDy)
+        self._slide_setfunc(0, -targetDy, True)
+    
     def __del__(self):
         self._released = True
         self._preview_playing = None
@@ -910,23 +932,23 @@ class ChooseChartControler:
     
     @property
     def vaildNowCeil(self):
-        return max(0, min(int(-self.itemNowDy), len(self.chapter.songs) - 1))
+        return max(0, min(int(-self.itemNowDy), len(self.chapter.scsd_songs) - 1))
     
     @property
     def vaildNowNextCeil(self):
-        return max(0, min(int(-self.itemNowDy) + 1, len(self.chapter.songs) - 1))
+        return max(0, min(int(-self.itemNowDy) + 1, len(self.chapter.scsd_songs) - 1))
     
     @property
     def vaildNowIndex(self):
-        return max(0, min(self.nowIndex, len(self.chapter.songs) - 1))
+        return max(0, min(self.nowIndex, len(self.chapter.scsd_songs) - 1))
     
     @property
     def vaildNextIndex(self):
-        return max(0, min(self.nowIndex + 1, len(self.chapter.songs) - 1))
+        return max(0, min(self.nowIndex + 1, len(self.chapter.scsd_songs) - 1))
     
     @property
     def vaildNowFloatIndex(self):
-        return max(0, min(-self.itemNowDy, len(self.chapter.songs) - 1))
+        return max(0, min(-self.itemNowDy, len(self.chapter.scsd_songs) - 1))
         
 @dataclass
 class ChartChooseUI_State:
@@ -962,6 +984,27 @@ class ChartChooseUI_State:
         
         if olddiff != i:
             self.change_diff_sound.play()
+    
+    def dosort(self, chapter: Chapter):
+        newsongs = chapter.songs.copy()
+        
+        match self.sort_method:
+            case const.PHI_SORTMETHOD.DEFAULT:
+                pass
+            
+            case const.PHI_SORTMETHOD.SONG_NAME:
+                newsongs.sort(key=lambda x: ord(x.name[0]))
+            
+            case const.PHI_SORTMETHOD.DIFFICULTY:
+                newsongs.sort(key=lambda x: x.difficlty[self.diff_index].level if self.diff_index <= len(x.difficlty) - 1 else -1.0)
+            
+            case const.PHI_SORTMETHOD.SCORE:
+                pass
+        
+        if self.sort_reverse:
+            newsongs.reverse()
+        
+        return newsongs
     
     @property
     def max_diffindex(self):

@@ -14,7 +14,7 @@ import time
 import math
 import logging
 from io import BytesIO
-from threading import Thread
+from threading import Thread, Event as ThreadEvent, Lock
 from os import system
 from os.path import exists
 
@@ -3614,7 +3614,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(chooseControler.scter_mouseup))
     eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseControler.scter_mousemove))
     
-    choose_state.change_diff_callback = chooseControler.set_level_callback
+    choose_state.change_diff_callback = lambda: (chooseControler.set_level_callback(), resort())
     
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
@@ -3651,11 +3651,11 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             x1 += dpower * (x1 - x0)
             return drawParallax(x0, y0, x1, y1)
         
-        for i in range(max(0, chooseControler.vaildNowCeil - 3), min(len(chapter_item.songs) - 1, chooseControler.vaildNowCeil + 3) + 1):
-            root.run_js_code(f"{root.get_img_jsvarname(f"songill_{chapter_item.songs[i].songId}")}.lazy_load();", add_code_array=True)
+        for i in range(max(0, chooseControler.vaildNowCeil - 3), min(len(chapter_item.scsd_songs) - 1, chooseControler.vaildNowCeil + 3) + 1):
+            root.run_js_code(f"{root.get_img_jsvarname(f"songill_{chapter_item.scsd_songs[i].songId}")}.lazy_load();", add_code_array=True)
         
-        thisSong = chapter_item.songs[chooseControler.vaildNowCeil]
-        nextSong = chapter_item.songs[chooseControler.vaildNowNextCeil]
+        thisSong = chapter_item.scsd_songs[chooseControler.vaildNowCeil]
+        nextSong = chapter_item.scsd_songs[chooseControler.vaildNowNextCeil]
         
         clipY = y1 - (chooseControler.vaildNowFloatIndex % 1) * (y1 - y0)
         
@@ -3708,9 +3708,11 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         startDy = h * (434 / 1080) + chooseControler.itemNowDy * chooseControler.itemHeight
         nowDy = 0.0
         songIndex = 0
+        chartsShadowWidth = tool_funcs.getSizeByRect(chartsShadowRect)[0]
+        cuttedWidth = chartsShadowWidth * (1.0 - chartsShadowDPower)
         
         while (y := startDy + nowDy) < h + chooseControler.itemHeight:
-            if songIndex > len(chapter_item.songs) - 1:
+            if songIndex > len(chapter_item.scsd_songs) - 1:
                 break
             
             if y < -chooseControler.itemHeight:
@@ -3718,10 +3720,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 nowDy += chooseControler.itemHeight
                 continue
             
-            chartsShadowWidth = tool_funcs.getSizeByRect(chartsShadowRect)[0]
             x = w * -0.009375 + chartsShadowWidth * chartsShadowDPower * (1.0 - y / h)
-            song = chapter_item.songs[songIndex]
-            cuttedWidth = chartsShadowWidth * (1.0 - chartsShadowDPower)
+            song = chapter_item.scsd_songs[songIndex]
             
             if math.isnan(song.chooseSongs_nameFontSize):
                 phicore.root = root
@@ -3753,7 +3753,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
         ctxRestore(wait_execute=True)
         
-        currectSong = chapter_item.songs[chooseControler.vaildNowIndex]
+        currectSong = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
         drawText(
             w * 0.1, h * (415 / 1080),
             currectSong.name,
@@ -3879,6 +3879,19 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             fillStyle = "rgb(50, 50, 50)",
             wait_execute = True
         )
+    
+    last_resort_method = (choose_state.sort_reverse, choose_state.sort_method)
+    def resort():
+        nonlocal last_resort_method
+        
+        this_method = (choose_state.sort_reverse, choose_state.sort_method)
+        if this_method == last_resort_method:
+            return
+        
+        song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
+        chapter_item.scsd_songs[:] = choose_state.dosort(chapter_item)
+        chooseControler.setto_index(chapter_item.scsd_songs.index(song))
+        last_resort_method = this_method
 
     def clickEventCallback(x, y):
         nonlocal nextUI, tonextUI, tonextUISt
@@ -3889,6 +3902,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.14843750 + SortIconWidth, h * (72 / 1080) + SortIconHeight
         )):
             choose_state.sort_reverse = not choose_state.sort_reverse
+            resort()
         
         # 下一个排序方法
         if tool_funcs.inrect(x, y, (
@@ -3896,6 +3910,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.1953125, h * (96 / 1080)
         )):
             choose_state.next_sort_method()
+            resort()
         
         # 镜像
         if tool_funcs.inrect(x, y, mirrorButtonRect):
@@ -3923,7 +3938,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             Resource["UISound_2"].play()
         
         # 难度选择
-        song = chapter_item.songs[chooseControler.vaildNowIndex]
+        song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
         xlist = const.LEVEL_CHOOSE_XMAP[len(song.difficlty) - 1]
         for i, leftx in enumerate(xlist):
             leftx *= w
