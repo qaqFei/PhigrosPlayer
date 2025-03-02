@@ -1796,6 +1796,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 },
                 blackIn = True,
                 foregroundFrameRender = lambda: None,
+                renderRelaser = lambda: None,
                 nextUI = mainRender
             ), True, time.time()
         
@@ -3256,6 +3257,7 @@ def chartPlayerRender(
     chart_information: dict,
     blackIn: bool,
     foregroundFrameRender: typing.Callable[[], typing.Any],
+    renderRelaser: typing.Callable[[], typing.Any],
     nextUI: typing.Callable[[], typing.Any]
 ):
     global show_start_time
@@ -3340,6 +3342,8 @@ def chartPlayerRender(
     
     if startAnimation:
         phicore.loadingAnimation(False, foregroundFrameRender)
+        
+    renderRelaser()
     
     if phicore.noautoplay:
         if CHART_TYPE == const.CHART_TYPE.PHI:
@@ -3412,6 +3416,7 @@ def chartPlayerRender(
                     chart_information = chart_information,
                     blackIn = True,
                     foregroundFrameRender = lambda: None,
+                    renderRelaser = lambda: None,
                     nextUI = nextUIBak
                 ), True, time.time()
                 
@@ -3440,6 +3445,7 @@ def chartPlayerRender(
                 chart_information = chart_information,
                 blackIn = True,
                 foregroundFrameRender = lambda: None,
+                renderRelaser = lambda: None,
                 nextUI = nextUIBak
             ), True, time.time()
             
@@ -3977,6 +3983,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 chart_information = chart_information,
                 blackIn = False,
                 foregroundFrameRender = lambda: _render(False),
+                renderRelaser = _release_illu,
                 nextUI = lambda: chooseChartRender(chapter_item)
             )
             
@@ -4228,9 +4235,13 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         if rjc:
             root.run_js_wait_code()
     
+    def _release_illu():
+        illrespacker.unload(illrespacker.getnames())
+    
     def _whenexit():
         eventManager.unregEventByChooseChartControl(chooseControler)
-        # illrespacker.unload(illrespacker.getnames())
+        if not immediatelyExitRender:
+            _release_illu()
     
     while _render() is None and not immediatelyExitRender:
         ...
