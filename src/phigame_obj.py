@@ -922,6 +922,10 @@ class ChooseChartControler:
         self._slideControl.setDy(-targetDy)
         self._slide_setfunc(0, -targetDy, True)
     
+    def setto_index_ease(self, index: int):
+        targetDy = min(max(0, index), len(self.chapter.scsd_songs) - 1) * self.itemHeight
+        self._slideControl.easeBackY(targetDy, False)
+    
     def __del__(self):
         self._released = True
         self._preview_playing = None

@@ -3923,7 +3923,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.375825 + RandomIconWidth / 2,
             h * (53 / 1080) + RandomIconHeight / 2
         )):
-            print("random")
+            chooseControler.setto_index_ease(random.randint(0, len(chapter_item.scsd_songs) - 1))
         
         # 设置
         if tool_funcs.inrect(x, y, (
