@@ -3801,22 +3801,13 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         level_choose_block_left = w * chooseControler.level_choose_x.value
         level_choose_block_rect = (
             level_choose_block_left, h * (775 / 1080),
-            level_choose_block_left + w * 0.0546875, h * (861 / 1080)
-        )
-        
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, level_choose_block_rect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_choose_block_rect), 75)},\
-                'rgb{chooseControler.get_level_color()}'\
-            );",
-            add_code_array = True
+            level_choose_block_left + w * const.LEVEL_CHOOSE_BLOCK_WIDTH, h * (861 / 1080)
         )
         
         now_choosediffnum = str(round(chooseControler.level_diffnumber.value))
         level_choose_block_center = tool_funcs.getCenterPointByRect(level_choose_block_rect)
         
-        def drawChooseBarDiff(x: float, diffnum: str, diffname: str):
+        def drawChooseBarDiff(x: float, diffnum: str, diffname: str, color: str):
             drawText(
                 x,
                 level_choose_block_center[1] - tool_funcs.getSizeByRect(level_choose_block_rect)[1] * (3 / 14) / 2,
@@ -3824,7 +3815,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 font = f"{(w + h) / 85}px pgrFont",
                 textAlign = "center",
                 textBaseline = "middle",
-                fillStyle = "rgb(255, 255, 255)",
+                fillStyle = color,
                 wait_execute = True
             )
             
@@ -3835,14 +3826,33 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 font = f"{(w + h) / 157.4}px pgrFont",
                 textAlign = "center",
                 textBaseline = "middle",
-                fillStyle = "rgb(255, 255, 255)",
+                fillStyle = color,
                 wait_execute = True
             )
+        
+        for i in range(len(currectSong.difficlty)):
+            diff = currectSong.difficlty[i]
+            drawChooseBarDiff(
+                w * chooseControler.chooselevel_textsx[i].value,
+                diff.strdiffnum,
+                diff.name,
+                "rgb(0, 0, 0)"
+            )
+            
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, level_choose_block_rect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_choose_block_rect), 75)},\
+                'rgb{chooseControler.get_level_color()}'\
+            );",
+            add_code_array = True
+        )
         
         drawChooseBarDiff(
             level_choose_block_center[0],
             now_choosediffnum,
-            currectSong.difficlty[min(choose_state.diff_index, len(currectSong.difficlty) - 1)].name
+            currectSong.difficlty[min(choose_state.diff_index, len(currectSong.difficlty) - 1)].name,
+            "rgb(255, 255, 255)"
         )
 
         if choose_state.diff_index > len(currectSong.difficlty) - 1:

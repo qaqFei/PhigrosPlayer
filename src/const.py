@@ -94,10 +94,14 @@ LEVEL_CHOOSE_XMAP = {
     for i in range(4)
 }
 
+LEVEL_CHOOSE_BLOCK_WIDTH = 0.0546875
+
 LEVEL_BAR_END_XMAP = {
     i: (981 + sum(90 - j * 10 for j in range(i))) / 1920
     for i in range(4)
 }
+
+MAX_LEVEL_NUM = 4
         
 INF = float("inf")
 NAN = float("nan")

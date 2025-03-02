@@ -755,11 +755,15 @@ class ChooseChartControler:
             valueTranformer(rpe_easing.ease_funcs[13])
         )
         self.level_diffnumber = valueTranformer(rpe_easing.ease_funcs[13], 0.17)
+        self.chooselevel_textsx = tuple(
+            valueTranformer(rpe_easing.ease_funcs[13])
+            for _ in range(const.MAX_LEVEL_NUM)
+        )
         self._set_level_bar_rightx()
         
         song = self.chapter.songs[self.vaildNowIndex]
         self.uistate.max_diffindex = len(song.difficlty) - 1
-        self.set_level_callback = self._set_level_choose_x
+        self.set_level_callback = self._set_level_bar_rightx
         
         self._start_preview()
         self._preview_checker()
@@ -767,6 +771,10 @@ class ChooseChartControler:
     def _set_level_bar_rightx(self):
         song = self.chapter.songs[self.vaildNowIndex]
         self.level_bar_rightx.target = song.level_bar_rightx_max
+        
+        for i in range(len(song.difficlty)):
+            self.chooselevel_textsx[i].target = const.LEVEL_CHOOSE_XMAP[len(song.difficlty) - 1][i] + const.LEVEL_CHOOSE_BLOCK_WIDTH / 2
+        
         self._set_level_choose_x()
     
     def _set_level_choose_x(self):
@@ -796,7 +804,10 @@ class ChooseChartControler:
         
         v1, v2 = round(-self.itemNowDy), round(-self._itemLastDy)
         
-        if v1 != v2 and self._vaild_index(v1) and self._vaild_index(v2):
+        v1_vaild = max(0, min(v1, len(self.chapter.songs) - 1))
+        v2_vaild = max(0, min(v2, len(self.chapter.songs) - 1))
+        
+        for _ in range(int(abs(v1_vaild - v2_vaild))):
             self.changeUisound.play()
             self._start_preview()
             self._set_level_bar_rightx()
@@ -928,7 +939,7 @@ class ChartChooseUI_State:
     change_diff_callback: typing.Callable[[], typing.Any] = lambda: None
     
     def __post_init__(self):
-        self._max_diffindex = 3
+        self._max_diffindex = const.MAX_LEVEL_NUM - 1
             
     def next_sort_method(self):
         tempmethod = self.sort_method + 1
