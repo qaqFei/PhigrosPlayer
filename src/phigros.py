@@ -3621,6 +3621,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     def unregEvents():
         eventManager.unregEvent(clickBackButtonEvent)
         eventManager.unregEvent(clickEvent)
+        chooseControler.__del__()
         chooseControler.mixer.music.fadeout(500)
     
     def clickBackButtonCallback(*args):

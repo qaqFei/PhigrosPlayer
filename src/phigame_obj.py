@@ -180,6 +180,7 @@ class Song:
     
     def __post_init__(self):
         self.songId = int(uniform(0.0, 1.0) * (2 << 31))
+        self.difficlty = self.difficlty[:4]
 
 @dataclass
 class Chapter:
@@ -846,6 +847,7 @@ class ChooseChartControler:
     
     def __del__(self):
         self._released = True
+        self._preview_playing = None
     
     @property
     def nowIndex(self):
