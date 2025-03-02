@@ -631,6 +631,10 @@ void main() {
         }
     }
 
+    async function async_sleep(ms) {
+        await new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     Image.prototype.enable_lazy_load = function (real_srcs) {
         this._enable_lazy_load = true;
         this._lazy_realsrcs = real_srcs;
@@ -647,8 +651,18 @@ void main() {
             this._lazy_load_index++;
 
             if (this._lazy_load_index >= this._lazy_realsrcs.length) {
+                this.__drawImage__ = undefined;
                 this._lazy_loaded = true;
                 return;
+            }
+
+            if (this._lazy_load_index != 0) {
+                const tempcv = document.createElement("canvas");
+                tempcv.width = this.width;
+                tempcv.height = this.height;
+                tempctx = tempcv.getContext("2d").drawImage(this, 0, 0, tempcv.width, tempcv.height);
+                this.__drawImage__ = () => tempcv;
+                await async_sleep(250);
             }
 
             this.src = this._lazy_realsrcs[this._lazy_load_index];
@@ -662,6 +676,15 @@ void main() {
     CanvasRenderingContext2D.prototype.drawImage = function(...args) {
         args[1] += this.drawImageDx ? this.drawImageDx : 0;
         args[2] += this.drawImageDy ? this.drawImageDy : 0;
+
+        if (args[0].__drawImage__) {
+            if (args.length <= 3) {
+                args.push(args[0].width);
+                args.push(args[0].height);
+            }
+
+            args[0] = args[0].__drawImage__();
+        }
 
         let need_logerr = true;
 
@@ -926,11 +949,16 @@ void main() {
     }
 
     CanvasRenderingContext2D.prototype.drawDiagonalRectangleClipImageOnlyHeight = function(x0, y0, x1, y1, im, imh, power, alpha) {
-        let imw = imh * im.width / im.height;
+        const [irw, irh] = [
+            im.__drawImage__ ? im.__drawImage__().width : im.width,
+            im.__drawImage__ ? im.__drawImage__().height : im.height
+        ]
+
+        let imw = imh * irw / irh;
 
         if (imw < x1 - x0) {
             imw = x1 - x0;
-            imh = imw * im.height / im.width;
+            imh = imw * irh / irw;
         }
 
         if (isNaN(imw) || isNaN(imh)){
