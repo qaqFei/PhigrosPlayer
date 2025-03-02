@@ -3996,7 +3996,13 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 blackIn = False,
                 foregroundFrameRender = lambda: _render(False),
                 renderRelaser = _release_illu,
-                nextUI = lambda: chooseChartRender(chapter_item)
+                nextUI = lambda: chooseChartRender(chapter_item),
+                font_options = {
+                    "songNameFontSize": song.chooseSongs_nameFontSize,
+                    "songComposerFontSize": song.currSong_composerFontSize,
+                    "levelNumberFontSize": (w + h) / 44.5,
+                    "levelNameFontSize": (w + h) / 125
+                }
             )
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)

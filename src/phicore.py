@@ -1309,38 +1309,30 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         add_code_array = True
     )
     
-    infoframe_x = w * 0.0640625
-    infoframe_y = h * (362 / 1080)
-    infoframe_width = w * 0.3859375
-    infoframe_height = h * (143 / 1080)
-    drawPolygon(
-        tool_funcs.rect2drect(
-            (
-                infoframe_x, infoframe_y,
-                infoframe_x + infoframe_width,
-                infoframe_y + infoframe_height
-            ),
-            75
-        ),
-        fillStyle = "rgba(0, 0, 0, 0.75)",
-        wait_execute = True
+    songShadowRect = (
+        w * 0.0640625, h * (361 / 1080),
+        w * 0.45, h * (505 / 1080)
+    )
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangle(\
+            {",".join(map(str, songShadowRect))},\
+            {tool_funcs.getDPower(*tool_funcs.getSizeByRect(songShadowRect), 75)},\
+            'rgba(0, 0, 0, 0.6)'\
+        );",
+        add_code_array = True
     )
     
-    levelframe_x = w * 0.3421875
-    levelframe_y = h * (355 / 1080)
-    levelframe_width = w * 0.0984375
-    levelframe_height = h * (157 / 1080)
-    drawPolygon(
-        tool_funcs.rect2drect(
-            (
-                levelframe_x, levelframe_y,
-                levelframe_x + levelframe_width,
-                levelframe_y + levelframe_height
-            ),
-            75
-        ),
-        fillStyle = "white",
-        wait_execute = True
+    difRect = (
+        w * 0.340625, h * (355 / 1080),
+        w * 0.440625, h * (513 / 1080)
+    )
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangle(\
+            {",".join(map(str, difRect))},\
+            {tool_funcs.getDPower(*tool_funcs.getSizeByRect(difRect), 75)},\
+            'rgb(255, 255, 255)'\
+        );",
+        add_code_array = True
     )
     
     drawText(
@@ -1542,6 +1534,11 @@ def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = 
     chart_artist_text_font_size = getFontSize(chart_artist_text, infoframe_width * 0.65, w * 0.0161875)
     chart_charter_text_font_size = getFontSize(chart_charter_text, infoframe_width * 0.85, (w + h) * 0.011)
     chart_illustrator_text_font_size = getFontSize(chart_illustrator_text, infoframe_width * 0.85, (w + h) * 0.011)
+    
+    chart_name_font_text_size = font_options.get("songNameFontSize", chart_name_font_text_size)
+    chart_artist_text_font_size = font_options.get("songComposerFontSize", chart_artist_text_font_size)
+    chart_level_number_font_size = font_options.get("levelNumberFontSize", chart_level_number_font_size)
+    chart_level_text_font_size = font_options.get("levelNameFontSize", chart_level_text_font_size)
     
     if len(chart_level_number) == 1:
         chart_level_text_font_size *= 1.35
