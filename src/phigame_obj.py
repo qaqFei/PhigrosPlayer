@@ -12,6 +12,7 @@ import tool_funcs
 import const
 import rpe_easing
 import dxsound
+from dxsmixer_unix import mixer as unix_mixer
 
 @dataclass
 class ClickEvent:
@@ -736,6 +737,14 @@ class ChooseChartControler:
         self._slideControl.easeEndYCallback = self._scoll_end
         self._slideControl.easeScrollCallback = self._scoll_end
         self._slideControl.maxValueY = self.itemHeight * (len(self._chapter.songs) - 1)
+        
+        self._preview_lock = threading.Lock()
+        self._preview_playing = None
+        self._released = False
+        self.mixer = unix_mixer
+        
+        self._start_preview()
+        self._preview_checker()
     
     def _vaild_index(self, i: int):
         return 0 <= i <= len(self._chapter.songs) - 1
@@ -747,6 +756,7 @@ class ChooseChartControler:
         
         if v1 != v2 and self._vaild_index(v1) and self._vaild_index(v2):
             self.changeUisound.play()
+            self._start_preview()
         
         self._itemLastDy = self.itemNowDy
     
@@ -756,6 +766,79 @@ class ChooseChartControler:
         
         targetDy = min(max(0, round(-self.itemNowDy)), len(self._chapter.songs) - 1) * self.itemHeight
         self._slideControl.easeBackY(targetDy, False)
+    
+    @tool_funcs.runByThread
+    def _start_preview(self):
+        self._preview_lock.acquire()
+        
+        song = self._chapter.songs[self.vaildNowIndex]
+        mixer = self.mixer
+        need_release = lambda: song is not self._chapter.songs[self.vaildNowIndex] or self._released
+        
+        if need_release() or song is self._preview_playing:
+            self._preview_lock.release()
+            return
+        
+        if mixer.music.get_busy():
+            fadeout = 500
+            mixer.music.fadeout(fadeout)
+            
+            st = time.time()
+            while True:
+                if time.time() - st > fadeout / 1000:
+                    break
+                
+                if need_release():
+                    self._preview_lock.release()
+                    return
+                
+                time.sleep(1 / 20)
+        
+        mixer.music.unload()
+        mixer.music.load(tool_funcs.gtpresp(song.preview))
+        mixer.music.play()
+        mixer.music.set_volume(0.0)
+        mixer.music.set_pos(song.preview_start)
+        self._preview_playing = song
+        
+        st = time.time()
+        while True:
+            if not mixer.music.get_busy():
+                break
+            
+            p = (time.time() - st) / 0.5
+            if p > 1.0: break
+            
+            mixer.music.set_volume(p)
+                
+            if need_release():
+                self._preview_lock.release()
+                return
+        
+        mixer.music.set_volume(1.0)
+        
+        self._preview_lock.release()
+    
+    @tool_funcs.runByThread
+    def _preview_checker(self):
+        while not self._released:
+            time.sleep(1 / 10)
+            
+            if not self.mixer.music.get_busy() or self._preview_playing is None:
+                continue
+            
+            nowpos = self.mixer.music.get_pos() + self._preview_playing.preview_start
+            print(nowpos, self._preview_playing.preview_end)
+            if nowpos > self._preview_playing.preview_end:
+                self._preview_lock.acquire()
+                if self._released: return
+                self._preview_playing = None
+                self.mixer.music.fadeout(500)
+                self._preview_lock.release()
+                self._start_preview()
+    
+    def __del__(self):
+        self._released = True
     
     @property
     def nowIndex(self):

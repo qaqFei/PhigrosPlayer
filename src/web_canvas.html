@@ -660,7 +660,7 @@ void main() {
                 const tempcv = document.createElement("canvas");
                 tempcv.width = this.width;
                 tempcv.height = this.height;
-                tempctx = tempcv.getContext("2d").drawImage(this, 0, 0, tempcv.width, tempcv.height);
+                tempcv.getContext("2d").drawImage(this, 0, 0, tempcv.width, tempcv.height);
                 this.__drawImage__ = () => tempcv;
                 await async_sleep(250);
             }

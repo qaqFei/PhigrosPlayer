@@ -2,7 +2,8 @@
 
 import math
 import typing
-from threading import Thread
+import threading
+import random
 from os import listdir
 from os.path import isfile, abspath
 
@@ -186,7 +187,7 @@ def noteLineOutOfScreen(
 
 def runByThread(f, needjoin: bool = False):
     def wrapper(*args, **kwargs):
-        t = Thread(target=f, args=args, kwargs=kwargs, daemon=True)
+        t = threading.Thread(target=f, args=args, kwargs=kwargs, daemon=True)
         t.start()
         if needjoin: t.join()
     return wrapper
@@ -547,3 +548,39 @@ def findfileinlist(fn: str, lst: list[str]):
 
 def fileinlist(fn: str, lst: list[str]):
     return findfileinlist(fn, lst) is not None
+
+timeoutMap = {}
+def setTimeout(func: typing.Callable, wait: float):
+    toid = random.randint(0, 2 < 31)
+    cancel = False
+    
+    def f():
+        if cancel: return
+        func()
+        try: timeoutMap.pop(toid)
+        except: pass
+    
+    def doc():
+        nonlocal cancel
+        cancel = True
+    
+    threading.Timer(wait, f).start()
+    timeoutMap[toid] = doc
+    return toid
+
+def clearTimeout(toid: int):
+    if toid in timeoutMap:
+        timeoutMap[toid]()
+
+def debounce(wait: float):
+    def decorator(func: typing.Callable):
+        def warpper(*args, **kwargs):
+            clearTimeout(warpper.toid)
+            warpper.toid = setTimeout(lambda: func(*args, **kwargs), wait)
+        
+        warpper.toid = None
+        
+        return warpper
+    
+    return decorator
+        
