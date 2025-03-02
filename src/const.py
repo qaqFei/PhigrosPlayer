@@ -58,7 +58,7 @@ class CHART_RENDER_ORDERS:
 class LINEWIDTH:
     PHI = 0.0075
     RPE = 1 / 180
-    
+
 TYPE_STRING_MAP = {
     NOTE_TYPE.TAP: "Tap",
     NOTE_TYPE.DRAG: "Drag",
@@ -78,6 +78,25 @@ PHI_SORTMETHOD_STRING_MAP = {
     PHI_SORTMETHOD.SONG_NAME: "曲名",
     PHI_SORTMETHOD.DIFFICULTY: "难度",
     PHI_SORTMETHOD.SCORE: "成绩"
+}
+
+LEVEL_COLOR_MAP = {
+    0: (16, 178, 47),
+    1: (0, 117, 187),
+    2: (207, 19, 19),
+    3: (56, 56, 56)
+}
+
+LEVEL_CHOOSE_XMAP = {
+    i: [(812 + (
+        0, 150, 114, 99.5
+    )[i] * j) / 1920 for j in range(i + 1)]
+    for i in range(4)
+}
+
+LEVEL_BAR_END_XMAP = {
+    i: (981 + sum(90 - j * 10 for j in range(i))) / 1920
+    for i in range(4)
 }
         
 INF = float("inf")

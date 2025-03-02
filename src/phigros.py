@@ -3608,15 +3608,17 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
     illrespacker.load(*illrespacker.pack())
     
-    chooseControler = phigame_obj.ChooseChartControler(chapter_item, w, h, Resource["UISound_5"])
+    choose_state = phigame_obj.ChartChooseUI_State()
+    chooseControler = phigame_obj.ChooseChartControler(chapter_item, w, h, Resource["UISound_5"], choose_state)
     eventManager.regClickEventFs(chooseControler.scter_mousedown, False)
     eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(chooseControler.scter_mouseup))
     eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseControler.scter_mousemove))
     
+    choose_state.change_diff_callback = chooseControler.set_level_callback
+    
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     clickedBackButton = False
-    choose_state = phigame_obj.ChartChooseUI_State()
     
     def unregEvents():
         eventManager.unregEvent(clickBackButtonEvent)
@@ -3781,6 +3783,36 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.9453125, h * (733 / 1080)
         )
         
+        level_bar_right = w * chooseControler.level_bar_rightx.value
+        level_bar_rect = (
+            w * 0.41875, h * (779 / 1080),
+            level_bar_right, h * (857 / 1080)
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, level_bar_rect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_bar_rect), 75)},\
+                'rgb(255, 255, 255)'\
+            );",
+            add_code_array = True
+        )
+        
+        level_choose_block_left = w * chooseControler.level_choose_x.value
+        level_choose_block_rect = (
+            level_choose_block_left, h * (775 / 1080),
+            level_choose_block_left + w * 0.0546875, h * (861 / 1080)
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, level_choose_block_rect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_choose_block_rect), 75)},\
+                'rgb{chooseControler.get_level_color()}'\
+            );",
+            add_code_array = True
+        )
+        
         if choose_state.diff_index > len(currectSong.difficlty) - 1:
             return
         
@@ -3906,21 +3938,6 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             add_code_array = True
         )
         
-        drawSongItems()
-        
-        barShadowRect = (
-            w * 0.121875, h * (12 / 1080),
-            w * 0.49375, h * (123 / 1080)
-        )
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, barShadowRect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(barShadowRect), 75)},\
-                'rgba(0, 0, 0, 0.6)'\
-            );",
-            add_code_array = True
-        )
-        
         playButtonRect = (
             w * 0.878125, h * (861 / 1080),
             w * 2.0, h * (1012 / 1080)
@@ -3943,6 +3960,21 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 {",".join(map(str, diffchoosebarRect))},\
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(diffchoosebarRect), 75)},\
                 'rgba(0, 0, 0, 0.3)'\
+            );",
+            add_code_array = True
+        )
+        
+        drawSongItems()
+        
+        barShadowRect = (
+            w * 0.121875, h * (12 / 1080),
+            w * 0.49375, h * (123 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, barShadowRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(barShadowRect), 75)},\
+                'rgba(0, 0, 0, 0.6)'\
             );",
             add_code_array = True
         )
