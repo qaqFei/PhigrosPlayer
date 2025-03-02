@@ -105,6 +105,7 @@ for cinfo in pgr_chapters_info:
             "composer": s["composer"],
             "iller": s["illustrator"],
             "image": resm.getres(f"/Illustration/{s["songIdBak"]}.png"),
+            "image_lowres": resm.getres(f"/IllustrationLowRes/{s["songIdBak"]}.png"),
             "preview": resm.getres(f"/music/{s["songIdBak"]}.ogg"),
             "preview_start": s["previewTimeStart"],
             "preview_end": s["previewTimeEnd"],

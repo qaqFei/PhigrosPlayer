@@ -643,7 +643,7 @@ void main() {
         if (!this._enable_lazy_load || this._lazy_loaded || this._lazy_load_started) return;
         this._lazy_load_started = true;
 
-        addFunc(this, "onload", () => {
+        addFunc(this, "onload", async () => {
             this._lazy_load_index++;
 
             if (this._lazy_load_index >= this._lazy_realsrcs.length) {

@@ -168,6 +168,7 @@ class Song:
     composer: str
     iller: str
     image: str
+    image_lowres: str
     preview: str
     preview_start: float
     preview_end: float
@@ -785,7 +786,7 @@ class ChartChooseUI_State:
     sort_reverse: bool = False
     sort_method: int = const.PHI_SORTMETHOD.DEFAULT
     is_mirror: bool = False
-    diff_index: int = 3
+    diff_index: int = 0
 
     def next_sort_method(self):
         tempmethod = self.sort_method + 1

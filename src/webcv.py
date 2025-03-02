@@ -313,8 +313,10 @@ class LazyPILResPacker:
         codes = []
         
         for name in names:
-            self.cv.unreg_rescb(name)
-            self._loadcbs.pop(name)
+            for index in range(len(self.imgs[name])):
+                self.cv.unreg_rescb(f"lazy-{name}-{index}")
+                self._loadcbs.pop((name, index))
+                
             jvn = self.cv.get_img_jsvarname(name)
             codes.append(f"deleteLowQualityImage({jvn}); delete {jvn};")
             

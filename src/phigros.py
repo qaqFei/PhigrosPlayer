@@ -132,6 +132,7 @@ def loadChapters():
                         composer = song["composer"],
                         iller = song["iller"],
                         image = song["image"],
+                        image_lowres = song["image_lowres"],
                         preview = song["preview"],
                         preview_start = song["preview_start"],
                         preview_end = song["preview_end"],
@@ -3602,7 +3603,9 @@ def chartPlayerRender(
 def chooseChartRender(chapter_item: phigame_obj.Chapter):
     illrespacker = webcv.LazyPILResPacker(root)
     for song in chapter_item.songs:
+        illrespacker.reg_img(tool_funcs.gtpresp(song.image_lowres), f"songill_{song.songId}")
         illrespacker.reg_img(tool_funcs.gtpresp(song.image), f"songill_{song.songId}")
+        
     illrespacker.load(*illrespacker.pack())
     
     chooseControler = phigame_obj.ChooseChartControler(chapter_item, w, h, Resource["UISound_5"])
