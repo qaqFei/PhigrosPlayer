@@ -3813,6 +3813,31 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             add_code_array = True
         )
         
+        now_choosediffnum = str(round(chooseControler.level_diffnumber.value))
+        level_choose_block_center = tool_funcs.getCenterPointByRect(level_choose_block_rect)
+        
+        drawText(
+            level_choose_block_center[0],
+            level_choose_block_center[1] - tool_funcs.getSizeByRect(level_choose_block_rect)[1] * (3 / 14) / 2,
+            now_choosediffnum,
+            font = f"{(w + h) / 85}px pgrFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+        
+        drawText(
+            level_choose_block_center[0],
+            level_choose_block_center[1] + tool_funcs.getSizeByRect(level_choose_block_rect)[1] * (17 / 43) / 2,
+            currectSong.difficlty[min(choose_state.diff_index, len(currectSong.difficlty) - 1)].name,
+            font = f"{(w + h) / 157.4}px pgrFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
+
         if choose_state.diff_index > len(currectSong.difficlty) - 1:
             return
         

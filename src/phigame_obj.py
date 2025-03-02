@@ -754,7 +754,7 @@ class ChooseChartControler:
             valueTranformer(rpe_easing.ease_funcs[13]),
             valueTranformer(rpe_easing.ease_funcs[13])
         )
-        self.level_diffnumber = valueTranformer(rpe_easing.ease_funcs[13])
+        self.level_diffnumber = valueTranformer(rpe_easing.ease_funcs[13], 0.17)
         self._set_level_bar_rightx()
         
         song = self.chapter.songs[self.vaildNowIndex]
