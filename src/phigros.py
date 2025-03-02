@@ -3816,26 +3816,33 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         now_choosediffnum = str(round(chooseControler.level_diffnumber.value))
         level_choose_block_center = tool_funcs.getCenterPointByRect(level_choose_block_rect)
         
-        drawText(
-            level_choose_block_center[0],
-            level_choose_block_center[1] - tool_funcs.getSizeByRect(level_choose_block_rect)[1] * (3 / 14) / 2,
-            now_choosediffnum,
-            font = f"{(w + h) / 85}px pgrFont",
-            textAlign = "center",
-            textBaseline = "middle",
-            fillStyle = "rgb(255, 255, 255)",
-            wait_execute = True
-        )
+        def drawChooseBarDiff(x: float, diffnum: str, diffname: str):
+            drawText(
+                x,
+                level_choose_block_center[1] - tool_funcs.getSizeByRect(level_choose_block_rect)[1] * (3 / 14) / 2,
+                diffnum,
+                font = f"{(w + h) / 85}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "rgb(255, 255, 255)",
+                wait_execute = True
+            )
+            
+            drawText(
+                x,
+                level_choose_block_center[1] + tool_funcs.getSizeByRect(level_choose_block_rect)[1] * (17 / 43) / 2,
+                diffname,
+                font = f"{(w + h) / 157.4}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "rgb(255, 255, 255)",
+                wait_execute = True
+            )
         
-        drawText(
+        drawChooseBarDiff(
             level_choose_block_center[0],
-            level_choose_block_center[1] + tool_funcs.getSizeByRect(level_choose_block_rect)[1] * (17 / 43) / 2,
-            currectSong.difficlty[min(choose_state.diff_index, len(currectSong.difficlty) - 1)].name,
-            font = f"{(w + h) / 157.4}px pgrFont",
-            textAlign = "center",
-            textBaseline = "middle",
-            fillStyle = "rgb(255, 255, 255)",
-            wait_execute = True
+            now_choosediffnum,
+            currectSong.difficlty[min(choose_state.diff_index, len(currectSong.difficlty) - 1)].name
         )
 
         if choose_state.diff_index > len(currectSong.difficlty) - 1:
