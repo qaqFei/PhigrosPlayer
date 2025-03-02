@@ -161,7 +161,7 @@ class SongDifficlty:
     charter: str
     
     def __post_init__(self):
-        self.strdiffnum = str(round(self.level))
+        self.strdiffnum = str(int(self.level))
     
 @dataclass
 class Song:
