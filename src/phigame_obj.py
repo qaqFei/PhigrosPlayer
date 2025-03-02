@@ -754,6 +754,7 @@ class ChooseChartControler:
             valueTranformer(rpe_easing.ease_funcs[13]),
             valueTranformer(rpe_easing.ease_funcs[13])
         )
+        self.level_diffnumber = valueTranformer(rpe_easing.ease_funcs[13])
         self._set_level_bar_rightx()
         
         song = self.chapter.songs[self.vaildNowIndex]
@@ -773,11 +774,16 @@ class ChooseChartControler:
         xs = const.LEVEL_CHOOSE_XMAP[len(song.difficlty) - 1]
         self.level_choose_x.target = xs[min(self.uistate.diff_index, len(xs) - 1)]
         self._set_level_color()
+        self._set_level_diffnumber()
     
     def _set_level_color(self):
         color = const.LEVEL_COLOR_MAP[min(self.uistate.diff_index, len(const.LEVEL_COLOR_MAP) - 1)]
         for i, v in enumerate(color):
             self.level_color[i].target = v
+    
+    def _set_level_diffnumber(self):
+        song = self.chapter.songs[self.vaildNowIndex]
+        self.level_diffnumber.target = song.difficlty[min(self.uistate.diff_index, len(song.difficlty) - 1)].level
     
     def get_level_color(self):
         return tuple(map(lambda x: x.value, self.level_color))
@@ -913,6 +919,7 @@ class ChooseChartControler:
         
 @dataclass
 class ChartChooseUI_State:
+    change_diff_sound: dxsound.directSound
     sort_reverse: bool = False
     sort_method: int = const.PHI_SORTMETHOD.DEFAULT
     is_mirror: bool = False
@@ -920,7 +927,6 @@ class ChartChooseUI_State:
     
     change_diff_callback: typing.Callable[[], typing.Any] = lambda: None
     
-    @tool_funcs.runByThread
     def __post_init__(self):
         self._max_diffindex = 3
             
@@ -940,7 +946,11 @@ class ChartChooseUI_State:
         self.change_diff_callback()
     
     def change_diff_byuser(self, i: int):
+        olddiff = self.diff_index
         self.change_diff(i)
+        
+        if olddiff != i:
+            self.change_diff_sound.play()
     
     @property
     def max_diffindex(self):

@@ -3608,7 +3608,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
     illrespacker.load(*illrespacker.pack())
     
-    choose_state = phigame_obj.ChartChooseUI_State()
+    choose_state = phigame_obj.ChartChooseUI_State(Resource["UISound_2"])
     chooseControler = phigame_obj.ChooseChartControler(chapter_item, w, h, Resource["UISound_5"], choose_state)
     eventManager.regClickEventFs(chooseControler.scter_mousedown, False)
     eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(chooseControler.scter_mouseup))
@@ -3879,6 +3879,19 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             nextUI, tonextUI, tonextUISt = lambda: settingRender(lambda: chooseChartRender(chapter_item)), True, time.time()
             mixer.music.fadeout(500)
             Resource["UISound_2"].play()
+        
+        # 难度选择
+        song = chapter_item.songs[chooseControler.vaildNowIndex]
+        xlist = const.LEVEL_CHOOSE_XMAP[len(song.difficlty) - 1]
+        for i, leftx in enumerate(xlist):
+            leftx *= w
+            rect = (
+                leftx, h * (775 / 1080),
+                leftx + w * 0.0546875, h * (861 / 1080)
+            )
+            
+            if tool_funcs.indrect(x, y, rect, tool_funcs.getDPower(*tool_funcs.getSizeByRect(rect), 75)):
+                choose_state.change_diff_byuser(i)
     
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
