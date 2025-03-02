@@ -3644,6 +3644,9 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             x1 += dpower * (x1 - x0)
             return drawParallax(x0, y0, x1, y1)
         
+        for i in range(max(0, chooseControler.vaildNowCeil - 3), min(len(chapter_item.songs) - 1, chooseControler.vaildNowCeil + 3) + 1):
+            root.run_js_code(f"{root.get_img_jsvarname(f"songill_{chapter_item.songs[i].songId}")}.lazy_load();", add_code_array=True)
+        
         thisSong = chapter_item.songs[chooseControler.vaildNowCeil]
         nextSong = chapter_item.songs[chooseControler.vaildNowNextCeil]
         
@@ -3727,7 +3730,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 wait_execute = True
             )
             
-            if choose_state.diff_index <= len(song.difficlty):
+            if choose_state.diff_index <= len(song.difficlty) - 1:
                 drawText(
                     x + cuttedWidth - w * 0.027625, y,
                     song.difficlty[choose_state.diff_index].strdiffnum,
@@ -3767,8 +3770,13 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             fillStyle = "white",
             wait_execute = True
         )
+
+        drawParallax(
+            w * 0.4375, h * (219 / 1080),
+            w * 0.9453125, h * (733 / 1080)
+        )
         
-        if choose_state.diff_index > len(currectSong.difficlty):
+        if choose_state.diff_index > len(currectSong.difficlty) - 1:
             return
         
         diff = currectSong.difficlty[choose_state.diff_index]
@@ -3791,11 +3799,6 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             textBaseline = "middle",
             fillStyle = "rgb(50, 50, 50)",
             wait_execute = True
-        )
-
-        drawParallax(
-            w * 0.4375, h * (219 / 1080),
-            w * 0.9453125, h * (733 / 1080)
         )
 
     def clickEventCallback(x, y):

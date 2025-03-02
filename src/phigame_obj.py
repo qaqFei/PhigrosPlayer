@@ -546,6 +546,9 @@ class SlideControler:
         self.easeEndXCallback = lambda: None
         self.easeEndYCallback = lambda: None
         self.easeScrollCallback = lambda: None
+        
+        self._easeBackXEvents: list[threading.Event] = []
+        self._easeBackYEvents: list[threading.Event] = []
     
     def mouseDown(self, x: int, y: int):
         if not self.eventRect(x, y):
@@ -627,8 +630,16 @@ class SlideControler:
         else:
             dx = cdx - target
         
+        for e in self._easeBackXEvents.copy():
+            e.clear()
+            self._easeBackXEvents.remove(e)
+        
+        myevent = threading.Event()
+        myevent.set()
+        self._easeBackXEvents.append(myevent)
+        
         lastv, av, ast = 0.0, 0.0, time.time()
-        while True:
+        while myevent.is_set():
             p = (time.time() - ast) / 0.75
             if p > 1.0:
                 self._dx += dx - av
@@ -663,8 +674,16 @@ class SlideControler:
         else:
             dy = cdy - target
         
+        for e in self._easeBackYEvents.copy():
+            e.clear()
+            self._easeBackYEvents.remove(e)
+        
+        myevent = threading.Event()
+        myevent.set()
+        self._easeBackYEvents.append(myevent)
+        
         lastv, av, ast = 0.0, 0.0, time.time()
-        while True:
+        while myevent.is_set():
             p = (time.time() - ast) / 0.75
             if p > 1.0:
                 self._dy += dy - av
@@ -766,7 +785,7 @@ class ChartChooseUI_State:
     sort_reverse: bool = False
     sort_method: int = const.PHI_SORTMETHOD.DEFAULT
     is_mirror: bool = False
-    diff_index: int = 0
+    diff_index: int = 3
 
     def next_sort_method(self):
         tempmethod = self.sort_method + 1

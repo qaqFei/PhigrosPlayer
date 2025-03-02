@@ -381,17 +381,19 @@ void main() {
 
     function blurImg(im, r) {
         let cv = document.createElement("canvas");
+
         const _draw = () => {
+            console.log("draw", im.width, im.height, cv);
             cv.width = im.width;
             cv.height = im.height;
             let ctx = cv.getContext("2d");
             ctx.filter = `blur(${r}px)`;
             ctx.drawImage(im, 0, 0);
-            return cv;
         }
         _draw();
+
         if (im instanceof HTMLImageElement) {
-            im.onload = _draw;
+            addFunc(im, "onload", _draw);
         }
         return cv;
     }
@@ -558,6 +560,8 @@ void main() {
         if (im.nobitmap_tag) return im;
         if (lowquality_imweakmap.has(im)) return lowquality_imweakmap.get(im);
 
+        addFunc(im, "onload", () => deleteLowQualityImage(im), "tag-tlqi");
+
         if (
             lowquality_imjscvscale_x != 1.0
             && im.width > lowquality_imjs_maxsize
@@ -596,18 +600,61 @@ void main() {
         return im;
     }
 
-    Image.prototype._lazy_load = function () {
-        if (self._lazy_seted) return;
+    function addFunc(obj, name, newfunc, options) {
+        options = options ? options : {};
+        tag = options.tag;
 
-        this._lazy_seted = true;
+        if (tag) {
+            if (obj[`_addfunc_has_${tag}`]) return;
+            obj[`_addfunc_has_${tag}`] = true;
+        }
+
+        if (obj[`_addfunc_${name}`] === undefined) {
+            obj[`_addfunc_${name}`] = [];
+        }
+
+        obj[`_addfunc_${name}`].push({
+            func: newfunc,
+            options: options
+        });
+
+        if (!obj[name]) {
+            obj[name] = function (...args) {
+                for (const func of obj[`_addfunc_${name}`]) {
+                    func.func(...args);
+
+                    if (func.options.once) {
+                        obj[`_addfunc_${name}`].splice(obj[`_addfunc_${name}`].indexOf(func), 1);
+                    }
+                }
+            }
+        }
+    }
+
+    Image.prototype.enable_lazy_load = function (real_srcs) {
+        this._enable_lazy_load = true;
+        this._lazy_realsrcs = real_srcs;
+        this._lazy_load_index = -1;
         this._lazy_loaded = false;
-        this.src = this._lazy_realsrc;
-        const rawonload = this.onload;
+        this._lazy_load_started = false;
+    }
 
-        this.onload = () => {
-            this._lazy_loaded = true;
-            if (rawonload) rawonload();
-        };
+    Image.prototype.lazy_load = function () {
+        if (!this._enable_lazy_load || this._lazy_loaded || this._lazy_load_started) return;
+        this._lazy_load_started = true;
+
+        addFunc(this, "onload", () => {
+            this._lazy_load_index++;
+
+            if (this._lazy_load_index >= this._lazy_realsrcs.length) {
+                this._lazy_loaded = true;
+                return;
+            }
+
+            this.src = this._lazy_realsrcs[this._lazy_load_index];
+        });
+
+        this.onload();
     }
 
     CanvasRenderingContext2D.prototype._drawImage = CanvasRenderingContext2D.prototype.drawImage;
@@ -616,10 +663,10 @@ void main() {
         args[1] += this.drawImageDx ? this.drawImageDx : 0;
         args[2] += this.drawImageDy ? this.drawImageDy : 0;
 
-        let need_logerr = false;
+        let need_logerr = true;
 
-        if (args[0]._lazy_realsrc && !args[0]._lazy_loaded) {
-            args[0]._lazy_load();
+        if (args[0]._enable_lazy_load && !args[0]._lazy_load_started) {
+            args[0].lazy_load();
             args[0] = null;
             need_logerr = false;
         }

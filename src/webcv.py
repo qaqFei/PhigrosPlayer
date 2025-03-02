@@ -257,46 +257,57 @@ class PILResPacker:
 class LazyPILResPacker:
     def __init__(self, cv: WebCanvas):
         self.cv = cv
-        self.imgs: list[tuple[str, Image.Image|bytes|str]] = []
+        self.imgs: dict[str, list[Image.Image|bytes|str]] = {}
         self._imgcache: dict[str, bytes] = {}
         self._loadcbs: dict[str, typing.Callable[[], bytes]] = {}
     
     def reg_img(self, img: Image.Image|bytes|str, name: str):
-        self.imgs.append((name, img))
+        if name not in self.imgs:
+            self.imgs[name] = []
+            
+        self.imgs[name].append(img)
     
     def pack(self):
         return ()
     
-    def _create_loadcb(self, name: str):
+    def _create_loadcb(self, name: str, index: int):
         def loadcb():
-            if name in self._imgcache:
-                return self._imgcache[name]
+            key = (name, index)
+            if key in self._imgcache:
+                return self._imgcache[key]
             
-            data = _packerimg2bytes([i for i in self.imgs if i[0] == name][0][1])
-            self._imgcache[name] = data
+            data = _packerimg2bytes(self.imgs[name][index])
+            self._imgcache[key] = data
             return data
         
         return loadcb
     
     def load(self):
         imnames = self.getnames()
-        loadcbs: dict[str, typing.Callable[[], bytes]] = {
-            name: self._create_loadcb(name)
+        loadcbs: dict[tuple[str, int], typing.Callable[[], bytes]] = {
+            (name, index): self._create_loadcb(name, index)
             for name in imnames
+            for index in range(len(self.imgs[name]))
         }
         codes = []
         
-        for name, cb in loadcbs.items():
-            self.cv.reg_rescb(cb, name)
-            codes.append(f"{self.cv.get_img_jsvarname(name)} = new Image();")
-            codes.append(f"{self.cv.get_img_jsvarname(name)}._lazy_realsrc = '{self.cv.get_resource_path(name)}';")
+        for (name, index), cb in loadcbs.items():
+            self.cv.reg_rescb(cb, f"lazy-{name}-{index}")
+            jvn = self.cv.get_img_jsvarname(name)
+            
+            if index == 0:
+                codes.append(f"{jvn} = new Image();")
+            
+            if index == len(self.imgs[name]) - 1:
+                srcs = [self.cv.get_resource_path(f"lazy-{name}-{i}") for i in range(len(self.imgs[name]))]
+                codes.append(f"{jvn}.enable_lazy_load({srcs});")
         
         self.cv.run_js_code("".join(codes))
         
         self._loadcbs.update(loadcbs)
     
     def getnames(self):
-        return [name for name, _ in self.imgs]
+        return [name for name, _ in self.imgs.items()]
     
     def unload(self, names: list[str]):
         codes = []
