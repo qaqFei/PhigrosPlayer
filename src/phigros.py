@@ -3584,6 +3584,7 @@ def chartPlayerRender(
                 )
                 root.run_js_code("ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
         elif tonextUI:
+            mixer.music.stop()
             clearCanvas(wait_execute = True)
             root.run_js_code(f"dialog_canvas_ctx.clear()", add_code_array = True)
             root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", add_code_array = True)
@@ -3619,6 +3620,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     clickedBackButton = False
+    immediatelyExitRender = False
     
     def unregEvents():
         eventManager.unregEvent(clickBackButtonEvent)
@@ -3895,6 +3897,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
 
     def clickEventCallback(x, y):
         nonlocal nextUI, tonextUI, tonextUISt
+        nonlocal immediatelyExitRender
         
         # 反转排序
         if tool_funcs.inrect(x, y, (
@@ -3949,10 +3952,49 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             
             if tool_funcs.indrect(x, y, rect, tool_funcs.getDPower(*tool_funcs.getSizeByRect(rect), 75)):
                 choose_state.change_diff_byuser(i)
-    
+        
+        # 开始
+        if tool_funcs.indrect(x, y, playButtonRect, tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)):
+            unregEvents()
+            
+            song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
+            diff = song.difficlty[min(choose_state.diff_index, len(song.difficlty) - 1)]
+            chart_information = {
+                "Name": song.name,
+                "Artist": song.composer,
+                "Level": f"{diff.name}  Lv.{diff.strdiffnum}",
+                "Illustrator": song.iller,
+                "Charter": diff.charter,
+                "BackgroundDim": None
+            }
+            
+            immediatelyExitRender = True
+            chartPlayerRender(
+                chartAudio = tool_funcs.gtpresp(diff.chart_audio),
+                chartImage = tool_funcs.gtpresp(diff.chart_image),
+                chartFile = tool_funcs.gtpresp(diff.chart_file),
+                startAnimation = True,
+                chart_information = chart_information,
+                blackIn = False,
+                foregroundFrameRender = lambda: _render(False),
+                nextUI = lambda: chooseChartRender(chapter_item)
+            )
+            
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
-    while True:
+    songShadowRect = None
+    chartsShadowRect = None
+    chartsShadowDPower = None
+    mirrorButtonRect = None
+    playButtonRect = None
+    
+    def _render(rjc: bool = True):
+        nonlocal songShadowRect
+        nonlocal chartsShadowRect
+        nonlocal chartsShadowDPower
+        nonlocal mirrorButtonRect
+        nonlocal playButtonRect
+        
         clearCanvas(wait_execute = True)
         
         ctxSave(wait_execute=True)
@@ -4181,12 +4223,19 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             clearCanvas(wait_execute = True)
             root.run_js_wait_code()
             Thread(target=nextUI, daemon=True).start()
-            break
+            return True
         
-        root.run_js_wait_code()
-        
-    eventManager.unregEventByChooseChartControl(chooseControler)
-    illrespacker.unload(illrespacker.getnames())
+        if rjc:
+            root.run_js_wait_code()
+    
+    def _whenexit():
+        eventManager.unregEventByChooseChartControl(chooseControler)
+        # illrespacker.unload(illrespacker.getnames())
+    
+    while _render() is None and not immediatelyExitRender:
+        ...
+    
+    _whenexit()
     
 def updateFontSizes():
     global userName_FontSize

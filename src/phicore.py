@@ -1269,16 +1269,13 @@ def getFontSize(text: str, maxwidth: float, maxsize: float, font: str = "pgrFont
     return min(maxsize, maxwidth / w1px)
 
 def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None) -> chartobj_phi.FrameRenderTask:
-    Task = chartobj_phi.FrameRenderTask([], [])
-    
-    if clear: Task(clearCanvas, wait_execute = True)
+    if clear: clearCanvas(wait_execute=True)
     all_ease_value = tool_funcs.begin_animation_eases.im_ease(p)
     background_ease_value = tool_funcs.begin_animation_eases.background_ease(p) * 1.25
     info_data_ease_value = tool_funcs.begin_animation_eases.info_data_ease((p - 0.2) * 3.25)
     info_data_ease_value_2 = tool_funcs.begin_animation_eases.info_data_ease((p - 0.275) * 3.25)
     
-    Task(drawBg)
-    fcb()
+    drawBg()
     
     blackShadowRect = (
         0, 0,
@@ -1292,15 +1289,22 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         (0, h),
         (0, 0)
     )
-    Task(
-        drawPolygon,
+    
+    ctxSave(wait_execute=True)
+    ctxBeginPath(wait_execute=True)
+    ctxRect(0, 0, w, h, wait_execute=True)
+    doPolygon(blackShadowPolygon, wait_execute = True)
+    ctxClip("evenodd", wait_execute=True)
+    fcb()
+    ctxRestore(wait_execute=True)
+    
+    drawPolygon(
         blackShadowPolygon,
         fillStyle = f"rgba(0, 0, 0, {0.75 * (1 - p)})",
         wait_execute = True
     )
     
-    Task(
-        root.run_js_code,
+    root.run_js_code(
         f"ctx.translate({all_ease_value * w}, 0.0);",
         add_code_array = True
     )
@@ -1309,8 +1313,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     infoframe_y = h * (362 / 1080)
     infoframe_width = w * 0.3859375
     infoframe_height = h * (143 / 1080)
-    Task(
-        drawPolygon,
+    drawPolygon(
         tool_funcs.rect2drect(
             (
                 infoframe_x, infoframe_y,
@@ -1327,8 +1330,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     levelframe_y = h * (355 / 1080)
     levelframe_width = w * 0.0984375
     levelframe_height = h * (157 / 1080)
-    Task(
-        drawPolygon,
+    drawPolygon(
         tool_funcs.rect2drect(
             (
                 levelframe_x, levelframe_y,
@@ -1341,8 +1343,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         wait_execute = True
     )
     
-    Task(
-        drawText,
+    drawText(
         w * 0.1,
         h * (416 / 1080),
         text = chart_name_text,
@@ -1353,8 +1354,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         wait_execute = True
     )
     
-    Task(
-        drawText,
+    drawText(
         w * 0.0984375,
         h * (467 / 1080),
         text = chart_artist_text,
@@ -1365,8 +1365,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         wait_execute = True
     )
     
-    Task(
-        drawText,
+    drawText(
         w * 0.390625,
         h * (424 / 1080),
         text = chart_level_number,
@@ -1377,8 +1376,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         wait_execute = True
     )
     
-    Task(
-        drawText,
+    drawText(
         w * 0.390625,
         h * (467 / 1080),
         text = chart_level_text,
@@ -1390,8 +1388,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     )
     
     tipalpha = tool_funcs.begin_animation_eases.tip_alpha_ease(p)
-    Task(
-        drawText,
+    drawText(
         w * 0.053125,
         h * (1004 / 1080),
         text = f"Tip: {tip}",
@@ -1419,8 +1416,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     
     loadingBlockLeft = loadingBlockX if loadingBlockState == 0 else (loadingBlockX + loadingBlockEasing * loadingBlockWidth)
     loadingBlockRight = (loadingBlockX + loadingBlockWidth) if loadingBlockState == 1 else (loadingBlockX + loadingBlockEasing * loadingBlockWidth)
-    Task(
-        root.run_js_code,
+    root.run_js_code(
         f"ctx.fillRectEx(\
             {loadingBlockLeft}, {loadingBlockY}, {loadingBlockRight - loadingBlockLeft}, {loadingBlockHeight},\
             'rgba(255, 255, 255, {tipalpha})'\
@@ -1429,8 +1425,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     )
     
     def drawLoading(x0: float, x1: float, color: str):
-        Task(
-            root.run_js_code,
+        root.run_js_code(
             f"ctx.drawClipXText(\
                 'Loading...',\
                 {loadingBlockX + loadingBlockWidth / 2},\
@@ -1448,8 +1443,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     info_charter_dx = (1 - info_data_ease_value) * -1 * w * 0.075
     info_ill_dx = (1 - info_data_ease_value_2) * -1 * w * 0.075
     
-    Task(
-        drawText,
+    drawText(
         w * 0.1265625 + info_charter_dx,
         h * (561 / 1080),
         text = "Chart",
@@ -1460,8 +1454,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         wait_execute = True
     )
     
-    Task(
-        drawText,
+    drawText(
         w * 0.1265625 + info_charter_dx,
         h * (590 / 1080),
         text = chart_charter_text,
@@ -1472,8 +1465,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         wait_execute = True
     )
     
-    Task(
-        drawText,
+    drawText(
         w * 0.1125 + info_ill_dx,
         h * (645 / 1080),
         text = "Illustration",
@@ -1484,8 +1476,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         wait_execute = True
     )
     
-    Task(
-        drawText,
+    drawText(
         w * 0.1109375 + info_ill_dx,
         h * (677 / 1080),
         text = chart_illustrator_text,
@@ -1496,39 +1487,27 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         wait_execute = True
     )
     
-    baimg_w = w * 0.5078125
-    baimg_h = h * (512 / 1080)
-    dpower = tool_funcs.getDPower(baimg_w, baimg_h, 75)
-    
-    baimg_rawr = chart_image.width / chart_image.height
-    baimg_r = baimg_w / baimg_h
-    if baimg_rawr > baimg_r:
-        baimg_draww = baimg_h * baimg_rawr
-        baimg_drawh = baimg_h
-    else:
-        baimg_draww = baimg_w
-        baimg_drawh = baimg_w / baimg_rawr
-    
-    Task(
-        root.run_js_code,
-        f"ctx.drawDiagonalRectangleClipImage(\
-            {w * 0.690625 - baimg_w / 2}, {h * (476 / 1080) - baimg_h / 2},\
-            {w * 0.690625 + baimg_w / 2}, {h * (476 / 1080) + baimg_h / 2},\
+    baimg_x0 = w * 0.4375
+    baimg_x1 = w * 0.9453125
+    baimg_y1 = h * (733 / 1080)
+    baimg_y0 = h * (219 / 1080)
+    dpower = tool_funcs.getDPower(baimg_x1 - baimg_x0, baimg_y1 - baimg_y0, 75)
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
+            {baimg_x0}, {baimg_y0},\
+            {baimg_x1}, {baimg_y1},\
             {root.get_img_jsvarname("chart_image")},\
-            {baimg_w / 2 - baimg_draww / 2}, {baimg_h / 2 - baimg_drawh / 2},\
-            {baimg_draww}, {baimg_drawh}, {dpower}, 1.0\
+            {baimg_y1 - baimg_y0}, {dpower}, 1.0\
         );",
         add_code_array = True
     )
     
-    Task(
-        root.run_js_code,
+    root.run_js_code(
         f"ctx.translate(-{all_ease_value * w},0.0);",
         add_code_array = True
     )
     
-    Task(root.run_js_wait_code)
-    return Task
+    root.run_js_wait_code()
 
 def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None):
     global chart_name_text, chart_name_font_text_size
@@ -1573,8 +1552,7 @@ def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = 
         if p > 1.0:
             break
         
-        Task = loadingAnimationFrame(p, sec, clear, fcb)
-        Task.ExecTask()
+        loadingAnimationFrame(p, sec, clear, fcb)
         
 def lineOpenAnimation(fcb: typing.Callable[[], typing.Any] = lambda: None):
     csat = 1.25

@@ -109,6 +109,15 @@ def drawText(
     code.append(f"{ctx}.restore();")
     root.run_js_code("".join(code), wait_execute, order)
 
+def doPolygon(
+    points: typing.Iterable[tuple[number, number]],
+    wait_execute: bool = False
+):
+    code = []
+    code.append(f"{ctx}.moveTo({points[0][0]}, {points[0][1]});")
+    code.extend(f"{ctx}.lineTo({x}, {y});" for x, y in points[1:])
+    root.run_js_code("".join(code), wait_execute, order)
+
 def drawPolygon(
     points: typing.Iterable[tuple[number, number]],
     fillStyle: str = transparent,
@@ -123,9 +132,11 @@ def drawPolygon(
     code.append(f"{ctx}.strokeStyle = '{strokeStyle}';") if method == "stroke" else None
     code.append(f"{ctx}.lineWidth = {lineWidth};")
     code.append(f"{ctx}.beginPath();")
-    code.append(f"{ctx}.moveTo({points[0][0]}, {points[0][1]});")
-    code.extend(f"{ctx}.lineTo({x}, {y});" for x, y in points[1:])
-    code.append(f"{ctx}.closePath();")
+    root.run_js_code("".join(code), wait_execute, order)
+    
+    doPolygon(points, wait_execute)
+    
+    code = []
     code.append(f"{ctx}.fill();") if method == "fill" else None
     code.append(f"{ctx}.stroke();") if method == "stroke" else None
     code.append(f"{ctx}.restore();")
