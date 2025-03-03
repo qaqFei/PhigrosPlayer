@@ -43,6 +43,8 @@ def start_server(window: webcv.WebCanvas, addr: str, port: int):
                     case "jsapi_callback":
                         window.jsapi.call_attr(data["name"], *data["args"])
             
+    sendlock = threading.Lock()
+    
     def evaljs(
         code: str,
         needresult: bool = True,
@@ -50,11 +52,16 @@ def start_server(window: webcv.WebCanvas, addr: str, port: int):
     ):
         tid = random.randint(0, 2 << 31)
         tasks[tid] = ValueEvent()
-        asyncio.run(client.wait().send(json.dumps({
+        
+        protocol: websockets.WebSocketServerProtocol = client.wait()
+        
+        sendlock.acquire()
+        asyncio.run(protocol.send(json.dumps({
             "type": "evaljs",
             "code": code,
             "tid": tid
         }, ensure_ascii=False) + split_magic))
+        sendlock.release()
         
         if needresult:
             return tasks[tid].wait()
