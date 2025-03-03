@@ -962,6 +962,7 @@ class ChartChooseUI_State:
     sort_reverse: bool = False
     sort_method: int = const.PHI_SORTMETHOD.DEFAULT
     is_mirror: bool = False
+    is_autoplay: bool = False
     diff_index: int = 0
     
     change_diff_callback: typing.Callable[[], typing.Any] = lambda: None
@@ -979,6 +980,9 @@ class ChartChooseUI_State:
     
     def change_mirror(self):
         self.is_mirror = not self.is_mirror
+    
+    def change_autoplay(self):
+        self.is_autoplay = not self.is_autoplay
     
     def change_diff(self, i: int):
         self.diff_index = min(i, self.max_diffindex)

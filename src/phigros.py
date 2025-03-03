@@ -3277,7 +3277,8 @@ def chartPlayerRender(
     foregroundFrameRender: typing.Callable[[], typing.Any],
     renderRelaser: typing.Callable[[], typing.Any],
     nextUI: typing.Callable[[], typing.Any],
-    font_options: typing.Optional[dict] = None
+    font_options: typing.Optional[dict] = None,
+    autoplay: bool = False
 ):
     global raw_audio_length
     global show_start_time
@@ -3331,9 +3332,9 @@ def chartPlayerRender(
             LoadSuccess = LoadSuccess, chart_res = {},
             cksmanager = cksmanager,
             enable_clicksound = getUserData("setting-enableClickSound"),
-            noautoplay = "--debug" not in sys.argv, showfps = "--debug" in sys.argv,
+            noautoplay = not autoplay, showfps = "--debug" in sys.argv,
             debug = "--debug" in sys.argv,
-            combotips = "COMBO" if "--debug" not in sys.argv else "AUTOPLAY",
+            combotips = "COMBO" if not autoplay else "AUTOPLAY",
             clicksound_volume = getUserData("setting-clickSoundVolume"),
             musicsound_volume = getUserData("setting-musicVolume")
         )
@@ -3454,7 +3455,8 @@ def chartPlayerRender(
                     blackIn = True,
                     foregroundFrameRender = lambda: None,
                     renderRelaser = lambda: None,
-                    nextUI = nextUIBak
+                    nextUI = nextUIBak,
+                    autoplay = autoplay
                 ), True, time.time()
                 
             elif paused and tool_funcs.inrect(x, y, (
@@ -3978,6 +3980,10 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         if tool_funcs.inrect(x, y, mirrorButtonRect):
             choose_state.change_mirror()
         
+        # 自动游玩
+        if tool_funcs.inrect(x, y, autoplayButtonRect):
+            choose_state.change_autoplay()
+        
         # 随机
         if tool_funcs.inrect(x, y, (
             w * 0.375825 - RandomIconWidth / 2,
@@ -4043,7 +4049,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     "songComposerFontSize": song.currSong_composerFontSize,
                     "levelNumberFontSize": (w + h) / 44.5,
                     "levelNameFontSize": (w + h) / 125
-                }
+                },
+                autoplay = choose_state.is_autoplay
             )
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
@@ -4051,14 +4058,14 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     songShadowRect = None
     chartsShadowRect = None
     chartsShadowDPower = None
-    mirrorButtonRect = None
+    mirrorButtonRect, autoplayButtonRect = None, None
     playButtonRect = None
     
     def _render(rjc: bool = True):
         nonlocal songShadowRect
         nonlocal chartsShadowRect
         nonlocal chartsShadowDPower
-        nonlocal mirrorButtonRect
+        nonlocal mirrorButtonRect, autoplayButtonRect
         nonlocal playButtonRect
         
         clearCanvas(wait_execute = True)
@@ -4168,7 +4175,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, mirrorButtonRect))},\
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(mirrorButtonRect), 75)},\
-                '{"rgba(0, 0, 0, 0.55)" if not choose_state.is_mirror else "rgb(255, 255, 255)"}'\
+                '{"rgba(0, 0, 0, 0.4)" if not choose_state.is_mirror else "rgb(255, 255, 255)"}'\
             );",
             add_code_array = True
         )
@@ -4176,10 +4183,33 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         drawText(
             *tool_funcs.getCenterPointByRect(mirrorButtonRect),
             "Mirror",
-            font = f"{(w + h) / 125}px pgrFont",
+            font = f"{(w + h) / 130}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
-            fillStyle = "rgba(255, 255, 255, 0.8)" if not choose_state.is_mirror else "rgb(0, 0, 0, 0.8)",
+            fillStyle = "rgba(223, 223, 223, 0.75)" if not choose_state.is_mirror else "rgb(0, 0, 0, 0.8)",
+            wait_execute = True
+        )
+        
+        autoplayButtonRect = (
+            w * 0.4923828125, h * (897 / 1080),
+            w * 0.5689453125, h * (947 / 1080)
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, autoplayButtonRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(autoplayButtonRect), 75)},\
+                '{"rgba(0, 0, 0, 0.4)" if not choose_state.is_autoplay else "rgb(255, 255, 255)"}'\
+            );",
+            add_code_array = True
+        )
+        
+        drawText(
+            *tool_funcs.getCenterPointByRect(autoplayButtonRect),
+            "Autoplay",
+            font = f"{(w + h) / 130}px pgrFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "rgba(223, 223, 223, 0.75)" if not choose_state.is_autoplay else "rgb(0, 0, 0, 0.8)",
             wait_execute = True
         )
         
