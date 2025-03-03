@@ -189,6 +189,7 @@ def loadResource():
     global SortIconWidth, SortIconHeight
     global RandomIconWidth, RandomIconHeight
     global ChartChooseSettingIconWidth, ChartChooseSettingIconHeight
+    global MirrorIconWidth, MirrorIconHeight
     global LoadSuccess
     
     logging.info("Loading Resource...")
@@ -244,6 +245,7 @@ def loadResource():
         "close": Image.open("./resources/close.png"),
         "sort": Image.open("./resources/sort.png"),
         "Random": Image.open("./resources/Random.png"),
+        "mirror": Image.open("./resources/mirror.png"),
     }
     
     Resource.update(phi_rpack.createResourceDict())
@@ -292,6 +294,7 @@ def loadResource():
     respacker.reg_img(Resource["close"], "close")
     respacker.reg_img(Resource["sort"], "sort")
     respacker.reg_img(Resource["Random"], "Random")
+    respacker.reg_img(Resource["mirror"], "mirror")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -318,6 +321,8 @@ def loadResource():
     RandomIconHeight = RandomIconWidth / Resource["Random"].width * Resource["Random"].height
     ChartChooseSettingIconWidth = w * 0.018
     ChartChooseSettingIconHeight = ChartChooseSettingIconWidth / Resource["setting"].width * Resource["setting"].height
+    MirrorIconWidth = w * 0.108925
+    MirrorIconHeight = MirrorIconWidth / Resource["mirror"].width * Resource["mirror"].height
     
     for k,v in Resource["levels"].items():
         respacker.reg_img(v, f"Level_{k}")
@@ -3805,11 +3810,26 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             wait_execute = True
         )
 
-        drawParallax(
+        previewParallaxRect = (
             w * 0.4375, h * (219 / 1080),
             w * 0.9453125, h * (733 / 1080)
         )
+        drawParallax(*previewParallaxRect)
         
+        if choose_state.is_mirror:
+            mirrorIconLeft = (
+                previewParallaxRect[0] + 
+                tool_funcs.getSizeByRect(previewParallaxRect)[0]
+                * tool_funcs.getDPower(*tool_funcs.getSizeByRect(previewParallaxRect), 75)
+            ) - const.MIRROR_ICON_LEFT * MirrorIconWidth
+            
+            drawImage(
+                "mirror",
+                mirrorIconLeft, previewParallaxRect[1],
+                MirrorIconWidth, MirrorIconHeight,
+                wait_execute = True
+            )
+
         level_bar_right = w * chooseControler.level_bar_rightx.value
         level_bar_rect = (
             w * 0.41875, h * (779 / 1080),
@@ -3907,18 +3927,19 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             wait_execute = True
         )
     
-    last_resort_method = (choose_state.sort_reverse, choose_state.sort_method)
+    get_now_sortmethod = lambda: (choose_state.sort_reverse, choose_state.sort_method, choose_state.diff_index)
+    last_sort_method = get_now_sortmethod()
     def resort():
-        nonlocal last_resort_method
+        nonlocal last_sort_method
         
-        this_method = (choose_state.sort_reverse, choose_state.sort_method)
-        if this_method == last_resort_method:
+        this_sort_method = get_now_sortmethod()
+        if this_sort_method == last_sort_method:
             return
         
         song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
         chapter_item.scsd_songs[:] = choose_state.dosort(chapter_item)
         chooseControler.setto_index(chapter_item.scsd_songs.index(song))
-        last_resort_method = this_method
+        last_sort_method = this_sort_method
 
     def clickEventCallback(x, y):
         nonlocal nextUI, tonextUI, tonextUISt

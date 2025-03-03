@@ -129,6 +129,7 @@ REPO_URL = "https://github.com/qaqFei/PhigrosPlayer"
 BASE_PORT = 16384
 MAX_PORT = 65535
 PGR_INF = 999999.0
+MIRROR_ICON_LEFT = 1 / 5.72
 ClickEffectType = list[tuple[float, tuple[tuple[float, ...]], typing.Callable[[float|int, float|int], tuple[float, float]]]]
 BadEffectType = list[tuple[float, float, tuple[float, float]]]
 MissEffectType = list[tuple[float, typing.Any]] # emm, typing.Any is a note typing.Any
