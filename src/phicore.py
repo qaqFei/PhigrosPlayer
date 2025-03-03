@@ -1684,9 +1684,28 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         f"ctx.drawDiagonalRectangleClipImage(\
             {w * 0.315625 - baimg_w / 2 + im_ease_pos}, {h * (539 / 1080) - baimg_h / 2},\
             {w * 0.315625 + baimg_w / 2 + im_ease_pos}, {h * (539 / 1080) + baimg_h / 2},\
-            {root.get_img_jsvarname("chart_image_gradientblack")},\
+            {root.get_img_jsvarname("chart_image")},\
             {baimg_w / 2 - baimg_draww / 2}, {baimg_h / 2 - baimg_drawh / 2},\
             {baimg_draww}, {baimg_drawh}, {dpower}, 1.0\
+        );",
+        add_code_array = True
+    )
+    
+    root.run_js_code(
+        f"ctx.drawDiagonalGrd(\
+            {w * 0.315625 - baimg_w / 2 + im_ease_pos}, {h * (539 / 1080) - baimg_h / 2},\
+            {w * 0.315625 + baimg_w / 2 + im_ease_pos}, {h * (539 / 1080) + baimg_h / 2},\
+            {dpower}, {[
+                [0.0, "rgba(0, 0, 0, 0.0)"],
+                [0.25, "rgba(0, 0, 0, 0.0)"],
+                [0.5, "rgba(0, 0, 0, 0.25)"],
+                [0.75, "rgba(0, 0, 0, 0.5)"],
+                [1.0, "rgba(0, 0, 0, 0.796875)"]
+            ]},\
+            {[
+                0.0, h * (539 / 1080) - baimg_h / 2,
+                0.0, h * (539 / 1080) + baimg_h / 2
+            ]}\
         );",
         add_code_array = True
     )

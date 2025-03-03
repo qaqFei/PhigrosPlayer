@@ -3307,9 +3307,12 @@ def chartPlayerRender(
     respacker = webcv.PILResPacker(root)
     
     root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
-    chart_image = Image.open(chartImage).convert("RGB")
+    
+    chart_image = Image.open(chartImage)
+    if chart_image.mode != "RGB":
+        chart_image = chart_image.convert("RGB")
+        
     background_image_blur = chart_image.filter(ImageFilter.GaussianBlur(sum(chart_image.size) / 50))
-    respacker.reg_img(background_image_blur, "background_blur")
     
     chart_image_gradientblack_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
     chart_image_gradientblack_mask.putpixel((0, 4), (0, 0, 0, 204))
@@ -3322,6 +3325,7 @@ def chartPlayerRender(
     
     respacker.reg_img(chart_image, "chart_image")
     respacker.reg_img(chart_image_gradientblack, "chart_image_gradientblack")
+    respacker.reg_img(background_image_blur, "background_blur")
     
     respacker.load(*respacker.pack())
     

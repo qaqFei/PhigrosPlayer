@@ -905,6 +905,10 @@ void main() {
     }
 
     CanvasRenderingContext2D.prototype._diagonalRectangle = function(x0, y0, x1, y1, power) {
+        x0 = Math.floor(x0);
+        y0 = Math.floor(y0);
+        x1 = Math.floor(x1);
+        y1 = Math.floor(y1);
         this.moveTo(x0 + (x1 - x0) * power, y0);
         this.lineTo(x1, y0);
         this.lineTo(x1 - (x1 - x0) * power, y1);
@@ -975,6 +979,31 @@ void main() {
         this._diagonalRectangle(x0, y0, x1, y1, power);
         this.clip();
         this.drawImage(im, x0 + imx, y0 + imy, imw, imh);
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawGrd = function(grdpos, steps, x0, y0, x1, y1) {
+        const grd = this.createLinearGradient(...grdpos);
+        for (const step of steps) {
+            grd.addColorStop(...step);
+        }
+
+        x0 = Math.floor(x0);
+        y0 = Math.floor(y0);
+        x1 = Math.floor(x1);
+        y1 = Math.floor(y1);
+        this.save();
+        this.fillStyle = grd;
+        this.fillRect(x0, y0, x1 - x0, y1 - y0);
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.drawDiagonalGrd = function(x0, y0, x1, y1, power, steps, grdpos) {
+        this.save();
+        this.beginPath();
+        this._diagonalRectangle(x0, y0, x1, y1, power);
+        this.clip();
+        this.drawGrd(grdpos, steps, x0, y0, x1, y1);
         this.restore();
     }
 
