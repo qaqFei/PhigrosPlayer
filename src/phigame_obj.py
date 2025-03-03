@@ -914,7 +914,8 @@ class ChooseChartControler:
 
                     time.sleep(1 / 20)
                 
-                self._start_preview()
+                if self._preview_playing is not None:
+                    self._start_preview()
     
     def setto_index(self, index: int):
         targetDy = min(max(0, index), len(self.chapter.scsd_songs) - 1) * self.itemHeight

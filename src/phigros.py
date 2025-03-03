@@ -3293,6 +3293,7 @@ def chartPlayerRender(
     )
     note_max_size_half = ((note_max_width ** 2 + note_max_height ** 2) ** 0.5) / 2
     
+    print("start", time.perf_counter())
     chart_information["BackgroundDim"] = 1.0 - getUserData("setting-backgroundDim")
     chartJsonData: dict = json.loads(open(chartFile, "r", encoding="utf-8").read())
     CHART_TYPE = const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else const.CHART_TYPE.RPE
@@ -3306,7 +3307,7 @@ def chartPlayerRender(
     respacker = webcv.PILResPacker(root)
     
     root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
-    chart_image = Image.open(chartImage)
+    chart_image = Image.open(chartImage).convert("RGB")
     background_image_blur = chart_image.filter(ImageFilter.GaussianBlur(sum(chart_image.size) / 50))
     respacker.reg_img(background_image_blur, "background_blur")
     
@@ -3315,10 +3316,7 @@ def chartPlayerRender(
     chart_image_gradientblack_mask.putpixel((0, 3), (0, 0, 0, 128))
     chart_image_gradientblack_mask.putpixel((0, 2), (0, 0, 0, 64))
     
-    animation_image = chart_image.copy().convert("RGBA")
-    tool_funcs.cutAnimationIllImage(animation_image)
-    
-    chart_image_gradientblack = chart_image.copy().convert("RGBA")
+    chart_image_gradientblack = chart_image.copy()
     chart_image_gradientblack_mask = chart_image_gradientblack_mask.resize(chart_image_gradientblack.size)
     chart_image_gradientblack.paste(chart_image_gradientblack_mask, (0, 0), chart_image_gradientblack_mask)
     
@@ -3350,6 +3348,7 @@ def chartPlayerRender(
     )
     phicore.CoreConfigure(coreConfig)
     loaded_event.set()
+    print("end", time.perf_counter())
     
     if startAnimation:
         phicore.loadingAnimation(False, foregroundFrameRender, font_options)

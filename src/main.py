@@ -316,10 +316,7 @@ def loadResource():
     background_image_blur = chart_image.filter(ImageFilter.GaussianBlur(sum(chart_image.size) / 50))
     respacker.reg_img(background_image_blur, "background_blur")
     
-    animation_image = chart_image.convert("RGBA")
-    tool_funcs.cutAnimationIllImage(animation_image)
-    
-    chart_image_gradientblack = animation_image.copy()
+    chart_image_gradientblack = chart_image.copy()
     chart_image_gradient = tool_funcs.createDownBlockImageGrd().resize(chart_image_gradientblack.size)
     chart_image_gradientblack.paste(chart_image_gradient, (0, 0), chart_image_gradient)
     

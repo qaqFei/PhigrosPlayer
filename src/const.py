@@ -59,6 +59,9 @@ class LINEWIDTH:
     PHI = 0.0075
     RPE = 1 / 180
 
+class SPEC_VALS:
+    RES_NOLOADED = object()
+
 TYPE_STRING_MAP = {
     NOTE_TYPE.TAP: "Tap",
     NOTE_TYPE.DRAG: "Drag",
