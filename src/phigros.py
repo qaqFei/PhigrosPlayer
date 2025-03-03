@@ -118,7 +118,20 @@ dspSettingWidgets: dict[str, phigame_obj.PhiBaseWidget] = {}
 
 def loadChapters():
     global Chapters, ChaptersMaxDx
-    jsonData = json.loads(open(tool_funcs.gtpresp("chapters.json"), "r", encoding="utf-8").read())
+    
+    jsonData: dict = json.loads(open(tool_funcs.gtpresp("chapters.json"), "r", encoding="utf-8").read())
+    jsonData["chapters"].insert(0, {
+        "name": "Phigros",
+        "cn-name": "",
+        "o-name": "",
+        "image": "/../resources/AllSong.png",
+        "songs": [
+            j
+            for i in jsonData["chapters"]
+            for j in i["songs"]
+        ]
+    })
+    
     Chapters = phigame_obj.Chapters(
         [
             phigame_obj.Chapter(
