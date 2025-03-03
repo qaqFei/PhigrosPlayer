@@ -3824,7 +3824,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             level_choose_block_left + w * const.LEVEL_CHOOSE_BLOCK_WIDTH, h * (861 / 1080)
         )
         
-        now_choosediffnum = str(round(chooseControler.level_diffnumber.value))
+        now_choosediffnum = str(int(chooseControler.level_diffnumber.value))
         level_choose_block_center = tool_funcs.getCenterPointByRect(level_choose_block_rect)
         
         def drawChooseBarDiff(x: float, diffnum: str, diffname: str, color: str):
@@ -4022,6 +4022,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
         clearCanvas(wait_execute = True)
         
+        drawParallax(0, 0, w, h, True)
         ctxSave(wait_execute=True)
         bgBlurRadio = (w + h) / 60
         bgScale = max((w + bgBlurRadio) / w, (h + bgBlurRadio) / h)
@@ -4029,9 +4030,11 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         ctxTranslate(w / 2, h / 2, wait_execute=True)
         ctxScale(bgScale, bgScale, wait_execute=True)
         ctxTranslate(-w / 2 * bgScale, -h / 2 * bgScale, wait_execute=True)
-        drawParallax(0, 0, w, h, True)
+        root.run_js_code(f"mainTempCanvasDrawer.draw(ctx.canvas);", add_code_array=True)
+        clearCanvas(wait_execute=True)
+        root.run_js_code(f"ctx.drawImage(mainTempCanvasDrawer.cv, 0, 0, {w}, {h});", add_code_array=True)
         ctxRestore(wait_execute=True)
-        fillRectEx(0, 0, w, h, "rgba(0, 0, 0, 0.75)", wait_execute=True)
+        fillRectEx(0, 0, w, h, "rgba(0, 0, 0, 0.5)", wait_execute=True)
         
         drawFaculas()
         
