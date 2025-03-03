@@ -3261,21 +3261,69 @@ def chartPlayerRender(
     nextUI: typing.Callable[[], typing.Any],
     font_options: typing.Optional[dict] = None
 ):
+    global raw_audio_length
     global show_start_time
     global note_max_width, note_max_height
     global note_max_size_half
-    global raw_audio_length
-    global coreConfig
     
     loaded_event = ThreadEvent()
+    threadres_loaded = ThreadEvent()
     
     def _fgrender():
         while not loaded_event.is_set():
             foregroundFrameRender()
             root.run_js_wait_code()
     
+    CHART_TYPE = const.SPEC_VALS.RES_NOLOADED
+    chart_obj = const.SPEC_VALS.RES_NOLOADED
+    audio_length = const.SPEC_VALS.RES_NOLOADED
+    raw_audio_length = const.SPEC_VALS.RES_NOLOADED
+    
+    def _threadres_loader():
+        global raw_audio_length
+        nonlocal CHART_TYPE
+        nonlocal chart_obj
+        nonlocal audio_length
+        
+        chartJsonData: dict = json.loads(open(chartFile, "r", encoding="utf-8").read())
+        CHART_TYPE = const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else const.CHART_TYPE.RPE
+        if CHART_TYPE == const.CHART_TYPE.PHI: chartJsonData["offset"] += getUserData("setting-chartOffset") / 1000
+        elif CHART_TYPE == const.CHART_TYPE.RPE: chartJsonData["META"]["offset"] += getUserData("setting-chartOffset")
+        chart_obj = chartfuncs_phi.loadChartObject(chartJsonData) if CHART_TYPE == const.CHART_TYPE.PHI else chartfuncs_rpe.loadChartObject(chartJsonData)
+        mixer.music.load(chartAudio)
+        raw_audio_length = mixer.music.get_length()
+        audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
+        
+        threadres_loaded.set()
+    
+    def _doCoreConfig():
+        global coreConfig
+        
+        coreConfig = phicore.PhiCoreConfig(
+            SETTER = lambda vn, vv: globals().update({vn: vv}),
+            root = root, w = w, h = h,
+            chart_information = chart_information,
+            chart_obj = chart_obj,
+            Resource = Resource,
+            globalNoteWidth = globalNoteWidth,
+            note_max_size_half = note_max_size_half,
+            audio_length = audio_length, raw_audio_length = raw_audio_length,
+            show_start_time = float("nan"), chart_image = chart_image,
+            clickeffect_randomblock_roundn = 0.0,
+            LoadSuccess = LoadSuccess, chart_res = {},
+            cksmanager = cksmanager,
+            enable_clicksound = getUserData("setting-enableClickSound"),
+            noautoplay = "--debug" not in sys.argv, showfps = "--debug" in sys.argv,
+            debug = "--debug" in sys.argv,
+            combotips = "COMBO" if "--debug" not in sys.argv else "AUTOPLAY",
+            clicksound_volume = getUserData("setting-clickSoundVolume"),
+            musicsound_volume = getUserData("setting-musicVolume")
+        )
+        phicore.CoreConfigure(coreConfig)
+    
     Thread(target=_fgrender, daemon=True).start()
     
+    root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
     globalNoteWidth = w * 0.1234375 * getUserData("setting-noteScale")
     note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
     note_max_height = max(
@@ -3293,72 +3341,29 @@ def chartPlayerRender(
     )
     note_max_size_half = ((note_max_width ** 2 + note_max_height ** 2) ** 0.5) / 2
     
-    print("start", time.perf_counter())
     chart_information["BackgroundDim"] = 1.0 - getUserData("setting-backgroundDim")
-    chartJsonData: dict = json.loads(open(chartFile, "r", encoding="utf-8").read())
-    CHART_TYPE = const.CHART_TYPE.PHI if "formatVersion" in chartJsonData else const.CHART_TYPE.RPE
-    if CHART_TYPE == const.CHART_TYPE.PHI: chartJsonData["offset"] += getUserData("setting-chartOffset") / 1000
-    elif CHART_TYPE == const.CHART_TYPE.RPE: chartJsonData["META"]["offset"] += getUserData("setting-chartOffset")
-    chart_obj = chartfuncs_phi.loadChartObject(chartJsonData) if CHART_TYPE == const.CHART_TYPE.PHI else chartfuncs_rpe.loadChartObject(chartJsonData)
-    mixer.music.load(chartAudio)
-    raw_audio_length = mixer.music.get_length()
-    audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
-    
+    Thread(target=_threadres_loader, daemon=True).start()
     respacker = webcv.PILResPacker(root)
-    
-    root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
     
     chart_image = Image.open(chartImage)
     if chart_image.mode != "RGB":
         chart_image = chart_image.convert("RGB")
-        
+    
     background_image_blur = chart_image.filter(ImageFilter.GaussianBlur(sum(chart_image.size) / 50))
-    
-    chart_image_gradientblack_mask = Image.new("RGBA", (1, 5), (0, 0, 0, 0))
-    chart_image_gradientblack_mask.putpixel((0, 4), (0, 0, 0, 204))
-    chart_image_gradientblack_mask.putpixel((0, 3), (0, 0, 0, 128))
-    chart_image_gradientblack_mask.putpixel((0, 2), (0, 0, 0, 64))
-    
-    chart_image_gradientblack = chart_image.copy()
-    chart_image_gradientblack_mask = chart_image_gradientblack_mask.resize(chart_image_gradientblack.size)
-    chart_image_gradientblack.paste(chart_image_gradientblack_mask, (0, 0), chart_image_gradientblack_mask)
-    
     respacker.reg_img(chart_image, "chart_image")
-    respacker.reg_img(chart_image_gradientblack, "chart_image_gradientblack")
     respacker.reg_img(background_image_blur, "background_blur")
-    
     respacker.load(*respacker.pack())
     
     cksmanager = phicore.ClickSoundManager(Resource["Note_Click_Audio"])
-    coreConfig = phicore.PhiCoreConfig(
-        SETTER = lambda vn, vv: globals().update({vn: vv}),
-        root = root, w = w, h = h,
-        chart_information = chart_information,
-        chart_obj = chart_obj,
-        Resource = Resource,
-        globalNoteWidth = globalNoteWidth,
-        note_max_size_half = note_max_size_half,
-        audio_length = audio_length, raw_audio_length = raw_audio_length,
-        show_start_time = float("nan"), chart_image = chart_image,
-        clickeffect_randomblock_roundn = 0.0,
-        LoadSuccess = LoadSuccess, chart_res = {},
-        cksmanager = cksmanager,
-        enable_clicksound = getUserData("setting-enableClickSound"),
-        noautoplay = "--debug" not in sys.argv, showfps = "--debug" in sys.argv,
-        debug = "--debug" in sys.argv,
-        combotips = "COMBO" if "--debug" not in sys.argv else "AUTOPLAY",
-        clicksound_volume = getUserData("setting-clickSoundVolume"),
-        musicsound_volume = getUserData("setting-musicVolume")
-    )
-    phicore.CoreConfigure(coreConfig)
     loaded_event.set()
-    print("end", time.perf_counter())
     
+    _doCoreConfig()
     if startAnimation:
         phicore.loadingAnimation(False, foregroundFrameRender, font_options)
         phicore.lineOpenAnimation()
         
     renderRelaser()
+    threadres_loaded.wait()
     
     if phicore.noautoplay:
         if CHART_TYPE == const.CHART_TYPE.PHI:
@@ -3382,10 +3387,9 @@ def chartPlayerRender(
         pplm.bind_events(root)
     else:
         pplm = None
-    
+        
     show_start_time = time.time()
-    coreConfig.show_start_time = show_start_time
-    phicore.CoreConfigure(coreConfig)
+    _doCoreConfig()
     
     def clickEventCallback(x, y):
         global show_start_time

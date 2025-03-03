@@ -928,6 +928,7 @@ class ChooseChartControler:
         self._slideControl.easeBackY(targetDy, False)
     
     def __del__(self):
+        self._toae()
         self._released = True
         self._preview_playing = None
     

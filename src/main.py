@@ -316,10 +316,6 @@ def loadResource():
     background_image_blur = chart_image.filter(ImageFilter.GaussianBlur(sum(chart_image.size) / 50))
     respacker.reg_img(background_image_blur, "background_blur")
     
-    chart_image_gradientblack = chart_image.copy()
-    chart_image_gradient = tool_funcs.createDownBlockImageGrd().resize(chart_image_gradientblack.size)
-    chart_image_gradientblack.paste(chart_image_gradient, (0, 0), chart_image_gradient)
-    
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     
@@ -335,7 +331,6 @@ def loadResource():
         
     respacker.reg_img(Resource["le_warn"], "le_warn")
     respacker.reg_img(chart_image, "chart_image")
-    respacker.reg_img(chart_image_gradientblack, "chart_image_gradientblack")
     respacker.reg_img(Resource["Retry"], "Retry")
     respacker.reg_img(Resource["Arrow_Right"], "Arrow_Right")
     respacker.reg_img(Resource["PauseImg"], "PauseImg")
