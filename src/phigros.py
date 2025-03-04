@@ -14,7 +14,7 @@ import time
 import math
 import logging
 from io import BytesIO
-from threading import Thread, Event as ThreadEvent, Lock
+from threading import Thread, Event as ThreadEvent
 from os import system
 from os.path import exists
 

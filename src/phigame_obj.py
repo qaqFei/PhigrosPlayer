@@ -862,7 +862,7 @@ class ChooseChartControler:
             mixer.music.fadeout(fadeout)
             
             st = time.time()
-            while True:
+            while myevent.is_set():
                 if time.time() - st > fadeout / 1000:
                     break
                 

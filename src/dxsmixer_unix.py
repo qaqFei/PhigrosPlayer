@@ -23,7 +23,7 @@ def toDowngradeAPI():
     mixer.music.get_pos = lambda: _get_pos() / 1000
     
     apis = {
-        "uload": mixer.music.unload,
+        "unload": mixer.music.unload,
         "load": mixer.music.load,
         "get_length": mixer.music.get_length,
         "set_pos": mixer.music.set_pos,
