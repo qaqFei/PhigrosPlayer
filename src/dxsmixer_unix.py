@@ -12,10 +12,10 @@ def toDowngradeAPI():
     _load = mixer.music.load
     _get_pos = mixer.music.get_pos
     
-    def _loadhook(fn: str):
+    def _loadhook(fn: str, needlength: bool = True):
         nonlocal length
         
-        length = _mixer.Sound(fn).get_length()
+        length = _mixer.Sound(fn).get_length() if needlength else -1.0
         _load(fn)
         
     mixer.music.load = _loadhook

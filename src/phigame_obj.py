@@ -871,7 +871,7 @@ class ChooseChartControler:
         if not myevent.is_set():
             return
         
-        mixer.music.load(tool_funcs.gtpresp(song.preview))
+        mixer.music.load(tool_funcs.gtpresp(song.preview), needlength=False)
         if not myevent.is_set(): return
         mixer.music.play()
         mixer.music.set_volume(0.0)
