@@ -170,7 +170,7 @@ class SongDifficlty:
             self.chart_audio,
             self.chart_image,
             self.chart_file
-        )))
+        ))).hex
     
 @dataclass
 class Song:

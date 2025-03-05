@@ -119,18 +119,25 @@ def findPlayData(finder: typing.Callable[[dict], bool]):
             return i
     return None
 
+findPlayDataBySid = lambda sid: findPlayData(lambda x: x["sid"] == sid)
+
 def initPlayDataItem(sid: str):
-    if findPlayData(lambda x: x["sid"] == sid) is None:
+    if findPlayDataBySid(sid) is None:
         playData["datas"].append({
             "sid": sid,
             "score": 0.0,
             "acc": 0.0,
-            "level": "never_played"
+            "level": "never_play"
         })
 
 def setPlayData(sid: str, score: float, acc: float, level: typing.Literal["AP", "FC", "V", "S", "A", "B", "C", "F"]):
     initPlayDataItem(sid)
-    levelmap = {"AP": 0, "FC": -1, "V": -2, "S": -3, "A": -4, "B": -5, "C": -6, "F": -7, "never_played": -8}
+    levelmap = {
+        "AP": 0, "FC": -1,
+        "V": -2, "S": -3,
+        "A": -4, "B": -5, "C": -6,
+        "F": -7, "never_play": -8
+    }
     old_data = findPlayData(lambda x: x["sid"] == sid)
     old_data["score"] = max(score, old_data["score"])
     old_data["acc"] = max(acc, old_data["acc"])
@@ -213,6 +220,13 @@ def loadChapters():
         ]
     )
     
+    for chapter in Chapters.items:
+        for song in chapter.songs:
+            for diff in song.difficlty:
+                initPlayDataItem(diff.unqique_id())
+    
+    savePlayData(playData)
+    
     ChaptersMaxDx = w * (len(Chapters.items) - 1) * (295 / 1920) + w * 0.5 - w * 0.875
 
 def putColor(color: tuple|str, im: Image.Image):
@@ -265,7 +279,8 @@ def loadResource():
             "A": Image.open("./resources/levels/A.png"),
             "B": Image.open("./resources/levels/B.png"),
             "C": Image.open("./resources/levels/C.png"),
-            "F": Image.open("./resources/levels/F.png")
+            "F": Image.open("./resources/levels/F.png"),
+            "NEW": Image.open("./resources/levels/NEW.png")
         },
         "logoipt": Image.open("./resources/logoipt.png"),
         "warning": Image.open("./resources/le_warn.png"),
@@ -303,7 +318,7 @@ def loadResource():
         "close": Image.open("./resources/close.png"),
         "sort": Image.open("./resources/sort.png"),
         "Random": Image.open("./resources/Random.png"),
-        "mirror": Image.open("./resources/mirror.png"),
+        "mirror": Image.open("./resources/mirror.png")
     }
     
     Resource.update(phi_rpack.createResourceDict())
@@ -3961,7 +3976,44 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             currectSong.difficlty[min(choose_state.diff_index, len(currectSong.difficlty) - 1)].name,
             "rgb(255, 255, 255)"
         )
+        
+        sid = diff.unqique_id()
+        diifpd = findPlayDataBySid(sid)
+        levelimgname = diifpd["level"] if diifpd["level"] != "never_play" else "NEW"
+        levelimg = Resource["levels"][levelimgname]
+        levelimg_w = w * 0.05875
+        levelimg_h = levelimg_w * levelimg.height / levelimg.width
+        
+        drawImage(
+            f"Level_{levelimgname}",
+            w * 0.838625 - levelimg_w / 2,
+            h * (798 / 1080) - levelimg_h / 2,
+            levelimg_w, levelimg_h,
+            wait_execute = True
+        )
+        
+        drawText(
+            w * 0.7640625,
+            h * (817 / 1080),
+            f"{int(diifpd["score"] + 0.5):>07}",
+            font = f"{(w + h) / 60}px pgrFont",
+            textAlign = "right",
+            textBaseline = "middle",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
 
+        
+        drawText(
+            w * 0.81,
+            h * (828 / 1080),
+            f"{(diifpd["acc"] * 100):>05.2f}%",
+            font = f"{(w + h) / 154}px pgrFont",
+            textAlign = "right",
+            textBaseline = "middle",
+            fillStyle = "rgb(255, 255, 255)",
+            wait_execute = True
+        )
         if choose_state.diff_index > len(currectSong.difficlty) - 1:
             return
         

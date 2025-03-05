@@ -274,7 +274,7 @@ def getHoldDrawPosition(
 
 def stringifyScore(score: float) -> str:
     score_integer = int(score + 0.5)
-    return f"{score_integer:>7}".replace(" ","0")
+    return f"{score_integer:>07}"
 
 def drawDeepBgAndClipScreen():
     outOfTransformDrawCoverFullscreenChartBackgroundImage("background_blur", wait_execute=True)
@@ -827,7 +827,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         score = stringifyScore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else stringifyScore(pplm.ppps.getScore()),
         combo_state = combo >= 3,
         combo = combo,
-        acc = "100.00%" if not noautoplay else f"{(pplm.ppps.getAcc() * 100):.2f}%",
+        acc = "100.00%" if not noautoplay else f"{(pplm.ppps.getAcc() * 100):>05.2f}%",
         clear = False,
         background = False
     )
