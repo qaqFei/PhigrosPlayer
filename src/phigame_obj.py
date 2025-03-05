@@ -505,6 +505,8 @@ class PhiButton(PhiBaseWidget):
     fontsize: float = 1.0
     width: float = 0.0
     command: typing.Callable[[], typing.Any] = lambda *args, **kwargs: None
+    anchor: typing.Literal["left", "center", "right"] = "center"
+    dx: float = 0.0
 
     buttonRect = (0.0, 0.0, 0.0, 0.0)
 

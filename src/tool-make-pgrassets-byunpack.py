@@ -131,7 +131,9 @@ json.dump(chapters, open(f"{output_dir}/chapters.json", "w", encoding="utf-8"), 
 
 config = {
     "avatars": [],
-    "backgrounds": []
+    "backgrounds": [],
+    "isfromunpack": True,
+    "background-file-map": {}
 }
 
 default_avatar = "Introduction.png"
@@ -147,8 +149,10 @@ else:
     config["default-avatar"] = config["avatars"][0]
 
 bg_files = listdir(f"{unpack_result}/IllustrationLowRes")
-for i in bg_files:
-    config["backgrounds"].append(resm.getres(f"/IllustrationLowRes/{i}"))
+for song in upk_info:
+    bgpath = f"/IllustrationLowRes/{song["songIdBak"]}.png"
+    config["background-file-map"][song["songKey"]] = bgpath
+    config["backgrounds"].append(resm.getres(bgpath))
 
 if default_bg in bg_files:
     config["default-background"] = resm.getres(f"/IllustrationLowRes/{default_bg}")

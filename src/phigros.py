@@ -13,6 +13,8 @@ import sys
 import time
 import math
 import logging
+import platform
+import ctypes
 from io import BytesIO
 from threading import Thread, Event as ThreadEvent
 from os import system
@@ -1629,9 +1631,15 @@ def renderPhigrosWidgets(
             
             widgets_height += widget.tonext
         elif isinstance(widget, phigame_obj.PhiButton):
+            buttonDx = (
+                (max_width / 2)
+                if widget.anchor == "center"
+                else (0.0 if widget.anchor == "left" else max_width)
+            ) + widget.dx
+            
             buttonRect = (
-                x + max_width / 2 - widget.width / 2, y,
-                x + max_width / 2 + widget.width / 2, y + h * (80 / 1080)
+                x + buttonDx - widget.width / 2, y,
+                x + buttonDx + widget.width / 2, y + h * (80 / 1080)
             )
             
             root.run_js_code(
@@ -2808,7 +2816,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         ),
         "NoteScaleSlider": phigame_obj.PhiSlider(
             value = getUserData("setting-noteScale"),
-            number_points = ((0.0, 1.0), (1.0, 1.29)),
+            number_points = ((0.0, 1.0), (1.0, 1.3)),
             lr_button = False,
             command = updateConfig
         ),
@@ -2883,6 +2891,15 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
             fontsize = (w + h) / 75,
             checked = getUserData("setting-enableLowQuality"),
             command = updateConfig
+        ),
+        "importArchiveFromPhigros": phigame_obj.PhiButton(
+            tonext = 0,
+            text = "从 Phigros 官方导入游戏存档",
+            fontsize = (w + h) / 125,
+            width = w * 0.2,
+            command = importArchiveFromPhigros,
+            anchor = "left",
+            dx = w * 0.095
         )
     })
     
@@ -3338,7 +3355,8 @@ def chartPlayerRender(
     renderRelaser: typing.Callable[[], typing.Any],
     nextUI: typing.Callable[[], typing.Any],
     font_options: typing.Optional[dict] = None,
-    autoplay: bool = False
+    autoplay: bool = False,
+    sid: typing.Optional[str] = None
 ):
     global raw_audio_length
     global show_start_time
@@ -3474,6 +3492,7 @@ def chartPlayerRender(
         global show_start_time
         nonlocal paused, pauseAnimationSt, pauseSt
         nonlocal nextUI, tonextUI, tonextUISt
+        nonlocal needSetPlayData
         
         if rendingAnimationSt != rendingAnimationSt: # nan, playing chart
             pauseATime = 0.25 if paused else 3.0
@@ -3516,7 +3535,8 @@ def chartPlayerRender(
                     foregroundFrameRender = lambda: None,
                     renderRelaser = lambda: None,
                     nextUI = nextUIBak,
-                    autoplay = autoplay
+                    autoplay = autoplay,
+                    sid = sid
                 ), True, time.time()
                 
             elif paused and tool_funcs.inrect(x, y, (
@@ -3534,6 +3554,7 @@ def chartPlayerRender(
             0, 0,
             w * const.FINISH_UI_BUTTON_SIZE, w * const.FINISH_UI_BUTTON_SIZE / 190 * 145
         )):
+            needSetPlayData = True
             eventManager.unregEvent(clickEvent)
             nextUIBak = nextUI
             nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
@@ -3545,19 +3566,23 @@ def chartPlayerRender(
                 blackIn = True,
                 foregroundFrameRender = lambda: None,
                 renderRelaser = lambda: None,
-                nextUI = nextUIBak
+                nextUI = nextUIBak,
+                autoplay = autoplay,
+                sid = sid
             ), True, time.time()
             
         elif tool_funcs.inrect(x, y, (
             w - w * const.FINISH_UI_BUTTON_SIZE, h - w * const.FINISH_UI_BUTTON_SIZE / 190 * 145,
             w, h
         )):
+            needSetPlayData = True
             eventManager.unregEvent(clickEvent)
             tonextUI, tonextUISt = True, time.time()
     
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
     # 前面初始化时间太长了, 放这里
+    needSetPlayData = False
     chartPlayerRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = nextUI, False, float("nan")
     rendingAnimation = phicore.lineCloseAimationFrame
@@ -3694,6 +3719,15 @@ def chartPlayerRender(
             root.run_js_code(f"dialog_canvas_ctx.clear()", add_code_array = True)
             root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", add_code_array = True)
             root.run_js_wait_code()
+            
+            if sid is not None and pplm is not None and needSetPlayData:
+                setPlayData(
+                    sid,
+                    score = pplm.ppps.getScore(),
+                    acc = pplm.ppps.getAcc(),
+                    level = pplm.ppps.getLevelString()
+                )
+            
             Thread(target=nextUI, daemon=True).start()
             break
         
@@ -3854,6 +3888,22 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     fillStyle = "white",
                     wait_execute = True
                 )
+        
+                sid = song.difficlty[choose_state.diff_index].unqique_id()
+                diifpd = findPlayDataBySid(sid)
+                levelimgname = diifpd["level"] if diifpd["level"] != "never_play" else "NEW"
+                levelimg = Resource["levels"][levelimgname]
+                levelimg_w = w * 0.05875 * 0.65
+                levelimg_h = levelimg_w * levelimg.height / levelimg.width
+                
+                if levelimgname != "NEW":
+                    drawImage(
+                        f"Level_{levelimgname}",
+                        x + cuttedWidth - w * 0.09375 - levelimg_w / 2,
+                        y - levelimg_h / 2,
+                        levelimg_w, levelimg_h,
+                        wait_execute = True
+                    )
             
             songIndex += 1
             nowDy += chooseControler.itemHeight
@@ -3977,7 +4027,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             "rgb(255, 255, 255)"
         )
         
-        sid = diff.unqique_id()
+        sid = currectSong.difficlty[min(choose_state.diff_index, len(currectSong.difficlty) - 1)].unqique_id()
         diifpd = findPlayDataBySid(sid)
         levelimgname = diifpd["level"] if diifpd["level"] != "never_play" else "NEW"
         levelimg = Resource["levels"][levelimgname]
@@ -4002,7 +4052,6 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             fillStyle = "rgb(255, 255, 255)",
             wait_execute = True
         )
-
         
         drawText(
             w * 0.81,
@@ -4014,6 +4063,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             fillStyle = "rgb(255, 255, 255)",
             wait_execute = True
         )
+        
         if choose_state.diff_index > len(currectSong.difficlty) - 1:
             return
         
@@ -4147,7 +4197,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     "levelNumberFontSize": (w + h) / 44.5,
                     "levelNameFontSize": (w + h) / 125
                 },
-                autoplay = choose_state.is_autoplay
+                autoplay = choose_state.is_autoplay,
+                sid = diff.unqique_id()
             )
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
@@ -4436,7 +4487,89 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         ...
     
     _whenexit()
+
+def importArchiveFromPhigros():
+    sessionToken: typing.Optional[str] = root.run_js_code(f"prompt({root.string2sctring_hqm("请输入 Phigros 账号的 sessionToken: ")});")
+    if sessionToken is None:
+        return
     
+    rcfg = userData.copy()
+    libpgr = ctypes.CDLL("./lib/libpgr.dll" if platform.system() == "Windows" else "./lib/libpgr.so")
+    
+    get_handle = libpgr.get_handle
+    get_nickname = libpgr.get_nickname
+    get_summary = libpgr.get_summary
+    free_handle = libpgr.free_handle
+    get_save = libpgr.get_save
+    
+    get_handle.argtypes = (ctypes.c_char_p, )
+    get_handle.restype = ctypes.c_void_p
+    free_handle.argtypes = (ctypes.c_void_p, )
+    get_nickname.argtypes = (ctypes.c_void_p, )
+    get_nickname.restype = ctypes.c_char_p
+    get_summary.argtypes = (ctypes.c_void_p, )
+    get_summary.restype = ctypes.c_char_p
+    get_save.argtypes = (ctypes.c_void_p, )
+    get_save.restype = ctypes.c_char_p
+
+    handle = get_handle(sessionToken.encode())
+    
+    try:
+        summary = json.loads(get_summary(handle))
+        archive = json.loads(get_save(handle))
+        
+        if summary["saveVersion"] != 6:
+            raise Exception("存档版本不匹配, 目前仅支持存档版本 6")
+        
+        username = get_nickname(handle).decode()
+        rankingScore = summary["rankingScore"]
+        selfIntroduction = archive["user"]["selfIntro"]
+        # backgroundDim = ?
+        enableClickSound = archive["settings"]["enableHitSound"]
+        musicVolume = archive["settings"]["musicVolume"]
+        uiVolume = archive["settings"]["effectVolume"]
+        clickSoundVolume = archive["settings"]["hitSoundVolume"]
+        enableMorebetsAuxiliary = archive["settings"]["fcAPIndicator"]
+        enableFCAPIndicator = archive["settings"]["fcAPIndicator"]
+        enableLowQuality = archive["settings"]["lowResolutionMode"]
+        chartOffset = archive["settings"]["soundOffset"] * 1000
+        noteScale = archive["settings"]["noteScale"]
+        
+        setUserData("userdata-userName", username)
+        setUserData("userdata-rankingScore", rankingScore)
+        setUserData("userdata-selfIntroduction", selfIntroduction)
+        setUserData("setting-chartOffset", chartOffset)
+        setUserData("setting-noteScale", noteScale)
+        # setUserData("setting-backgroundDim", backgroundDim)
+        setUserData("setting-enableClickSound", enableClickSound)
+        setUserData("setting-musicVolume", musicVolume)
+        setUserData("setting-uiVolume", uiVolume)
+        setUserData("setting-clickSoundVolume", clickSoundVolume)
+        setUserData("setting-enableMorebetsAuxiliary", enableMorebetsAuxiliary)
+        setUserData("setting-enableFCAPIndicator", enableFCAPIndicator)
+        setUserData("setting-enableLowQuality", enableLowQuality)
+        
+        if not assetConfig.get("isfromunpack", False):
+            root.run_js_code(f"alert({root.string2sctring_hqm(f"基本信息已导入\n当前资源包非来源于官方文件, 无法导入存档")});")
+            raise type("_exitfunc", (object, Exception), {})()
+        
+        if archive["user"]["background"] not in assetConfig["background-file-map"].keys():
+            logging.warning(f"user background {archive["user"]["background"]} not found in assetConfig")
+        else:
+            bgpath = assetConfig["background-file-map"][archive["user"]["background"]]
+            setUserData("userdata-userBackground", bgpath)
+        
+        root.run_js_code(f"alert({root.string2sctring_hqm(f"导入成功!\n用户名: {username}\nrankingScore: {rankingScore}")});")
+    except Exception as e:
+        if e.__class__.__name__ != "_exitfunc":
+            root.run_js_code(f"alert({root.string2sctring_hqm(f"导入失败\n: {repr(e)}")});")
+    
+    free_handle(handle)
+    saveUserData(userData)
+    
+    if rcfg["setting-enableLowQuality"] != getUserData("setting-enableLowQuality"):
+        applyConfig()
+
 def updateFontSizes():
     global userName_FontSize
     
