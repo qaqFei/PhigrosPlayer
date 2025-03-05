@@ -4512,6 +4512,7 @@ def importArchiveFromPhigros():
     get_save.argtypes = (ctypes.c_void_p, )
     get_save.restype = ctypes.c_char_p
 
+    needexit = False
     handle = get_handle(sessionToken.encode())
     
     try:
@@ -4560,12 +4561,19 @@ def importArchiveFromPhigros():
             setUserData("userdata-userBackground", bgpath)
         
         root.run_js_code(f"alert({root.string2sctring_hqm(f"导入成功!\n用户名: {username}\nrankingScore: {rankingScore}")});")
+        raise type("_exitfunc", (Exception, ), {})()
     except Exception as e:
         if e.__class__.__name__ != "_exitfunc":
             root.run_js_code(f"alert({root.string2sctring_hqm(f"导入失败\n: {repr(e)}")});")
+        else:
+            root.run_js_code(f"alert({root.string2sctring_hqm(f"请重启程序以应用设置, 按下确定键后程序将退出")});")
+            needexit = True
     
     free_handle(handle)
     saveUserData(userData)
+    
+    if needexit:
+        root.destroy()
     
     if rcfg["setting-enableLowQuality"] != getUserData("setting-enableLowQuality"):
         applyConfig()
