@@ -3,6 +3,8 @@ __pycache__
 
 phigros_assets
 phigros_userdata.json
+phigros_playdata.json
+
 default-argvs.json
 
 error_*.txt

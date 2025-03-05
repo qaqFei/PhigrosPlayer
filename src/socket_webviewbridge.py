@@ -23,7 +23,6 @@ class ValueEvent:
 def start_server(window: webcv.WebCanvas, addr: str, port: int):
     client = ValueEvent()
     tasks: dict[int, ValueEvent] = {}
-    split_magic = "\x00"
     
     async def main_logic(ws: websockets.WebSocketServerProtocol, path: str):
         nonlocal client
@@ -31,17 +30,14 @@ def start_server(window: webcv.WebCanvas, addr: str, port: int):
         
         while True:
             recv = await ws.recv()
+            data = json.loads(recv)
             
-            for rawdata in recv.split(split_magic):
-                if not rawdata: continue
-                data = json.loads(rawdata)
+            match data["type"]:
+                case "evaljs_result":
+                    tasks[data["tid"]].set(data.get("result", None))
                 
-                match data["type"]:
-                    case "evaljs_result":
-                        tasks[data["tid"]].set(data.get("result", None))
-                    
-                    case "jsapi_callback":
-                        window.jsapi.call_attr(data["name"], *data["args"])
+                case "jsapi_callback":
+                    window.jsapi.call_attr(data["name"], *data["args"])
             
     sendlock = threading.Lock()
     
@@ -60,7 +56,7 @@ def start_server(window: webcv.WebCanvas, addr: str, port: int):
             "type": "evaljs",
             "code": code,
             "tid": tid
-        }, ensure_ascii=False) + split_magic))
+        }, ensure_ascii=False)))
         sendlock.release()
         
         if needresult:

@@ -470,6 +470,7 @@ void main() {
         const port = 8080;
         const socket = new WebSocket(`ws://${addr}:${port}`);
         const split_magic = "\x00";
+        let socket_started = false;
 
         try {
             await document.body.requestFullscreen();
@@ -482,10 +483,23 @@ void main() {
             window.addEventListener("touchend", callback);
         }
 
+        const msgs = new Queue();
+
+        (async () => {
+            while (true) {
+                if (msgs.empty() || !socket_started) {
+                    await async_sleep(1000 / 120);
+                    continue;
+                }
+                let msg = msgs.get();
+                socket.send(msg);
+            }
+        })();
+
         window.pywebview = {
             api: {
                 call_attr: (attr, ...args) => {
-                    socket.send(JSON.stringify({
+                    msgs.put(JSON.stringify({
                         type: "jsapi_callback",
                         name: attr,
                         args: args
@@ -496,6 +510,7 @@ void main() {
 
         socket.onopen = () => {
             console.log("Connected to server");
+            socket_started = true;
         };
 
         socket.onmessage = async (event) => {
@@ -506,17 +521,17 @@ void main() {
                     case "evaljs": {
                         try {
                             const result = r2eval(data.code);
-                            socket.send(JSON.stringify({
+                            msgs.put(JSON.stringify({
                                 type: "evaljs_result",
                                 result: result,
                                 tid: data.tid
                             }) + split_magic);
                         } catch (e) {
-                            socket.send(JSON.stringify({
+                            msgs.put(JSON.stringify({
                                 type: "jsapi_callback",
                                 name: "_socket_bridge_error",
                                 args: [data.code, e.msg + "\n" + e.stack]
-                            }));
+                            }) + split_magic);
                         }
                     }
                 }

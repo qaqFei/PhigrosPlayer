@@ -5,6 +5,7 @@ from random import uniform
 import threading
 import typing
 import time
+import uuid
 
 from PIL import Image
 
@@ -162,6 +163,14 @@ class SongDifficlty:
     
     def __post_init__(self):
         self.strdiffnum = str(int(self.level))
+        self.song = None
+    
+    def unqique_id(self):
+        return uuid.uuid5(uuid.NAMESPACE_DNS, str((
+            self.chart_audio,
+            self.chart_image,
+            self.chart_file
+        )))
     
 @dataclass
 class Song:
@@ -182,10 +191,13 @@ class Song:
         self.songId = int(uniform(0.0, 1.0) * (2 << 31))
         self.difficlty = self.difficlty[:4]
         self.level_bar_rightx_max = const.LEVEL_BAR_END_XMAP[len(self.difficlty) - 1]
+        
+        for diff in self.difficlty:
+            diff.song = self
     
     def __eq__(self, value: typing.Any):
         return self is value
-        
+    
 @dataclass
 class Chapter:
     name: str

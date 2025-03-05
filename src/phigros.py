@@ -73,6 +73,10 @@ userData_default = {
     "internal-lowQualityScale-JSLayer": 2.5
 }
 
+playData_default = {
+    "datas": []
+}
+
 def saveUserData(data: dict):
     try:
         with open("./phigros_userdata.json", "w", encoding="utf-8") as f:
@@ -94,12 +98,53 @@ def getUserData(key: str):
 def setUserData(key: str, value: typing.Any):
     userData[key] = value
 
+def savePlayData(data: dict):
+    try:
+        with open("./phigros_playdata.json", "w", encoding="utf-8") as f:
+            f.write(json.dumps(data, indent=4, ensure_ascii=False))
+    except Exception as e:
+        logging.error(f"phigros_playdata.json save failed: {e}")
+
+def loadPlayData():
+    global playData
+    playData = playData_default.copy()
+    try:
+        playData.update(json.loads(open("./phigros_playdata.json", "r", encoding="utf-8").read()))
+    except Exception as e:
+        logging.error(f"phigros_playdata.json load failed, using default data, {e}")
+
+def findPlayData(finder: typing.Callable[[dict], bool]):
+    for i in playData["datas"]:
+        if finder(i):
+            return i
+    return None
+
+def initPlayDataItem(sid: str):
+    if findPlayData(lambda x: x["sid"] == sid) is None:
+        playData["datas"].append({
+            "sid": sid,
+            "score": 0.0,
+            "acc": 0.0,
+            "level": "never_played"
+        })
+
+def setPlayData(sid: str, score: float, acc: float, level: typing.Literal["AP", "FC", "V", "S", "A", "B", "C", "F"]):
+    initPlayDataItem(sid)
+    levelmap = {"AP": 0, "FC": -1, "V": -2, "S": -3, "A": -4, "B": -5, "C": -6, "F": -7, "never_played": -8}
+    old_data = findPlayData(lambda x: x["sid"] == sid)
+    old_data["score"] = max(score, old_data["score"])
+    old_data["acc"] = max(acc, old_data["acc"])
+    old_data["level"] = max((old_data["level"], level), key=lambda x: levelmap[x])
+    savePlayData(playData)
+
 if not exists("./phigros_userdata.json"):
     saveUserData(userData_default)
     loadUserData()
 
 loadUserData()
 saveUserData(userData)
+loadPlayData()
+savePlayData(playData)
 
 mixer.init(buffer = 2 ** getUserData("internal-dspBufferExponential"))
 chaptersDx = 0.0
