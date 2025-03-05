@@ -4551,7 +4551,7 @@ def importArchiveFromPhigros():
         
         if not assetConfig.get("isfromunpack", False):
             root.run_js_code(f"alert({root.string2sctring_hqm(f"基本信息已导入\n当前资源包非来源于官方文件, 无法导入存档")});")
-            raise type("_exitfunc", (object, Exception), {})()
+            raise type("_exitfunc", (Exception, ), {})()
         
         if archive["user"]["background"] not in assetConfig["background-file-map"].keys():
             logging.warning(f"user background {archive["user"]["background"]} not found in assetConfig")
