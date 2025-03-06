@@ -424,26 +424,29 @@ class PhigrosPlayManager:
     
     def getLevelString(self):
         score = self.getScore()
-        if self.getPerfectCount() == self.noteCount: return "AP"
-        elif self.getBadCount() == 0 and self.getMissCount() == 0: return "FC"
-        
-        if 0 <= score < 700000:
-            return "F"
-        elif 700000 <= score < 820000:
-            return "C"
-        elif 820000 <= score < 880000:
-            return "B"
-        elif 880000 <= score < 920000:
-            return "A"
-        elif 920000 <= score < 960000:
-            return "S"
-        elif 960000 <= score < 1000000:
-            return "V"
-        elif 1000000 <= score:
-            return "AP"
-        
-        return "F" if score < 0 else "AP"
+        return pgrGetLevel(score, self.getBadCount() == 0 and self.getMissCount() == 0)
 
+def pgrGetLevel(score: float, isFullCombo: bool):
+    if isFullCombo and score == 1000000: return "AP"
+    elif isFullCombo: return "FC"
+
+    if 0 <= score < 700000:
+        return "F"
+    elif 700000 <= score < 820000:
+        return "C"
+    elif 820000 <= score < 880000:
+        return "B"
+    elif 880000 <= score < 920000:
+        return "A"
+    elif 920000 <= score < 960000:
+        return "S"
+    elif 960000 <= score < 1000000:
+        return "V"
+    elif 1000000 <= score:
+        return "AP"
+        
+    return "F" if score < 0 else "AP"
+    
 def PPLM_vaildKey(key: str) -> bool:
     return key.lower() in const.ALL_LETTER
 

@@ -183,6 +183,7 @@ class Song:
     preview_start: float
     preview_end: float
     difficlty: list[SongDifficlty]
+    import_archive_alias: typing.Optional[str]
     
     chooseSongs_nameFontSize: float = float("nan")
     currSong_composerFontSize: float = float("nan")
@@ -1009,7 +1010,7 @@ class ChartChooseUI_State:
         if olddiff != i:
             self.change_diff_sound.play()
     
-    def dosort(self, chapter: Chapter):
+    def dosort(self, chapter: Chapter, getScore: typing.Callable[[Song], float]):
         newsongs = chapter.songs.copy()
         
         match self.sort_method:
@@ -1023,7 +1024,7 @@ class ChartChooseUI_State:
                 newsongs.sort(key=lambda x: x.difficlty[self.diff_index].level if self.diff_index <= len(x.difficlty) - 1 else -1.0)
             
             case const.PHI_SORTMETHOD.SCORE:
-                pass
+                newsongs.sort(key=getScore)
         
         if self.sort_reverse:
             newsongs.reverse()

@@ -109,6 +109,7 @@ for cinfo in pgr_chapters_info:
             "preview": resm.getres(f"/music/{s["songIdBak"]}.ogg"),
             "preview_start": s["previewTimeStart"],
             "preview_end": s["previewTimeEnd"],
+            "import_archive_alias": s["songId"],
             "difficlty": [
                 {
                     "name": level,

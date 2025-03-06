@@ -72,7 +72,8 @@ userData_default = {
     "setting-enableLowQuality": False,
     "internal-lowQualityScale": 1.0,
     "internal-dspBufferExponential": 8,
-    "internal-lowQualityScale-JSLayer": 2.5
+    "internal-lowQualityScale-JSLayer": 2.5,
+    "internal-lastDiffIndex": 0
 }
 
 playData_default = {
@@ -132,7 +133,7 @@ def initPlayDataItem(sid: str):
             "level": "never_play"
         })
 
-def setPlayData(sid: str, score: float, acc: float, level: typing.Literal["AP", "FC", "V", "S", "A", "B", "C", "F"]):
+def setPlayData(sid: str, score: float, acc: float, level: typing.Literal["AP", "FC", "V", "S", "A", "B", "C", "F"], save: bool = True):
     initPlayDataItem(sid)
     levelmap = {
         "AP": 0, "FC": -1,
@@ -144,7 +145,7 @@ def setPlayData(sid: str, score: float, acc: float, level: typing.Literal["AP", 
     old_data["score"] = max(score, old_data["score"])
     old_data["acc"] = max(acc, old_data["acc"])
     old_data["level"] = max((old_data["level"], level), key=lambda x: levelmap[x])
-    savePlayData(playData)
+    if save: savePlayData(playData)
 
 if not exists("./phigros_userdata.json"):
     saveUserData(userData_default)
@@ -203,6 +204,7 @@ def loadChapters():
                         preview = song["preview"],
                         preview_start = song["preview_start"],
                         preview_end = song["preview_end"],
+                        import_archive_alias = song.get("import_archive_alias", None),
                         difficlty = [
                             phigame_obj.SongDifficlty(
                                 name = diff["name"],
@@ -3754,7 +3756,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(chooseControler.scter_mouseup))
     eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseControler.scter_mousemove))
     
-    choose_state.change_diff_callback = lambda: (chooseControler.set_level_callback(), resort())
+    choose_state.change_diff_callback = lambda: (chooseControler.set_level_callback(), resort(), setUserData("internal-lastDiffIndex", choose_state.diff_index))
     
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
@@ -4099,7 +4101,12 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             return
         
         song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
-        chapter_item.scsd_songs[:] = choose_state.dosort(chapter_item)
+        chapter_item.scsd_songs[:] = choose_state.dosort(
+            chapter_item,
+            lambda song: findPlayDataBySid(
+                song.difficlty[choose_state.diff_index].unqique_id()
+            )["score"] if choose_state.diff_index <= len(song.difficlty) - 1 else -1.0
+        )
         chooseControler.setto_index(chapter_item.scsd_songs.index(song))
         last_sort_method = this_sort_method
 
@@ -4209,6 +4216,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     mirrorButtonRect, autoplayButtonRect = None, None
     playButtonRect = None
     
+    choose_state.change_diff(getUserData("internal-lastDiffIndex"))
     def _render(rjc: bool = True):
         nonlocal songShadowRect
         nonlocal chartsShadowRect
@@ -4560,6 +4568,31 @@ def importArchiveFromPhigros():
             bgpath = assetConfig["background-file-map"][archive["user"]["background"]]
             setUserData("userdata-userBackground", bgpath)
         
+        allsongs = [j for i in Chapters.items for j in i.songs]
+        for recordName, recordData in archive["gameRecord"].items():
+            for song in allsongs:
+                if song.import_archive_alias == recordName:
+                    recordData: list = recordData.copy()
+                    i = 0
+                    while recordData:
+                        if i >= len(song.difficlty):
+                            logging.warning(f"song {song.name} has no difficulty {i}")
+                            break
+                        
+                        score = recordData.pop(0)
+                        acc = recordData.pop(0)
+                        isFullCombo = bool(recordData.pop(0))
+                        diff = song.difficlty[i]
+                        setPlayData(
+                            diff.unqique_id(), score, acc / 100,
+                            tool_funcs.pgrGetLevel(score, isFullCombo)
+                            if (score, acc, isFullCombo) != (0, 0, False)
+                            else "never_play",
+                            save=False
+                        )
+                        i += 1
+        
+        savePlayData(playData)
         root.run_js_code(f"alert({root.string2sctring_hqm(f"导入成功!\n用户名: {username}\nrankingScore: {rankingScore}")});")
         raise type("_exitfunc", (Exception, ), {})()
     except Exception as e:
