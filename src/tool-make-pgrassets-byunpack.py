@@ -52,7 +52,7 @@ class splitSongManager:
         
         for i, point in enumerate(jumps):
             if i != len(jumps) - 1:
-                result.extend([i for i in songs if i["songIdBak"] == point])
+                result.extend([i for i in self.songs if i["songIdBak"] == point])
                 count -= 1
             else:
                 i = self.songs.index([i for i in self.songs if i["songIdBak"] == point][0])
