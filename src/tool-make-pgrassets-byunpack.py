@@ -79,7 +79,7 @@ class resourceManager:
         self.resmap[path] = newpath
         return newpath
         
-ssm = splitSongManager(upk_info)
+ssm = splitSongManager(upk_info.copy())
 resm = resourceManager()
 chapters = {
     "chapters": []
