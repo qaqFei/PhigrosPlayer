@@ -765,6 +765,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             (-90 if note.above else 90) + lineRotate,
             floorp * h * const.PGR_UH
         )
+        note.nowpos = (x / w, y / h)
         img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
         noteImg = Resource["Notes"][img_keyname]
         imgname = f"Note_{img_keyname}"
@@ -1148,6 +1149,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 (-90 if note.above else 90) + lineRotate,
                 floorp * h
             )
+            note.nowpos = (x / w, y / h)
             img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
             noteImg = Resource["Notes"][img_keyname]
             imgname = f"Note_{img_keyname}"
