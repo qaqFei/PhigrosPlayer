@@ -28,6 +28,7 @@ drawUI_Default_Kwargs = {
     for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
 }
 mainFramerateCalculator = tool_funcs.FramerateCalculator()
+enableMirror = False
 
 @dataclass
 class PhiCoreConfig:
@@ -199,7 +200,7 @@ def processClickEffectBase(
     
     effectImageSize = effectSize * phira_resource_pack.globalPack.effectScale
     caller(
-        drawAlphaImage,
+        drawMirrorImage if enableMirror else drawAlphaImage,
         f"{imn}_{int(p * (phira_resource_pack.globalPack.effectFrameCount - 1)) + 1}",
         x - effectImageSize / 2, y - effectImageSize / 2,
         effectImageSize, effectImageSize, alpha,
@@ -820,6 +821,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             ) + 0.2 < now_t:
                 line.effectNotes.remove(note)
     
+    if enableMirror:
+        Task(root.run_js_code, "ctx.mirror();", add_code_array=True)
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     now_t /= speed
     Task(
@@ -1210,6 +1213,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         for name, values in extra_values:
             doShader(name, values, Task)
     
+    if enableMirror:
+        Task(root.run_js_code, "ctx.mirror();", add_code_array=True)
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     Task(
         draw_ui,

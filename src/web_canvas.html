@@ -1226,6 +1226,23 @@ void main() {
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawMirrorImage = function (img, x, y, width, height, alpha) {
+        this.save();
+        this.translate(x + width, y);
+        this.scale(-1, 1);
+        this.globalAlpha = alpha;
+        this.drawImage(img, 0, 0, width, height);
+        this.restore();
+    }
+
+    CanvasRenderingContext2D.prototype.mirror = function () {
+        this.save();
+        this.scale(-1, 1);
+        this.translate(-this.canvas.width, 0);
+        this.drawImage(this.canvas, 0, 0);
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.clear = function() {
         this.save();
         this.setTransform(1, 0, 0, 1, 0, 0);

@@ -3358,7 +3358,8 @@ def chartPlayerRender(
     nextUI: typing.Callable[[], typing.Any],
     font_options: typing.Optional[dict] = None,
     autoplay: bool = False,
-    sid: typing.Optional[str] = None
+    sid: typing.Optional[str] = None,
+    mirror: bool = False
 ):
     global raw_audio_length
     global show_start_time
@@ -3538,7 +3539,8 @@ def chartPlayerRender(
                     renderRelaser = lambda: None,
                     nextUI = nextUIBak,
                     autoplay = autoplay,
-                    sid = sid
+                    sid = sid,
+                    mirror = mirror
                 ), True, time.time()
                 
             elif paused and tool_funcs.inrect(x, y, (
@@ -3570,7 +3572,8 @@ def chartPlayerRender(
                 renderRelaser = lambda: None,
                 nextUI = nextUIBak,
                 autoplay = autoplay,
-                sid = sid
+                sid = sid,
+                mirror = mirror
             ), True, time.time()
             
         elif tool_funcs.inrect(x, y, (
@@ -3591,6 +3594,7 @@ def chartPlayerRender(
     rendingAnimationSt = float("nan")
     stoped = False
     paused, pauseAnimationSt, pauseSt = False, 0.0, float("nan")
+    phicore.enableMirror = mirror
     mixer.music.play()
     
     while True:
@@ -3737,7 +3741,8 @@ def chartPlayerRender(
     
     if phicore.noautoplay:
         pplm.unbind_events(root)
-            
+        
+    phicore.enableMirror = False
     mixer.music.set_volume(1.0)
     cksmanager.stop()
     respacker.unload(respacker.getnames())
@@ -4205,7 +4210,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     "levelNameFontSize": (w + h) / 125
                 },
                 autoplay = choose_state.is_autoplay,
-                sid = diff.unqique_id()
+                sid = diff.unqique_id(),
+                mirror = choose_state.is_mirror
             )
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)

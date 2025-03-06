@@ -169,6 +169,16 @@ def drawAlphaImage(
     jvn = root.get_img_jsvarname(imname)
     root.run_js_code(f"{ctx}.drawAlphaImage({jvn}, {x}, {y}, {width}, {height}, {alpha});", wait_execute, order)
 
+def drawMirrorImage(
+    imname: str,
+    x: number, y: number,
+    width: number, height: number,
+    alpha: number,
+    wait_execute: bool = False
+):
+    jvn = root.get_img_jsvarname(imname)
+    root.run_js_code(f"{ctx}.drawMirrorImage({jvn}, {x}, {y}, {width}, {height}, {alpha});", wait_execute, order)
+
 def drawRotateImage(
     imname: str,
     x: number, y: number,
