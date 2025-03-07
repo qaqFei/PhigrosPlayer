@@ -3753,7 +3753,9 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     for song in chapter_item.songs:
         illrespacker.reg_img(tool_funcs.gtpresp(song.image_lowres), f"songill_{song.songId}")
         illrespacker.reg_img(tool_funcs.gtpresp(song.image), f"songill_{song.songId}")
-        
+    
+    avatar_img = Image.open(tool_funcs.gtpresp(getUserData("userdata-userAvatar")))
+    illrespacker.reg_img(avatar_img, "user_avatar")
     illrespacker.load(*illrespacker.pack())
     
     choose_state = phigame_obj.ChartChooseUI_State(Resource["UISound_2"])
@@ -3768,6 +3770,14 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     clickedBackButton = False
     immediatelyExitRender = False
+    
+    userDataIsPopup = True
+    userDataPopupAnimatTime = 0.4
+    userDataPopupAnimatEase = rpe_easing.ease_funcs[13]
+    lastClickAvatarTime = time.time() - userDataPopupAnimatTime
+    userNameConstFontSize = (w + h) / 70
+    userNamePadding = w * 0.01
+    userNameWidth = root.run_js_code(f"ctx.getTextSize({root.string2sctring_hqm(getUserData("userdata-userName"))}, '{userNameConstFontSize}px pgrFont')[0];") + userNamePadding * 2
     
     def unregEvents():
         eventManager.unregEvent(clickBackButtonEvent)
@@ -4119,6 +4129,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     def clickEventCallback(x, y):
         nonlocal nextUI, tonextUI, tonextUISt
         nonlocal immediatelyExitRender
+        nonlocal userDataIsPopup, lastClickAvatarTime
         
         # 反转排序
         if tool_funcs.inrect(x, y, (
@@ -4214,6 +4225,10 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 sid = diff.unqique_id(),
                 mirror = choose_state.is_mirror
             )
+        
+        # 展开/关闭 用户头像名称rks
+        if tool_funcs.inrect(x, y, avatar_rect):
+            userDataIsPopup, lastClickAvatarTime = not userDataIsPopup, time.time()
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
@@ -4222,6 +4237,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     chartsShadowDPower = None
     mirrorButtonRect, autoplayButtonRect = None, None
     playButtonRect = None
+    avatar_rect = None
     
     choose_state.change_diff(getUserData("internal-lastDiffIndex"))
     def _render(rjc: bool = True):
@@ -4230,6 +4246,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         nonlocal chartsShadowDPower
         nonlocal mirrorButtonRect, autoplayButtonRect
         nonlocal playButtonRect
+        nonlocal avatar_rect
         
         clearCanvas(wait_execute = True)
         
@@ -4302,6 +4319,106 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             add_code_array = True
         )
         
+        userDataRect = (
+            w * 0.83025, h * (28 / 1080),
+            w * 2.0, h * (135 / 1080)
+        )
+        userDataRectSize = tool_funcs.getSizeByRect(userDataRect)
+        userDataDPower = tool_funcs.getDPower(*userDataRectSize, 75)
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, userDataRect))},\
+                {userDataDPower},\
+                'rgb(0, 0, 0)'\
+            );",
+            add_code_array = True
+        )
+        
+        avatar_rect = (
+            w * 0.840625, h * (21 / 1080),
+            w * 0.95, h * (142 / 1080)
+        )
+        avatar_rectsize = tool_funcs.getSizeByRect(avatar_rect)
+        avatar_w, avatar_h = tool_funcs.getCoverSize(*avatar_img.size, *avatar_rectsize)
+        avatar_x, avatar_y = tool_funcs.getPosFromCoverSize(avatar_w, avatar_h, *avatar_rectsize)
+        avatar_dpower = tool_funcs.getDPower(*avatar_rectsize, 75)
+        rks_y = h * (126 / 1080)
+        rks_x = (
+            avatar_rect[2]
+            - avatar_rectsize[0] * avatar_dpower * (
+                (rks_y - avatar_rect[1]) / avatar_rectsize[1]
+            )
+        )
+        rks_rect = (
+            rks_x, h * (93 / 1080),
+            w * 0.997125, rks_y
+        )
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, rks_rect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(rks_rect), 75)},\
+                'rgb(255, 255, 255)'\
+            );",
+            add_code_array = True
+        )
+        
+        rks_rect_center = tool_funcs.getCenterPointByRect(rks_rect)
+        drawText(
+            rks_rect_center[0], rks_rect_center[1] - h * (2 / 1080),
+            f"{getUserData("userdata-rankingScore"):.2f}",
+            font = f"{(w + h) / 100}px pgrFont",
+            textAlign = "center",
+            textBaseline = "middle",
+            fillStyle = "black",
+            wait_execute = True
+        )
+        
+        popupUserDataP = (time.time() - lastClickAvatarTime) / userDataPopupAnimatTime
+        popupUserDataP = userDataPopupAnimatEase(tool_funcs.fixorp(popupUserDataP))
+        popupUserDataLeftX = (userDataRect[0] - userNameWidth * popupUserDataP) if userDataIsPopup else (userDataRect[0] - userNameWidth * (1.0 - popupUserDataP))
+        popupUserDataRect = (
+            popupUserDataLeftX, userDataRect[1],
+            max(userDataRect[0] + userDataRectSize[0] * userDataDPower, popupUserDataLeftX) + 1, userDataRect[3]
+        )
+        popupUserDataRectSize = tool_funcs.getSizeByRect(popupUserDataRect)
+        popupUserDataDPower = tool_funcs.getDPower(*popupUserDataRectSize, 75)
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, popupUserDataRect))},\
+                {popupUserDataDPower},\
+                'rgb(0, 0, 0)'\
+            );",
+            add_code_array = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleClipImage(\
+                {",".join(map(str, avatar_rect))},\
+                {root.get_img_jsvarname("user_avatar")},\
+                {avatar_x}, {avatar_y},\
+                {avatar_w}, {avatar_h},\
+                {avatar_dpower}, 1.0\
+            );",
+            add_code_array = True
+        )
+        
+        ctxSave(wait_execute=True)
+        ctxBeginPath(wait_execute=True)
+        ctxRect(*tool_funcs.xxyy_rect2_xywh(popupUserDataRect), wait_execute=True)
+        ctxClip(wait_execute=True)
+        drawText(
+            popupUserDataRect[0] + popupUserDataRectSize[0] * popupUserDataDPower + userNamePadding,
+            tool_funcs.getCenterPointByRect(popupUserDataRect)[1],
+            getUserData("userdata-userName"),
+            font = f"{userNameConstFontSize}px pgrFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "white",
+            wait_execute = True
+        )
+        ctxRestore(wait_execute=True)
+
         diffchoosebarRect = (
             w * 0.41875, h * (779 / 1080),
             w * 0.865625, h * (857 / 1080)

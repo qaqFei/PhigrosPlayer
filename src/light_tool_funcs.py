@@ -583,4 +583,15 @@ def debounce(wait: float):
         return warpper
     
     return decorator
-        
+
+def getCoverSize(imw: int, imh: int, w: int, h: int):
+    im_ratio = imw / imh
+    ratio = w / h
+
+    if ratio > im_ratio:
+        return w, w / im_ratio
+    else:
+        return im_ratio * h, h
+
+def getPosFromCoverSize(w: float, h: float, rectw: float, recth: float):
+    return (rectw - w) / 2, (recth - h) / 2

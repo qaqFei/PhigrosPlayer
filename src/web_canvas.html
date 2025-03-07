@@ -1235,6 +1235,14 @@ void main() {
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.getTextSize = function (text, font) {
+        this.save();
+        this.font = font;
+        const measure = this.measureText(text);
+        this.restore();
+        return [measure.width, measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent];
+    }
+
     CanvasRenderingContext2D.prototype.mirror = function () {
         this.save();
         this.scale(-1, 1);
