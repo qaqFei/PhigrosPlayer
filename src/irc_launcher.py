@@ -4,7 +4,7 @@ import subprocess
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QFileDialog, QWidget
-from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QObject, QThread
+from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QObject, QThread,QTimer,QEventLoop
 from PyQt5.QtGui import QDesktopServices, QIcon
 
 from qfluentwidgets import FluentWindow, NavigationItemPosition, NavigationAvatarWidget, MessageBoxBase
@@ -84,16 +84,17 @@ class MainWindow(FluentWindow):
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
 
     def __init__(self):
-        super().__init__()
-        self.splash = SplashScreen(self.windowIcon(),self)
-        
-        self.resize(800,600)
+        super().__init__()        
         self.setWindowIcon(QIcon("icon.ico"))
         self.setWindowTitle("Phigros Player GUI Launcher")
-        self.splash.raise_()
+        self.splash = SplashScreen(self.windowIcon(),self)
+        self.splash.setIconSize(QtCore.QSize(128,128))
         self.show()
         self.initNav()
         self.initWindow()
+        loop = QEventLoop(self)
+        QTimer.singleShot(3000, loop.quit)
+        loop.exec()
         self.splash.finish()
   
     def initNav(self):
