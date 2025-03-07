@@ -16,6 +16,7 @@ import math
 import logging
 import platform
 import ctypes
+import functools
 from io import BytesIO
 from threading import Thread, Event as ThreadEvent
 from os import system
@@ -136,17 +137,21 @@ def initPlayDataItem(sid: str):
 
 def setPlayData(sid: str, score: float, acc: float, level: typing.Literal["AP", "FC", "V", "S", "A", "B", "C", "F"], save: bool = True):
     initPlayDataItem(sid)
-    levelmap = {
-        "AP": 0, "FC": -1,
-        "V": -2, "S": -3,
-        "A": -4, "B": -5, "C": -6,
-        "F": -7, "never_play": -8
-    }
     old_data = findPlayData(lambda x: x["sid"] == sid)
     old_data["score"] = max(score, old_data["score"])
     old_data["acc"] = max(acc, old_data["acc"])
-    old_data["level"] = max((old_data["level"], level), key=lambda x: levelmap[x])
+    old_data["level"] = max((old_data["level"], level), key=lambda x: const.PGR_LEVEL_INTMAP[x])
     if save: savePlayData(playData)
+
+@functools.cache
+def countPlayData(chapter: phigame_obj.Chapter, key: str):
+    diffindex = getUserData("internal-lastDiffIndex")
+    count = 0
+    for song in chapter.songs:
+        diff = song.difficlty[min(diffindex, len(song.difficlty) - 1)]
+        if const.PGR_LEVEL_INTMAP[findPlayDataBySid(diff.unqique_id())["level"]] >= const.PGR_LEVEL_INTMAP[key]:
+            count += 1
+    return count
 
 if not exists("./phigros_userdata.json"):
     saveUserData(userData_default)
@@ -734,7 +739,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
         drawText(
             chapterRect[0] + chapterWidth * (0.075 + 0.095),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
-            "-",
+            str(countPlayData(item, "C")),
             font = f"{(w + h) / 95}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
@@ -756,7 +761,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
         drawText(
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 2),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
-            "-",
+            str(countPlayData(item, "FC")),
             font = f"{(w + h) / 95}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
@@ -778,7 +783,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
         drawText(
             chapterRect[0] + chapterWidth * (0.075 + 0.095 * 3),
             chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
-            "-",
+            str(countPlayData(item, "AP")),
             font = f"{(w + h) / 95}px pgrFont",
             textAlign = "center",
             textBaseline = "bottom",
@@ -1157,6 +1162,7 @@ def mainRender():
     global inMainUI
     inMainUI = True
     
+    countPlayData.cache_clear()
     faManager.faculas.clear()
     mainRenderSt = time.time()
     mixer.music.load("./resources/ChapterSelect.mp3")

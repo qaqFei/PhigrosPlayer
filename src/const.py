@@ -104,6 +104,13 @@ LEVEL_BAR_END_XMAP = {
     for i in range(4)
 }
 
+PGR_LEVEL_INTMAP = {
+    "AP": 0, "FC": -1,
+    "V": -2, "S": -3,
+    "A": -4, "B": -5, "C": -6,
+    "F": -7, "never_play": -8
+}
+
 MAX_LEVEL_NUM = 4
         
 INF = float("inf")
@@ -141,7 +148,6 @@ DSP_SETTING_TIP = """\
 由于技术性原因，此页面可能无法生效。
 """
 
-# 用 phi 的还是本项目的呢..?
 PHI_OPENSOURCELICENSE = """\
 MIT License
 
@@ -242,277 +248,18 @@ Pigeon Animation Team / 动画组
 External Communications / 外部联络
 Ctymax
 “主要负责了版权商务相关大大小小的事宜，尽可能为玩家们搜罗来优质的音乐与美术作品。希望大家喜欢！”
-
-（以下所有排名不分先后顺序）
-
-Chart Design / 谱师组
-Catcats（王子恒）
-Ctymax
-Gausbon
-JKy
-StupiGGy
-Uvernight
-Snorkel
-阿爽（周锐）
-Rikko
-晨（林晨曦）
-鲲
-小鹏（周怡鹏）
-百九十八
-月下樱
-CN_115
-亜樹見希子
-Eaimo
-Sillyp
-TangScend
-Barbarianerman（李茂昌）
-NerSAN
-Harakuma
-Pcat
-TimiTini
-XMT小咩兔
-J.R
-Jeitie
-BlindForest
-Clutter
-Su1fuR
-VikingNexus
-_鉄
-Homeee
-Likey
-M3d1uM
-Lumiere
-iv
-Myna
-rN
-Latency
-陈天宇
-钱汉铭
-官忠鑫
-骆新程
-阳鉥
-
-Music / 音乐组
-BelieverInYou
-Ctymax
-Rinth_Live
-佑木いずみ(TNiK)
-ElousΛ.-FZ
-姜米條（青杰）
-A-39
-NceS
-陈天宇
-
-Sound Design / 音效设计
-姜米條（青杰）
-
-Illustration / 美术组
-CH
-Cycats
-DoublePian
-IvyTowers
-Jeffery
-Karyon
-knife美工刀
-KToyo
-L-sp4
-NEKO
-SparkFred_17（周泓怿）
-佑木いずみ(TNiK)
-xperz
-艾是Abby
-坂东
-笔记RE
-赤芽
-雏凉
-翠冷兮
-鸫鸫
-诡异童话
-海产
-何呵
-混乱の艾若拉
-Ctymax
-老张
-林语
-喵n葵（刘贝瑜）
-塔塔
-无良灬无惑
-昔璃
-英英英
-御坂果子
-冰绘
-青鸟
-幽灵星
-Rallxkurara
-天天
-犀牛坨动画工坊
-NerSAN
-Tsuioku
-圆规compasses
-Nico
-子狼
-谭清心
-高倩茹
-陈天宇
-
-Visual & UI Design / 视觉 & UI 设计组
-CN_115（杜锐）
-EndlessZero（郭旭）
-Nico
-SparkFred_17（周泓怿）
-佑木いずみ(TNiK)
-V17AMax（马煜）
-汉堡（覃瀚钰）
-喵n葵（刘贝瑜）
-小鹏（周怡鹏）
-Jizici
-
-Plots Design / 剧情组
-DeathMark（赵芫华）
-关若文
-漓染玄柒
-关河梦
-
-Localization / 翻译组
-312321432（吳安仁）
-hwanyeom
-jack
-Kitty
-Nice Player
-Saimu桜夢（徐泽城）
-Sakuyou
-Mai（Tan Chin Wan）
-TurretOmega
-ViscerΔ
-Yurim
-はなちゃん/はなまる
-徊奏
-鲲
-亘川锌酸猫
-梓澄
-漆伊澄
-ReFyo
-
-Pigeon Animation Team / 动画组
-汉堡（覃瀚钰）
-rN
-AiLANE
-小鹏（周怡鹏）
-V17AMax（马煜）
-
-Advertising / 宣传组
-Barbarianerman
-Ctymax
-EndlessZero（郭旭）
-Findstr
-SparkFred_17（周泓怿）
-佑木いずみ(TNiK)
-V17AMax（马煜）
-东方不buy菌
-华莱士
-七奏
-Sagilio
-小菊花
-小鹏（周怡鹏）
-312321432
-陈天宇
-Mai（Tan Chin Wan）
-阿爽
-rN
-ReFyo
-
-Customer Service / 客服组
-CN_115
-Ctymax
-joiec
-Sparkfred_17（周泓怿）
-Jizici
-阿爽
-喵n葵（刘贝瑜）
-月下樱
-陈天宇
-
-External Communications / 外部联络
-Ctymax
-
-Special Thanks / 特别鸣谢
-omegaPi
-TigerHix
-Soul Notes
-Rising Sun Traxx
-I-Inferno 《同步音律喵赛克》
-A-ZERO Entertainment 《WAVEAT ReLIGHT》
-PeroPeroGames 《Muse Dash 喵斯快跑》
-QueseraGames 《KALPA》
-CEM Records
-SUBBASE
-Noxy Games 《Lanota》
-Beo Meker Studio 《茶鸣拾贰律》
-Abyss Idols
-Oshiribeat
-SoT Records
-
-以及其他所有帮助过我们的人或组织
-
-
-Beta tester / 测试组
-98F
-C爆
-Likey
-Nxnfly
-Soul小东东
-UraniumW
-冰淇淋
-打火机D.H.Jack
-困锁Lockeder
-葉之Leviz
-Attack_cat
-比我还帅的地球人
-Caiyv
-赤赤菌
-垂星
-Excaive
-fanIST
-FrozenX
-晴岚
-Hikari
-哈拿捏口
-坚果
-Kirina
-切切
-Ska
-散唳
-石皮幼鸟
-三色绘本°
-Supa7onyz
-ThirdQuadrant
-VOII
-我爱吃肉wacr
-汐
-晓风竹林
-СУМÎС
-Y1cat
-一游
-ZxyD218
-温柔的小狮子
-Phoenix`palsar
-于铠歌
-肖斌文
-
-And all participants from Taptap's beta program!
-// 此处不展示谱师
-
-
---------------------------------
-(以下内容与Phigros游戏无关)
-关于PhigrosPlayer项目 (https://github.com/qaqFei/PhigrosPlayer),
-
-PhigrosPlayer 是一个项目，使用MIT协议进行开源。
-
-项目的开发贡献者
-qaqFei (Owner)
-星空孤雁 (Introduction 谱面谱师)
 """
+
+# --------------------------------
+# (以下内容与Phigros游戏无关)
+# 关于PhigrosPlayer项目 (https://github.com/qaqFei/PhigrosPlayer),
+
+# PhigrosPlayer 是一个项目，使用MIT协议进行开源。
+
+# 项目的开发贡献者
+# qaqFei (Owner)
+# 星空孤雁 (Introduction 谱面谱师)
+# """
 
 PHIGROS_SETTING_BAR_WIDTH_MAP = {
     PHIGROS_SETTING_STATE.PLAY: 0.465625,
