@@ -1,5 +1,6 @@
 import err_processer as _
 import init_logging as _
+import load_extended as _
 import fix_workpath as _
 import import_argvs as _
 import check_edgechromium as _
