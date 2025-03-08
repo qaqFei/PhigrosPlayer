@@ -29,6 +29,7 @@ drawUI_Default_Kwargs = {
 }
 mainFramerateCalculator = tool_funcs.FramerateCalculator()
 enableMirror = False
+enableWatermark = True
 
 @dataclass
 class PhiCoreConfig:
@@ -465,7 +466,7 @@ def draw_ui(
             "dx": 0.0, "dy": 0.0,
             "sx": 1.0, "sy": 1.0,
             "color": "rgba(255, 255, 255, 0.5)", "rotate": 0.0
-        },
+        } if enableWatermark else None,
         {
             "type": "call",
             "name": "translate", "args": [0, - h / 7 + dy]

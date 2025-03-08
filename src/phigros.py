@@ -52,6 +52,7 @@ if not exists("./phigros_assets") or not all([
     system("pause")
     raise SystemExit
 
+phicore.enableWatermark = False
 tempdir.clearTempDir()
 temp_dir = tempdir.createTempDir()
 
