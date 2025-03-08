@@ -248,18 +248,16 @@ Pigeon Animation Team / 动画组
 External Communications / 外部联络
 Ctymax
 “主要负责了版权商务相关大大小小的事宜，尽可能为玩家们搜罗来优质的音乐与美术作品。希望大家喜欢！”
+
+--------------------------------
+关于PhigrosPlayer项目 (https://github.com/qaqFei/PhigrosPlayer),
+
+PhigrosPlayer 使用MIT协议进行开源喵！！
+( MIT 万岁 ！！！
+
+鸣谢
+星空孤雁 (Introduction 谱面谱师)
 """
-
-# --------------------------------
-# (以下内容与Phigros游戏无关)
-# 关于PhigrosPlayer项目 (https://github.com/qaqFei/PhigrosPlayer),
-
-# PhigrosPlayer 是一个项目，使用MIT协议进行开源。
-
-# 项目的开发贡献者
-# qaqFei (Owner)
-# 星空孤雁 (Introduction 谱面谱师)
-# """
 
 PHIGROS_SETTING_BAR_WIDTH_MAP = {
     PHIGROS_SETTING_STATE.PLAY: 0.465625,
