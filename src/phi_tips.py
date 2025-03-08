@@ -210,7 +210,7 @@ tips = [
 def get_tip():
     rv = random.random()
     
-    if rv < 0.3:
+    if rv < 0.95:
         return random.choice(pgr_builtin_tips)
     else:
         return random.choice(ppr_extended_tips)
