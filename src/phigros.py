@@ -3492,6 +3492,8 @@ def chartPlayerRender(
         phicore.loadingAnimation(False, foregroundFrameRender, font_options)
         threadres_loaded.wait()
         phicore.lineOpenAnimation()
+    else:
+        threadres_loaded.wait()
         
     renderRelaser()
     

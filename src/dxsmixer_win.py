@@ -119,19 +119,8 @@ class musicCls:
         return self.dxs._sdesc.dwBufferBytes / self.dxs._sdesc.lpwfxFormat.nAvgBytesPerSec
     
 apis = {
-    "unload": musicCls.unload,
     "load": musicCls.load,
-    "get_length": musicCls.get_length,
-    "set_pos": musicCls.set_pos,
-    "get_pos": musicCls.get_pos,
     "play": musicCls.play,
-    "stop": musicCls.stop,
-    "pause": musicCls.pause,
-    "unpause": musicCls.unpause,
-    "set_volume": musicCls.set_volume,
-    "get_volume": musicCls.get_volume,
-    "get_busy": musicCls.get_busy,
-    "fadeout": musicCls.fadeout
 }
 
 # 统统锁上
