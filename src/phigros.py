@@ -1876,6 +1876,8 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         )) and (showAvatars or showBackgrounds):
             if showAvatars: showAvatars, showAvatarsSt = False, time.time()
             if showBackgrounds: showBackgrounds, showBackgroundsSt = False, time.time()
+            chooseRects["avatars"].clear()
+            chooseRects["backgrounds"].clear()
         
         # 编辑用户头像 - 选择
         if settingState.atis_a and showAvatars and (time.time() - showAvatarsSt) > 0.15:
@@ -1886,7 +1888,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
             lastClickChooseAvatarOrBackgroundPos = (x, y)
         
         # 登录
-        if settingState.atis_a and tool_funcs.inrect(x, y, loginButtonRect):
+        if settingState.atis_a and tool_funcs.inrect(x, y, loginButtonRect) and not (showAvatars or showBackgrounds):
             root.run_js_code(f"alert({root.string2sctring_hqm("你在想 peach")});")
         
         # 音频问题疑难解答
@@ -2562,11 +2564,12 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                         );",
                         add_code_array = True
                     )
-                    
-                chooseRects[dialogrectname][imgindex] = (
-                    imgx, imgy,
-                    imgx + imgwidth, imgy + imgheight
-                )
+                
+                if showAvatars or showBackgrounds:
+                    chooseRects[dialogrectname][imgindex] = (
+                        imgx, imgy,
+                        imgx + imgwidth, imgy + imgheight
+                    )
                 
                 imgx += imgwidth + imgx_padding
                 lcount += 1
