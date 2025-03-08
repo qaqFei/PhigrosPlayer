@@ -1768,7 +1768,6 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         wait_execute = True
     )
     
-    
     def drawDiagonalDataBlock(sy: float, ey: float, ease_pos: float):
         sy *= h
         ey *= h
@@ -1818,7 +1817,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
     )
     
     root.run_js_code(
-        f"ctx.globalAlpha = {tool_funcs.finish_animation_eases.playdata_alpha_ease(p - 0.02)}",
+        f"ctx.save(); ctx.globalAlpha = {tool_funcs.finish_animation_eases.playdata_alpha_ease(p - 0.02)}",
         add_code_array = True
     )
     
@@ -1924,10 +1923,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
     drawELCount(h * (794 / 1080), "Early", EarlyCount)
     drawELCount(h * (823 / 1080), "Late", LateCount)
     
-    root.run_js_code(
-        "ctx.globalAlpha = 1.0;",
-        add_code_array = True
-    )
+    root.run_js_code("ctx.restore();", add_code_array = True)
     
     Retry_Button_Width = w * const.FINISH_UI_BUTTON_SIZE
     Retry_Button_Height = w * const.FINISH_UI_BUTTON_SIZE / 190 * 145
@@ -1971,12 +1967,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
     )
     
     root.run_js_code(
-        "ctx.globalAlpha = 1.0;",
-        add_code_array = True
-    )
-    
-    root.run_js_code(
-        f"ctx.globalAlpha = {tool_funcs.finish_animation_eases.userinfo_alpha_ease(p - 0.03)}",
+        f"ctx.save(); ctx.globalAlpha = {tool_funcs.finish_animation_eases.userinfo_alpha_ease(p - 0.03)}",
         add_code_array = True
     )
     
@@ -1997,7 +1988,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
     )
     
     root.run_js_code(
-        "ctx.globalAlpha = 1.0;",
+        "ctx.restore();",
         add_code_array = True
     )
     
