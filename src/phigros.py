@@ -1718,9 +1718,9 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
     editingUserData = False
     CalibrationClickEffects = []
     CalibrationClickEffectLines = []
-    editUserNameRect, editIntroductionRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
-    editAvatarRect, editBackgroundRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
-    loginButtonRect = (0.0, 0.0, 0.0, 0.0)
+    editUserNameRect, editIntroductionRect = const.EMPTY_RECT, const.EMPTY_RECT
+    editAvatarRect, editBackgroundRect = const.EMPTY_RECT, const.EMPTY_RECT
+    loginButtonRect = const.EMPTY_RECT
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     ShowOpenSource, ShowOpenSourceSt = False, float("nan")
     CloseOpenSource, CloseOpenSourceSt = False, float("nan")
@@ -4263,12 +4263,12 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
-    songShadowRect = None
-    chartsShadowRect = None
-    chartsShadowDPower = None
-    mirrorButtonRect, autoplayButtonRect = None, None
-    playButtonRect = None
-    avatar_rect = None
+    songShadowRect = const.EMPTY_RECT
+    chartsShadowRect = const.EMPTY_RECT
+    chartsShadowDPower = const.EMPTY_RECT
+    mirrorButtonRect, autoplayButtonRect = const.EMPTY_RECT, const.EMPTY_RECT
+    playButtonRect = const.EMPTY_RECT
+    avatar_rect = const.EMPTY_RECT
     
     chooseControler.disable_valueter()
     chooseState.change_diff(getUserData("internal-lastDiffIndex"))

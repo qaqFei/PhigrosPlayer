@@ -416,9 +416,9 @@ class PhiSlider(PhiBaseWidget):
     numberType: typing.Union[int, float] = float
     command: typing.Callable[[], typing.Any] = lambda *args, **kwargs: None
     
-    sliderRect = (0.0, 0.0, 0.0, 0.0)
-    lconButtonRect = (0.0, 0.0, 0.0, 0.0)
-    rconButtonRect = (0.0, 0.0, 0.0, 0.0)
+    sliderRect = const.EMPTY_RECT
+    lconButtonRect = const.EMPTY_RECT
+    rconButtonRect = const.EMPTY_RECT
     _mouseDown: bool = False
     
     def _fixValue(self):
@@ -484,7 +484,7 @@ class PhiCheckbox(PhiBaseWidget):
     command: typing.Callable[[], typing.Any] = lambda *args, **kwargs: None
     
     check_animation_st: float = float("-inf")
-    checkboxRect = (0.0, 0.0, 0.0, 0.0)
+    checkboxRect = const.EMPTY_RECT
     _mouseDown: bool = False
     
     def MouseDown(self, x: int, y: int):
@@ -509,7 +509,7 @@ class PhiButton(PhiBaseWidget):
     anchor: typing.Literal["left", "center", "right"] = "center"
     dx: float = 0.0
 
-    buttonRect = (0.0, 0.0, 0.0, 0.0)
+    buttonRect = const.EMPTY_RECT
 
     def MouseDown(self, x: int, y: int):
         if self.InRect(x, y):
