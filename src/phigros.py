@@ -4460,7 +4460,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 wait_execute = True
             )
             
-            with tool_funcs.shadowDrawer("rgba(255, 255, 255, 0.8)", (w + h) / 125):
+            with tool_funcs.shadowDrawer("rgba(255, 255, 255, 0.5)", (w + h) / 125):
                 drawText(
                     cmCenter[0],
                     cmCenter[1] - h * (10 / 1080),
@@ -4468,7 +4468,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     font = f"{(w + h) / 85}px pgrFont",
                     textAlign = "center",
                     textBaseline = "middle",
-                    fillStyle = "rgba(255, 255, 255, 0.82)",
+                    fillStyle = "rgba(255, 255, 255, 0.8)",
                     wait_execute = True
                 )
 

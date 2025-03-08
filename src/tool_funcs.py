@@ -855,6 +855,9 @@ class shadowDrawer:
     
     def __exit__(self, *_):
         graplib_webview.ctxRestore(wait_execute=True)
+    
+    enter = __enter__
+    exit = __exit__
 
 if environ.get("ENABLE_JIT", "0") == "1":
     import numba
