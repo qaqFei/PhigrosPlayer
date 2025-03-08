@@ -392,4 +392,4 @@ EXTRA_DEFAULTS = {
     }
 }
 
-del typing
+del typing, platform

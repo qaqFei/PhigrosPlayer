@@ -79,7 +79,9 @@ userData_default = {
 }
 
 playData_default = {
-    "datas": []
+    "datas": [],
+    "hasChallengeMode": False,
+    "challengeModeRank": 100
 }
 
 def saveUserData(data: dict):
@@ -142,6 +144,12 @@ def setPlayData(sid: str, score: float, acc: float, level: typing.Literal["AP", 
     old_data["acc"] = max(acc, old_data["acc"])
     old_data["level"] = max((old_data["level"], level), key=lambda x: const.PGR_LEVEL_INTMAP[x])
     if save: savePlayData(playData)
+
+def getPlayDataItem(key: str):
+    return playData.get(key, playData_default[key])
+
+def setPlayDataItem(key: str, value: typing.Any):
+    playData[key] = value
 
 @functools.cache
 def countPlayData(chapter: phigame_obj.Chapter, key: str):
@@ -281,7 +289,7 @@ def loadResource():
     phi_rpack.setToGlobal()
     
     Resource = {
-        "levels":{
+        "levels": {
             "AP": Image.open("./resources/levels/AP.png"),
             "FC": Image.open("./resources/levels/FC.png"),
             "V": Image.open("./resources/levels/V.png"),
@@ -292,6 +300,10 @@ def loadResource():
             "F": Image.open("./resources/levels/F.png"),
             "NEW": Image.open("./resources/levels/NEW.png")
         },
+        "challenge_mode_levels": [
+            Image.open(f"./resources/challenge_mode_levels/{i}.png")
+            for i in range(6)
+        ],
         "logoipt": Image.open("./resources/logoipt.png"),
         "warning": Image.open("./resources/le_warn.png"),
         "phigros": Image.open("./resources/phigros.png"),
@@ -407,8 +419,11 @@ def loadResource():
     MirrorIconWidth = w * 0.108925
     MirrorIconHeight = MirrorIconWidth / Resource["mirror"].width * Resource["mirror"].height
     
-    for k,v in Resource["levels"].items():
+    for k, v in Resource["levels"].items():
         respacker.reg_img(v, f"Level_{k}")
+    
+    for i, v in enumerate(Resource["challenge_mode_levels"]):
+        respacker.reg_img(v, f"cmlevel_{i}")
         
     for k, v in Resource["Notes"].items():
         respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
@@ -1267,7 +1282,8 @@ def mainRender():
         
         if clickedMessage: return
         
-        for cid, rect in chapterPlayButtonRectMap.items():
+        # why need to copy: RuntimeError: dictionary changed size during iteration
+        for cid, rect in chapterPlayButtonRectMap.copy().items():
             if tool_funcs.inrect(x, y, rect) and Chapters.items[Chapters.aTo].chapterId == cid:
                 if not tonextUI:
                     for e in events: eventManager.unregEvent(e)
@@ -4070,7 +4086,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.7640625,
             h * (817 / 1080),
             f"{int(diifpd["score"] + 0.5):>07}",
-            font = f"{(w + h) / 60}px pgrFont",
+            font = f"{(w + h) / 60}px pgrFontThin",
             textAlign = "right",
             textBaseline = "middle",
             fillStyle = "rgb(255, 255, 255)",
@@ -4081,7 +4097,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.81,
             h * (828 / 1080),
             f"{(diifpd["acc"] * 100):>05.2f}%",
-            font = f"{(w + h) / 154}px pgrFont",
+            font = f"{(w + h) / 154}px pgrFontThin",
             textAlign = "right",
             textBaseline = "middle",
             fillStyle = "rgb(255, 255, 255)",
@@ -4427,6 +4443,35 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             wait_execute = True
         )
         ctxRestore(wait_execute=True)
+        
+        if getPlayDataItem("hasChallengeMode"):
+            challengeModeRank = getPlayDataItem("challengeModeRank")
+            cmLevel = min(challengeModeRank // 100, len(Resource["challenge_mode_levels"]) - 1)
+            cmImage = Resource["challenge_mode_levels"][cmLevel]
+            cmCenter = (w * 0.969875, h * (67 / 1080))
+            cmImageWidth = w * 0.043
+            cmImageHeight = cmImageWidth * cmImage.height / cmImage.width
+            drawImage(
+                f"cmlevel_{cmLevel}",
+                cmCenter[0] - cmImageWidth / 2,
+                cmCenter[1] - cmImageHeight / 2,
+                cmImageWidth,
+                cmImageHeight,
+                wait_execute = True
+            )
+            
+            root.run_js_code(f"ctx.setShadow('rgba(255, 255, 255, 0.8)', {(w + h) / 125});", add_code_array=True)
+            drawText(
+                cmCenter[0],
+                cmCenter[1] - h * (10 / 1080),
+                f"{challengeModeRank % 100}",
+                font = f"{(w + h) / 85}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "rgba(255, 255, 255, 0.82)",
+                wait_execute = True
+            )
+            ctxRestore(wait_execute=True)
 
         diffchoosebarRect = (
             w * 0.41875, h * (779 / 1080),

@@ -73,6 +73,8 @@ class PhiCoreConfig:
             self.CHART_TYPE = const.CHART_TYPE.PHI
         elif isinstance(self.chart_obj, chartobj_rpe.Chart):
             self.CHART_TYPE = const.CHART_TYPE.RPE
+        else:
+            self.CHART_TYPE = const.SPEC_VALS.RES_NOLOADED
 
 def CoreConfigure(config: PhiCoreConfig):
     global SETTER

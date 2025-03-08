@@ -1243,6 +1243,14 @@ void main() {
         return [measure.width, measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent];
     }
 
+    CanvasRenderingContext2D.prototype.setShadow = function (color, blur, dx = 0, dy = 0) {
+        this.save();
+        this.shadowColor = color;
+        this.shadowBlur = blur;
+        this.shadowOffsetX = dx;
+        this.shadowOffsetY = dy;
+    }
+
     CanvasRenderingContext2D.prototype.mirror = function () {
         this.save();
         this.scale(-1, 1);
