@@ -3769,6 +3769,7 @@ def chartPlayerRender(
                     level = pplm.ppps.getLevelString()
                 )
             
+            mixer.music.set_volume(1.0)
             Thread(target=nextUI, daemon=True).start()
             break
         
@@ -3778,7 +3779,6 @@ def chartPlayerRender(
         pplm.unbind_events(root)
         
     phicore.enableMirror = False
-    mixer.music.set_volume(1.0)
     cksmanager.stop()
     respacker.unload(respacker.getnames())
 
