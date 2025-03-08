@@ -3922,7 +3922,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 drawText(
                     x + cuttedWidth - w * 0.027625, y,
                     song.difficlty[chooseState.diff_index].strdiffnum,
-                    font = f"{(w + h) / 57}px pgrFont",
+                    font = f"{(w + h) / 57}px pgrFontThin",
                     textAlign = "right",
                     textBaseline = "middle",
                     fillStyle = "white",
@@ -4001,14 +4001,15 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             level_bar_right, h * (857 / 1080)
         )
         
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, level_bar_rect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_bar_rect), 75)},\
-                'rgb(255, 255, 255)'\
-            );",
-            add_code_array = True
-        )
+        with tool_funcs.shadowDrawer("rgba(0, 0, 0, 0.5)", (w + h) / 125):
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, level_bar_rect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_bar_rect), 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
         
         level_choose_block_left = w * chooseControler.level_choose_x.value
         level_choose_block_rect = (
@@ -4051,14 +4052,15 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 "rgb(0, 0, 0)"
             )
             
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, level_choose_block_rect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_choose_block_rect), 75)},\
-                'rgb{chooseControler.get_level_color()}'\
-            );",
-            add_code_array = True
-        )
+        with tool_funcs.shadowDrawer("rgba(0, 0, 0, 0.25)", (w + h) / 135):
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, level_choose_block_rect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_choose_block_rect), 75)},\
+                    'rgb{chooseControler.get_level_color()}'\
+                );",
+                add_code_array = True
+            )
         
         drawChooseBarDiff(
             level_choose_block_center[0],
@@ -4291,58 +4293,59 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
         drawFaculas()
         
-        chartsShadowRect = (
-            w * -0.009375, 0,
-            w * 0.4921875, h
-        )
-        chartsShadowDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(chartsShadowRect), 75)
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, chartsShadowRect))},\
-                {chartsShadowDPower},\
-                'rgba(0, 0, 0, 0.3)'\
-            );",
-            add_code_array = True
-        )
+        with tool_funcs.shadowDrawer("rgba(0, 0, 0, 0.5)", (w + h) / 125):
+            chartsShadowRect = (
+                w * -0.009375, 0,
+                w * 0.4921875, h
+            )
+            chartsShadowDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(chartsShadowRect), 75)
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, chartsShadowRect))},\
+                    {chartsShadowDPower},\
+                    'rgba(0, 0, 0, 0.3)'\
+                );",
+                add_code_array = True
+            )
+            
+            songShadowRect = (
+                w * 0.0640625, h * (361 / 1080),
+                w * 0.45, h * (505 / 1080)
+            )
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, songShadowRect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(songShadowRect), 75)},\
+                    'rgba(0, 0, 0, 0.6)'\
+                );",
+                add_code_array = True
+            )
         
-        songShadowRect = (
-            w * 0.0640625, h * (361 / 1080),
-            w * 0.45, h * (505 / 1080)
-        )
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, songShadowRect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(songShadowRect), 75)},\
-                'rgba(0, 0, 0, 0.6)'\
-            );",
-            add_code_array = True
-        )
+            difRect = (
+                w * 0.340625, h * (355 / 1080),
+                w * 0.440625, h * (513 / 1080)
+            )
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, difRect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(difRect), 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
         
-        difRect = (
-            w * 0.340625, h * (355 / 1080),
-            w * 0.440625, h * (513 / 1080)
-        )
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, difRect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(difRect), 75)},\
-                'rgb(255, 255, 255)'\
-            );",
-            add_code_array = True
-        )
-        
-        playButtonRect = (
-            w * 0.878125, h * (861 / 1080),
-            w * 2.0, h * (1012 / 1080)
-        )
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, playButtonRect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)},\
-                'rgb(255, 255, 255)'\
-            );",
-            add_code_array = True
-        )
+            playButtonRect = (
+                w * 0.878125, h * (861 / 1080),
+                w * 2.0, h * (1012 / 1080)
+            )
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, playButtonRect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)},\
+                    'rgb(255, 255, 255)'\
+                );",
+                add_code_array = True
+            )
         
         userDataRect = (
             w * 0.83025, h * (28 / 1080),
