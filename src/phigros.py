@@ -3764,13 +3764,13 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     illrespacker.reg_img(avatar_img, "user_avatar")
     illrespacker.load(*illrespacker.pack())
     
-    choose_state = phigame_obj.ChartChooseUI_State(Resource["UISound_2"])
-    chooseControler = phigame_obj.ChooseChartControler(chapter_item, w, h, Resource["UISound_5"], choose_state)
+    chooseState = phigame_obj.ChartChooseUI_State(Resource["UISound_2"])
+    chooseControler = phigame_obj.ChooseChartControler(chapter_item, w, h, Resource["UISound_5"], chooseState)
     eventManager.regClickEventFs(chooseControler.scter_mousedown, False)
     eventManager.regReleaseEvent(phigame_obj.ReleaseEvent(chooseControler.scter_mouseup))
     eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseControler.scter_mousemove))
     
-    choose_state.change_diff_callback = lambda: (chooseControler.set_level_callback(), resort(), setUserData("internal-lastDiffIndex", choose_state.diff_index))
+    chooseState.change_diff_callback = lambda: (chooseControler.set_level_callback(), resort(), setUserData("internal-lastDiffIndex", chooseState.diff_index))
     
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
@@ -3902,10 +3902,10 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 wait_execute = True
             )
             
-            if choose_state.diff_index <= len(song.difficlty) - 1:
+            if chooseState.diff_index <= len(song.difficlty) - 1:
                 drawText(
                     x + cuttedWidth - w * 0.027625, y,
-                    song.difficlty[choose_state.diff_index].strdiffnum,
+                    song.difficlty[chooseState.diff_index].strdiffnum,
                     font = f"{(w + h) / 57}px pgrFont",
                     textAlign = "right",
                     textBaseline = "middle",
@@ -3913,7 +3913,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     wait_execute = True
                 )
         
-                sid = song.difficlty[choose_state.diff_index].unqique_id()
+                sid = song.difficlty[chooseState.diff_index].unqique_id()
                 diifpd = findPlayDataBySid(sid)
                 levelimgname = diifpd["level"] if diifpd["level"] != "never_play" else "NEW"
                 levelimg = Resource["levels"][levelimgname]
@@ -3965,7 +3965,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         )
         drawParallax(*previewParallaxRect)
         
-        if choose_state.is_mirror:
+        if chooseState.is_mirror:
             mirrorIconLeft = (
                 previewParallaxRect[0] + 
                 tool_funcs.getSizeByRect(previewParallaxRect)[0]
@@ -4047,11 +4047,11 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         drawChooseBarDiff(
             level_choose_block_center[0],
             now_choosediffnum,
-            currectSong.difficlty[min(choose_state.diff_index, len(currectSong.difficlty) - 1)].name,
+            currectSong.difficlty[min(chooseState.diff_index, len(currectSong.difficlty) - 1)].name,
             "rgb(255, 255, 255)"
         )
         
-        sid = currectSong.difficlty[min(choose_state.diff_index, len(currectSong.difficlty) - 1)].unqique_id()
+        sid = currectSong.difficlty[min(chooseState.diff_index, len(currectSong.difficlty) - 1)].unqique_id()
         diifpd = findPlayDataBySid(sid)
         levelimgname = diifpd["level"] if diifpd["level"] != "never_play" else "NEW"
         levelimg = Resource["levels"][levelimgname]
@@ -4088,10 +4088,10 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             wait_execute = True
         )
         
-        if choose_state.diff_index > len(currectSong.difficlty) - 1:
+        if chooseState.diff_index > len(currectSong.difficlty) - 1:
             return
         
-        diff = currectSong.difficlty[choose_state.diff_index]
+        diff = currectSong.difficlty[chooseState.diff_index]
         
         drawText(
             w * 0.390655, h * (419 / 1080),
@@ -4113,7 +4113,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             wait_execute = True
         )
     
-    get_now_sortmethod = lambda: (choose_state.sort_reverse, choose_state.sort_method, choose_state.diff_index)
+    get_now_sortmethod = lambda: (chooseState.sort_reverse, chooseState.sort_method, chooseState.diff_index)
     last_sort_method = get_now_sortmethod()
     def resort():
         nonlocal last_sort_method
@@ -4123,11 +4123,11 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             return
         
         song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
-        chapter_item.scsd_songs[:] = choose_state.dosort(
+        chapter_item.scsd_songs[:] = chooseState.dosort(
             chapter_item,
             lambda song: findPlayDataBySid(
-                song.difficlty[choose_state.diff_index].unqique_id()
-            )["score"] if choose_state.diff_index <= len(song.difficlty) - 1 else -1.0
+                song.difficlty[chooseState.diff_index].unqique_id()
+            )["score"] if chooseState.diff_index <= len(song.difficlty) - 1 else -1.0
         )
         chooseControler.setto_index(chapter_item.scsd_songs.index(song))
         last_sort_method = this_sort_method
@@ -4142,7 +4142,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.14843750, h * (72 / 1080),
             w * 0.14843750 + SortIconWidth, h * (72 / 1080) + SortIconHeight
         )):
-            choose_state.sort_reverse = not choose_state.sort_reverse
+            chooseState.sort_reverse = not chooseState.sort_reverse
             resort()
         
         # 下一个排序方法
@@ -4150,16 +4150,16 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.16875, h * (69 / 1080),
             w * 0.1953125, h * (96 / 1080)
         )):
-            choose_state.next_sort_method()
+            chooseState.next_sort_method()
             resort()
         
         # 镜像
         if tool_funcs.inrect(x, y, mirrorButtonRect):
-            choose_state.change_mirror()
+            chooseState.change_mirror()
         
         # 自动游玩
         if tool_funcs.inrect(x, y, autoplayButtonRect):
-            choose_state.change_autoplay()
+            chooseState.change_autoplay()
         
         # 随机
         if tool_funcs.inrect(x, y, (
@@ -4193,14 +4193,14 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             )
             
             if tool_funcs.indrect(x, y, rect, tool_funcs.getDPower(*tool_funcs.getSizeByRect(rect), 75)):
-                choose_state.change_diff_byuser(i)
+                chooseState.change_diff_byuser(i)
         
         # 开始
         if tool_funcs.indrect(x, y, playButtonRect, tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)):
             unregEvents()
             
             song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
-            diff = song.difficlty[min(choose_state.diff_index, len(song.difficlty) - 1)]
+            diff = song.difficlty[min(chooseState.diff_index, len(song.difficlty) - 1)]
             chart_information = {
                 "Name": song.name,
                 "Artist": song.composer,
@@ -4227,9 +4227,9 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     "levelNumberFontSize": (w + h) / 44.5,
                     "levelNameFontSize": (w + h) / 125
                 },
-                autoplay = choose_state.is_autoplay,
+                autoplay = chooseState.is_autoplay,
                 sid = diff.unqique_id(),
-                mirror = choose_state.is_mirror
+                mirror = chooseState.is_mirror
             )
         
         # 展开/关闭 用户头像名称rks
@@ -4245,7 +4245,10 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     playButtonRect = None
     avatar_rect = None
     
-    choose_state.change_diff(getUserData("internal-lastDiffIndex"))
+    chooseControler.disable_valueter()
+    chooseState.change_diff(getUserData("internal-lastDiffIndex"))
+    chooseControler.enable_valueter()
+    
     def _render(rjc: bool = True):
         nonlocal songShadowRect
         nonlocal chartsShadowRect
@@ -4461,7 +4464,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, mirrorButtonRect))},\
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(mirrorButtonRect), 75)},\
-                '{"rgba(0, 0, 0, 0.4)" if not choose_state.is_mirror else "rgb(255, 255, 255)"}'\
+                '{"rgba(0, 0, 0, 0.4)" if not chooseState.is_mirror else "rgb(255, 255, 255)"}'\
             );",
             add_code_array = True
         )
@@ -4472,7 +4475,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             font = f"{(w + h) / 130}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
-            fillStyle = "rgba(223, 223, 223, 0.75)" if not choose_state.is_mirror else "rgb(0, 0, 0, 0.8)",
+            fillStyle = "rgba(223, 223, 223, 0.75)" if not chooseState.is_mirror else "rgb(0, 0, 0, 0.8)",
             wait_execute = True
         )
         
@@ -4484,7 +4487,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, autoplayButtonRect))},\
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(autoplayButtonRect), 75)},\
-                '{"rgba(0, 0, 0, 0.4)" if not choose_state.is_autoplay else "rgb(255, 255, 255)"}'\
+                '{"rgba(0, 0, 0, 0.4)" if not chooseState.is_autoplay else "rgb(255, 255, 255)"}'\
             );",
             add_code_array = True
         )
@@ -4495,7 +4498,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             font = f"{(w + h) / 130}px pgrFont",
             textAlign = "center",
             textBaseline = "middle",
-            fillStyle = "rgba(223, 223, 223, 0.75)" if not choose_state.is_autoplay else "rgb(0, 0, 0, 0.8)",
+            fillStyle = "rgba(223, 223, 223, 0.75)" if not chooseState.is_autoplay else "rgb(0, 0, 0, 0.8)",
             wait_execute = True
         )
         
@@ -4568,14 +4571,14 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 {root.get_img_jsvarname("sort")},\
                 {w * 0.14843750}, {h * (72 / 1080)},\
                 {SortIconWidth}, {SortIconHeight},\
-                1, {-1 if choose_state.sort_reverse else 1}\
+                1, {-1 if chooseState.sort_reverse else 1}\
             );",
             add_code_array = True
         )
         
         drawText(
             w * 0.16875, h * (69 / 1080),
-            const.PHI_SORTMETHOD_STRING_MAP[choose_state.sort_method],
+            const.PHI_SORTMETHOD_STRING_MAP[chooseState.sort_method],
             font = f"{(w + h) / 100}px pgrFontThin",
             textAlign = "left",
             textBaseline = "top",

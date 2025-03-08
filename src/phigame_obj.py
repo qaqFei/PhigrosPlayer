@@ -942,6 +942,24 @@ class ChooseChartControler:
         targetDy = min(max(0, index), len(self.chapter.scsd_songs) - 1) * self.itemHeight
         self._slideControl.easeBackY(targetDy, False)
     
+    @property
+    def _valueters(self):
+        return (
+            self.level_bar_rightx,
+            self.level_choose_x,
+            *self.level_color,
+            self.level_diffnumber,
+            *self.chooselevel_textsx
+        )
+    
+    def enable_valueter(self):
+        for valueter in self._valueters:
+            valueter.enable = True
+    
+    def disable_valueter(self):
+        for valueter in self._valueters:
+            valueter.enable = False
+    
     def __del__(self):
         self._toae()
         self._released = True
@@ -1045,10 +1063,12 @@ class valueTranformer:
     ease: typing.Callable[[float], float] = lambda x: x
     animation_time: float = 0.5
     
-    _last_change: float = float("-inf")
-    _last_value: float = float("-inf")
-    _target_value: float = float("-inf")
-    _inited: bool = False
+    def __post_init__(self):
+       self._last_change = float("-inf")
+       self._last_value = float("-inf")
+       self._target_value = float("-inf")
+       self._inited = False
+       self._enable = True
     
     def init(self, value: float):
         self._last_value = value
@@ -1089,3 +1109,12 @@ class valueTranformer:
     def value(self):
         self.updater()
         return self._value
+
+    @property
+    def enable(self):
+        return self._inited
+
+    @enable.setter
+    def enable(self, value: bool):
+        self._inited = value
+    
