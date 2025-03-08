@@ -1719,6 +1719,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
     CalibrationClickEffectLines = []
     editUserNameRect, editIntroductionRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
     editAvatarRect, editBackgroundRect = (0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 0.0)
+    loginButtonRect = (0.0, 0.0, 0.0, 0.0)
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     ShowOpenSource, ShowOpenSourceSt = False, float("nan")
     CloseOpenSource, CloseOpenSourceSt = False, float("nan")
@@ -1882,6 +1883,10 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         # 编辑用户背景 - 选择
         if settingState.atis_a and showBackgrounds and (time.time() - showBackgroundsSt) > 0.15:
             lastClickChooseAvatarOrBackgroundPos = (x, y)
+        
+        # 登录
+        if settingState.atis_a and tool_funcs.inrect(x, y, loginButtonRect):
+            root.run_js_code(f"alert({root.string2sctring_hqm("你在想 peach")});")
         
         # 音频问题疑难解答
         if settingState.atis_o and tool_funcs.inrect(x, y, otherSettingButtonRects[0]) and inSettingUI:
@@ -2124,6 +2129,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
     def drawAccountAndCountSetting(dx: float, alpha: float):
         nonlocal editUserNameRect, editIntroductionRect
         nonlocal editAvatarRect, editBackgroundRect
+        nonlocal loginButtonRect
         
         if alpha == 0.0: return
         
@@ -4723,6 +4729,7 @@ def importArchiveFromPhigros():
         enableLowQuality = archive["settings"]["lowResolutionMode"]
         chartOffset = archive["settings"]["soundOffset"] * 1000
         noteScale = archive["settings"]["noteScale"]
+        challengeModeRank = archive["gameProgress"]["challengeModeRank"]
         
         setUserData("userdata-userName", username)
         setUserData("userdata-rankingScore", rankingScore)
@@ -4737,6 +4744,7 @@ def importArchiveFromPhigros():
         setUserData("setting-enableMorebetsAuxiliary", enableMorebetsAuxiliary)
         setUserData("setting-enableFCAPIndicator", enableFCAPIndicator)
         setUserData("setting-enableLowQuality", enableLowQuality)
+        setPlayData("challengeModeRank", challengeModeRank)
         
         if not assetConfig.get("isfromunpack", False):
             root.run_js_code(f"alert({root.string2sctring_hqm(f"基本信息已导入\n当前资源包非来源于官方文件, 无法导入存档")});")

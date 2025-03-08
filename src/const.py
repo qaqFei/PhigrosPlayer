@@ -141,6 +141,22 @@ ClickEffectType = list[tuple[float, tuple[tuple[float, ...]], typing.Callable[[f
 BadEffectType = list[tuple[float, float, tuple[float, float]]]
 MissEffectType = list[tuple[float, typing.Any]] # emm, typing.Any is a note typing.Any
 
+TAPTAP_LOGIN_URL = f"""\
+https://www.taptap.com/oauth2/v1/authorize?\
+scope=public_profile&response_type=code&redirect_uri=tapoauth://authorize&\
+state=be340bd4-8140-4e83-baa2-bbff2d519173&\
+client_id={PHIGROS_TAPTAP_CLIENT_ID}\
+"""
+
+TAPTAP_LOGIN_PROMPT = """\
+将前往 TapTap 登录网页,
+
+请登录后在 F12 控制台找到: 
+'Failed to launch 'tapoauth://authorize?code=xxx' because the scheme does not have a registered handler.'
+
+将其中的 'xxx' 复制到下面的输入框中, 不要包含其他字符
+"""
+
 DSP_SETTING_TIP = """\
 如果你在游戏中遇到游戏中的音乐无法正常播放的情况，请适当的更改这个设置。\n
 在游戏中，更小的 Buffer 可以带来更低的音频延时，但同时会导致某些设备出现音频撕裂、音频嘈杂且缓慢，音频卡顿等问题。\n
