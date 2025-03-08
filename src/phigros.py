@@ -4687,6 +4687,8 @@ def importArchiveFromPhigros():
     if sessionToken is None:
         return
     
+    root.rwjc_waiter.clear()
+    
     rcfg = userData.copy()
     libpgr = ctypes.CDLL("./lib/libpgr.dll" if platform.system() == "Windows" else "./lib/libpgr.so")
     
@@ -4744,7 +4746,10 @@ def importArchiveFromPhigros():
         setUserData("setting-enableMorebetsAuxiliary", enableMorebetsAuxiliary)
         setUserData("setting-enableFCAPIndicator", enableFCAPIndicator)
         setUserData("setting-enableLowQuality", enableLowQuality)
-        setPlayData("challengeModeRank", challengeModeRank)
+        setPlayDataItem("challengeModeRank", challengeModeRank)
+        
+        if challengeModeRank != 0:
+            setPlayDataItem("hasChallengeMode", True)
         
         if not assetConfig.get("isfromunpack", False):
             root.run_js_code(f"alert({root.string2sctring_hqm(f"基本信息已导入\n当前资源包非来源于官方文件, 无法导入存档")});")
@@ -4791,6 +4796,7 @@ def importArchiveFromPhigros():
             needexit = True
     
     free_handle(handle)
+    root.rwjc_waiter.set()
     saveUserData(userData)
     
     if needexit:

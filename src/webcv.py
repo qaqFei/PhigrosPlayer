@@ -363,6 +363,9 @@ class WebCanvas:
         self.renderdemand = renderdemand
         self.renderasync = renderasync
         
+        self.rwjc_waiter = threading.Event()
+        self.rwjc_waiter.set()
+        
         self.jslog = jslog
         self.jslog_path = jslog_path
         self.jslog_f = open(jslog_path, "w", encoding="utf-8") if self.jslog else None
@@ -428,6 +431,8 @@ class WebCanvas:
         self._jscode_orders[order].append((code, add_code_array))
     
     def _rjwc(self, codes: list[str]):
+        self.rwjc_waiter.wait()
+        
         try:
             framerate: int|float = self.run_js_code(f"{codes}.forEach(r2eval);\nframerate;")
         except Exception as e:
