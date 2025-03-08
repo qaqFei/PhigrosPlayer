@@ -548,13 +548,16 @@ class WidgetEventManager:
 class SlideControler:
     def __init__(
         self,
-        eventRect: typing.Callable[[int, int], bool],
+        eventRect: (
+            typing.Callable[[int, int], bool]
+            | list[tuple[typing.Callable[[int, int], bool], float]]
+        ),
         setFunc: typing.Callable[[float, float], typing.Any],
         minValueX: float, maxValueX: float,
         minValueY: float, maxValueY: float,
         w: int, h: int
     ):
-        self.eventRect = eventRect
+        self.eventRect = eventRect if isinstance(eventRect, list) else [(eventRect, 1.0)]
         self.setFunc = setFunc
         self.minValueX, self.maxValueX = minValueX, maxValueX
         self.minValueY, self.maxValueY = minValueY, maxValueY
@@ -563,6 +566,7 @@ class SlideControler:
         self._lastclickx, self._lastclicky = 0.0, 0.0
         self._dx, self._dy = 0.0, 0.0
         self._mouseDown = False
+        self._recti = -1
         
         self.startcallback = lambda: None
         self.endcallback = lambda: None
@@ -576,10 +580,16 @@ class SlideControler:
         
         self.resistance = 0.93
     
+    def _inrect(self, x: int, y: int):
+        for i, (f, _) in enumerate(self.eventRect):
+            if f(x, y): return True, i
+        return False, -1
+    
     def mouseDown(self, x: int, y: int):
-        if not self.eventRect(x, y):
-            return
+        isinrect, i = self._inrect(x, y)
+        if not isinrect: return
         
+        self._recti = i
         self._lastclickx, self._lastclicky = x, y
         self._lastlastclickx, self._lastlastclicky = x, y
         self._mouseDown = True
@@ -594,13 +604,19 @@ class SlideControler:
         self.endcallback()
     
     def mouseMove(self, x: int, y: int):
-        if not self._mouseDown:
-            return
+        if not self._mouseDown: return
         
-        self._dx += x - self._lastclickx
-        self._dy += y - self._lastclicky
+        self.mouseMoveBy(
+            (x - self._lastclickx) * self.eventRect[self._recti][1],
+            (y - self._lastclicky) * self.eventRect[self._recti][1]
+        )
         self._lastlastclickx, self._lastlastclicky = self._lastclickx, self._lastclicky
         self._lastclickx, self._lastclicky = x, y
+        self._set()
+    
+    def mouseMoveBy(self, x: int, y: int):
+        self._dx += x
+        self._dy += y
         self._set()
     
     def setDx(self, v: float): self._dx = v
@@ -765,21 +781,34 @@ class ChooseChartControler:
     ):
         self.chapter = chapter
         self.uistate = uistate
+        
         self._chartsShadowRect = (
             w * -0.009375, 0,
             w * 0.4921875, h
         )
         self._chartsShadowRectDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(self._chartsShadowRect), 75)
+        self._previewBgRect = (
+            w * 0.4375, h * (219 / 1080),
+            w * 0.9453125, h * (733 / 1080)
+        )
+        self._previewBgRectDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(self._previewBgRect), 75)
+        
         self.changeUisound = changeUisound
         self.itemHeight = h * (120 / 1080)
         self.itemNowDy = 0.0
         self._itemLastDy = 0.0
         
         self._slideControl = SlideControler(
-            eventRect = lambda x, y: (
-                tool_funcs.indrect(x, y, self._chartsShadowRect, self._chartsShadowRectDPower)
-                and y > h * (123 / 1080)
-            ),
+            eventRect = [
+                (
+                    (lambda x, y: tool_funcs.indrect(x, y, self._chartsShadowRect, self._chartsShadowRectDPower) and y > h * (123 / 1080)),
+                    1.0
+                ),
+                (
+                    (lambda x, y: tool_funcs.indrect(x, y, self._previewBgRect, self._previewBgRectDPower)),
+                    0.2
+                )
+            ],
             setFunc = self._slide_setfunc,
             minValueX = 0.0, maxValueX = 0.0,
             minValueY = 0.0, maxValueY = 0.0,
