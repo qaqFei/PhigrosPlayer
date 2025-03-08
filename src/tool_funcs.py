@@ -17,6 +17,7 @@ import rpe_easing
 import phira_resource_pack
 import tempdir
 import webcv
+import graplib_webview
 from light_tool_funcs import *
 
 note_id = -1
@@ -839,6 +840,21 @@ class TimeoutTaskManager(typing.Generic[_TimeoutTaskManagerT]):
             break
             
         return result
+
+class shadowDrawer:
+    root: webcv.WebCanvas
+    
+    def __init__(self, color: str, blur: float, offsetX: float = 0.0, offsetY: float = 0.0):
+        self.color = color
+        self.blur = blur
+        self.offsetX = offsetX
+        self.offsetY = offsetY
+    
+    def __enter__(self):
+        self.root.run_js_code(f"ctx.setShadow('{self.color}', {self.blur}, {self.offsetX}, {self.offsetY});", add_code_array=True)
+    
+    def __exit__(self, *_):
+        graplib_webview.ctxRestore(wait_execute=True)
 
 if environ.get("ENABLE_JIT", "0") == "1":
     import numba

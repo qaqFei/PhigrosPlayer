@@ -4460,18 +4460,17 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 wait_execute = True
             )
             
-            root.run_js_code(f"ctx.setShadow('rgba(255, 255, 255, 0.8)', {(w + h) / 125});", add_code_array=True)
-            drawText(
-                cmCenter[0],
-                cmCenter[1] - h * (10 / 1080),
-                f"{challengeModeRank % 100}",
-                font = f"{(w + h) / 85}px pgrFont",
-                textAlign = "center",
-                textBaseline = "middle",
-                fillStyle = "rgba(255, 255, 255, 0.82)",
-                wait_execute = True
-            )
-            ctxRestore(wait_execute=True)
+            with tool_funcs.shadowDrawer("rgba(255, 255, 255, 0.8)", (w + h) / 125):
+                drawText(
+                    cmCenter[0],
+                    cmCenter[1] - h * (10 / 1080),
+                    f"{challengeModeRank % 100}",
+                    font = f"{(w + h) / 85}px pgrFont",
+                    textAlign = "center",
+                    textBaseline = "middle",
+                    fillStyle = "rgba(255, 255, 255, 0.82)",
+                    wait_execute = True
+                )
 
         diffchoosebarRect = (
             w * 0.41875, h * (779 / 1080),
@@ -4865,6 +4864,7 @@ root = webcv.WebCanvas(
     renderdemand = "--renderdemand" in sys.argv,
     renderasync = "--renderasync" in sys.argv
 )
+tool_funcs.shadowDrawer.root = root
 
 def init():
     global webdpr
