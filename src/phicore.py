@@ -1987,10 +1987,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         saUserData.challengeModeRank
     )
     
-    root.run_js_code(
-        "ctx.restore();",
-        add_code_array = True
-    )
+    root.run_js_code("ctx.restore();", add_code_array = True)
     
     if rjc: root.run_js_wait_code()
 
