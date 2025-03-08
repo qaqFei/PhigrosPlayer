@@ -1591,18 +1591,20 @@ def lineOpenAnimation(fcb: typing.Callable[[], typing.Any] = lambda: None):
     if CHART_TYPE == const.CHART_TYPE.PHI:
         lineWidth = const.LINEWIDTH.PHI
         
-        for line in chart_obj.judgeLineList:
-            linePos = line.getMove(0.0, w, h)
-            lineRotate = line.getRotate(0.0)
-            lineAlpha = line.getAlpha(0.0)
+        # for line in chart_obj.judgeLineList:
+        #     linePos = line.getMove(0.0, w, h)
+        #     lineRotate = line.getRotate(0.0)
+        #     lineAlpha = line.getAlpha(0.0)
             
-            if (
-                abs(linePos[1] - h / 2) <= 0.001 * h
-                and abs(lineRotate) <= 0.001
-                and abs(lineAlpha) >= 0.999
-            ):
-                showLine = True
-                break
+        #     if (
+        #         abs(linePos[1] - h / 2) <= 0.001 * h
+        #         and abs(lineRotate) <= 0.001
+        #         and abs(lineAlpha) >= 0.999
+        #     ):
+        #         showLine = True
+        #         break
+        
+        showLine = True
 
     elif CHART_TYPE == const.CHART_TYPE.RPE:
         lineWidth = const.LINEWIDTH.RPE
