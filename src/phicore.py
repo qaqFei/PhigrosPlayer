@@ -2044,6 +2044,8 @@ def drawUserData(
     hasChallengeMode: bool = False,
     challengeModeRank: int = 000
 ):
+    tool_funcs.shadowDrawer.root = root
+    
     userDataRect = (
         w * 0.83025, h * (28 / 1080),
         w * 2.0, h * (135 / 1080)
