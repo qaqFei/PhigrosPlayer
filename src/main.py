@@ -270,7 +270,6 @@ def loadResource():
     global globalNoteWidth
     global note_max_width, note_max_height
     global note_max_size_half
-    global animation_image
     global WaitLoading, LoadSuccess
     global chart_res
     global cksmanager
@@ -299,6 +298,10 @@ def loadResource():
             "C": Image.open("./resources/levels/C.png"),
             "F": Image.open("./resources/levels/F.png")
         },
+        "challenge_mode_levels": [
+            Image.open(f"./resources/challenge_mode_levels/{i}.png")
+            for i in range(6)
+        ],
         "le_warn": Image.open("./resources/le_warn.png"),
         "Retry": Image.open("./resources/Retry.png"),
         "Arrow_Right": Image.open("./resources/Arrow_Right.png"),
@@ -322,12 +325,15 @@ def loadResource():
     for k, v in Resource["Notes"].items():
         respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
     
-    for i in range(phira_resource_pack.globalPack.effectFrameCount): # reg click effect
+    for i in range(phira_resource_pack.globalPack.effectFrameCount):
         respacker.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
         respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
         
-    for k,v in Resource["levels"].items(): # reg levels img
+    for k,v in Resource["levels"].items():
         respacker.reg_img(v, f"Level_{k}")
+    
+    for i, v in enumerate(Resource["challenge_mode_levels"]):
+        respacker.reg_img(v, f"cmlevel_{i}")
         
     respacker.reg_img(Resource["le_warn"], "le_warn")
     respacker.reg_img(chart_image, "chart_image")

@@ -31,6 +31,24 @@ mainFramerateCalculator = tool_funcs.FramerateCalculator()
 enableMirror = False
 enableWatermark = True
 
+class settlementAnimationUserData:
+    # every instance share those variables
+    avatar: typing.Optional[Image.Image] = None
+    userName: str = "GUEST"
+    rankingScore: float = 16.0
+    hasChallengeMode: bool = True
+    challengeModeRank: int = 548
+    
+    def init(self):
+        root.run_js_code(f"delete {root.get_img_jsvarname("user_avatar")};")
+        respacker = webcv.PILResPacker(root)
+        respacker.reg_img(self.avatar, "user_avatar")
+        respacker.load(*respacker.pack())
+        
+        self.userNameConstFontSize = (w + h) / const.USERNAME_CONST_FONT
+        self.userNamePadding = w * 0.01
+        self.userNameWidth = root.run_js_code(f"ctx.getTextSize({root.string2sctring_hqm(self.userName)}, '{self.userNameConstFontSize}px pgrFont')[0];") + self.userNamePadding * 2
+
 @dataclass
 class PhiCoreConfig:
     SETTER: typing.Callable[[str, typing.Any], typing.Any]
@@ -1631,13 +1649,17 @@ def lineOpenAnimation(fcb: typing.Callable[[], typing.Any] = lambda: None):
     
     time.sleep(0.15)
 
-def initSettlementAnimation(pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
+def initSettlementAnimation(
+    pplm: typing.Optional[tool_funcs.PhigrosPlayLogicManager] = None,
+    avatar: str = "./resources/default_avatar.png"
+):
     global im_size
     global ChartNameString, ChartNameStringFontSize
     global ChartLevelString, ChartLevelStringFontSize
     global ScoreString, LevelName, MaxCombo, AccString
     global PerfectCount, GoodCount, BadCount, MissCount
     global EarlyCount, LateCount
+    global saUserData
     
     im_size = 0.475
     LevelName = "AP" if not noautoplay else pplm.ppps.getLevelString()
@@ -1659,6 +1681,10 @@ def initSettlementAnimation(pplm: tool_funcs.PhigrosPlayLogicManager|None = None
         ChartNameStringFontSize = w * 0.0275
     if ChartLevelStringFontSize > w * 0.0275 * 0.55:
         ChartLevelStringFontSize = w * 0.0275 * 0.55
+    
+    saUserData = settlementAnimationUserData()
+    saUserData.avatar = Image.open(avatar)
+    saUserData.init()
 
 def settlementAnimationFrame(p: float, rjc: bool = True):
     clearCanvas(wait_execute = True)
@@ -1954,13 +1980,21 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         add_code_array = True
     )
     
-    # userinfo_right = w * 0.83125
-    # userinfo_left = w * 0.7234375
-    # userinfo_rect = (
-    #     userinfo_left, h * (29 / 1080),
-    #     w, h * (133 / 1080)
-    # )
-    # userinfo_drect = tool_funcs.rect2drect_l(userinfo_rect, 75)
+    drawUserData(
+        root, 1.0,
+        w, h,
+        Resource,
+        
+        saUserData.avatar,
+        saUserData.userNameWidth,
+        saUserData.userNamePadding,
+        True,
+        
+        saUserData.userName,
+        saUserData.rankingScore,
+        saUserData.hasChallengeMode,
+        saUserData.challengeModeRank
+    )
     
     root.run_js_code(
         "ctx.globalAlpha = 1.0;",
@@ -1993,4 +2027,146 @@ def lineCloseAimationFrame(p: float, a1_combo: int|None, rjc: bool = True):
         )
         
     if rjc: root.run_js_wait_code()
+
+def drawUserData(
+    root: webcv.WebCanvas,
+    p: float,
+    w: int, h: int,
+    Resource: dict,
     
+    avatar_img: Image.Image,
+    userNameWidth: float,
+    userNamePadding: float,
+    userDataIsPopup: bool,
+    
+    userName: str = "GUEST",
+    rankingScore: float = 0,
+    hasChallengeMode: bool = False,
+    challengeModeRank: int = 000
+):
+    userDataRect = (
+        w * 0.83025, h * (28 / 1080),
+        w * 2.0, h * (135 / 1080)
+    )
+    userDataRectSize = tool_funcs.getSizeByRect(userDataRect)
+    userDataDPower = tool_funcs.getDPower(*userDataRectSize, 75)
+    
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangle(\
+            {",".join(map(str, userDataRect))},\
+            {userDataDPower},\
+            'rgb(0, 0, 0)'\
+        );",
+        add_code_array = True
+    )
+    
+    avatar_rect = (
+        w * 0.840625, h * (21 / 1080),
+        w * 0.95, h * (142 / 1080)
+    )
+    avatar_rectsize = tool_funcs.getSizeByRect(avatar_rect)
+    avatar_w, avatar_h = tool_funcs.getCoverSize(*avatar_img.size, *avatar_rectsize)
+    avatar_x, avatar_y = tool_funcs.getPosFromCoverSize(avatar_w, avatar_h, *avatar_rectsize)
+    avatar_dpower = tool_funcs.getDPower(*avatar_rectsize, 75)
+    rks_y = h * (126 / 1080)
+    rks_x = (
+        avatar_rect[2]
+        - avatar_rectsize[0] * avatar_dpower * (
+            (rks_y - avatar_rect[1]) / avatar_rectsize[1]
+        )
+    )
+    rks_rect = (
+        rks_x, h * (93 / 1080),
+        w * 0.997125, rks_y
+    )
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangle(\
+            {",".join(map(str, rks_rect))},\
+            {tool_funcs.getDPower(*tool_funcs.getSizeByRect(rks_rect), 75)},\
+            'rgb(255, 255, 255)'\
+        );",
+        add_code_array = True
+    )
+    
+    rks_rect_center = tool_funcs.getCenterPointByRect(rks_rect)
+    drawText(
+        rks_rect_center[0], rks_rect_center[1] - h * (2 / 1080),
+        f"{rankingScore:.2f}",
+        font = f"{(w + h) / 100}px pgrFont",
+        textAlign = "center",
+        textBaseline = "middle",
+        fillStyle = "black",
+        wait_execute = True
+    )
+    
+    popupUserDataLeftX = (userDataRect[0] - userNameWidth * p) if userDataIsPopup else (userDataRect[0] - userNameWidth * (1.0 - p))
+    popupUserDataRect = (
+        popupUserDataLeftX, userDataRect[1],
+        max(userDataRect[0] + userDataRectSize[0] * userDataDPower, popupUserDataLeftX) + 1, userDataRect[3]
+    )
+    popupUserDataRectSize = tool_funcs.getSizeByRect(popupUserDataRect)
+    popupUserDataDPower = tool_funcs.getDPower(*popupUserDataRectSize, 75)
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangle(\
+            {",".join(map(str, popupUserDataRect))},\
+            {popupUserDataDPower},\
+            'rgb(0, 0, 0)'\
+        );",
+        add_code_array = True
+    )
+    
+    root.run_js_code(
+        f"ctx.drawDiagonalRectangleClipImage(\
+            {",".join(map(str, avatar_rect))},\
+            {root.get_img_jsvarname("user_avatar")},\
+            {avatar_x}, {avatar_y},\
+            {avatar_w}, {avatar_h},\
+            {avatar_dpower}, 1.0\
+        );",
+        add_code_array = True
+    )
+    
+    ctxSave(wait_execute=True)
+    ctxBeginPath(wait_execute=True)
+    ctxRect(*tool_funcs.xxyy_rect2_xywh(popupUserDataRect), wait_execute=True)
+    ctxClip(wait_execute=True)
+    drawText(
+        popupUserDataRect[0] + popupUserDataRectSize[0] * popupUserDataDPower + userNamePadding,
+        tool_funcs.getCenterPointByRect(popupUserDataRect)[1],
+        userName,
+        font = f"{(w + h) / const.USERNAME_CONST_FONT}px pgrFont",
+        textAlign = "left",
+        textBaseline = "middle",
+        fillStyle = "white",
+        wait_execute = True
+    )
+    ctxRestore(wait_execute=True)
+    
+    if hasChallengeMode:
+        cmLevel = min(challengeModeRank // 100, len(Resource["challenge_mode_levels"]) - 1)
+        cmImage = Resource["challenge_mode_levels"][cmLevel]
+        cmCenter = (w * 0.969875, h * (67 / 1080))
+        cmImageWidth = w * 0.043
+        cmImageHeight = cmImageWidth * cmImage.height / cmImage.width
+        drawImage(
+            f"cmlevel_{cmLevel}",
+            cmCenter[0] - cmImageWidth / 2,
+            cmCenter[1] - cmImageHeight / 2,
+            cmImageWidth,
+            cmImageHeight,
+            wait_execute = True
+        )
+        
+        with tool_funcs.shadowDrawer("rgba(255, 255, 255, 0.5)", (w + h) / 125):
+            drawText(
+                cmCenter[0],
+                cmCenter[1] - h * (10 / 1080),
+                f"{challengeModeRank % 100}",
+                font = f"{(w + h) / 85}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "rgba(255, 255, 255, 0.8)",
+                wait_execute = True
+            )
+    
+    return avatar_rect

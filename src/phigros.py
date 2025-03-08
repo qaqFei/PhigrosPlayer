@@ -3490,10 +3490,10 @@ def chartPlayerRender(
     _doCoreConfig()
     if startAnimation:
         phicore.loadingAnimation(False, foregroundFrameRender, font_options)
+        threadres_loaded.wait()
         phicore.lineOpenAnimation()
         
     renderRelaser()
-    threadres_loaded.wait()
     
     if phicore.noautoplay:
         if CHART_TYPE == const.CHART_TYPE.PHI:
@@ -3704,7 +3704,12 @@ def chartPlayerRender(
                 break_flag = phicore.processExTask(Task.ExTask)
                 
                 if break_flag and not stoped:
-                    phicore.initSettlementAnimation(pplm)
+                    phicore.settlementAnimationUserData.userName = getUserData("userdata-userName")
+                    phicore.settlementAnimationUserData.rankingScore = getUserData("userdata-rankingScore")
+                    phicore.settlementAnimationUserData.hasChallengeMode = getPlayDataItem("hasChallengeMode")
+                    phicore.settlementAnimationUserData.challengeModeRank = getPlayDataItem("challengeModeRank")
+                    
+                    phicore.initSettlementAnimation(pplm, tool_funcs.gtpresp(getUserData("userdata-userAvatar")))
                     rendingAnimationSt = time.time()
                     stoped = True
             else:
@@ -3804,7 +3809,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     userDataPopupAnimatTime = 0.4
     userDataPopupAnimatEase = rpe_easing.ease_funcs[13]
     lastClickAvatarTime = time.time() - userDataPopupAnimatTime
-    userNameConstFontSize = (w + h) / 70
+    userNameConstFontSize = (w + h) / const.USERNAME_CONST_FONT
     userNamePadding = w * 0.01
     userNameWidth = root.run_js_code(f"ctx.getTextSize({root.string2sctring_hqm(getUserData("userdata-userName"))}, '{userNameConstFontSize}px pgrFont')[0];") + userNamePadding * 2
     
@@ -4354,133 +4359,17 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 add_code_array = True
             )
         
-        userDataRect = (
-            w * 0.83025, h * (28 / 1080),
-            w * 2.0, h * (135 / 1080)
-        )
-        userDataRectSize = tool_funcs.getSizeByRect(userDataRect)
-        userDataDPower = tool_funcs.getDPower(*userDataRectSize, 75)
-        
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, userDataRect))},\
-                {userDataDPower},\
-                'rgb(0, 0, 0)'\
-            );",
-            add_code_array = True
-        )
-        
-        avatar_rect = (
-            w * 0.840625, h * (21 / 1080),
-            w * 0.95, h * (142 / 1080)
-        )
-        avatar_rectsize = tool_funcs.getSizeByRect(avatar_rect)
-        avatar_w, avatar_h = tool_funcs.getCoverSize(*avatar_img.size, *avatar_rectsize)
-        avatar_x, avatar_y = tool_funcs.getPosFromCoverSize(avatar_w, avatar_h, *avatar_rectsize)
-        avatar_dpower = tool_funcs.getDPower(*avatar_rectsize, 75)
-        rks_y = h * (126 / 1080)
-        rks_x = (
-            avatar_rect[2]
-            - avatar_rectsize[0] * avatar_dpower * (
-                (rks_y - avatar_rect[1]) / avatar_rectsize[1]
-            )
-        )
-        rks_rect = (
-            rks_x, h * (93 / 1080),
-            w * 0.997125, rks_y
-        )
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, rks_rect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(rks_rect), 75)},\
-                'rgb(255, 255, 255)'\
-            );",
-            add_code_array = True
-        )
-        
-        rks_rect_center = tool_funcs.getCenterPointByRect(rks_rect)
-        drawText(
-            rks_rect_center[0], rks_rect_center[1] - h * (2 / 1080),
-            f"{getUserData("userdata-rankingScore"):.2f}",
-            font = f"{(w + h) / 100}px pgrFont",
-            textAlign = "center",
-            textBaseline = "middle",
-            fillStyle = "black",
-            wait_execute = True
-        )
-        
         popupUserDataP = (time.time() - lastClickAvatarTime) / userDataPopupAnimatTime
         popupUserDataP = userDataPopupAnimatEase(tool_funcs.fixorp(popupUserDataP))
-        popupUserDataLeftX = (userDataRect[0] - userNameWidth * popupUserDataP) if userDataIsPopup else (userDataRect[0] - userNameWidth * (1.0 - popupUserDataP))
-        popupUserDataRect = (
-            popupUserDataLeftX, userDataRect[1],
-            max(userDataRect[0] + userDataRectSize[0] * userDataDPower, popupUserDataLeftX) + 1, userDataRect[3]
-        )
-        popupUserDataRectSize = tool_funcs.getSizeByRect(popupUserDataRect)
-        popupUserDataDPower = tool_funcs.getDPower(*popupUserDataRectSize, 75)
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, popupUserDataRect))},\
-                {popupUserDataDPower},\
-                'rgb(0, 0, 0)'\
-            );",
-            add_code_array = True
-        )
-        
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangleClipImage(\
-                {",".join(map(str, avatar_rect))},\
-                {root.get_img_jsvarname("user_avatar")},\
-                {avatar_x}, {avatar_y},\
-                {avatar_w}, {avatar_h},\
-                {avatar_dpower}, 1.0\
-            );",
-            add_code_array = True
-        )
-        
-        ctxSave(wait_execute=True)
-        ctxBeginPath(wait_execute=True)
-        ctxRect(*tool_funcs.xxyy_rect2_xywh(popupUserDataRect), wait_execute=True)
-        ctxClip(wait_execute=True)
-        drawText(
-            popupUserDataRect[0] + popupUserDataRectSize[0] * popupUserDataDPower + userNamePadding,
-            tool_funcs.getCenterPointByRect(popupUserDataRect)[1],
+        avatar_rect = phicore.drawUserData(
+            root, popupUserDataP, w, h,
+            Resource, avatar_img, userNameWidth,
+            userNamePadding, userDataIsPopup,
             getUserData("userdata-userName"),
-            font = f"{userNameConstFontSize}px pgrFont",
-            textAlign = "left",
-            textBaseline = "middle",
-            fillStyle = "white",
-            wait_execute = True
+            getUserData("userdata-rankingScore"),
+            getPlayDataItem("hasChallengeMode"),
+            getPlayDataItem("challengeModeRank")
         )
-        ctxRestore(wait_execute=True)
-        
-        if getPlayDataItem("hasChallengeMode"):
-            challengeModeRank = getPlayDataItem("challengeModeRank")
-            cmLevel = min(challengeModeRank // 100, len(Resource["challenge_mode_levels"]) - 1)
-            cmImage = Resource["challenge_mode_levels"][cmLevel]
-            cmCenter = (w * 0.969875, h * (67 / 1080))
-            cmImageWidth = w * 0.043
-            cmImageHeight = cmImageWidth * cmImage.height / cmImage.width
-            drawImage(
-                f"cmlevel_{cmLevel}",
-                cmCenter[0] - cmImageWidth / 2,
-                cmCenter[1] - cmImageHeight / 2,
-                cmImageWidth,
-                cmImageHeight,
-                wait_execute = True
-            )
-            
-            with tool_funcs.shadowDrawer("rgba(255, 255, 255, 0.5)", (w + h) / 125):
-                drawText(
-                    cmCenter[0],
-                    cmCenter[1] - h * (10 / 1080),
-                    f"{challengeModeRank % 100}",
-                    font = f"{(w + h) / 85}px pgrFont",
-                    textAlign = "center",
-                    textBaseline = "middle",
-                    fillStyle = "rgba(255, 255, 255, 0.8)",
-                    wait_execute = True
-                )
 
         diffchoosebarRect = (
             w * 0.41875, h * (779 / 1080),
