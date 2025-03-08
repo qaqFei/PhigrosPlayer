@@ -572,6 +572,9 @@ class SlideControler:
         
         self._easeBackXEvents: list[threading.Event] = []
         self._easeBackYEvents: list[threading.Event] = []
+        self._easeScrollEvents: list[threading.Event] = []
+        
+        self.resistance = 0.93
     
     def mouseDown(self, x: int, y: int):
         if not self.eventRect(x, y):
@@ -580,6 +583,7 @@ class SlideControler:
         self._lastclickx, self._lastclicky = x, y
         self._lastlastclickx, self._lastlastclicky = x, y
         self._mouseDown = True
+        self.stopAllEase()
         self.startcallback()
     
     def mouseUp(self, x: int, y: int):
@@ -610,8 +614,19 @@ class SlideControler:
         called_easeBackX, called_easeBackY = False, False
         dx *= 1.2; dy *= 1.2
         
+        for e in self._easeScrollEvents.copy():
+            e.clear()
+            self._easeScrollEvents.remove(e)
+        
+        myevent = threading.Event()
+        myevent.set()
+        self._easeScrollEvents.append(myevent)
+        
         while abs(dx) > self.w * 0.001 or abs(dy) > self.h * 0.001:
-            dx *= 0.92; dy *= 0.92
+            if not myevent.is_set():
+                return
+            
+            dx *= self.resistance; dy *= self.resistance
             self._dx += dx; self._dy += dy
             self._set()
             
@@ -726,6 +741,10 @@ class SlideControler:
             self.easeEndYCallback()
 
     def stopAllEase(self):
+        for e in self._easeScrollEvents.copy():
+            e.clear()
+            self._easeScrollEvents.remove(e)
+            
         for e in self._easeBackXEvents.copy():
             e.clear()
             self._easeBackXEvents.remove(e)
@@ -766,6 +785,8 @@ class ChooseChartControler:
             minValueY = 0.0, maxValueY = 0.0,
             w = h, h = h
         )
+        self._slideControl.resistance = 0.95
+        
         self.scter_mousedown = self._slideControl.mouseDown
         self.scter_mouseup = self._slideControl.mouseUp
         self.scter_mousemove = self._slideControl.mouseMove
