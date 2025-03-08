@@ -806,9 +806,9 @@ class ChooseChartControler:
             valueTranformer(rpe_easing.ease_funcs[13]),
             valueTranformer(rpe_easing.ease_funcs[13])
         )
-        self.level_diffnumber = valueTranformer(rpe_easing.ease_funcs[13], 0.17)
+        self.level_diffnumber = valueTranformer(rpe_easing.ease_funcs[13])
         self.chooselevel_textsx = tuple(
-            valueTranformer(rpe_easing.ease_funcs[13])
+            valueTranformer(rpe_easing.ease_funcs[13], 0.3)
             for _ in range(const.MAX_LEVEL_NUM)
         )
         self._set_level_bar_rightx()

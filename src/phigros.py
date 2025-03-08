@@ -4012,12 +4012,13 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             w * 0.41875, h * (779 / 1080),
             level_bar_right, h * (857 / 1080)
         )
+        level_bar_dpower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_bar_rect), 75)
         
         with tool_funcs.shadowDrawer("rgba(0, 0, 0, 0.5)", (w + h) / 125):
             root.run_js_code(
                 f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, level_bar_rect))},\
-                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_bar_rect), 75)},\
+                    {level_bar_dpower},\
                     'rgb(255, 255, 255)'\
                 );",
                 add_code_array = True
@@ -4055,6 +4056,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 wait_execute = True
             )
         
+        ctxSave(wait_execute=True)
+        root.run_js_code(f"ctx.clipDiagonalRectangle({",".join(map(str, level_bar_rect))}, {level_bar_dpower});", add_code_array=True)
         for i in range(len(currectSong.difficlty)):
             diff = currectSong.difficlty[i]
             drawChooseBarDiff(
@@ -4063,6 +4066,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 diff.name,
                 "rgb(0, 0, 0)"
             )
+        ctxRestore(wait_execute=True)
             
         with tool_funcs.shadowDrawer("rgba(0, 0, 0, 0.25)", (w + h) / 135):
             root.run_js_code(
