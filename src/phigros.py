@@ -3796,7 +3796,7 @@ def chartPlayerRender(
         
         root.run_js_wait_code()
     
-    if phicore.noautoplay:
+    if phicore.noautoplay and not presentationMode:
         pplm.unbind_events(root)
         
     phicore.enableMirror = False
