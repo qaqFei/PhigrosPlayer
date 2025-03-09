@@ -551,6 +551,16 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         pplm.pc_update(now_t)
         pplm.mob_update(now_t)
     
+    pplm.pp.get_all_pnotes()
+                
+    if presentationMode:
+        for note in pplm.pp.get_all_pnotes():
+            note: chartobj_phi.Note
+            if note.presentation_mode_click_time <= now_t and not note.presentation_mode_clicked:
+                pplm.pc_click(now_t, "a")
+                pplm.pc_release(now_t, "a")
+                note.presentation_mode_clicked = True
+    
     for lineIndex, line in enumerate(chart_obj.judgeLineList):
         lineBTime = now_t / line.T
         
@@ -620,11 +630,6 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 elif note.ishold and note.speed == 0.0:
                     notesChildren.remove(note)
                     continue
-                
-                if presentationMode and note.presentation_mode_click_time <= now_t and not note.presentation_mode_clicked:
-                    pplm.pc_click(now_t, "a")
-                    pplm.pc_release(now_t, "a")
-                    note.presentation_mode_clicked = True
                 
                 noteFloorPosition = note.floorPosition * h * const.PGR_UH - (
                     lineFloorPosition
@@ -838,10 +843,6 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:
-                    if presentationMode and note.presentation_mode_click_time <= now_t and not note.presentation_mode_clicked:
-                        pplm.pc_click(now_t, "a")
-                        pplm.pc_release(now_t, "a")
-                        note.presentation_mode_clicked = True
                         
                     if 0.0 <= now_t - note.sec <= miss_effect_time and note.type != const.NOTE_TYPE.HOLD:
                         process_miss(note)

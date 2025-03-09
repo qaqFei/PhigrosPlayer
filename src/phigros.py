@@ -3399,7 +3399,7 @@ def chartPlayerRender(
     autoplay: bool = False,
     sid: typing.Optional[str] = None,
     mirror: bool = False,
-    presentationMode: bool = 1
+    presentationMode: bool = False
 ):
     global raw_audio_length
     global show_start_time
