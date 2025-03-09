@@ -557,8 +557,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         for note in pplm.pp.get_all_pnotes():
             note: chartobj_phi.Note
             if note.presentation_mode_click_time <= now_t and not note.presentation_mode_clicked:
-                pplm.pc_click(now_t, "a")
-                pplm.pc_release(now_t, "a")
+                pplm.pc_click(note.presentation_mode_click_time, "a")
+                pplm.pc_release(note.presentation_mode_click_time, "a")
                 note.presentation_mode_clicked = True
     
     for lineIndex, line in enumerate(chart_obj.judgeLineList):
