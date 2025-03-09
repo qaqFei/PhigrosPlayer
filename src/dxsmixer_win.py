@@ -35,8 +35,9 @@ class musicCls:
         self.buffer.SetCurrentPosition(min(max(minv, v), maxv))
     
     def load(self, fp: str):
+        new_dxs = dxsound.directSound(fp, enable_cache=False)
         self.unload()
-        self.dxs = dxsound.directSound(fp, enable_cache=False)
+        self.dxs = new_dxs
         
     def unload(self):
         self.dxs = None
@@ -117,23 +118,6 @@ class musicCls:
     
     def get_length(self) -> float:
         return self.dxs._sdesc.dwBufferBytes / self.dxs._sdesc.lpwfxFormat.nAvgBytesPerSec
-    
-apis = {
-    "load": musicCls.load,
-    "play": musicCls.play,
-}
-
-# 统统锁上
-mixer_lock = Lock()
-
-def apilock(fn: typing.Callable):
-    def wrapper(*args, **kwargs):
-        with mixer_lock:
-            return fn(*args, **kwargs)
-    return wrapper
-
-for name, fn in apis.items():
-    setattr(musicCls, name, apilock(fn))
     
 class mixerCls:
     def __init__(self):

@@ -30,6 +30,7 @@ drawUI_Default_Kwargs = {
 mainFramerateCalculator = tool_funcs.FramerateCalculator()
 enableMirror = False
 enableWatermark = True
+presentationMode = False
 
 class settlementAnimationUserData:
     # every instance share those variables

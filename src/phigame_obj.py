@@ -757,10 +757,6 @@ class SlideControler:
             self.easeEndYCallback()
 
     def stopAllEase(self):
-        for e in self._easeScrollEvents.copy():
-            e.clear()
-            self._easeScrollEvents.remove(e)
-            
         for e in self._easeBackXEvents.copy():
             e.clear()
             self._easeBackXEvents.remove(e)
@@ -983,6 +979,7 @@ class ChooseChartControler:
                     self._start_preview()
     
     def setto_index(self, index: int):
+        if index == self.nowIndex: return
         targetDy = min(max(0, index), len(self.chapter.scsd_songs) - 1) * self.itemHeight
         self._slideControl.stopAllEase()
         self._slideControl.setDy(-targetDy)

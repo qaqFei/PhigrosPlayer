@@ -82,7 +82,8 @@ userData_default = {
 playData_default = {
     "datas": [],
     "hasChallengeMode": False,
-    "challengeModeRank": 100
+    "challengeModeRank": 100,
+    "isFirstStart": True
 }
 
 def saveUserData(data: dict):
@@ -1080,7 +1081,12 @@ def showStartAnimation():
     
     root.run_js_code(f"mask.style.backdropFilter = '';", add_code_array = True)
     
-    mainRender()
+    if getPlayDataItem("isFirstStart"):
+        setPlayDataItem("isFirstStart", False)
+        savePlayData(playData)
+        settingRender()
+    else:
+        mainRender()
 
 def soundEffect_From0To1():
     v = 0.0
