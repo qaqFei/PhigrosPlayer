@@ -621,6 +621,11 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     notesChildren.remove(note)
                     continue
                 
+                if presentationMode and note.presentation_mode_click_time <= now_t and not note.presentation_mode_clicked:
+                    pplm.pc_click(now_t, "a")
+                    pplm.pc_release(now_t, "a")
+                    note.presentation_mode_clicked = True
+                
                 noteFloorPosition = note.floorPosition * h * const.PGR_UH - (
                     lineFloorPosition
                     if not (note.ishold and note.clicked) else (
@@ -833,6 +838,11 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:
+                    if presentationMode and note.presentation_mode_click_time <= now_t and not note.presentation_mode_clicked:
+                        pplm.pc_click(now_t, "a")
+                        pplm.pc_release(now_t, "a")
+                        note.presentation_mode_clicked = True
+                        
                     if 0.0 <= now_t - note.sec <= miss_effect_time and note.type != const.NOTE_TYPE.HOLD:
                         process_miss(note)
                     

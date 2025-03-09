@@ -6,6 +6,8 @@ import rjsmin
 import typing
 import json
 import logging
+import random
+import math
 from dataclasses import dataclass
 
 import const
@@ -104,6 +106,9 @@ class Note:
     player_holdjudged_tomanager: bool = False
     player_judge_safe_used: bool = False
     player_bad_posandrotate: tuple[tuple[float, float], float]|None = None
+    
+    presentation_mode_click_time: float = float("nan")
+    presentation_mode_clicked: bool = False
     
     def __post_init__(self):
         self.id = tool_funcs.Get_A_New_NoteId()
@@ -344,6 +349,18 @@ class judgeLine:
         #     )
         
         return (raw[0] * w, (1.0 - raw[1]) * h)
+
+    def initPresentationMode(self):
+        perfect = const.NOTE_JUDGE_RANGE.PERFECT
+        for n in self.notesAbove + self.notesBelow:
+            if n.type in (const.NOTE_TYPE.DRAG, const.NOTE_TYPE.FLICK):
+                n.presentation_mode_clicked = True
+                continue
+            
+            n.presentation_mode_click_time = n.time * self.T + tool_funcs.linear_interpolation(
+                math.sin(n.time * self.T), 0.0, 1.0,
+                -perfect / 4, perfect / 4
+            ) + random.uniform(-perfect / 4, perfect / 4)
     
     def dump(self):
         return {

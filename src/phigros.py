@@ -3398,7 +3398,8 @@ def chartPlayerRender(
     font_options: typing.Optional[dict] = None,
     autoplay: bool = False,
     sid: typing.Optional[str] = None,
-    mirror: bool = False
+    mirror: bool = False,
+    presentationMode: bool = 1
 ):
     global raw_audio_length
     global show_start_time
@@ -3432,6 +3433,10 @@ def chartPlayerRender(
         mixer.music.load(chartAudio)
         raw_audio_length = mixer.music.get_length()
         audio_length = raw_audio_length + (chart_obj.META.offset / 1000 if CHART_TYPE == const.CHART_TYPE.RPE else 0.0)
+        
+        if presentationMode:
+            for line in chart_obj.judgeLineList:
+                line.initPresentationMode()
         
         threadres_loaded.set()
     
@@ -3525,7 +3530,11 @@ def chartPlayerRender(
         root.jsapi.set_attr("PhigrosPlay_TouchStart", lambda t, x, y, i: pplm.mob_touchstart(convertTime2Chart(t), x / w, y / h, i))
         root.jsapi.set_attr("PhigrosPlay_TouchMove", lambda t, x, y, i: pplm.mob_touchmove(convertTime2Chart(t), x / w, y / h, i))
         root.jsapi.set_attr("PhigrosPlay_TouchEnd", lambda i: pplm.mob_touchend(i))
-        pplm.bind_events(root)
+            
+        if not presentationMode:
+            pplm.bind_events(root)
+        else:
+            pplm.pc_click(-1, "z")
     else:
         pplm = None
         
@@ -3636,6 +3645,7 @@ def chartPlayerRender(
     stoped = False
     paused, pauseAnimationSt, pauseSt = False, 0.0, float("nan")
     phicore.enableMirror = mirror
+    phicore.presentationMode = presentationMode
     mixer.music.play()
     
     while True:
@@ -3772,7 +3782,7 @@ def chartPlayerRender(
             root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", add_code_array = True)
             root.run_js_wait_code()
             
-            if sid is not None and pplm is not None and needSetPlayData:
+            if sid is not None and pplm is not None and needSetPlayData and not presentationMode:
                 setPlayData(
                     sid,
                     score = pplm.ppps.getScore(),
@@ -3790,6 +3800,7 @@ def chartPlayerRender(
         pplm.unbind_events(root)
         
     phicore.enableMirror = False
+    phicore.presentationMode = False
     cksmanager.stop()
     respacker.unload(respacker.getnames())
 
