@@ -48,12 +48,25 @@ notebin.result.sort(key=lambda x: x[0])
 min_note, max_note = min(notebin.result, key=lambda x: x[-1])[-1], max(notebin.result, key=lambda x: x[-1])[-1]
 
 def pcs():
+    paino_allt = 0.16
     for sec, et, n in notebin.result:
         hz = 440 * (2 ** ((n - 69) / 12))
-        dt = 1 / hz
+        dt = 1 / hz / 3
         t = sec
         while t < et:
-            yield t, (n + 1 - (max_note - min_note) / 2 - min_note) / (max_note - min_note) / const.PGR_UW * 0.8
+            s = t - sec
+            vol = (
+                1.0 - s / (paino_allt / 2) * 0.1875
+                if s < paino_allt / 2
+                else 1.0 - 0.1875 - (s - paino_allt / 2) / (paino_allt / 2) * 0.8125
+            )
+            
+            if vol > 0.0:
+                yield (
+                    t,
+                    (n + 1 - (max_note - min_note) / 2 - min_note) / (max_note - min_note) / const.PGR_UW * 0.8,
+                    vol
+                )
             t += dt
 
 result = {
@@ -69,9 +82,10 @@ result = {
                     "holdTime": 0.0,
                     "positionX": x,
                     "speed": 1.0,
-                    "floorPosition": 2.2 * t
+                    "floorPosition": 2.2 * t,
+                    "ppr-volume": v
                 }
-                for t, x in pcs()
+                for t, x, v in pcs()
             ],
             "notesBelow": [],
             "speedEvents": [
