@@ -2,7 +2,6 @@ import check_bin as _
 
 import sys
 import time
-import math
 from itertools import chain
 from os.path import dirname
 from json import load
@@ -90,7 +89,7 @@ for line_index, line in enumerate(Chart["judgeLineList"]):
             nt = note["time"] * T
             t_index = getIndexBySec(nt)
             nt %= blockLength / 1000
-            tasks[t_index].append((note, nt * 1000, note.get("ppr-volume", 1.0)))
+            tasks[t_index].append((note, nt * 1000))
         except IndexError:
             notesNum -= 1
 
@@ -100,17 +99,8 @@ processed = 0
 def merge_seg(raw: AudioSegment, task: list[tuple[int, float]]):
     global processed
     
-    for note, nt, vol in task:
-        hitsound = NoteClickAudios[note["type"]] if note["hitsound"] is None else ExtendedAudios[note["hitsound"]]
-        
-        if vol != 1.0:
-            if vol <= 0:
-                processed += 1
-                continue
-            
-            hitsound += 20 * math.log10(max(0.0, min(1.0, vol)))
-            
-        raw = raw.overlay(hitsound, nt)
+    for note, nt in task:
+        raw = raw.overlay(NoteClickAudios[note["type"]] if note["hitsound"] is None else ExtendedAudios[note["hitsound"]], nt)
         processed += 1
     
     return raw
