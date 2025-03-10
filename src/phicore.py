@@ -487,6 +487,16 @@ def draw_ui(
             "color": "rgba(255, 255, 255, 0.5)", "rotate": 0.0
         } if enableWatermark else None,
         {
+            "type": "text",
+            "text": "演示模式 (不计成绩)",
+            "fontsize": (w + h) / 275 / 0.75,
+            "textBaseline": "bottom", "textAlign": "center",
+            "x": w * 0.5, "y": h * 0.99,
+            "dx": 0.0, "dy": 0.0,
+            "sx": 1.0, "sy": 1.0,
+            "color": "rgba(255, 255, 255, 0.5)", "rotate": 0.0
+        } if presentationMode else None,
+        {
             "type": "call",
             "name": "translate", "args": [0, - h / 7 + dy]
         } if animationing else None

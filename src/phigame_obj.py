@@ -757,6 +757,10 @@ class SlideControler:
             self.easeEndYCallback()
 
     def stopAllEase(self):
+        for e in self._easeScrollEvents.copy():
+            e.clear()
+            self._easeScrollEvents.remove(e)
+        
         for e in self._easeBackXEvents.copy():
             e.clear()
             self._easeBackXEvents.remove(e)

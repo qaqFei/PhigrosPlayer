@@ -358,8 +358,8 @@ class judgeLine:
                 continue
             
             n.presentation_mode_click_time = n.time * self.T + tool_funcs.linear_interpolation(
-                (math.sin(n.time * self.T) + math.cos(n.time * self.T)) / 2, 0.0, 1.0,
-                -perfect / 4.6, perfect / 4.1
+                (math.sin(n.time * self.T) + math.cos(n.time * self.T)) / 1.6, 0.0, 1.0,
+                -perfect / 3.2, perfect / 3
             ) + random.uniform(-perfect, perfect) / 7
     
     def dump(self):
