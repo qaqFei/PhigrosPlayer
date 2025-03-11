@@ -208,14 +208,14 @@
     }
 
     CanvasRenderingContext2D.prototype.drawLineEx = function(x1, y1, x2, y2, width, color) {
-        ctx.save();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = width;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        ctx.restore();
+        this.save();
+        this.strokeStyle = color;
+        this.lineWidth = width;
+        this.beginPath();
+        this.moveTo(x1, y1);
+        this.lineTo(x2, y2);
+        this.stroke();
+        this.restore();
     }
 
     CanvasRenderingContext2D.prototype.drawRotateImage = function(im, x, y, width, height, deg, alpha) { // draw at the position center

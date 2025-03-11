@@ -866,6 +866,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     
     if enableMirror:
         Task(root.run_js_code, "ctx.mirror();", add_code_array=True)
+        
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     now_t /= speed
     Task(
@@ -1258,6 +1259,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     
     if enableMirror:
         Task(root.run_js_code, "ctx.mirror();", add_code_array=True)
+        
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     Task(
         draw_ui,
