@@ -5,6 +5,7 @@ from os import system, mkdir, listdir
 from os.path import isfile
 from sys import argv
 from shutil import copy, copytree
+from concurrent.futures import ThreadPoolExecutor
 
 system("cls")
 
@@ -56,13 +57,11 @@ system(f"{py} -m pip install pyinstaller")
 
 pyinstaller = ".\\compile_venv\\Scripts\\pyinstaller.exe"
 pyi_makespec = ".\\compile_venv\\Scripts\\pyi-makespec.exe"
-ts: list[Thread] = []
 
-for file, hideconsole in compile_files:
-    ts.append(Thread(target=compile, args=(file, hideconsole)))
+executor = ThreadPoolExecutor(max_workers=6)
 
-for t in ts: t.start()
-for t in ts: t.join()
+for future in [executor.submit(compile, file, hideconsole) for file, hideconsole in compile_files]:
+    future.result()
 
 for file, _ in compile_files:
     system(f"xcopy \".\\dist\\{file.replace(".py", "")}\\*\" .\\ /c /q /e /y")
