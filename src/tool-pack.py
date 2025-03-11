@@ -28,17 +28,22 @@ compile_files = [
     ("gui_launcher.py", False),
     ("irc_launcher.py", False),
     ("phigros.py", False),
-    *(map(lambda x: (x, False), filter(lambda x: x.startswith("tool-") and x.endswith(".py") and x not in ("tool-pack.py", "tool-createInnoSetupConfig.py"), listdir())))
+    *(map(lambda x: (x, False), filter(lambda x: (
+        x.startswith("tool-")
+        and x.endswith(".py")
+        and x not in ("tool-pack.py", "tool-create-innosetup-config.py")
+    ), listdir())))
 ]
 res_files = [
     "_internal",
-    "web_canvas.html",
-    "7z.exe", "7z.dll",
+    "bin", "lib",
+    "resources", "shaders",
+    "7z.dll", "7z.exe",
     "ecwv_installer.exe",
-    "resources", "bin",
     "icon.ico",
+    "libogg.dll", "libvorbis.dll",
     "openh264-1.8.0-win64.dll",
-    "shaders"
+    "web_canvas.html"
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
 
