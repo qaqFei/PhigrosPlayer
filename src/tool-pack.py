@@ -28,7 +28,7 @@ compile_files = [
     ("gui_launcher.py", False),
     ("irc_launcher.py", False),
     ("phigros.py", False),
-    *(map(lambda x: (x, False), filter(lambda x: x.startswith("tool-") and x.endswith(".py") and x not in ("tool-compile.py", "tool-createInnoSetupConfig.py"), listdir())))
+    *(map(lambda x: (x, False), filter(lambda x: x.startswith("tool-") and x.endswith(".py") and x not in ("tool-pack.py", "tool-createInnoSetupConfig.py"), listdir())))
 ]
 res_files = [
     "_internal",

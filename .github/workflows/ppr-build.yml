@@ -20,7 +20,7 @@ jobs:
           exit
 
           cd src
-          python tool-compile.py -y --zip
+          python tool-pack.py -y --zip
       
       - name: upload-zip
         uses: actions/upload-artifact@v4
