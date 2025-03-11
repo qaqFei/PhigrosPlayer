@@ -28,6 +28,8 @@ HELP_ZH = '''\
   --usu169: 使用 16:9 的比例
   --render-video: 渲染视频
   --render-video-autoexit: 渲染视频后自动退出 (前置参数: --render-video)
+  --mirror: 谱面镜像
+  --disable-watermark: 禁用水印
   
 <关键字参数>
   --combotips <字符串>: 设置连击提示文本

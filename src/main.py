@@ -83,6 +83,8 @@ usu169 = "--usu169" in sys.argv
 render_video = "--render-video" in sys.argv
 render_video_fps = float(sys.argv[sys.argv.index("--render-video-fps") + 1]) if "--render-video-fps" in sys.argv else 60.0
 render_video_fourcc = sys.argv[sys.argv.index("--render-video-fourcc") + 1] if "--render-video-fourcc" in sys.argv else "mp4v"
+renderdemand = "--renderdemand" in sys.argv
+renderasync = "--renderasync" in sys.argv
 
 if lfdaot and noautoplay:
     noautoplay = False
@@ -103,9 +105,16 @@ if render_video and noautoplay:
 if render_video and showfps:
     showfps = False
     logging.warning("if use --render-video, you cannot use --showfps")
+
+if render_video and renderasync:
+    renderasync = False
+    logging.warning("if use --render-video, you cannot use --renderasync")
+
+if "--mirror" in sys.argv:
+    phicore.enableMirror = True
     
-if "--clickeffect-easing" in sys.argv:
-    phicore.clickEffectEasingType = int(sys.argv[sys.argv.index("--clickeffect-easing") + 1])
+if "--disable-watermark" in sys.argv:
+    phicore.enableWatermark = False
 
 combotips = ("AUTOPLAY" if not noautoplay else "COMBO") if "--combotips" not in sys.argv else sys.argv[sys.argv.index("--combotips") + 1]
 mixer.init()
@@ -877,8 +886,7 @@ root = webcv.WebCanvas(
     debug = "--debug" in sys.argv,
     resizable = False,
     frameless = "--frameless" in sys.argv,
-    renderdemand = "--renderdemand" in sys.argv,
-    renderasync = "--renderasync" in sys.argv,
+    renderdemand = renderdemand, renderasync = renderasync,
     jslog = "--enable-jslog" in sys.argv,
     jslog_path = sys.argv[sys.argv.index("--jslog-path")] if "--jslog-path" in sys.argv else "./ppr-jslog-nofmt.js"
 )
