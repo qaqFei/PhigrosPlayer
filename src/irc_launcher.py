@@ -397,8 +397,7 @@ class SettingsWindow(QWidget):
         self.groupBox_4.setTitle(_translate("MainWindow", "高级选项"))
         self.label_5.setText(_translate("MainWindow", "如果不是真的会用，我建议你别动。"))
         self.enable_JIT.setText(_translate("MainWindow", "启用JIT(不建议）"))
-        self.label_6.setText(_translate("MainWindow", "使用自己的命令行参数：我们稍后会将其添加到\n"
-"控制台。"))
+        self.label_6.setText(_translate("MainWindow", "使用自己的命令行参数：我们稍后会将其添加到\n控制台。"))
         self.rpe_texture.setPlaceholderText(_translate("MainWindow", "设置RPE谱面纹理缩放方法"))
         self.lq_imjscale_x.setPlaceholderText(_translate("MainWindow", "设置低画质渲染缩放"))
         self.groupBox_5.setTitle(_translate("MainWindow", "窗口大小"))
