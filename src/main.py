@@ -54,19 +54,13 @@ enable_clicksound = "--noclicksound" not in sys.argv
 debug = "--debug" in sys.argv
 debug_noshow_transparent_judgeline = "--debug-noshow-transparent-judgeline" in sys.argv
 loop = "--loop" in sys.argv
-lfdaot = "--lfdaot" in sys.argv
-lfdoat_file = "--lfdaot-file" in sys.argv
 render_range_more = "--render-range-more" in sys.argv
-
-
 render_range_more_scale = 2.0 if "--render-range-more-scale" not in sys.argv else eval(sys.argv[sys.argv.index("--render-range-more-scale") + 1])
 noautoplay = "--noautoplay" in sys.argv
 rtacc = "--rtacc" in sys.argv
 lowquality = "--lowquality" in sys.argv
 lowquality_scale = float(sys.argv[sys.argv.index("--lowquality-scale") + 1]) ** 0.5 if "--lowquality-scale" in sys.argv else 2.0 ** 0.5
 showfps = "--showfps" in sys.argv
-lfdaot_start_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-start-frame-num") + 1])) if "--lfdaot-start-frame-num" in sys.argv else 0
-lfdaot_run_frame_num = int(eval(sys.argv[sys.argv.index("--lfdaot-run-frame-num") + 1])) if "--lfdaot-run-frame-num" in sys.argv else float("inf")
 speed = float(sys.argv[sys.argv.index("--speed") + 1]) if "--speed" in sys.argv else 1.0
 clickeffect_randomblock_roundn = eval(sys.argv[sys.argv.index("--clickeffect-randomblock-roundn") + 1]) if "--clickeffect-randomblock-roundn" in sys.argv else 0.0
 noplaychart = "--noplaychart" in sys.argv
@@ -85,18 +79,6 @@ render_video_fps = float(sys.argv[sys.argv.index("--render-video-fps") + 1]) if 
 render_video_fourcc = sys.argv[sys.argv.index("--render-video-fourcc") + 1] if "--render-video-fourcc" in sys.argv else "mp4v"
 renderdemand = "--renderdemand" in sys.argv
 renderasync = "--renderasync" in sys.argv
-
-if lfdaot and noautoplay:
-    noautoplay = False
-    logging.warning("if use --lfdaot, you cannot use --noautoplay")
-
-if lfdaot and speed != 1.0:
-    speed = 1.0
-    logging.warning("if use --lfdaot, you cannot use --speed")
-
-if lfdaot and skip_time != 0.0:
-    skip_time = 0.0
-    logging.warning("if use --lfdaot, you cannot use --skip-time")
 
 if render_video and noautoplay:
     noautoplay = False
@@ -500,19 +482,6 @@ def checkOffset(now_t: float):
         show_start_time += dt
         updateCoreConfig()
 
-def getLfdaotFuncs():
-    _getfuncs = lambda obj: {fn: getattr(obj, fn) for fn in dir(obj) if not fn.startswith("_")}
-    maps = [
-        _getfuncs(root),
-        _getfuncs(phicore)
-    ]
-    result = {k: v for i in maps for k, v in i.items()}
-    
-    if len(result) != sum(len(i) for i in maps):
-        assert False, "Duplicate function name detected"
-        
-    return result
-
 def playerStart():
     global show_start_time, cksmanager
     
@@ -526,7 +495,7 @@ def playerStart():
     updateCoreConfig()
     now_t = 0
     
-    if not (lfdaot or render_video):
+    if not render_video:
         mixer.music.play()
         mixer.music.set_pos(skip_time)
         while not mixer.music.get_busy(): pass
@@ -623,117 +592,7 @@ def playerStart():
             Thread(target=playerStart, daemon=True).start()
             return
         
-    elif lfdaot:
-        lfdaot_tasks: dict[int, chartobj_phi.FrameRenderTask] = {}
-        frame_speed = 60
-        if "--lfdaot-frame-speed" in sys.argv:
-            frame_speed = eval(sys.argv[sys.argv.index("--lfdaot-frame-speed") + 1])
-        frame_count = lfdaot_start_frame_num
-        frame_time = 1 / frame_speed
-        allframe_num = int(audio_length / frame_time) + 1
-        
-        if lfdaot and not lfdoat_file: # eq if not lfdoat_file
-            while True:
-                if frame_count * frame_time > audio_length or frame_count - lfdaot_start_frame_num >= lfdaot_run_frame_num:
-                    break
-                
-                now_t = frame_count * frame_time
-                
-                if CHART_TYPE == const.CHART_TYPE.PHI:
-                    lfdaot_tasks.update({frame_count: phicore.GetFrameRenderTask_Phi(now_t, None)})
-                elif CHART_TYPE == const.CHART_TYPE.RPE:
-                    lfdaot_tasks.update({frame_count: phicore.GetFrameRenderTask_Rpe(now_t, None)})
-                
-                frame_count += 1
-                
-                print(f"\rLoadFrameData: {frame_count} / {allframe_num}", end="")
-            
-            if "--lfdaot-file-savefp" in sys.argv:
-                lfdaot_fp = sys.argv[sys.argv.index("--lfdaot-file-savefp") + 1]
-            else:
-                lfdaot_fp = dialog.savefile(fn="Chart.lfdaot")
-            
-            if lfdaot_fp is not None:
-                recorder = chartobj_phi.FrameTaskRecorder(
-                    meta = chartobj_phi.FrameTaskRecorder_Meta(
-                        frame_speed = frame_speed,
-                        frame_num = len(lfdaot_tasks),
-                        size = (w, h)
-                    ),
-                    data = lfdaot_tasks.values()
-                )
-                
-                with open(lfdaot_fp, "w", encoding="utf-8") as f:
-                    recorder.stringify(f)
-                    
-            if "--lfdaot-file-output-autoexit" in sys.argv:
-                root.destroy()
-                return
-            
-        else: #--lfdaot-file
-            fp = sys.argv[sys.argv.index("--lfdaot-file") + 1]
-            with open(fp,"r",encoding="utf-8") as f:
-                data = json.load(f)
-            frame_speed = data["meta"]["frame_speed"]
-            frame_time = 1 / frame_speed
-            allframe_num = data["meta"]["frame_num"]
-            
-            funcmap = getLfdaotFuncs()
-            
-            for index,Task_data in enumerate(data["data"]):
-                lfdaot_tasks.update({
-                    index: chartobj_phi.FrameRenderTask(
-                        RenderTasks = [
-                            chartobj_phi.RenderTask(
-                                func = funcmap[render_task_data["func_name"]],
-                                args = tuple(render_task_data["args"]),
-                                kwargs = render_task_data["kwargs"]
-                            )
-                            for render_task_data in Task_data["render"]
-                        ],
-                        ExTask = tuple(Task_data["ex"])
-                    )
-                })
-            if data["meta"]["size"] != [w, h]:
-                logging.warning("The size of the lfdaot file is not the same as the size of the window")
-        
-        mixer.music.play()
-        while not mixer.music.get_busy(): pass
-        
-        totm: tool_funcs.TimeoutTaskManager[chartobj_phi.FrameRenderTask] = tool_funcs.TimeoutTaskManager()
-        totm.valid = lambda x: bool(x)
-        
-        for fc, task in lfdaot_tasks.items():
-            totm.add_task(fc, task.ExTask)
-        
-        pst = time.time()
-        
-        while True:
-            now_t = time.time() - pst
-            music_play_fcount = int(now_t / frame_time)
-            
-            try:
-                Task: chartobj_phi.FrameRenderTask = lfdaot_tasks[music_play_fcount]
-            except KeyError:
-                continue
-            
-            Task.ExecTask(clear=False)
-            extasks = totm.get_task(music_play_fcount)
-            
-            break_flag_oside = False
-            
-            for extask in extasks:
-                break_flag = phicore.processExTask(extask)
-                
-                if break_flag:
-                    break_flag_oside = True
-                    break
-            
-            if break_flag_oside:
-                break
-            
-            pst += tool_funcs.checkOffset(now_t, raw_audio_length, mixer)
-    elif render_video:
+    elif render_video: # eq else
         video_fp = sys.argv[sys.argv.index("--render-video-savefp") + 1] if "--render-video-savefp" in sys.argv else dialog.savefile(fn="render_video.mp4")
         
         if video_fp is None:
@@ -868,7 +727,7 @@ def updateCoreConfig():
         LoadSuccess = LoadSuccess, chart_res = chart_res,
         cksmanager = cksmanager,
         enable_clicksound = enable_clicksound, rtacc = rtacc,
-        noautoplay = noautoplay, showfps = showfps, lfdaot = lfdaot,
+        noautoplay = noautoplay, showfps = showfps,
         speed = speed, render_range_more = render_range_more,
         render_range_more_scale = render_range_more_scale,
         debug = debug, combotips = combotips, noplaychart = noplaychart,

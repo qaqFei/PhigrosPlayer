@@ -77,7 +77,6 @@ class PhiCoreConfig:
     rtacc: bool = False
     noautoplay: bool = False
     showfps: bool = False
-    lfdaot: bool = False
     speed: float = 1.0
     render_range_more: bool = False
     render_range_more_scale: float = 2.0
@@ -108,7 +107,7 @@ def CoreConfigure(config: PhiCoreConfig):
     global clickeffect_randomblock_roundn, LoadSuccess
     global chart_res, cksmanager
     global enable_clicksound, rtacc, noautoplay
-    global showfps, lfdaot
+    global showfps
     global speed, render_range_more
     global render_range_more_scale
     global debug, combotips, noplaychart
@@ -135,7 +134,6 @@ def CoreConfigure(config: PhiCoreConfig):
     rtacc = config.rtacc
     noautoplay = config.noautoplay
     showfps = config.showfps
-    lfdaot = config.lfdaot
     speed = config.speed
     render_range_more = config.render_range_more
     render_range_more_scale = config.render_range_more_scale
