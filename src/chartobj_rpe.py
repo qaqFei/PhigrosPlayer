@@ -679,6 +679,9 @@ class Chart:
     def sec2beat(self, t: float, bpmfactor: float, BPMList: typing.Optional[list[BPMEvent]] = None):
         if BPMList is None:
             BPMList = self.BPMList
+        
+        if len(BPMList) == 1:
+            return t / (60 / (BPMList[0].bpm / bpmfactor))
             
         beat = 0.0
         for i, e in enumerate(BPMList):
@@ -700,6 +703,9 @@ class Chart:
     def beat2sec(self, t: float, bpmfactor: float, BPMList: typing.Optional[list[BPMEvent]] = None):
         if BPMList is None:
             BPMList = self.BPMList
+        
+        if len(BPMList) == 1:
+            return t * (60 / (BPMList[0].bpm / bpmfactor))
             
         sec = 0.0
         for i, e in enumerate(BPMList):
