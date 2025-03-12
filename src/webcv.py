@@ -30,18 +30,6 @@ if not disengage_webview:
     screen_height = windll.user32.GetSystemMetrics(1)
 else:
     screen_width, screen_height = -1, -1
-    
-if not disengage_webview:
-    import webview.http
-    logging.getLogger("pywebview").disabled = True
-    _wvsvStart = webview.http.BottleServer.start_server
-    webview.http.BottleServer.start_server = lambda *args, **kwargs: (
-        globals().update({"__dbg": webview._settings["debug"]}),
-        webview._settings.update({"debug": False}),
-        _wvsvStart(*args, **kwargs),
-        webview._settings.update({"debug": globals()["__dbg"]}),
-        globals().pop("__dbg")
-    )[2]
 
 current_thread = threading.current_thread
 host = socket.gethostbyname(socket.gethostname()) if "--nolocalhost" in sys.argv else "127.0.0.1"
