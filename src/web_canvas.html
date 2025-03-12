@@ -355,7 +355,7 @@ void main() {
 
     async function uploadFrame(url) {
         try {
-            const resp = await fetch(url, {
+            await fetch(url, {
                 method: "POST",
                 body: ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data
             });
