@@ -851,7 +851,7 @@ class shadowDrawer:
         self.offsetY = offsetY
     
     def __enter__(self):
-        self.root.run_js_code(f"ctx.setShadow('{self.color}', {self.blur}, {self.offsetX}, {self.offsetY});", add_code_array=True)
+        self.root.run_js_code(f"ctx.setShadow('{self.color}', {self.blur}, {self.offsetX}, {self.offsetY});", wait_execute=True)
     
     def __exit__(self, *_):
         graplib_webview.ctxRestore(wait_execute=True)

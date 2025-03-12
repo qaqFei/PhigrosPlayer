@@ -595,7 +595,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             {",".join(map(str, chapterRect))},\
             {dPower}, 'rgb(16, 16, 16)', 'rgba(16, 16, 16, 0.7)', {(w + h) / 125}\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     if p != 1.0:
@@ -606,7 +606,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
                 {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
                 {dPower}, 1.0\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         root.run_js_code(
@@ -614,7 +614,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
                 {",".join(map(str, chapterRect))},\
                 {dPower}, 'rgba(0, 0, 0, 0.5)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
     
     root.run_js_code(
@@ -624,7 +624,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
             {dPower}, {p}\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     root.run_js_code(
@@ -634,7 +634,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
             {dPower}, 1.0\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     root.run_js_code(
@@ -644,7 +644,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             -75, 'rgba(255, 255, 255, {0.82 * (1.0 - tool_funcs.PhigrosChapterNameAlphaValueTransfrom(p))})', '{(w + h) / 50}px pgrFont',\
             'left', 'bottom'\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     if p != 0.0:
@@ -694,7 +694,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
                 {",".join(map(str, playButtonRect))},\
                 {PlayButtonDPower}, 'rgba(255, 255, 255, {playButtonAlpha})'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         root.run_js_code(
@@ -703,7 +703,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
                 'rgba(0, 0, 0, {playButtonAlpha})',\
                 {(w + h) / 800}\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -838,7 +838,7 @@ def drawDialog(
             
     root.run_js_code(
         "dialog_canvas_ctx.clear();",
-        add_code_array = True
+        wait_execute = True
     )
             
     p = 1.0 - (1.0 - p) ** 3
@@ -861,7 +861,7 @@ def drawDialog(
             {",".join(map(str, dialogRect))},\
             {tool_funcs.getDPower(*tool_funcs.getSizeByRect(dialogRect), 75)}\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     
@@ -888,7 +888,7 @@ def drawDialog(
             {",".join(map(str, diagonalRectangle))},\
             'rgba(0, 0, 0, {0.85 * p})'\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     root.run_js_code(
@@ -900,10 +900,10 @@ def drawDialog(
             'rgba(255, 255, 255, {p})',\
             '{(w + h) / 95 * (0.65 + p * 0.35)}px pgrFont'\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
-    root.run_js_code(f"dialog_canvas_ctx.restore();", add_code_array=True)
+    root.run_js_code(f"dialog_canvas_ctx.restore();", wait_execute=True)
     
     return (
         diagonalRectangle[0] + diagonalRectanglePowerPx * 0.2, diagonalRectangle[1],
@@ -1006,7 +1006,7 @@ def showStartAnimation():
                 0, 0, {w}, {h},\
                 'rgba(0, 0, 0, {(math.sin(atime / 1.5) + 1.0) / 5 + 0.15})'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         for i in range(50):
@@ -1028,7 +1028,7 @@ def showStartAnimation():
         
         root.run_js_code(
             f"ctx.shadowColor = '#FFFFFF'; ctx.shadowBlur = {textBlur};",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -1044,7 +1044,7 @@ def showStartAnimation():
         
         root.run_js_code(
             "ctx.shaderColor = 'rgba(0, 0, 0, 0)'; ctx.shadowBlur = 0;",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -1060,9 +1060,9 @@ def showStartAnimation():
         
         if atime <= 2.0:
             blurP = 1.0 - (1.0 - atime / 2.0) ** 3
-            root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 60 * (1 - blurP)}px)';", add_code_array = True)
+            root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 60 * (1 - blurP)}px)';", wait_execute = True)
         else:
-            root.run_js_code(f"mask.style.backdropFilter = '';", add_code_array = True)
+            root.run_js_code(f"mask.style.backdropFilter = '';", wait_execute = True)
         
         if a3_clicked and time.time() - a3_clicked_time <= 1.0:
             if not a3_sound_fadeout:
@@ -1074,12 +1074,12 @@ def showStartAnimation():
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {1.0 - (1.0 - (time.time() - a3_clicked_time)) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         root.run_js_wait_code()
     
-    root.run_js_code(f"mask.style.backdropFilter = '';", add_code_array = True)
+    root.run_js_code(f"mask.style.backdropFilter = '';", wait_execute = True)
     
     if getPlayDataItem("isFirstStart"):
         setPlayDataItem("isFirstStart", False)
@@ -1316,7 +1316,7 @@ def mainRender():
                 0, 0, {w}, {h},\
                 'rgba(0, 0, 0, 0.7)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawFaculas()
@@ -1381,12 +1381,12 @@ def mainRender():
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {ep * 0.5})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             root.run_js_code(
                 f"mask.style.backdropFilter = 'blur({(w + h) / 120 * ep}px)';",
-                add_code_array = True
+                wait_execute = True
             )
             
             noRect, yesRect = drawDialog(
@@ -1419,12 +1419,12 @@ def mainRender():
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {ep * 0.5})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             root.run_js_code(
                 f"mask.style.backdropFilter = 'blur({(w + h) / 120 * ep}px)';",
-                add_code_array = True
+                wait_execute = True
             )
             
             drawDialog(
@@ -1436,12 +1436,12 @@ def mainRender():
         elif JoinQQGuildBacking:
             root.run_js_code(
                 "mask.style.backdropFilter = 'blur(0px)';",
-                add_code_array = True
+                wait_execute = True
             )
             
             root.run_js_code(
                 "dialog_canvas_ctx.clear();",
-                add_code_array = True
+                wait_execute = True
             )
             
             JoinQQGuildBacking = False
@@ -1455,7 +1455,7 @@ def mainRender():
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         if tonextUI and time.time() - tonextUISt < 0.75:
@@ -1465,7 +1465,7 @@ def mainRender():
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         elif tonextUI:
             inMainUI = False
@@ -1487,7 +1487,7 @@ def renderPhigrosWidgets(
 ):
     root.run_js_code(
         f"ctx.save(); ctx.clipRect(0.0, {minY}, {w}, {maxY});",
-        add_code_array = True
+        wait_execute = True
     )
     widgets_height = 0.0
     
@@ -1520,7 +1520,7 @@ def renderPhigrosWidgets(
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(sliderShadowRect), 75)},\
                     'rgba(0, 0, 0, 0.25)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             conButtonHeight = h * (52 / 1080)
@@ -1540,7 +1540,7 @@ def renderPhigrosWidgets(
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(lConRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             root.run_js_code(
@@ -1549,7 +1549,7 @@ def renderPhigrosWidgets(
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(rConRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             if widget.lr_button:
@@ -1561,7 +1561,7 @@ def renderPhigrosWidgets(
                         {ctp_l[0] + coniw_l / 2}, {ctp_l[1]},\
                         {(w + h) * (1 / 1500)}, 'rgb(63, 63, 63)'\
                     );",
-                    add_code_array = True
+                    wait_execute = True
                 )
                 root.run_js_code(
                     f"ctx.drawLineEx(\
@@ -1569,7 +1569,7 @@ def renderPhigrosWidgets(
                         {ctp_r[0] + coniw_r / 2}, {ctp_r[1]},\
                         {(w + h) * (1 / 1500)}, 'rgb(63, 63, 63)'\
                     );",
-                    add_code_array = True
+                    wait_execute = True
                 )
                 root.run_js_code(
                     f"ctx.drawLineEx(\
@@ -1577,7 +1577,7 @@ def renderPhigrosWidgets(
                         {ctp_r[0]}, {ctp_r[1] + coniw_r / 2},\
                         {(w + h) * (1 / 1500)}, 'rgb(63, 63, 63)'\
                     );",
-                    add_code_array = True
+                    wait_execute = True
                 )
             
             slider_p = tool_funcs.sliderValueP(widget.value, widget.number_points)
@@ -1596,7 +1596,7 @@ def renderPhigrosWidgets(
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(sliderBlockRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             widget.sliderRect = (
@@ -1627,7 +1627,7 @@ def renderPhigrosWidgets(
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(checkboxShadowRect), 75)},\
                     'rgba(0, 0, 0, 0.25)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             checkAnimationP = (time.time() - widget.check_animation_st) / 0.2
@@ -1656,7 +1656,7 @@ def renderPhigrosWidgets(
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(checkButtonRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             widget.checkboxRect = checkboxShadowRect
@@ -1680,7 +1680,7 @@ def renderPhigrosWidgets(
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(buttonRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             drawText(
@@ -1700,7 +1700,7 @@ def renderPhigrosWidgets(
             
     root.run_js_code(
         "ctx.restore();",
-        add_code_array = True
+        wait_execute = True
     )
     
     return widgets_height
@@ -2009,7 +2009,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {x1}, {y1},\
                 {dpower}, '#FFFFFF'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawImage(
@@ -2052,7 +2052,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         
         root.run_js_code(
             f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
-            add_code_array = True
+            wait_execute = True
         )
         
         settingUIPlaySlideControler.maxValueY = renderPhigrosWidgets(
@@ -2071,7 +2071,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {w}, {h * 0.8},\
                 {h * const.LINEWIDTH.PHI}, 'rgba({lineColor}, {alpha})'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         CalibrationMusicPosition = mixer.music.get_pos()
@@ -2124,7 +2124,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     {w * 0.75 + lw / 2}, {y},\
                     {h * const.LINEWIDTH.PHI * 0.75}, 'rgba(255, 255, 255, {(ap - 1.0) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         CalibrationClickEffectLines = list(filter(lambda x: time.time() - x[0] <= 1.1, CalibrationClickEffectLines))
@@ -2132,7 +2132,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         
         root.run_js_code(
             f"ctx.restore();",
-            add_code_array = True
+            wait_execute = True
         )
     
     def drawAccountAndCountSetting(dx: float, alpha: float):
@@ -2144,7 +2144,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         
         root.run_js_code(
             f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -2166,7 +2166,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {w * 0.8609375}, {w * 0.8609375 / 16 * 9},\
                 {tool_funcs.getDPower(w * 0.8609375, h * 0.425, 75)}, 1.0\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         root.run_js_code(
@@ -2176,7 +2176,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {tool_funcs.getDPower(w * 0.8609375, h * 0.425, 75)},\
                 'rgba(0, 0, 0, 0.375)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         if editingUserData:
@@ -2192,7 +2192,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     {tool_funcs.getDPower(*editBackgroundRectSize, 75)},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             drawImage(
@@ -2211,7 +2211,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {tool_funcs.getDPower(w * ((0.940625 - 0.0796875) * leftBlackDiagonalX), h * 0.425, 75)},\
                 'rgba(0, 0, 0, 0.25)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         root.run_js_code(
@@ -2221,7 +2221,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {tool_funcs.getDPower(w * 0.34375, h * (114 / 1080), 75)},\
                 'rgba(0, 0, 0, 0.9)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         avatarSize = max(w * 0.096875, h * (120 / 1080))
@@ -2239,7 +2239,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {avatarSize}, {avatarSize},\
                 {tool_funcs.getDPower(avatarWidth, avatarHeight, 75)}, 1.0\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         if editingUserData:
@@ -2257,7 +2257,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     {tool_funcs.getDPower(*editAvatarRectSize, 75)},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             drawImage(
@@ -2290,7 +2290,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {tool_funcs.getDPower(rankingScoreRect[2] - rankingScoreRect[0], rankingScoreRect[3] - rankingScoreRect[1], 75)},\
                 'rgb(255, 255, 255)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -2312,7 +2312,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 'rgb(255, 255, 255)', '{selfIntroduction_fontSize}px pgrFont',\
                 {selfIntroduction_fontSize}, 1.15\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         editButtonRect = (
@@ -2325,7 +2325,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {tool_funcs.getDPower(editButtonRect[2] - editButtonRect[0], editButtonRect[3] - editButtonRect[1], 75)},\
                 'rgb(255, 255, 255)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -2358,7 +2358,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {tool_funcs.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
                 'rgba(255, 255, 255, {1.0 if not editingUserData else 0.75})'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         root.run_js_code(
@@ -2371,7 +2371,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {tool_funcs.getDPower(loginButtonRect[2] - loginButtonRect[0], loginButtonRect[3] - loginButtonRect[1], 75)},\
                 {1.0 if not editingUserData else 0.75}\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         chartDataDifRect = (
@@ -2384,7 +2384,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {tool_funcs.getDPower(chartDataDifRect[2] - chartDataDifRect[0], chartDataDifRect[3] - chartDataDifRect[1], 75)},\
                 'rgb(255, 255, 255)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -2409,13 +2409,13 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {tool_funcs.getDPower(chartDataRect[2] - chartDataRect[0], chartDataRect[3] - chartDataRect[1], 75)},\
                 'rgb(0, 0, 0, 0.45)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         def _drawChartDataItem(x: float, text: str):
             root.run_js_code(
                 f"ctx.save(); ctx.font = '{(w + h) / 125}px pgrFont'; SlashWidth = ctx.measureText('/').width; ctx.restore();",
-                add_code_array = True
+                wait_execute = True
             )
             
             textHeight = h * (635 / 1080)
@@ -2426,7 +2426,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     {x}, {textHeight}, '{(w + h) / 125}px pgrFont',\
                     'rgb(255, 255, 255)', 'center', 'bottom'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             root.run_js_code(
@@ -2435,7 +2435,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     {x} + SlashWidth, {textHeight}, '{(w + h) / 125}px pgrFont',\
                     'rgb(255, 255, 255)', 'left', 'bottom'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             root.run_js_code(
@@ -2444,7 +2444,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     {x} - SlashWidth, {textHeight}, '{(w + h) / 85}px pgrFont',\
                     'rgb(255, 255, 255)', 'right', 'bottom'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             drawText(
@@ -2469,7 +2469,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                         {rect[2] - rect[0]}, {rect[3] - rect[1]},\
                         'rgb(255, 255, 255)', {(w + h) / 711.45141919810}\
                     );",
-                    add_code_array = True
+                    wait_execute = True
                 )
                 
             editUserNameRect = (
@@ -2509,10 +2509,10 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     {",".join(map(str, chooseDialogRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(chooseDialogRect), 75)},\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             drawBackground()
-            root.run_js_code("ctx.restore();", add_code_array=True)
+            root.run_js_code("ctx.restore();", wait_execute=True)
             
             root.run_js_code(
                 f"ctx.drawDiagonalRectangle(\
@@ -2520,7 +2520,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(chooseDialogRect), 75)},\
                     'rgba(0, 0, 0, 0.65)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             textX = chooseDialogLeftX + settingShadowDWidth * (h - top) / h + w * 0.015625
@@ -2557,7 +2557,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
             lcount = 0
             
             clipy0, clipy1 = top + h * (100 / 1080), h
-            root.run_js_code(f"ctx.save(); ctx.clipRect(0.0, {min(clipy0, clipy1)}, {w}, {max(clipy0, clipy1)});", add_code_array = True)
+            root.run_js_code(f"ctx.save(); ctx.clipRect(0.0, {min(clipy0, clipy1)}, {w}, {max(clipy0, clipy1)});", wait_execute = True)
             
             for imgindex, img in enumerate(imgs):
                 if imgy >= 0:
@@ -2568,7 +2568,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                             {root.get_img_jsvarname(img)},\
                             {imgheight}, {imgdp}, 1.0\
                         );",
-                        add_code_array = True
+                        wait_execute = True
                     )
                 
                 if showAvatars or showBackgrounds:
@@ -2597,7 +2597,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 + h * (91 / 1080)
             )
             
-            root.run_js_code(f"ctx.restore();", add_code_array = True)
+            root.run_js_code(f"ctx.restore();", wait_execute = True)
         
         avatar_imnames = [f"avatar_{i}" for i in range(len(assetConfig["avatars"]))]
         background_imnames = [f"background_{i}" for i in range(len(assetConfig["backgrounds"]))]
@@ -2637,7 +2637,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         
         root.run_js_code(
             f"ctx.restore();",
-            add_code_array = True
+            wait_execute = True
         )
 
     def drawOtherSetting(dx: float, alpha: float):
@@ -2645,7 +2645,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         
         root.run_js_code(
             f"ctx.save(); ctx.translate({- dx}, 0); ctx.globalAlpha = {alpha};",
-            add_code_array = True
+            wait_execute = True
         )
 
         phiIconWidth = w * 0.215625
@@ -2664,7 +2664,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {w * 0.5296875}, {h * (371 / 1080)},\
                 {(w + h) / 2000}, 'rgb(138, 138, 138, 0.95)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -2817,7 +2817,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         
         root.run_js_code(
             f"ctx.restore();",
-            add_code_array = True
+            wait_execute = True
         )
     
     SettingPlayWidgetEventManager.widgets.clear()
@@ -2960,7 +2960,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 0, 0, {w}, {h},\
                 'rgba(0, 0, 0, 0.5)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         ShadowXRect = settingState.getShadowRect()
@@ -2975,7 +2975,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {",".join(map(str, ShadowRect))},\
                 {ShadowDPower}, 'rgba(0, 0, 0, 0.2)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         BarWidth = settingState.getBarWidth() * w
@@ -2991,7 +2991,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {",".join(map(str, BarRect))},\
                 {BarDPower}, 'rgba(0, 0, 0, 0.45)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         BarAlpha = 1.0 if not editingUserData else 0.5
@@ -3010,7 +3010,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 {",".join(map(str, LabelRect))},\
                 {LabelDPower}, '{"rgb(255, 255, 255)" if not editingUserData else "rgb(192, 192, 192)"}'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         PlayTextColor = settingState.getTextColor(const.PHIGROS_SETTING_STATE.PLAY) + (BarAlpha, )
@@ -3060,8 +3060,8 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 if time.time() - CloseOpenSourceSt >= 0.35:
                     CloseOpenSource, CloseOpenSourceSt = False, float("nan")
                     inSettingUI = True
-                    root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", add_code_array = True)
-                    root.run_js_code("dialog_canvas_ctx.clear()", add_code_array = True)
+                    root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", wait_execute = True)
+                    root.run_js_code("dialog_canvas_ctx.clear()", wait_execute = True)
             
             if ShowOpenSource:
                 p = tool_funcs.fixorp((time.time() - ShowOpenSourceSt) / 0.15)
@@ -3071,25 +3071,25 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 p = abs(p - 1.0) ** 3
             
             if ShowOpenSource or CloseOpenSource:
-                root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx; dialog_canvas_ctx.clear();", add_code_array = True)
+                root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx; dialog_canvas_ctx.clear();", wait_execute = True)
                 
-                root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 75 * p}px)';", add_code_array = True)
-                root.run_js_code(f"ctx.save(); ctx.globalAlpha = {p};", add_code_array = True)
+                root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 75 * p}px)';", wait_execute = True)
+                root.run_js_code(f"ctx.save(); ctx.globalAlpha = {p};", wait_execute = True)
                 
-                root.run_js_code(f"ctx.fillRectEx(0, 0, {w}, {h}, 'rgba(0, 0, 0, 0.5)');", add_code_array = True)
+                root.run_js_code(f"ctx.fillRectEx(0, 0, {w}, {h}, 'rgba(0, 0, 0, 0.5)');", wait_execute = True)
                 root.run_js_code(
                     f"ctx.drawRectMultilineText(\
                         {w * 0.2}, {settingUIOpenSourceLicenseSlideControler.getDy() + h * (143 / 1080)}, {w * 0.8}, {h},\
                         {root.string2sctring_hqm(const.PHI_OPENSOURCELICENSE)},\
                         'rgb(255, 255, 255)', '{(w + h) / 145}px pgrFont', {(w + h) / 145}, 1.25\
                     );",
-                    add_code_array = True
+                    wait_execute = True
                 )
                 drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
                 
-                root.run_js_code("ctx.restore();", add_code_array = True)
+                root.run_js_code("ctx.restore();", wait_execute = True)
                 
-                root.run_js_code("ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
+                root.run_js_code("ctx = _ctxBak; _ctxBak = null;", wait_execute = True)
                 
         if time.time() - settingRenderSt < 1.25:
             p = (time.time() - settingRenderSt) / 1.25
@@ -3098,7 +3098,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         if tonextUI and time.time() - tonextUISt < 0.75:
@@ -3108,7 +3108,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         elif tonextUI:
             clearCanvas(wait_execute = True)
@@ -3187,7 +3187,7 @@ def audioQARender():
                 0, 0, {w}, {h},\
                 'rgba(0, 0, 0, 0.5)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         shadowRect = (
@@ -3199,7 +3199,7 @@ def audioQARender():
                 {",".join(map(str, shadowRect))},\
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(shadowRect), 75)}, 'rgba(0, 0, 0, 0.25)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
     
         renderPhigrosWidgets(
@@ -3225,7 +3225,7 @@ def audioQARender():
                 'rgb(255, 255, 255)',\
                 '{(w + h) / 120}px pgrFont', {(w + h) / 120}, {- w * 0.0046875}, 1.25\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawButton("ButtonLeftBlack", "Arrow_Left", (0, 0))
@@ -3237,7 +3237,7 @@ def audioQARender():
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         if tonextUI and time.time() - tonextUISt < 0.75:
@@ -3247,7 +3247,7 @@ def audioQARender():
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         elif tonextUI:
             clearCanvas(wait_execute = True)
@@ -3326,11 +3326,11 @@ def aboutUsRender():
                     {root.string2sctring_hqm(const.PHI_ABOUTUSTEXT)},\
                     'rgb(255, 255, 255)', '{fontsize}px pgrFont', {fontsize}, 1.4\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         else:
             dy, fontsize = h, 0.0
-            root.run_js_code(f"aboutus_textheight = {h * 2.0};", add_code_array = True)
+            root.run_js_code(f"aboutus_textheight = {h * 2.0};", wait_execute = True)
         
         if time.time() - aboutUsRenderSt < 1.25:
             p = (time.time() - aboutUsRenderSt) / 1.25
@@ -3339,7 +3339,7 @@ def aboutUsRender():
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         if (skipStart and skipStartButtonTime == skipStartButtonTime) or (tonextUI and skipStartButtonTime == skipStartButtonTime):
@@ -3361,7 +3361,7 @@ def aboutUsRender():
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         elif tonextUI:
             clearCanvas(wait_execute = True)
@@ -3652,7 +3652,7 @@ def chartPlayerRender(
         pauseATime = 0.25 if paused else 3.0
         pauseP = tool_funcs.fixorp((time.time() - pauseAnimationSt) / pauseATime)
         pauseBgBlurP = (1.0 - (1.0 - pauseP) ** 4) if paused else 1.0 - pauseP ** 15
-        root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 100 * pauseBgBlurP}px)';", add_code_array = True)
+        root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 100 * pauseBgBlurP}px)';", wait_execute = True)
         
         def _renderPauseUIButtons(p: float, dx: float):
             def _drawPauseButton(x: float, imname: str, scale: float):
@@ -3670,7 +3670,7 @@ def chartPlayerRender(
             _drawPauseButton(w * 0.5 + dx, "PUIRetry", 1.0)
             _drawPauseButton(w * 0.5 + w * 0.1109375 + dx, "PUIResume", 0.95)
             
-        root.run_js_code(f"dialog_canvas_ctx.clear();", add_code_array = True)
+        root.run_js_code(f"dialog_canvas_ctx.clear();", wait_execute = True)
         if paused:
             _renderPauseUIButtons(pauseP, 0.0)
         else:
@@ -3681,7 +3681,7 @@ def chartPlayerRender(
             fastEaseX = 3.75
             fastEase = lambda x: rpe_easing.ease_funcs[19](x * fastEaseX) if x <= 1 / fastEaseX else 1.0
             numberEase = lambda x: int(x) + fastEase(x % 1.0)
-            root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx;", add_code_array = True)
+            root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx;", wait_execute = True)
             def _drawNumber(number: str, dxv: float):
                 if pauseP == 1.0: return
                 x = w / 2 - w * 0.1109375 * dxv
@@ -3700,7 +3700,7 @@ def chartPlayerRender(
             _drawNumber("3", numberEase(pauseP * 3.0) - 1.0)
             _drawNumber("2", numberEase(pauseP * 3.0) - 2.0)
             _drawNumber("1", numberEase(pauseP * 3.0) - 3.0)
-            root.run_js_code("ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
+            root.run_js_code("ctx = _ctxBak; _ctxBak = null;", wait_execute = True)
         
         if not paused and pauseP == 1.0 and pauseSt == pauseSt and not mixer.music.get_busy():
             mixer.music.unpause()
@@ -3750,7 +3750,7 @@ def chartPlayerRender(
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         if tonextUI and time.time() - tonextUISt < 0.75:
@@ -3761,23 +3761,23 @@ def chartPlayerRender(
                         0, 0, {w}, {h},\
                         'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
                     );",
-                    add_code_array = True
+                    wait_execute = True
                 )
             else:
-                root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx;", add_code_array = True)
+                root.run_js_code("_ctxBak = ctx; ctx = dialog_canvas_ctx;", wait_execute = True)
                 root.run_js_code(
                     f"ctx.fillRectEx(\
                         0, 0, {w}, {h},\
                         'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
                     );",
-                    add_code_array = True
+                    wait_execute = True
                 )
-                root.run_js_code("ctx = _ctxBak; _ctxBak = null;", add_code_array = True)
+                root.run_js_code("ctx = _ctxBak; _ctxBak = null;", wait_execute = True)
         elif tonextUI:
             mixer.music.stop()
             clearCanvas(wait_execute = True)
-            root.run_js_code(f"dialog_canvas_ctx.clear()", add_code_array = True)
-            root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", add_code_array = True)
+            root.run_js_code(f"dialog_canvas_ctx.clear()", wait_execute = True)
+            root.run_js_code(f"mask.style.backdropFilter = 'blur(0px)';", wait_execute = True)
             root.run_js_wait_code()
             
             if sid is not None and pplm is not None and needSetPlayData and not presentationMode:
@@ -3865,7 +3865,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             return drawParallax(x0, y0, x1, y1)
         
         for i in range(max(0, chooseControler.vaildNowCeil - 3), min(len(chapter_item.scsd_songs) - 1, chooseControler.vaildNowCeil + 3) + 1):
-            root.run_js_code(f"{root.get_img_jsvarname(f"songill_{chapter_item.scsd_songs[i].songId}")}.lazy_load();", add_code_array=True)
+            root.run_js_code(f"{root.get_img_jsvarname(f"songill_{chapter_item.scsd_songs[i].songId}")}.lazy_load();", wait_execute=True)
         
         thisSong = chapter_item.scsd_songs[chooseControler.vaildNowCeil]
         nextSong = chapter_item.scsd_songs[chooseControler.vaildNowNextCeil]
@@ -3880,16 +3880,16 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         thisSongDy = (clipY - y0) / parallaxN - (y1 - y0) / parallaxN
         thisSongDx = (x1 - x0) * dpower * (-thisSongDy / (y1 - y0))
         
-        root.run_js_code(f"ctx.drawImageDx = {thisSongDx}; ctx.drawImageDy = {thisSongDy};", add_code_array=True)
+        root.run_js_code(f"ctx.drawImageDx = {thisSongDx}; ctx.drawImageDy = {thisSongDy};", wait_execute=True)
         root.run_js_code(
             f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
                 {",".join(map(str, (x0, y0, x1, y1)))},\
                 {root.get_img_jsvarname(f"songill_{thisSong.songId}")},\
                 {y1 - y0}, {dpower}, 1.0\
             );",
-            add_code_array = True
+            wait_execute = True
         )
-        root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", add_code_array=True)
+        root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", wait_execute=True)
         ctxRestore(wait_execute=True)
         
         ctxSave(wait_execute=True)
@@ -3899,16 +3899,16 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         nextSongDy = (clipY - y0)
         nextSongDx = (x1 - x0) * dpower * (-nextSongDy / (y1 - y0))
         
-        root.run_js_code(f"ctx.drawImageDx = {nextSongDx}; ctx.drawImageDy = {nextSongDy};", add_code_array=True)
+        root.run_js_code(f"ctx.drawImageDx = {nextSongDx}; ctx.drawImageDy = {nextSongDy};", wait_execute=True)
         root.run_js_code(
             f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
                 {",".join(map(str, (x0, y0, x1, y1)))},\
                 {root.get_img_jsvarname(f"songill_{nextSong.songId}")},\
                 {y1 - y0}, {dpower}, 1.0\
             );",
-            add_code_array = True
+            wait_execute = True
         )
-        root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", add_code_array=True)
+        root.run_js_code("ctx.drawImageDx = 0; ctx.drawImageDy = 0;", wait_execute=True)
         ctxRestore(wait_execute=True)
             
     def drawSongItems():
@@ -4041,7 +4041,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     {level_bar_dpower},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         level_choose_block_left = w * chooseControler.level_choose_x.value
@@ -4077,7 +4077,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             )
         
         ctxSave(wait_execute=True)
-        root.run_js_code(f"ctx.clipDiagonalRectangle({",".join(map(str, level_bar_rect))}, {level_bar_dpower});", add_code_array=True)
+        root.run_js_code(f"ctx.clipDiagonalRectangle({",".join(map(str, level_bar_rect))}, {level_bar_dpower});", wait_execute=True)
         for i in range(len(currectSong.difficlty)):
             diff = currectSong.difficlty[i]
             drawChooseBarDiff(
@@ -4095,7 +4095,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(level_choose_block_rect), 75)},\
                     'rgb{chooseControler.get_level_color()}'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         drawChooseBarDiff(
@@ -4317,13 +4317,13 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         ctxSave(wait_execute=True)
         bgBlurRadio = (w + h) / 60
         bgScale = max((w + bgBlurRadio) / w, (h + bgBlurRadio) / h)
-        root.run_js_code(f"ctx.filter = 'blur({bgBlurRadio}px)';", add_code_array=True)
+        root.run_js_code(f"ctx.filter = 'blur({bgBlurRadio}px)';", wait_execute=True)
         ctxTranslate(w / 2, h / 2, wait_execute=True)
         ctxScale(bgScale, bgScale, wait_execute=True)
         ctxTranslate(-w / 2 * bgScale, -h / 2 * bgScale, wait_execute=True)
-        root.run_js_code(f"mainTempCanvasDrawer.draw(ctx.canvas);", add_code_array=True)
+        root.run_js_code(f"mainTempCanvasDrawer.draw(ctx.canvas);", wait_execute=True)
         clearCanvas(wait_execute=True)
-        root.run_js_code(f"ctx.drawImage(mainTempCanvasDrawer.cv, 0, 0, {w}, {h});", add_code_array=True)
+        root.run_js_code(f"ctx.drawImage(mainTempCanvasDrawer.cv, 0, 0, {w}, {h});", wait_execute=True)
         ctxRestore(wait_execute=True)
         fillRectEx(0, 0, w, h, "rgba(0, 0, 0, 0.5)", wait_execute=True)
         
@@ -4341,7 +4341,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     {chartsShadowDPower},\
                     'rgba(0, 0, 0, 0.3)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
             
             songShadowRect = (
@@ -4354,7 +4354,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(songShadowRect), 75)},\
                     'rgba(0, 0, 0, 0.6)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
             difRect = (
@@ -4367,7 +4367,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(difRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
             playButtonRect = (
@@ -4380,7 +4380,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)},\
                     'rgb(255, 255, 255)'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         popupUserDataP = (time.time() - lastClickAvatarTime) / userDataPopupAnimatTime
@@ -4405,7 +4405,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(diffchoosebarRect), 75)},\
                 'rgba(0, 0, 0, 0.3)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawSongItems()
@@ -4420,7 +4420,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(barShadowRect), 75)},\
                 'rgba(0, 0, 0, 0.6)'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         mirrorButtonRect = (
@@ -4433,7 +4433,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(mirrorButtonRect), 75)},\
                 '{"rgba(0, 0, 0, 0.4)" if not chooseState.is_mirror else "rgb(255, 255, 255)"}'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -4456,7 +4456,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 {tool_funcs.getDPower(*tool_funcs.getSizeByRect(autoplayButtonRect), 75)},\
                 '{"rgba(0, 0, 0, 0.4)" if not chooseState.is_autoplay else "rgb(255, 255, 255)"}'\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -4520,7 +4520,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 {w * 0.959375}, {h * (936 / 1080)},\
                 'rgb(0, 0, 0)', {(w + h) * 0.001}\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -4540,7 +4540,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 {SortIconWidth}, {SortIconHeight},\
                 1, {-1 if chooseState.sort_reverse else 1}\
             );",
-            add_code_array = True
+            wait_execute = True
         )
         
         drawText(
@@ -4562,7 +4562,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         
         if tonextUI and time.time() - tonextUISt < 0.75:
@@ -4572,7 +4572,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                     0, 0, {w}, {h},\
                     'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
                 );",
-                add_code_array = True
+                wait_execute = True
             )
         elif tonextUI:
             clearCanvas(wait_execute = True)

@@ -500,7 +500,7 @@ def draw_ui(
         } if animationing else None
     ]
     
-    root.run_js_code(f"ctx.drawUIItems({uidata});", add_code_array = True)
+    root.run_js_code(f"ctx.drawUIItems({uidata});", wait_execute = True)
     mainFramerateCalculator.frame()
              
 def delDrawuiDefaultVals(kwargs: dict) -> dict:
@@ -513,7 +513,7 @@ def drawDebugText(text: str, x: float, y: float, rotate: float, color: str):
             {",".join(map(str, tool_funcs.rotate_point(x, y, rotate, (w + h) / 75)))},\
             {90 + rotate}, {(w + h) / 85 / 0.75}, '{color}', 1.0, 1.0\
         );",
-        add_code_array = True,
+        wait_execute = True,
         order = const.CHART_RENDER_ORDERS.DEBUG
     )
 
@@ -591,7 +591,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     {h * const.LINEWIDTH.PHI},\
                     '{lineWebColor}'\
                 );",
-                add_code_array = True,
+                wait_execute = True,
                 order = const.CHART_RENDER_ORDERS.LINE
             )
             
@@ -606,7 +606,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                         {(w + h) / 250 * 2},\
                         'rgb(238, 130, 238)'\
                     );",
-                    add_code_array = True,
+                    wait_execute = True,
                     order = const.CHART_RENDER_ORDERS.DEBUG
                 )
         
@@ -752,7 +752,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                                     {noteRotate},\
                                     {missAlpha}\
                                 );",
-                                add_code_array = True,
+                                wait_execute = True,
                                 order = note.draworder
                             )
                 
@@ -767,7 +767,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                                 {(w + h) / 250 * 2},\
                                 'rgb(0, 255, 0)'\
                             );",
-                            add_code_array = True,
+                            wait_execute = True,
                             order = const.CHART_RENDER_ORDERS.DEBUG
                         )
 
@@ -856,7 +856,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 line.effectNotes.remove(note)
     
     if enableMirror:
-        root.run_js_code("ctx.mirror();", add_code_array=True)
+        root.run_js_code("ctx.mirror();", wait_execute=True)
         
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     now_t /= speed
@@ -931,7 +931,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     if line.isGif:
                         root.run_js_code(
                             f"{texturename}.currentTime = {now_t} % {texturename}.duration;",
-                            add_code_array = True
+                            wait_execute = True
                         )
                     root.run_js_code(
                         f"{f"setColorMatrix{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}\
@@ -944,7 +944,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                             {lineRotate},\
                             {lineAlpha}\
                         ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",
-                        add_code_array = True,
+                        wait_execute = True,
                         order = const.CHART_RENDER_ORDERS.LINE
                     )
             elif lineText is not None:
@@ -959,7 +959,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         {lineScaleX},\
                         {lineScaleY}\
                     );",
-                    add_code_array = True,
+                    wait_execute = True,
                     order = const.CHART_RENDER_ORDERS.LINE
                 )
             elif tool_funcs.lineInScreen(w, h, lineDrawPos):
@@ -969,7 +969,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         {lineWidth},\
                         '{lineWebColor}'\
                     );",
-                    add_code_array = True,
+                    wait_execute = True,
                     order = const.CHART_RENDER_ORDERS.LINE
                 )
             
@@ -984,7 +984,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     {(w + h) / 250 * 2},\
                     'rgb(238, 130, 238)'\
                 );",
-                add_code_array = True,
+                wait_execute = True,
                 order = const.CHART_RENDER_ORDERS.DEBUG
             )
         
@@ -1128,7 +1128,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                                     {noteRotate},\
                                     {noteAlpha * missAlpha}\
                                 );",
-                                add_code_array = True,
+                                wait_execute = True,
                                 order = note.draworder
                             )
                         
@@ -1143,7 +1143,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                                 {(w + h) / 250 * 2},\
                                 'rgb(0, 255, 0)'\
                             );",
-                            add_code_array = True,
+                            wait_execute = True,
                             order = const.CHART_RENDER_ORDERS.DEBUG
                         )
             
@@ -1238,7 +1238,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             doShader(name, values)
     
     if enableMirror:
-        root.run_js_code("ctx.mirror();", add_code_array=True)
+        root.run_js_code("ctx.mirror();", wait_execute=True)
         
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     draw_ui(
@@ -1277,7 +1277,7 @@ def doShader(
     caller(
         root.run_js_code,
         f"mainShaderLoader.renderToCanvas(ctx, {repr(name)}, {repr(values)})",
-        add_code_array = True
+        wait_execute = True
     )
 
 def getLevelNumber() -> str:
@@ -1337,7 +1337,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     
     root.run_js_code(
         f"ctx.translate({all_ease_value * w}, 0.0);",
-        add_code_array = True
+        wait_execute = True
     )
     
     songShadowRect = (
@@ -1350,7 +1350,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
             {tool_funcs.getDPower(*tool_funcs.getSizeByRect(songShadowRect), 75)},\
             'rgba(0, 0, 0, 0.6)'\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     difRect = (
@@ -1363,7 +1363,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
             {tool_funcs.getDPower(*tool_funcs.getSizeByRect(difRect), 75)},\
             'rgb(255, 255, 255)'\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     drawText(
@@ -1444,7 +1444,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
             {loadingBlockLeft}, {loadingBlockY}, {loadingBlockRight - loadingBlockLeft}, {loadingBlockHeight},\
             'rgba(255, 255, 255, {tipalpha})'\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     def drawLoading(x0: float, x1: float, color: str):
@@ -1457,7 +1457,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
                 '{(w + h) / 100}px pgrFont',\
                 {x0}, {x1}\
             );",
-            add_code_array = True
+            wait_execute = True
         )
     
     drawLoading(loadingBlockX, loadingBlockX + loadingBlockWidth, f"rgba(255, 255, 255, {tipalpha})")
@@ -1522,12 +1522,12 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
             {root.get_img_jsvarname("chart_image")},\
             {baimg_y1 - baimg_y0}, {dpower}, 1.0\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     root.run_js_code(
         f"ctx.translate(-{all_ease_value * w},0.0);",
-        add_code_array = True
+        wait_execute = True
     )
     
     root.run_js_wait_code()
@@ -1729,7 +1729,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
             {baimg_w / 2 - baimg_draww / 2}, {baimg_h / 2 - baimg_drawh / 2},\
             {baimg_draww}, {baimg_drawh}, {dpower}, 1.0\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     root.run_js_code(
@@ -1748,7 +1748,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
                 0.0, h * (539 / 1080) + baimg_h / 2
             ]}\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     drawText(
@@ -1818,12 +1818,12 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
             {w * level_size}, {w * level_size},\
             {tool_funcs.finish_animation_eases.level_alpha_ease(p)}\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     root.run_js_code(
         f"ctx.save(); ctx.globalAlpha = {tool_funcs.finish_animation_eases.playdata_alpha_ease(p - 0.02)}",
-        add_code_array = True
+        wait_execute = True
     )
     
     drawText( # Max Combo
@@ -1872,7 +1872,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
     
     root.run_js_code(
         f"ctx.globalAlpha = {tool_funcs.finish_animation_eases.playdata_alpha_ease(p - 0.04)}",
-        add_code_array = True
+        wait_execute = True
     )
     
     def drawDataCount(x: float, text: str, count: int):
@@ -1928,7 +1928,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
     drawELCount(h * (794 / 1080), "Early", EarlyCount)
     drawELCount(h * (823 / 1080), "Late", LateCount)
     
-    root.run_js_code("ctx.restore();", add_code_array = True)
+    root.run_js_code("ctx.restore();", wait_execute = True)
     
     Retry_Button_Width = w * const.FINISH_UI_BUTTON_SIZE
     Retry_Button_Height = w * const.FINISH_UI_BUTTON_SIZE / 190 * 145
@@ -1973,7 +1973,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
     
     root.run_js_code(
         f"ctx.save(); ctx.globalAlpha = {tool_funcs.finish_animation_eases.userinfo_alpha_ease(p - 0.03)}",
-        add_code_array = True
+        wait_execute = True
     )
     
     drawUserData(
@@ -1992,7 +1992,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         saUserData.challengeModeRank
     )
     
-    root.run_js_code("ctx.restore();", add_code_array = True)
+    root.run_js_code("ctx.restore();", wait_execute = True)
     
     if rjc: root.run_js_wait_code()
 
@@ -2052,7 +2052,7 @@ def drawUserData(
             {userDataDPower},\
             'rgb(0, 0, 0)'\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     avatar_rect = (
@@ -2080,7 +2080,7 @@ def drawUserData(
             {tool_funcs.getDPower(*tool_funcs.getSizeByRect(rks_rect), 75)},\
             'rgb(255, 255, 255)'\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     rks_rect_center = tool_funcs.getCenterPointByRect(rks_rect)
@@ -2107,7 +2107,7 @@ def drawUserData(
             {popupUserDataDPower},\
             'rgb(0, 0, 0)'\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     root.run_js_code(
@@ -2118,7 +2118,7 @@ def drawUserData(
             {avatar_w}, {avatar_h},\
             {avatar_dpower}, 1.0\
         );",
-        add_code_array = True
+        wait_execute = True
     )
     
     ctxSave(wait_execute=True)

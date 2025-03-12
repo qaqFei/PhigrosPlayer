@@ -408,15 +408,15 @@ class WebCanvas:
     def move(self, x: int, y:int): self.web.move(x, y) if not disengage_webview else None
     def fullscreen(self): self.web.toggle_fullscreen() if not disengage_webview else None
     
-    def run_js_code(self, code: str, add_code_array: bool = False, order: typing.Optional[int] = None, needresult: bool = True):
+    def run_js_code(self, code: str, wait_execute: bool = False, order: typing.Optional[int] = None, needresult: bool = True):
         if self.jslog and not code.endswith(";"): code += ";"
         
         if order is None:
-            return self._jscodes.append(code) if add_code_array else self.evaljs(code, needresult)
+            return self._jscodes.append(code) if wait_execute else self.evaljs(code, needresult)
         
         if order not in self._jscode_orders:
             self._jscode_orders[order] = []
-        self._jscode_orders[order].append((code, add_code_array))
+        self._jscode_orders[order].append((code, wait_execute))
     
     def _rjwc(self, codes: list[str]):
         self.rwjc_waiter.wait()
@@ -446,8 +446,8 @@ class WebCanvas:
         
     def run_js_wait_code(self):
         if self._jscode_orders: self.run_jscode_orders() # not to create a new pyframe
-        self.run_js_code("requestAnimationFrame(() => pywebview.api.call_attr('_rdcallback'));", add_code_array=True)
-        self.run_js_code("if (!('_frame_counter' in window)) {&FRAMERATE_CODE&};".replace("&FRAMERATE_CODE&", framerate_counter), add_code_array=True)
+        self.run_js_code("requestAnimationFrame(() => pywebview.api.call_attr('_rdcallback'));", wait_execute=True)
+        self.run_js_code("if (!('_frame_counter' in window)) {&FRAMERATE_CODE&};".replace("&FRAMERATE_CODE&", framerate_counter), wait_execute=True)
         
         codes = self._jscodes.copy()
         self._jscodes.clear()
