@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import init_logging as _
 
-import rjsmin
 import typing
-import json
 import logging
 import random
 import math
@@ -523,66 +521,3 @@ class PPLMPHI_Proxy(tool_funcs.PPLM_ProxyBase):
     
     def nproxy_get_pbadtime(self, n: Note): return n.player_badtime
     def nproxy_set_pbadtime(self, n: Note, time: float): n.player_badtime = time
-
-@dataclass
-class RenderTask:
-    func: typing.Callable
-    args: typing.Iterable
-    kwargs: typing.Mapping
-
-@dataclass
-class FrameRenderTask:
-    RenderTasks: list[RenderTask]
-    ExTask: list[tuple]
-    
-    def __call__(self, func: typing.Callable, *args: typing.Iterable, **kwargs: typing.Mapping[str, typing.Any]):
-        self.RenderTasks.append(RenderTask(func, args, kwargs))
-    
-    def ExecTask(self, clear: bool = True):
-        for t in self.RenderTasks:
-            t.func(*t.args, **t.kwargs)
-            
-        if clear:
-            self.RenderTasks.clear()
-
-@dataclass
-class FrameTaskRecorder_Meta:
-    frame_speed: int
-    frame_num: int
-    size: tuple[float, float]
-
-@dataclass
-class FrameTaskRecorder:
-    meta: FrameTaskRecorder_Meta
-    data: typing.Iterable[FrameRenderTask]
-    
-    def stringify(self, f: typing.IO):
-        data = {
-            "meta": {
-                "frame_speed": self.meta.frame_speed,
-                "frame_num": self.meta.frame_num,
-                "size": self.meta.size
-            },
-            "data": []
-        }
-        
-        for task in self.data:
-            task_data = {
-                "render": [],
-                "ex": list(map(list, task.ExTask))
-            }
-            
-            for rendertask in task.RenderTasks:
-                args = list(rendertask.args)
-                if rendertask.func.__code__.co_name == "run_js_code":
-                    args[0] = rjsmin.jsmin(args[0])
-                    
-                task_data["render"].append({
-                    "func_name": rendertask.func.__code__.co_name,
-                    "args": args,
-                    "kwargs": rendertask.kwargs
-                })
-            
-            data["data"].append(task_data)
-        
-        return json.dump(data, f)

@@ -506,9 +506,8 @@ def draw_ui(
 def delDrawuiDefaultVals(kwargs: dict) -> dict:
     return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}   
 
-def drawDebugText(text: str, x: float, y: float, rotate: float, color: str, Task: chartobj_phi.FrameRenderTask):
-    Task(
-        root.run_js_code,
+def drawDebugText(text: str, x: float, y: float, rotate: float, color: str):
+    root.run_js_code(
         f"ctx.drawRotateText(\
             {root.string2sctring_hqm(text)},\
             {",".join(map(str, tool_funcs.rotate_point(x, y, rotate, (w + h) / 75)))},\
@@ -518,24 +517,24 @@ def drawDebugText(text: str, x: float, y: float, rotate: float, color: str, Task
         order = const.CHART_RENDER_ORDERS.DEBUG
     )
 
-def rrmStart(Task: chartobj_phi.FrameRenderTask):
+def rrmStart():
     if not render_range_more: return
     lw, lh = w / render_range_more_scale, h / render_range_more_scale
     lr, lt = w / 2 - lw / 2, h / 2 - lh / 2
     rms = 1 / render_range_more_scale
     
-    Task(ctxSave, wait_execute=True)
-    Task(ctxTranslate, lr, lt, wait_execute=True)
-    Task(ctxScale, rms, rms, wait_execute=True)
+    ctxSave(wait_execute=True)
+    ctxTranslate(lr, lt, wait_execute=True)
+    ctxScale(rms, rms, wait_execute=True)
 
-def rrmEnd(Task: chartobj_phi.FrameRenderTask):
+def rrmEnd():
     if not render_range_more: return
-    Task(ctxRestore, wait_execute=True)
+    ctxRestore(wait_execute=True)
     
-def processExTask(ExTask: list[tuple[str, typing.Any]]):
+def processExTask(extasks: list[tuple[str, typing.Any]]):
     break_flag = False
     
-    for ext in ExTask:
+    for ext in extasks:
         match ext[0]:
             case "break":
                 break_flag = True
@@ -546,12 +545,13 @@ def processExTask(ExTask: list[tuple[str, typing.Any]]):
     return break_flag
 
 def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: typing.Optional[tool_funcs.PhigrosPlayLogicManager] = None):
-    Task = chartobj_phi.FrameRenderTask([], [])
-    if clear: Task(clearCanvas, wait_execute = True)
-    rrmStart(Task)
-    Task(drawDeepBgAndClipScreen)
-    Task(drawBg)
-    if noplaychart: Task.ExTask.append(("break", ))
+    extasks = []
+    
+    if clear: clearCanvas(wait_execute=True)
+    rrmStart()
+    drawDeepBgAndClipScreen()
+    drawBg()
+    if noplaychart: extasks.append(("break", ))
         
     now_t *= speed
     noautoplay = pplm is not None # reset a global variable
@@ -585,8 +585,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         lineWebColor = f"rgba{lineColor}"
         
         if (lineColor[-1] > 0.0 and tool_funcs.lineInScreen(w, h, lineDrawPos)) or debug:
-            Task(
-                root.run_js_code,
+            root.run_js_code(
                 f"ctx.drawLineEx(\
                     {",".join(map(str, lineDrawPos))},\
                     {h * const.LINEWIDTH.PHI},\
@@ -597,10 +596,9 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             )
             
             if debug:
-                drawDebugText(f"{lineIndex}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
+                drawDebugText(f"{lineIndex}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)")
                 
-                Task(
-                    root.run_js_code,
+                root.run_js_code(
                     f"ctx.fillRectEx(\
                         {linePos[0] - (w + h) / 250},\
                         {linePos[1] - (w + h) / 250},\
@@ -619,7 +617,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 if noteClicked and not note.clicked:
                     note.clicked = True
                     if enable_clicksound and not noautoplay:
-                        Task.ExTask.append(("psound", note.type))
+                        extasks.append(("psound", note.type))
                 
                 if not note.ishold and note.clicked:
                     notesChildren.remove(note)
@@ -717,9 +715,8 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                     noteRotate = lineToNoteRotate + 90
                         
                     if noteHadHead:
-                        Task(setOrder, note.draworder)
-                        Task(
-                            drawRotateImage,
+                        setOrder(note.draworder)
+                        drawRotateImage(
                             note.imgname,
                             x if not note.ishold else headpos[0],
                             y if not note.ishold else headpos[1],
@@ -729,26 +726,24 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                             1.0,
                             wait_execute = True
                         )
-                        Task(setOrder, None)
+                        setOrder(None)
                         
                     if note.ishold:
                         noteEndHeight = noteWidth / noteEndImg.width * noteEndImg.height
                         missAlpha = 0.5 if noautoplay and note.player_missed else 1.0
                         
-                        Task(setOrder, note.draworder)
-                        Task(
-                            drawRotateImage,
+                        setOrder(note.draworder)
+                        drawRotateImage(
                             note.imgname_end,
                             *endpos,
                             noteWidth, noteEndHeight,
                             noteRotate, missAlpha,
                             wait_execute = True
                         )
-                        Task(setOrder, None)
+                        setOrder(None)
                         
                         if bodyLength > 0.0:
-                            Task(
-                                root.run_js_code,
+                            root.run_js_code(
                                 f"ctx.drawAnchorESRotateImage(\
                                     {root.get_img_jsvarname(note.imgname_body)},\
                                     {bodypos[0]}, {bodypos[1]},\
@@ -762,10 +757,9 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                             )
                 
                     if debug:
-                        drawDebugText(f"{lineIndex}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)", Task)
+                        drawDebugText(f"{lineIndex}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)")
                         
-                        Task(
-                            root.run_js_code,
+                        root.run_js_code(
                             f"ctx.fillRectEx(\
                                 {x - (w + h) / 250},\
                                 {y - (w + h) / 250},\
@@ -780,7 +774,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             if not notesChildren:
                 line.renderNotes.remove(notesChildren)
                 
-    Task(root.run_jscode_orders)
+    root.run_jscode_orders()
     
     effect_time = phira_resource_pack.globalPack.effectDuration
     miss_effect_time = 0.2
@@ -813,8 +807,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
         noteWidth = globalNoteWidth * fix_scale
         noteHeight = noteWidth / noteImg.width * noteImg.height
-        Task(
-            drawRotateImage,
+        drawRotateImage(
             imgname,
             x, y,
             noteWidth, noteHeight,
@@ -827,7 +820,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         for pplmckfi in pplm.clickeffects.copy():
             perfect, eft, erbs, position = pplmckfi
             if eft <= now_t <= eft + effect_time:
-                processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, perfect, Task)
+                processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, perfect)
             
             if eft + effect_time < now_t:
                 pplm.clickeffects.remove(pplmckfi)
@@ -835,7 +828,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         for pplmbdfi in pplm.badeffects.copy():
             st, rotate, pos = pplmbdfi
             if st <= now_t <= st + bad_effect_time:
-                processBadEffect(*pos, rotate, st, now_t, bad_effect_time, Task)
+                processBadEffect(*pos, rotate, st, now_t, bad_effect_time)
             
             if st + bad_effect_time < now_t:
                 pplm.badeffects.remove(pplmbdfi)
@@ -847,7 +840,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
             if not noautoplay:
                 for eft, erbs, position in note.effect_times:
                     if eft <= now_t <= eft + effect_time:
-                        processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, True, Task)
+                        processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, True)
                         
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:
@@ -863,12 +856,11 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
                 line.effectNotes.remove(note)
     
     if enableMirror:
-        Task(root.run_js_code, "ctx.mirror();", add_code_array=True)
+        root.run_js_code("ctx.mirror();", add_code_array=True)
         
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
     now_t /= speed
-    Task(
-        draw_ui,
+    draw_ui(
         process = now_t / audio_length,
         score = stringifyScore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else stringifyScore(pplm.ppps.getScore()),
         combo_state = combo >= 3,
@@ -877,23 +869,23 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         clear = False,
         background = False
     )
-    Task(undoClipScreen)
+    undoClipScreen()
     
-    rrmEnd(Task)
-    if rjc: Task(root.run_js_wait_code)
+    rrmEnd()
+    if rjc: root.run_js_wait_code()
     
     if now_t >= raw_audio_length:
-        Task.ExTask.append(("break", ))
+        extasks.append(("break", ))
     
-    return Task
+    return extasks
 
 def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: typing.Optional[tool_funcs.PhigrosPlayLogicManager] = None):
-    Task = chartobj_phi.FrameRenderTask([], [])
-    if clear: Task(clearCanvas, wait_execute = True)
-    rrmStart(Task)
-    Task(drawDeepBgAndClipScreen)
-    Task(drawBg)
-    if noplaychart: Task.ExTask.append(("break", ))
+    extasks = []
+    if clear: clearCanvas(wait_execute = True)
+    rrmStart()
+    drawDeepBgAndClipScreen()
+    drawBg()
+    if noplaychart: extasks.append(("break", ))
     
     attachUIData = {}
         
@@ -937,13 +929,11 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 if tool_funcs.TextureLine_CanRender(w, h, (texture_width ** 2 + texture_height ** 2) ** 0.5 / 2, *linePos):
                     texturename = root.get_img_jsvarname(f"lineTexture_{line.index}")
                     if line.isGif:
-                        Task(
-                            root.run_js_code,
+                        root.run_js_code(
                             f"{texturename}.currentTime = {now_t} % {texturename}.duration;",
                             add_code_array = True
                         )
-                    Task(
-                        root.run_js_code,
+                    root.run_js_code(
                         f"{f"setColorMatrix{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}\
                         ctx.drawRotateImage(\
                             {texturename},\
@@ -958,8 +948,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                         order = const.CHART_RENDER_ORDERS.LINE
                     )
             elif lineText is not None:
-                Task(
-                    root.run_js_code,
+                root.run_js_code(
                     f"ctx.drawRPEMultipleRotateText(\
                         '{root.string2cstring(lineText)}',\
                         {linePos[0]},\
@@ -974,8 +963,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     order = const.CHART_RENDER_ORDERS.LINE
                 )
             elif tool_funcs.lineInScreen(w, h, lineDrawPos):
-                Task(
-                    root.run_js_code,
+                root.run_js_code(
                     f"ctx.drawLineEx(\
                         {",".join(map(str, lineDrawPos))},\
                         {lineWidth},\
@@ -986,10 +974,9 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 )
             
         if debug:
-            drawDebugText(f"{line.index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)", Task)
+            drawDebugText(f"{line.index}", *linePos, lineRotate - 90, "rgba(255, 255, 170, 0.5)")
             
-            Task(
-                root.run_js_code,
+            root.run_js_code(
                 f"ctx.fillRectEx(\
                     {linePos[0] - (w + h) / 250},\
                     {linePos[1] - (w + h) / 250},\
@@ -1010,7 +997,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                 if note_clicked and not note.clicked:
                     note.clicked = True
                     if enable_clicksound and not note.isFake and not noautoplay:
-                        Task.ExTask.append(("psound", note.hitsound_reskey))
+                        extasks.append(("psound", note.hitsound_reskey))
                 
                 if not note.ishold and note.clicked:
                     notesChildren.remove(note)
@@ -1102,9 +1089,8 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                     noteHeight = noteWidth / noteImg.width * noteImg.height
                     
                     if noteHadHead:
-                        Task(setOrder, note.draworder)
-                        Task(
-                            drawRotateImage,
+                        setOrder(note.draworder)
+                        drawRotateImage(
                             note.imgname,
                             x if not note.ishold else headpos[0],
                             y if not note.ishold else headpos[1],
@@ -1114,15 +1100,14 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                             noteAlpha,
                             wait_execute = True
                         )
-                        Task(setOrder, None)
+                        setOrder(None)
                         
                     if note.ishold:
                         noteEndHeight = noteWidth / noteEndImg.width * noteEndImg.height
                         missAlpha = 0.5 if noautoplay and note.player_missed else 1.0
                         
-                        Task(setOrder, note.draworder)
-                        Task(
-                            drawRotateImage,
+                        setOrder(note.draworder)
+                        drawRotateImage(
                             note.imgname_end,
                             *endpos,
                             noteWidth * noteWidthX,
@@ -1131,11 +1116,10 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                             noteAlpha * missAlpha,
                             wait_execute = True
                         )
-                        Task(setOrder, None)
+                        setOrder(None)
                         
                         if bodyLength > 0.0:
-                            Task(
-                                root.run_js_code,
+                            root.run_js_code(
                                 f"ctx.drawAnchorESRotateImage(\
                                     {root.get_img_jsvarname(note.imgname_body)},\
                                     {bodypos[0]}, {bodypos[1]},\
@@ -1149,10 +1133,9 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
                             )
                         
                     if debug:
-                        drawDebugText(f"{line.index}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)", Task)
+                        drawDebugText(f"{line.index}+{note.master_index}", x, y, lineToNoteRotate, "rgba(0, 255, 255, 0.5)")
                         
-                        Task(
-                            root.run_js_code,
+                        root.run_js_code(
                             f"ctx.fillRectEx(\
                                 {x - (w + h) / 250},\
                                 {y - (w + h) / 250},\
@@ -1167,7 +1150,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             if not notesChildren:
                 line.renderNotes.remove(notesChildren)
     
-    Task(root.run_jscode_orders)
+    root.run_jscode_orders()
     
     effect_time = phira_resource_pack.globalPack.effectDuration
     miss_effect_time = 0.2
@@ -1201,8 +1184,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
             noteWidth = globalNoteWidth * fix_scale
             noteHeight = noteWidth / noteImg.width * noteImg.height
-            Task(
-                drawRotateImage,
+            drawRotateImage(
                 imgname,
                 x, y,
                 noteWidth * note.width,
@@ -1216,7 +1198,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         for pplmckfi in pplm.clickeffects.copy():
             perfect, eft, erbs, position = pplmckfi
             if eft <= now_t <= eft + effect_time:
-                processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, perfect, Task)
+                processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, perfect)
             
             if eft + effect_time < now_t:
                 pplm.clickeffects.remove(pplmckfi)
@@ -1224,7 +1206,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         for pplmbdfi in pplm.badeffects.copy():
             st, rotate, pos = pplmbdfi
             if st <= now_t <= st + bad_effect_time:
-                processBadEffect(*pos, rotate, st, now_t, bad_effect_time, Task)
+                processBadEffect(*pos, rotate, st, now_t, bad_effect_time)
             
             if st + bad_effect_time < now_t:
                 pplm.badeffects.remove(pplmbdfi)
@@ -1236,7 +1218,7 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
             if not noautoplay:
                 for eft, erbs, position in note.effect_times:
                     if eft <= now_t <= eft + effect_time:
-                        processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, True, Task)
+                        processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, True)
                         
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:
@@ -1253,14 +1235,13 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
     if chart_obj.extra is not None:
         extra_values = chart_obj.extra.getValues(now_t, False)
         for name, values in extra_values:
-            doShader(name, values, Task)
+            doShader(name, values)
     
     if enableMirror:
-        Task(root.run_js_code, "ctx.mirror();", add_code_array=True)
+        root.run_js_code("ctx.mirror();", add_code_array=True)
         
     combo = chart_obj.getCombo(now_t) if not noautoplay else pplm.ppps.getCombo()
-    Task(
-        draw_ui,
+    draw_ui(
         process = now_t / speed / audio_length,
         score = stringifyScore((combo * (1000000 / chart_obj.note_num)) if chart_obj.note_num != 0 else 1000000) if not noautoplay else stringifyScore(pplm.ppps.getScore()),
         combo_state = combo >= 3,
@@ -1270,23 +1251,23 @@ def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, p
         background = False,
         **delDrawuiDefaultVals(attachUIData)
     )
-    Task(undoClipScreen)
+    undoClipScreen()
     
     if chart_obj.extra is not None:
         extra_values = chart_obj.extra.getValues(now_t, True)
         for name, values in extra_values:
-            doShader(name, values, Task)
+            doShader(name, values)
         
     now_t /= speed
     now_t += chart_obj.META.offset / 1000
             
-    rrmEnd(Task)
-    if rjc: Task(root.run_js_wait_code)
+    rrmEnd()
+    if rjc: root.run_js_wait_code()
     
     if now_t >= raw_audio_length:
-        Task.ExTask.append(("break", ))
+        extasks.append(("break", ))
     
-    return Task
+    return extasks
 
 def doShader(
     name: str,
@@ -1318,7 +1299,7 @@ def getFontSize(text: str, maxwidth: float, maxsize: float, font: str = "pgrFont
     if w1px == 0: w1px = 1.0
     return min(maxsize, maxwidth / w1px)
 
-def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None) -> chartobj_phi.FrameRenderTask:
+def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None):
     if clear: clearCanvas(wait_execute=True)
     all_ease_value = tool_funcs.begin_animation_eases.im_ease(p)
     background_ease_value = tool_funcs.begin_animation_eases.background_ease(p) * 1.25

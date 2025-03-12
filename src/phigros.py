@@ -3716,13 +3716,11 @@ def chartPlayerRender(
                 now_t = time.time() - show_start_time
                 checkOffset(now_t)
                 if CHART_TYPE == const.CHART_TYPE.PHI:
-                    Task = phicore.GetFrameRenderTask_Phi(now_t, False, False, pplm)
+                    extasks = phicore.GetFrameRenderTask_Phi(now_t, False, False, pplm)
                 elif CHART_TYPE == const.CHART_TYPE.RPE:
-                    Task = phicore.GetFrameRenderTask_Rpe(now_t, False, False, pplm)
-                    
-                Task.ExecTask()
+                    extasks = phicore.GetFrameRenderTask_Rpe(now_t, False, False, pplm)
                 
-                break_flag = phicore.processExTask(Task.ExTask)
+                break_flag = phicore.processExTask(extasks)
                 
                 if break_flag and not stoped:
                     phicore.settlementAnimationUserData.userName = getUserData("userdata-userName")

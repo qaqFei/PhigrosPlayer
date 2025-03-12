@@ -5,7 +5,6 @@ numba==0.60.0
 opencv-python-headless==4.10.0.84
 numpy==2.0.2
 pywebview==5.3.1
-rjsmin==1.2.3
 librosa==0.10.2.post1
 UnityPy==1.10.18
 fsb5==1.0
