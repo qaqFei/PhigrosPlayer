@@ -18,7 +18,7 @@ class FILE_TYPE:
 class LoadResult:
     filetype: typing.Literal[1, 2, 3, 4]
     data: typing.Any
-    errs: list[Exception]|None
+    errs: typing.Optional[list[Exception]]
 
 class FileLoadError(Exception): ...
 

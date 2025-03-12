@@ -350,17 +350,17 @@ class PhigrosPlayManager:
         self.event_offsets: list[float] = [] # the note click offset (s)
         self.noteCount = noteCount
     
-    def addEvent(self, event: typing.Literal["P", "G", "B", "M"], offset: float|None = None): # Perfect, Good, Bad, Miss
+    def addEvent(self, event: typing.Literal["P", "G", "B", "M"], offset: typing.Optional[float] = None): # Perfect, Good, Bad, Miss
         self.events.append(event)
         if offset is not None: # offset is only good judge.
             self.event_offsets.append(offset)
     
     def getLineColor(self) -> tuple[int, int, int]:
         if "B" in self.events or "M" in self.events:
-            return (255, 255, 255) # White
+            return (255, 255, 255)
         if "G" in self.events:
-            return phira_resource_pack.globalPack.goodRGB # FC
-        return phira_resource_pack.globalPack.perfectRGB # AP
+            return phira_resource_pack.globalPack.goodRGB
+        return phira_resource_pack.globalPack.perfectRGB
 
     def getCombo(self):
         cut = 0

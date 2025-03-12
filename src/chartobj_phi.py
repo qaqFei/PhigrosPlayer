@@ -14,7 +14,7 @@ import const
 import tool_funcs
 import phi_easing
 
-def findevent(events: list[judgeLineBaseEvent]|list[speedEvent], t: float) -> judgeLineBaseEvent|speedEvent|None:
+def findevent(events: list[judgeLineBaseEvent]|list[speedEvent], t: float) -> typing.Optional[judgeLineBaseEvent|speedEvent]:
     l, r = 0, len(events) - 1
     
     while l <= r:
@@ -81,15 +81,15 @@ class Note:
     floorPosition: float
     above: bool
     
-    effect_random_blocks: tuple[int]|None = None
-    id: int|None = None
+    effect_random_blocks: typing.Optional[tuple[int]] = None
+    id: typing.Optional[int] = None
     clicked: bool = False # this attr mean is "this note click time is <= now time", so if disable autoplay and click time <= now time but user is not click this attr still is true.
     morebets: bool = False
-    master: judgeLine|None = None
+    master: typing.Optional[judgeLine] = None
     effect_times: const.ClickEffectType | tuple = ()
     state: int = const.NOTE_STATE.MISS
-    master_index: int|None = None
-    sec: float|None = None
+    master_index: typing.Optional[int] = None
+    sec: typing.Optional[float] = None
     nowpos: tuple[float, float] = (-1.0, -1.0)
     nowrotate: float = 0.0
     
@@ -105,7 +105,7 @@ class Note:
     player_holdclickstate: int = const.NOTE_STATE.MISS
     player_holdjudged_tomanager: bool = False
     player_judge_safe_used: bool = False
-    player_bad_posandrotate: tuple[tuple[float, float], float]|None = None
+    player_bad_posandrotate: typing.Optional[tuple[tuple[float, float], float]] = None
     
     presentation_mode_click_time: float = float("nan")
     presentation_mode_clicked: bool = False
@@ -173,7 +173,7 @@ class Note:
         lineRotate = self.master.getRotate(time)
         
         cached: bool = False
-        cachedata: tuple[float, float]|None = None
+        cachedata: typing.Optional[tuple[float, float]] = None
         
         def callback(w: int, h: int):
             nonlocal cached, cachedata
@@ -203,7 +203,7 @@ class speedEvent:
     startTime: float
     endTime: float
     value: float
-    floorPosition: float|None = None
+    floorPosition: typing.Optional[float] = None
     
     def dump(self):
         return {

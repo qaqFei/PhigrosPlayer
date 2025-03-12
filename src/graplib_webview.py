@@ -24,7 +24,7 @@ root: webcv.WebCanvas
 transparent = "rgba(0, 0, 0, 0)"
 number = int|float
 ctx: str = "ctx"
-order: int|None = None
+order: typing.Optional[int] = None
 
 def setCtx(n: str):
     global ctx
@@ -33,7 +33,7 @@ def setCtx(n: str):
 def getCtx() -> str:
     return ctx
 
-def setOrder(n: int|None):
+def setOrder(n: typing.Optional[int]):
     global order
     order = n
     

@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import chartobj_rpe
 
@@ -13,7 +14,7 @@ def _controlevents(line: dict, controlName: str, svalName: str, tvalName: str):
         for i in controlList
     ]
 
-def _lineevents(layer: dict|None, name: str):
+def _lineevents(layer: typing.Optional[dict], name: str):
     es: list[dict] = layer.get(name, []) if layer is not None else []
     return [
         chartobj_rpe.LineEvent(

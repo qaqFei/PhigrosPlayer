@@ -154,7 +154,7 @@ def CoreConfigure(config: PhiCoreConfig):
 class ClickSoundManager:
     def __init__(self, res: dict[int, dxsound.directSound]):
         self.res = res
-        self.queue: Queue[int|None] = Queue()
+        self.queue: Queue[typing.Optional[int]] = Queue()
         
         for _ in range(const.CSOUND_MANAGER_THREADNUM):
             threading.Thread(target=self.runner, daemon=True).start()
@@ -175,7 +175,7 @@ class ClickSoundManager:
 
 def processClickEffectBase(
     x: float, y: float,
-    p: float, rblocks: tuple[tuple[float, float]]|None,
+    p: float, rblocks: typing.Optional[tuple[tuple[float, float]]],
     perfect: bool, noteWidth: float,
     root: webcv.WebCanvas,
     rblocks_roundn: float = 0.0,
@@ -547,7 +547,7 @@ def processExTask(ExTask: list[tuple[str, typing.Any]]):
         
     return break_flag
 
-def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
+def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: typing.Optional[tool_funcs.PhigrosPlayLogicManager] = None):
     Task = chartobj_phi.FrameRenderTask([], [])
     if clear: Task(clearCanvas, wait_execute = True)
     rrmStart(Task)
@@ -889,7 +889,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     
     return Task
 
-def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: tool_funcs.PhigrosPlayLogicManager|None = None):
+def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: typing.Optional[tool_funcs.PhigrosPlayLogicManager] = None):
     Task = chartobj_phi.FrameRenderTask([], [])
     if clear: Task(clearCanvas, wait_execute = True)
     rrmStart(Task)
@@ -2017,7 +2017,7 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
     
     if rjc: root.run_js_wait_code()
 
-def lineCloseAimationFrame(p: float, a1_combo: int|None, rjc: bool = True):
+def lineCloseAimationFrame(p: float, a1_combo: typing.Optional[int], rjc: bool = True):
     v = p ** 2
     if not noautoplay:
         draw_ui(

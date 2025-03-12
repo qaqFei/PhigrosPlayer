@@ -408,7 +408,7 @@ class WebCanvas:
     def move(self, x: int, y:int): self.web.move(x, y) if not disengage_webview else None
     def fullscreen(self): self.web.toggle_fullscreen() if not disengage_webview else None
     
-    def run_js_code(self, code: str, add_code_array: bool = False, order: int|None = None, needresult: bool = True):
+    def run_js_code(self, code: str, add_code_array: bool = False, order: typing.Optional[int] = None, needresult: bool = True):
         if self.jslog and not code.endswith(";"): code += ";"
         
         if order is None:

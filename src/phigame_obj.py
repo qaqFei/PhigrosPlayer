@@ -20,7 +20,7 @@ class ClickEvent:
     rect: tuple[float, float, float, float]
     callback: typing.Callable[[int, int], typing.Any]
     once: bool
-    tag: str|None = None
+    tag: typing.Optional[str] = None
     
     def __hash__(self) -> int:
         return id(self)
@@ -28,7 +28,7 @@ class ClickEvent:
 @dataclass
 class MoveEvent:
     callback: typing.Callable[[int, int], typing.Any]
-    tag: str|None = None
+    tag: typing.Optional[str] = None
     
     def __hash__(self) -> int:
         return id(self)
@@ -36,7 +36,7 @@ class MoveEvent:
 @dataclass
 class ReleaseEvent:
     callback: typing.Callable[[int, int], typing.Any]
-    tag: str|None = None
+    tag: typing.Optional[str] = None
 
     def __hash__(self) -> int:
         return id(self)

@@ -29,7 +29,7 @@ def geteasing_func(t: int):
         logging.warning(f"geteasing_func error: {e}")
         return rpe_easing.ease_funcs[0]
 
-def findevent(events: list[LineEvent|ExtraVar], t: float, timeattr: str = "value") -> LineEvent|ExtraVar|None:
+def findevent(events: list[LineEvent|ExtraVar], t: float, timeattr: str = "value") -> typing.Optional[LineEvent|ExtraVar]:
     l, r = 0, len(events) - 1
     
     while l <= r:
@@ -58,7 +58,7 @@ class Beat:
     v2: int
     v3: int
     
-    secvar: float|None = None # only speed events
+    secvar: typing.Optional[float] = None # only speed events
     
     def __post_init__(self):
         self.value = self.v1 + (self.v2 / self.v3)
@@ -88,16 +88,16 @@ class Note:
     visibleTime: float
     width: float
     alpha: int
-    hitsound: str|None
+    hitsound: typing.Optional[str]
     
-    masterLine: JudgeLine|None = None
-    master: Chart|None = None
+    masterLine: typing.Optional[JudgeLine] = None
+    master: typing.Optional[Chart] = None
     clicked: bool = False
     morebets: bool = False
     floorPosition: float = 0.0
     holdLength: float = 0.0
-    masterLine: JudgeLine|None = None
-    master_index: int|None = None
+    masterLine: typing.Optional[JudgeLine] = None
+    master_index: typing.Optional[int] = None
     nowpos: tuple[float, float] = (-1.0, -1.0)
     nowrotate: float = 0.0
     rotate_add: float = 0.0
@@ -116,7 +116,7 @@ class Note:
     player_holdjudged_tomanager: bool = False
     player_holdjudge_tomanager_time: float = float("nan")
     player_judge_safe_used: bool = False
-    player_bad_posandrotate: tuple[tuple[float, float], float]|None = None
+    player_bad_posandrotate: typing.Optional[tuple[tuple[float, float], float]] = None
     
     def __post_init__(self):
         self.phitype = {1:1, 2:3, 3:4, 4:2}[self.type]
@@ -179,7 +179,7 @@ class Note:
         ])
         
         cached: bool = False
-        cachedata: tuple[float, float]|None = None
+        cachedata: typing.Optional[tuple[float, float]] = None
         
         def callback(w: int, h: int):
             nonlocal cached, cachedata
@@ -224,7 +224,7 @@ class LineEvent:
     
     easingFunc: typing.Callable[[float], float] = rpe_easing.ease_funcs[0]
     
-    floorPosition: float|None = None # only speed events have this
+    floorPosition: typing.Optional[float] = None # only speed events have this
     isfill: bool = False
     
     def __post_init__(self):
@@ -314,7 +314,7 @@ class ControlItem:
     tval: float
     easing: int
     easingFunc: typing.Callable[[float], float] = rpe_easing.ease_funcs[0]
-    next: ControlItem|None = None
+    next: typing.Optional[ControlItem] = None
     
     def __post_init__(self):
         self.easingFunc = geteasing_func(self.easing)
@@ -397,9 +397,9 @@ class BPMEvent:
 class JudgeLine:
     isCover: int
     Texture: str
-    attachUI: str|None
+    attachUI: typing.Optional[str]
     eventLayers: list[EventLayer]
-    extended: Extended|None
+    extended: typing.Optional[Extended]
     notes: list[Note]
     bpmfactor: float
     father: int|JudgeLine # in other typing.Any, __post_init__ change this value to a line
@@ -408,12 +408,12 @@ class JudgeLine:
     
     controlEvents: ControlEvents
     
-    master: Chart|None = None
+    master: typing.Optional[Chart] = None
     index: int = -1
     playingFloorPosition: float = 0.0
     textureSize: tuple[int|float, int|float] = (0.0, 0.0)
-    effectNotes: list[Note]|None = None
-    renderNotes: list[list[Note]]|None = None
+    effectNotes: typing.Optional[list[Note]] = None
+    renderNotes: typing.Optional[list[list[Note]]] = None
     
     def __post_init__(self):
         for note in self.notes:
@@ -470,7 +470,7 @@ class JudgeLine:
             
         return linePos
 
-    def GetState(self, t: float, defaultColor: tuple[int, int, int]) -> tuple[tuple[float, float], float, float, tuple[float, float, float], float, float, str|None]:
+    def GetState(self, t: float, defaultColor: tuple[int, int, int]) -> tuple[tuple[float, float], float, float, tuple[float, float, float], float, float, typing.Optional[str]]:
         "linePos, lineAlpha, lineRotate, lineColor, lineScaleX, lineScaleY, lineText"
         
         lineAlpha = sum(self.getEventValue(t, layer.alphaEvents) for layer in self.eventLayers) if t >= 0.0 or self.attachUI is not None else -255
@@ -606,7 +606,7 @@ class Chart:
     BPMList: list[BPMEvent]
     judgeLineList: list[JudgeLine]
     
-    combotimes: list[float]|None = None
+    combotimes: typing.Optional[list[float]] = None
     extra: typing.Optional[Extra] = None
     
     def __post_init__(self):

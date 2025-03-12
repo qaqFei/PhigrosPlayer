@@ -280,7 +280,7 @@ def isfloatable(s: str):
     try: float(s); return True
     except: return False
 
-def isallnum(lst: list[str], l: int|None = None):
+def isallnum(lst: list[str], l: typing.Optional[int] = None):
     return (len(lst) >= l or l is None) and all(map(lambda x: isfloatable(x), lst))
 
 def createBezierFunction(ps: list[float]) -> typing.Callable[[float], float]:

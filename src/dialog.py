@@ -1,4 +1,5 @@
 import platform
+import typing
 
 if platform.system() == "Windows":
     import win32ui
@@ -26,8 +27,8 @@ else:
     ) -> str:
         return input(f"Enter file path (isopen: {bFileOpen}, filter: {Filter}, fn: {fn}): ")
 
-def openfile(**kwargs) -> str|None:
+def openfile(**kwargs) -> typing.Optional[str]:
     return _base_dialog(True, **kwargs)
 
-def savefile(**kwargs) -> str|None:
+def savefile(**kwargs) -> typing.Optional[str]:
     return _base_dialog(False, **kwargs)
