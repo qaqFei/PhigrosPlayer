@@ -629,7 +629,7 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 elif noautoplay and not note.ishold and note.player_clicked:
                     notesChildren.remove(note)
                     continue
-                elif not note.clicked and (note.floorPosition * h * const.PGR_UH - lineFloorPosition) < const.FLOAT_LESSZERO_MAGIC and note.type != const.NOTE_TYPE.HOLD:
+                elif not note.clicked and (note.floorPosition * h * const.PGR_UH - lineFloorPosition) < const.FLOAT_LESSZERO_MAGIC:
                     continue
                 elif note.ishold and note.speed == 0.0:
                     notesChildren.remove(note)
