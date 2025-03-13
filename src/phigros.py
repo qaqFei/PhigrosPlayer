@@ -3716,9 +3716,9 @@ def chartPlayerRender(
                 now_t = time.time() - show_start_time
                 checkOffset(now_t)
                 if CHART_TYPE == const.CHART_TYPE.PHI:
-                    extasks = phicore.GetFrameRenderTask_Phi(now_t, False, False, pplm)
+                    extasks = phicore.renderChart_Phi(now_t, False, False, pplm)
                 elif CHART_TYPE == const.CHART_TYPE.RPE:
-                    extasks = phicore.GetFrameRenderTask_Rpe(now_t, False, False, pplm)
+                    extasks = phicore.renderChart_Rpe(now_t, False, False, pplm)
                 
                 break_flag = phicore.processExTask(extasks)
                 

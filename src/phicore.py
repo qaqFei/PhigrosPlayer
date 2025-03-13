@@ -544,7 +544,7 @@ def processExTask(extasks: list[tuple[str, typing.Any]]):
         
     return break_flag
 
-def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: typing.Optional[tool_funcs.PhigrosPlayLogicManager] = None):
+def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: typing.Optional[tool_funcs.PhigrosPlayLogicManager] = None):
     extasks = []
     
     if clear: clearCanvas(wait_execute=True)
@@ -877,7 +877,7 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
     
     return extasks
 
-def GetFrameRenderTask_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: typing.Optional[tool_funcs.PhigrosPlayLogicManager] = None):
+def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: typing.Optional[tool_funcs.PhigrosPlayLogicManager] = None):
     extasks = []
     if clear: clearCanvas(wait_execute = True)
     rrmStart()

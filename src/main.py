@@ -566,9 +566,9 @@ def playerStart():
             now_t = time.time() - show_start_time
             checkOffset(now_t - skip_time)
             if CHART_TYPE == const.CHART_TYPE.PHI:
-                extasks = phicore.GetFrameRenderTask_Phi(now_t, pplm = pplm if noautoplay else None)
+                extasks = phicore.renderChart_Phi(now_t, pplm = pplm if noautoplay else None)
             elif CHART_TYPE == const.CHART_TYPE.RPE:
-                extasks = phicore.GetFrameRenderTask_Rpe(now_t, pplm = pplm if noautoplay else None)
+                extasks = phicore.renderChart_Rpe(now_t, pplm = pplm if noautoplay else None)
             
             break_flag = phicore.processExTask(extasks)
             
@@ -617,9 +617,9 @@ def playerStart():
         now_t = 0.0
         while now_t < audio_length:
             if CHART_TYPE == const.CHART_TYPE.PHI:
-                extasks = phicore.GetFrameRenderTask_Phi(now_t, None)
+                extasks = phicore.renderChart_Phi(now_t, None)
             elif CHART_TYPE == const.CHART_TYPE.RPE:
-                extasks = phicore.GetFrameRenderTask_Rpe(now_t, None)
+                extasks = phicore.renderChart_Rpe(now_t, None)
                 
             root.wait_jspromise(f"uploadFrame('http://127.0.0.1:{port}/');")
             now_t += 1 / render_video_fps
