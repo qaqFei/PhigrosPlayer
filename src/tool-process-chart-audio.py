@@ -134,7 +134,7 @@ for line_index, line in enumerate(Chart["judgeLineList"]):
         processed += 1
         
         if time.time() - lastprint >= printtime:
-            getprogresstext(processed)
+            print_once(processed)
             lastprint = time.time()
 
 print_once(processed, end="\n")
