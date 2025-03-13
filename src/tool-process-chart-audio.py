@@ -40,6 +40,10 @@ class AudioMixer:
         if end_pos > len(self.data):
             arr = arr[:len(self.data) - start_pos]
         
+        if start_pos < 0:
+            arr = arr[-start_pos:]
+            start_pos = 0
+        
         self.data[start_pos:end_pos] += arr
     
     def get(self):
