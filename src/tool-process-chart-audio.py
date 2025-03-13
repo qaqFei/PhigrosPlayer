@@ -134,5 +134,5 @@ print_once(processed, end="\n")
     
 print(f"Usage time: {(time.perf_counter() - st):.2f}s")
 print("Exporting...")
-mainMixer.get().export(sys.argv[3])
+mainMixer.get().export(sys.argv[3], format=sys.argv[3].split(".")[-1])
 print("Done.")
