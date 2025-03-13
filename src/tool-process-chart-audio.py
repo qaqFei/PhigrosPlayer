@@ -44,7 +44,10 @@ class AudioMixer:
             arr = arr[-start_pos:]
             start_pos = 0
         
-        self.data[start_pos:end_pos] += arr
+        try:
+            self.data[start_pos:end_pos] += arr
+        except ValueError:
+            pass
     
     def get(self):
         return AudioSegment(
