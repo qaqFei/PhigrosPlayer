@@ -9,7 +9,6 @@ import numpy as np
 from pydub import AudioSegment
 
 import const
-import chartfuncs_rpe
 
 FR, SW, CH = 44100, 2, 2
 
@@ -70,6 +69,7 @@ with open(sys.argv[1], "r", encoding="utf-8") as f:
     Chart = load(f)
 
 if "META" in Chart and "formatVersion" not in Chart:
+    import chartfuncs_rpe
     rpeobj = chartfuncs_rpe.loadChartObject(Chart)
     Chart = {
         "formatVersion": 3,
