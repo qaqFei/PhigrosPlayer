@@ -100,7 +100,7 @@ for line in Chart["judgeLineList"]:
                 ExtendedAudios[note["hitsound"]] = AudioSegment.from_file(f"{dirname(sys.argv[1])}/{note["hitsound"]}")
             except Exception as e:
                 print(f"Failed to load extended audio: {repr(e)}")
-                ExtendedAudios[note["hitsound"]] = AudioSegment.silent(0)
+                ExtendedAudios[note["hitsound"]] = AudioSegment.empty()
 
 delay = (-float(sys.argv[sys.argv.index("--delay") + 1])) if "--delay" in sys.argv else 0.0
 delay += Chart["offset"]
