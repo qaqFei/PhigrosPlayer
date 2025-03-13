@@ -4,7 +4,6 @@ import sys
 import time
 from os.path import dirname
 from json import load
-from functools import cache
 
 import numpy as np
 from pydub import AudioSegment
@@ -20,16 +19,21 @@ def normalize(seg: AudioSegment):
     if seg.sample_width != SW: seg = seg.set_sample_width(SW)
     return seg
 
-@cache
 def seg2arr(seg: AudioSegment):
     return np.array(normalize(seg).get_array_of_samples()).astype(np.int32)
         
 class AudioMixer:
     def __init__(self, base: AudioSegment):
         self.data = seg2arr(base)
+        self.cachemap: dict[int, np.ndarray] = {}
     
     def mix(self, seg: AudioSegment, pos: float):
-        arr = seg2arr(seg)
+        if id(seg) in self.cachemap:
+            arr = self.cachemap[id(seg)]
+        else:
+            arr = seg2arr(seg)
+            self.cachemap[id(seg)] = arr
+            
         start_pos = int(pos * FR * CH)
         end_pos = start_pos + len(arr)
         
