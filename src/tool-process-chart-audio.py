@@ -4,6 +4,7 @@ import sys
 import time
 from os.path import dirname
 from json import load
+from functools import cache
 
 import numpy as np
 from pydub import AudioSegment
@@ -19,6 +20,7 @@ def normalize(seg: AudioSegment):
     if seg.sample_width != SW: seg = seg.set_sample_width(SW)
     return seg
 
+@cache
 def seg2arr(seg: AudioSegment):
     return np.array(normalize(seg).get_array_of_samples()).astype(np.int32)
         
