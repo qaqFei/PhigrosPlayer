@@ -559,8 +559,6 @@ def GetFrameRenderTask_Phi(now_t: float, clear: bool = True, rjc: bool = True, p
         pplm.pc_update(now_t)
         pplm.mob_update(now_t)
     
-    pplm.pp.get_all_pnotes()
-                
     if presentationMode:
         for note in pplm.pp.get_all_pnotes():
             note: chartobj_phi.Note
