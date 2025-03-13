@@ -1,7 +1,6 @@
 import fix_workpath as _
 
 import json
-import hashlib
 import random
 import string
 from os import mkdir, listdir

@@ -48,7 +48,7 @@ if not exists("./phigros_assets") or not all([
         "chapters.json"
     ]
 ]):
-    logging.error("phigros_assets not found or corrupted, you can download it from https://github.com/qaqFei/PhigrosPlayer_PhigrosAssets")
+    logging.error("phigros_assets not found or corrupted, you can create it by tool-make-pgrassets-byunpack")
     system("pause")
     raise SystemExit
 
