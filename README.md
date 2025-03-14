@@ -117,7 +117,7 @@ python phigros.py
     - [x] yControl (可能有bug)
     - [x] zOrder
 - [x] pec
-  - 读取转换为`rpe`格式
+  - [x] 读取转换为 `rpe` 格式
 - [ ] phira resource pack
   - [x] click.png
   - [x] click_mh.png

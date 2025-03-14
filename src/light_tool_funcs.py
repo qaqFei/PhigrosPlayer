@@ -304,7 +304,8 @@ def pec2rpe(pec: str):
     result = { # if some key and value is not exists, in loading rpe chart, it will be set to default value.
         "META": {},
         "BPMList": [],
-        "judgeLineList": []
+        "judgeLineList": [],
+        "isPec": True
     }
     
     result["META"]["offset"] = float(peclines.pop(0)) - 150

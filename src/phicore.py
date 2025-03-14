@@ -1011,7 +1011,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                     continue
                 
                 noteFloorPosition = (note.floorPosition - line.playingFloorPosition) * h * note.speed + note.yOffset / const.RPE_HEIGHT * h
-                if line.isCover and noteFloorPosition < const.FLOAT_LESSZERO_MAGIC and not note.clicked and not note.ishold:
+                if line.isCover and noteFloorPosition < const.FLOAT_LESSZERO_MAGIC and not note.clicked and (not note.ishold or chart_obj.isPec):
                     continue
                 
                 noteAtLinePos = tool_funcs.rotate_point(*linePos, lineRotate, note.positionX2 * w)
@@ -1045,7 +1045,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                     holdEndFloorPosition = noteFloorPosition + holdLength
                     bodyLength = holdEndFloorPosition if note.clicked else holdLength
                     
-                    if line.isCover and holdEndFloorPosition < 0 and not note.clicked:
+                    if line.isCover and holdEndFloorPosition < 0 and not note.clicked and not chart_obj.isPec:
                         continue
                     
                     headpos, bodypos, endpos, holdrect = getHoldDrawPosition(

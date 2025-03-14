@@ -121,7 +121,8 @@ def loadChartObject(chart: dict):
                 )
             )
             for line in chart.get("judgeLineList", [])
-        ]
+        ],
+        isPec = chart.get("isPec", False)
     )
     
     logging.info("loadChart Successfully, fmt = rpe")

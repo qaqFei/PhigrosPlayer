@@ -605,6 +605,7 @@ class Chart:
     META: MetaData
     BPMList: list[BPMEvent]
     judgeLineList: list[JudgeLine]
+    isPec: bool
     
     combotimes: typing.Optional[list[float]] = None
     extra: typing.Optional[Extra] = None
