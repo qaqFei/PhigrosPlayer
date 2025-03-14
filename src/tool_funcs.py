@@ -296,8 +296,10 @@ def checkOffset(now_t: float, raw_audio_length: float, mixer):
     return 0.0
 
 def video2h264(video: str):
-    print(video)
     import cv2
+    cap = cv2.VideoCapture(video)
+    size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    return open(video, "rb").read(), size
     
     tid = random.randint(0, 2 << 31)
     fp = f"{tempdir.createTempDir()}/{tid}.mp4"

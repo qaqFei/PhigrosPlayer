@@ -915,6 +915,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 (w - video_size[0]) / 2,
                 (h - video_size[1]) / 2
             )
+            root.run_js_code(f"{root.get_img_jsvarname(video.unqique_id)}.currentTime = {progress};", wait_execute=True)
             drawImage(
                 video.unqique_id,
                 *video_pos,
