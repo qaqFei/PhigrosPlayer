@@ -217,17 +217,6 @@ class judgeLineBaseEvent:
     endTime: float
     start: float
     end: float
-    easeType: int
-    useEndNode: bool
-    
-    def __post_init__(self):
-        try: self.easeType = int(self.easeType)
-        except Exception as e:
-            logging.warning(f"Failed to parse easeType: {self.easeType} ({repr(e)})")
-            self.easeType = 0
-        
-        self.easeType = self.easeType if (0 <= self.easeType <= len(phi_easing.ease_funcs) - 1) else (0 if self.easeType < 0 else len(phi_easing.ease_funcs) - 1)
-        self.easeFunc = phi_easing.ease_funcs[self.easeType]
 
 @dataclass
 class judgeLineMoveEvent(judgeLineBaseEvent):
@@ -314,27 +303,25 @@ class judgeLine:
     
     def getRotate(self, now_time: float):
         e = findevent(self.judgeLineRotateEvents, now_time)
-        return -tool_funcs.easing_interpolation(
+        return -tool_funcs.linear_interpolation(
             now_time,
             e.startTime, e.endTime,
-            e.start, e.end,
-            e.easeFunc
+            e.start, e.end
         ) if e is not None else 0.0
     
     def getAlpha(self, now_time: float):
         e = findevent(self.judgeLineDisappearEvents, now_time)
-        return tool_funcs.easing_interpolation(
+        return tool_funcs.linear_interpolation(
             now_time,
             e.startTime, e.endTime,
-            e.start, e.end,
-            e.easeFunc
+            e.start, e.end
         ) if e is not None else 0.0
     
     def _getMoveRaw(self, now_time: float):
         e: judgeLineMoveEvent = findevent(self.judgeLineMoveEvents, now_time)
         return (
-            tool_funcs.easing_interpolation(now_time, e.startTime, e.endTime, e.start, e.end, e.easeFunc),
-            tool_funcs.easing_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2, e.easeFunc)
+            tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start, e.end),
+            tool_funcs.linear_interpolation(now_time, e.startTime, e.endTime, e.start2, e.end2)
         ) if e is not None else (0.0, 0.0)
     
     def getMove(self, now_time: float, w: int, h: int):
