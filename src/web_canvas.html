@@ -399,7 +399,7 @@ void main() {
         window[name] = video;
         return new Promise((resolve) => {
             video.onloadeddata = resolve;
-        })
+        });
     }
 
     function blurImg(im, r) {
