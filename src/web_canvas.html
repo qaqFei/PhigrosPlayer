@@ -395,6 +395,7 @@ void main() {
         video.loop = true;
         video.autoplay = true;
         video.playsInline = true;
+        video.setAttribute("crossOrigin", "Anonymous");
         window[name] = video;
         return new Promise((resolve) => {
             video.onloadeddata = resolve;

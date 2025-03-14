@@ -3,11 +3,13 @@ from __future__ import annotations
 import math
 import typing
 import logging
+import random
 from dataclasses import dataclass, field
 
 import tool_funcs
 import rpe_easing
 import const
+import tempdir
 
 def _init_events(es: list[LineEvent]):
     aes = []
@@ -780,6 +782,14 @@ class ExtraVideo:
     scale: typing.Literal["cropCenter", "inside", "fit"]
     alpha: list[ExtraVar]
     dim: list[ExtraVar]
+    
+    def __post_init__(self):
+        if self.scale not in ("cropCenter", "inside", "fit"):
+            logging.warning(f"Invalid scale type {self.scale} for video {self.path}")
+            self.scale = "cropCenter"
+        
+        self.h264data, self.size = tool_funcs.video2h264(f"{tempdir.createTempDir()}/{self.path}")
+        self.unqique_id = f"extra_video_{random.randint(0, 2 << 31)}"
 
 @dataclass
 class Extra:
@@ -787,7 +797,7 @@ class Extra:
     effects: list[ExtraEffect]
     videos: list[ExtraVideo]
     
-    def getEffectValues(self, t: float, isglobal: bool):
+    def getShaderEffect(self, t: float, isglobal: bool):
         beat = Chart.sec2beat(None, t, 1.0, self.bpm)
         result = []
         
@@ -809,3 +819,12 @@ class Extra:
                 
         return result
     
+    def getVideoEffect(self, t: float) -> list[tuple[ExtraVideo, float]]:
+        beat = Chart.sec2beat(None, t, 1.0, self.bpm)
+        result = []
+        
+        for video in self.videos:
+            if video.time.value <= beat:
+                result.append((video, t - Chart.beat2sec(None, video.time.value, 1.0, self.bpm)))
+        
+        return result

@@ -364,12 +364,16 @@ def loadResource():
                     
                 respacker.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.judgeLineList.index(line)}")
             else:
-                mp4data, size = tool_funcs.video2h264(f"{temp_dir}/{line.Texture}")
+                h264data, size = tool_funcs.video2h264(f"{temp_dir}/{line.Texture}")
                 chart_res[line.Texture] = (None, size)
                 name = f"lineTexture_{chart_obj.judgeLineList.index(line)}"
-                root.reg_res(mp4data, f"{name}.mp4")
+                root.reg_res(h264data, f"{name}.mp4")
                 root.wait_jspromise(f"loadvideo(\"{root.get_resource_path(f"{name}.mp4")}\", '{name}_img');")
-    
+
+        for video in extra.videos:
+            root.reg_res(video.h264data, f"{video.unqique_id}.mp4")
+            root.wait_jspromise(f"loadvideo(\"{root.get_resource_path(f"{video.unqique_id}.mp4")}\", '{video.unqique_id}_img');")
+        
     root.reg_res(open("./resources/font.ttf", "rb").read(), "pgrFont.ttf")
     root.reg_res(open("./resources/font-thin.ttf", "rb").read(), "pgrFontThin.ttf")
     respacker.load(*respacker.pack())

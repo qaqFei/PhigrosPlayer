@@ -890,6 +890,38 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     now_t *= speed
     now_t -= chart_obj.META.offset / 1000
     
+    if chart_obj.extra.videos:
+        for video, progress in chart_obj.extra.getVideoEffect(now_t):
+            video_ratio = video.size[0] / video.size[1]
+            user_ratio = w / h
+            
+            match video.scale:
+                case "cropCenter":
+                    if video_ratio > user_ratio:
+                        video_size = (h * video_ratio, h)
+                    else:
+                        video_size = (w, w / video_ratio)
+                
+                case "inside":
+                    if video_ratio > user_ratio:
+                        video_size = (w, w / video_ratio)
+                    else:
+                        video_size = (h * video_ratio, h)
+                
+                case "fit":
+                    video_size = (w, h)
+            
+            video_pos = (
+                (w - video_size[0]) / 2,
+                (h - video_size[1]) / 2
+            )
+            drawImage(
+                video.unqique_id,
+                *video_pos,
+                *video_size,
+                wait_execute = True
+            )
+    
     noautoplay = pplm is not None # reset a global variable
     if noautoplay:
         pplm.pc_update(now_t)
@@ -1231,7 +1263,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 line.effectNotes.remove(note)
     
     if chart_obj.extra is not None:
-        extra_values = chart_obj.extra.getEffectValues(now_t, False)
+        extra_values = chart_obj.extra.getShaderEffect(now_t, False)
         for name, values in extra_values:
             doShader(name, values)
     
@@ -1252,7 +1284,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     undoClipScreen()
     
     if chart_obj.extra is not None:
-        extra_values = chart_obj.extra.getEffectValues(now_t, True)
+        extra_values = chart_obj.extra.getShaderEffect(now_t, True)
         for name, values in extra_values:
             doShader(name, values)
         

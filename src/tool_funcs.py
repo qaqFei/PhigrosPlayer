@@ -7,7 +7,7 @@ import time
 import re
 import socket
 from sys import argv
-from os import environ
+from os import environ, popen
 from dataclasses import dataclass
 
 from PIL import Image, ImageDraw
@@ -295,21 +295,15 @@ def checkOffset(now_t: float, raw_audio_length: float, mixer):
         
     return 0.0
 
-def video2h264(gif: str):
+def video2h264(video: str):
+    print(video)
     import cv2
     
     tid = random.randint(0, 2 << 31)
     fp = f"{tempdir.createTempDir()}/{tid}.mp4"
-    cap = cv2.VideoCapture(gif)
-    fps = cap.get(cv2.CAP_PROP_FPS)
+    popen(f"ffmpeg -loglevel quiet -i \"{video}\" -an -c:v libx264 -crf 9999 \"{fp}\" -y").read()
+    cap = cv2.VideoCapture(video)
     size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    writer = cv2.VideoWriter(fp, cv2.VideoWriter.fourcc(*"h264"), fps, size)
-    while True:
-        ret, frame = cap.read()
-        if not ret: break
-        writer.write(frame)
-    cap.release()
-    writer.release()
     return open(fp, "rb").read(), size
 
 def getShaderDefault(shader: str):
