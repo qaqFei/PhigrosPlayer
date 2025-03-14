@@ -295,7 +295,7 @@ def checkOffset(now_t: float, raw_audio_length: float, mixer):
         
     return 0.0
 
-def gif2mp4(gif: str):
+def video2h264(gif: str):
     import cv2
     
     tid = random.randint(0, 2 << 31)

@@ -167,6 +167,50 @@ def loadExtra(extra_json: dict):
                 }
             )
             for ete in extra_json.get("effects", [])
+        ],
+        videos = [
+            chartobj_rpe.ExtraVideo(
+                path = video.get("path", ""),
+                time = chartobj_rpe.Beat(*video.get("time", [0, 0, 1])),
+                scale = video.get("scale", "cropCenter"),
+                alpha = ([
+                    (
+                        chartobj_rpe.ExtraVar(
+                            startTime = chartobj_rpe.Beat(*v.get("startTime", [0, 0, 1])),
+                            endTime = chartobj_rpe.Beat(*v.get("endTime", [0, 0, 1])),
+                            start = v.get("start", 0),
+                            end = v.get("end", 0),
+                            easingType = v.get("easingType", 1)
+                        ) 
+                    )
+                    for v in video["alpha"]
+                ] if isinstance(video["alpha"], list) and isinstance(video["alpha"][0], dict) else [chartobj_rpe.ExtraVar(
+                    startTime = chartobj_rpe.Beat(0, 0, 1),
+                    endTime = chartobj_rpe.Beat(65536, 0, 1),
+                    start = video["alpha"],
+                    end = video["alpha"],
+                    easingType = 1
+                )]) if "alpha" in video else 1.0,
+                dim = ([
+                    (
+                        chartobj_rpe.ExtraVar(
+                            startTime = chartobj_rpe.Beat(*v.get("startTime", [0, 0, 1])),
+                            endTime = chartobj_rpe.Beat(*v.get("endTime", [0, 0, 1])),
+                            start = v.get("start", 0),
+                            end = v.get("end", 0),
+                            easingType = v.get("easingType", 1)
+                        ) 
+                    )
+                    for v in video["dim"]
+                ] if isinstance(video["dim"], list) and isinstance(video["dim"][0], dict) else [chartobj_rpe.ExtraVar(
+                    startTime = chartobj_rpe.Beat(0, 0, 1),
+                    endTime = chartobj_rpe.Beat(65536, 0, 1),
+                    start = video["dim"],
+                    end = video["dim"],
+                    easingType = 1
+                )]) if "dim" in video else 1.0,
+            )
+            for video in extra_json.get("videos", [])
         ]
     )
     

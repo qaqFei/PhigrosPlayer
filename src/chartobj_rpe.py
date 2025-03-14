@@ -772,13 +772,22 @@ class ExtraEffect:
     def __post_init__(self):
         for v in self.vars.values():
             self._init_events(v)
-    
+
+@dataclass
+class ExtraVideo:
+    path: str
+    time: Beat
+    scale: typing.Literal["cropCenter", "inside", "fit"]
+    alpha: list[ExtraVar]
+    dim: list[ExtraVar]
+
 @dataclass
 class Extra:
     bpm: list[BPMEvent]
     effects: list[ExtraEffect]
+    videos: list[ExtraVideo]
     
-    def getValues(self, t: float, isglobal: bool):
+    def getEffectValues(self, t: float, isglobal: bool):
         beat = Chart.sec2beat(None, t, 1.0, self.bpm)
         result = []
         

@@ -364,7 +364,7 @@ def loadResource():
                     
                 respacker.reg_img(chart_res[line.Texture][0], f"lineTexture_{chart_obj.judgeLineList.index(line)}")
             else:
-                mp4data, size = tool_funcs.gif2mp4(f"{temp_dir}/{line.Texture}")
+                mp4data, size = tool_funcs.video2h264(f"{temp_dir}/{line.Texture}")
                 chart_res[line.Texture] = (None, size)
                 name = f"lineTexture_{chart_obj.judgeLineList.index(line)}"
                 root.reg_res(mp4data, f"{name}.mp4")

@@ -1231,7 +1231,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 line.effectNotes.remove(note)
     
     if chart_obj.extra is not None:
-        extra_values = chart_obj.extra.getValues(now_t, False)
+        extra_values = chart_obj.extra.getEffectValues(now_t, False)
         for name, values in extra_values:
             doShader(name, values)
     
@@ -1252,7 +1252,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     undoClipScreen()
     
     if chart_obj.extra is not None:
-        extra_values = chart_obj.extra.getValues(now_t, True)
+        extra_values = chart_obj.extra.getEffectValues(now_t, True)
         for name, values in extra_values:
             doShader(name, values)
         
