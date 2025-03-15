@@ -217,10 +217,11 @@ def processClickEffectBase(
         drawRoundDatas(f"rgba{color + (1.0 - p, )}", wait_execute = True)
     
     effectImageSize = effectSize * phira_resource_pack.globalPack.effectScale
-    (drawMirrorImage if enableMirror else drawAlphaImage)(
+    (drawMirrorRotateImage if enableMirror else drawRotateImage)(
         f"{imn}_{int(p * (phira_resource_pack.globalPack.effectFrameCount - 1)) + 1}",
-        x - effectImageSize / 2, y - effectImageSize / 2,
-        effectImageSize, effectImageSize, alpha,
+        x, y,
+        effectImageSize, effectImageSize,
+        rotate if phira_resource_pack.globalPack.effectRotate else 0.0, alpha,
         wait_execute = True
     )
 

@@ -179,6 +179,16 @@ def drawMirrorImage(
     jvn = root.get_img_jsvarname(imname)
     root.run_js_code(f"{ctx}.drawMirrorImage({jvn}, {x}, {y}, {width}, {height}, {alpha});", wait_execute, order)
 
+def drawMirrorRotateImage(
+    imname: str,
+    x: number, y: number,
+    width: number, height: number,
+    deg: number, alpha: number,
+    wait_execute: bool = False
+):
+    jvn = root.get_img_jsvarname(imname)
+    root.run_js_code(f"{ctx}.drawMirrorRotateImage({jvn}, {x}, {y}, {width}, {height}, {deg}, {alpha});", wait_execute, order)
+
 def drawRotateImage(
     imname: str,
     x: number, y: number,

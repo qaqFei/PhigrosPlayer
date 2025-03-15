@@ -1235,6 +1235,16 @@ void main() {
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawMirrorRotateImage = function (img, x, y, width, height, rotate, alpha) {
+        this.save();
+        this.translate(x + width, y);
+        this.rotate(rotate * Math.PI / 180);
+        this.scale(-1, 1);
+        this.globalAlpha = alpha;
+        this.drawImage(img, 0, 0, width, height);
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.getTextSize = function (text, font) {
         this.save();
         this.font = font;

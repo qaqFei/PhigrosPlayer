@@ -182,7 +182,7 @@ class Note:
             
             return cachedata
         
-        return callback, lineRotate + 90
+        return callback, lineRotate
 
     def dump(self):
         return {

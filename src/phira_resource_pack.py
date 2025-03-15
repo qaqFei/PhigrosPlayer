@@ -134,13 +134,13 @@ class PhiraResourcePack:
         
         self.loaded = True
         self.name, self.author, self.description = self.resource["name"], self.resource["author"], self.resource["description"]
-        self.effectDuration = self.resource["hitFxDuration"]
-        self.effectScale = self.resource["hitFxScale"]
-        self.effectRotate = self.resource["hitFxRotate"]
-        self.hideParticles = self.resource["hideParticles"]
-        self.holdKeepHead = self.resource["holdKeepHead"]
-        self.holdCompact = self.resource["holdCompact"]
-        self.effectFrameCount = self.resource["hitFx"][0] * self.resource["hitFx"][1]
+        self.effectDuration: float = self.resource["hitFxDuration"]
+        self.effectScale: float = self.resource["hitFxScale"]
+        self.effectRotate: bool = self.resource["hitFxRotate"]
+        self.hideParticles: bool = self.resource["hideParticles"]
+        self.holdKeepHead: bool = self.resource["holdKeepHead"]
+        self.holdCompact: bool = self.resource["holdCompact"]
+        self.effectFrameCount: int = self.resource["hitFx"][0] * self.resource["hitFx"][1]
         
         self.perfectColor = argb2rgba(int2argb(self.resource["colorPerfect"]))
         self.goodColor = argb2rgba(int2argb(self.resource["colorGood"]))
@@ -149,8 +149,8 @@ class PhiraResourcePack:
         self.perfectAlpha = self.perfectColor[-1]
         self.goodAlpha = self.goodColor[-1]
         
-        self.isdefault_perfect = self.resource["colorPerfect"] == DEFAULT_PERFECT
-        self.isdefault_good = self.resource["colorGood"] == DEFAULT_GOOD
+        self.isdefault_perfect: bool = self.resource["colorPerfect"] == DEFAULT_PERFECT
+        self.isdefault_good: bool = self.resource["colorGood"] == DEFAULT_GOOD
         
     def createResourceDict(self) -> dict:
         result = {

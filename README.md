@@ -141,7 +141,7 @@ python phigros.py
     - [x] holdAtlasMH
     - [x] hitFxDuration
     - [x] hitFxScale
-    - [ ] hitFxRotate
+    - [x] hitFxRotate
     - [x] hitFxTinted
     - [x] hideParticles
     - [x] holdKeepHead
