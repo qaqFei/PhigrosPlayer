@@ -65,9 +65,9 @@ python phigros.py
     - [x] judgeLineMoveEvents
     - [x] judgeLineRotateEvents
     - [x] judgeLineDisappearEvents
-- [ ] rpe
+- [x] rpe
   - [x] BPMList
-  - [ ] META (无法获取info文件时读取)
+  - [x] META (无法获取info文件时读取)
     - [x] RPEVersion (???, 参见 RPEVersion 特殊处理)
     - [x] background
     - [x] charter
@@ -77,7 +77,7 @@ python phigros.py
     - [x] name
     - [x] offset
     - [x] song
-  - [ ] judgeLineList
+  - [x] judgeLineList
     - [x] Texture
     - [x] bpmfactor
     - [x] father
@@ -90,7 +90,7 @@ python phigros.py
       - [x] moveYEvents
       - [x] rotateEvents
       - [x] speedEvents
-    - [ ] extended
+    - [x] extended
       - [x] colorEvents
       - [ ] inclineEvents (???)
       - [x] scaleXEvents
@@ -110,6 +110,8 @@ python phigros.py
       - [x] visibleTime
       - [x] yOffset
       - [x] hitsound
+      - [ ] tint (PhiZone)
+      - [ ] tintHitEffects (PhiZone)
     - [x] alphaControl (可能有bug)
     - [x] posControl (可能有bug)
     - [x] sizeControl (可能有bug)
@@ -118,6 +120,23 @@ python phigros.py
     - [x] zOrder
 - [x] pec
   - [x] 读取转换为 `rpe` 格式
+- [x] extra
+  - [x] bpm (仍然使用原谱面的 `BPMList`)
+  - [x] videos
+    - [x] path
+    - [x] time
+    - [x] scale
+    - [x] alpha
+    - [x] dim
+    - [ ] zIndex (PhiZone)
+    - [ ] attach (PhiZone)
+  - [x] effects
+    - [x] start
+    - [x] end
+    - [x] shader (由于 WebGL 与 OpenGL 的差异, 部分效果无法实现)
+    - [x] global
+    - [ ] targetRange (PhiZone)
+    - [x] vars
 - [ ] phira resource pack
   - [x] click.png
   - [x] click_mh.png
@@ -149,10 +168,6 @@ python phigros.py
     - [x] holdCompact
     - [x] colorPerfect
     - [x] colorGood
-
-### RPEVersion 特殊处理
-
-- `>= 150` 时, `textEvents` 中的换行才生效
 
 ## 声明
 

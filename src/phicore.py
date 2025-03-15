@@ -907,6 +907,9 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 
                 case "fit":
                     video_size = (w, h)
+                
+                case _:
+                    assert False, f"Unknown video scale: {video.scale}"
             
             video_pos = (
                 (w - video_size[0]) / 2,
@@ -961,20 +964,20 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                             f"{texturename}.currentTime = {now_t} % {texturename}.duration;",
                             wait_execute = True
                         )
-                    root.run_js_code(
-                        f"{f"setColorMatrix{tuple(map(lambda x: x / 255, lineColor))}; ctx.filter = 'url(#textureLineColorFilter)'; " if lineColor != (255, 255, 255) else ""}\
-                        ctx.drawRotateImage(\
-                            {texturename},\
-                            {linePos[0]},\
-                            {linePos[1]},\
-                            {texture_width},\
-                            {texture_height},\
-                            {lineRotate},\
-                            {lineAlpha}\
-                        ); {"ctx.filter = 'none';" if lineColor != (255, 255, 255) else ""}",
-                        wait_execute = True,
-                        order = const.CHART_RENDER_ORDERS.LINE
-                    )
+                    with ColorMultiplyFilter(lineColor, const.CHART_RENDER_ORDERS.LINE):
+                        root.run_js_code(
+                            f"ctx.drawRotateImage(\
+                                {texturename},\
+                                {linePos[0]},\
+                                {linePos[1]},\
+                                {texture_width},\
+                                {texture_height},\
+                                {lineRotate},\
+                                {lineAlpha}\
+                            );",
+                            wait_execute = True,
+                            order = const.CHART_RENDER_ORDERS.LINE
+                        )
             elif lineText is not None:
                 root.run_js_code(
                     f"ctx.drawRPEMultipleRotateText(\

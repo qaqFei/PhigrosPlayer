@@ -221,3 +221,26 @@ def fillRectEx(
     wait_execute: bool = False
 ):
     root.run_js_code(f"{ctx}.fillRectEx({x}, {y}, {w}, {h}, '{color}');", wait_execute, order)
+
+class ColorMultiplyFilter:
+    def __init__(self, color: tuple[number, number, number], jsorder: int = None):
+        self.color = color
+        self.jsorder = jsorder
+    
+    def __enter__(self):
+        if self.color == (255, 255, 255):
+            return
+        
+        root.run_js_code(
+            f"setColorMatrix{tuple(map(lambda x: x / 255, self.color))}; {ctx}.filter = 'url(#textureLineColorFilter)';",
+            wait_execute=True, order=self.jsorder
+        )
+    
+    def __exit__(self, *_):
+        if self.color == (255, 255, 255):
+            return
+        
+        root.run_js_code(
+            "ctx.filter = 'none';",
+            wait_execute=True, order=self.jsorder
+        )
