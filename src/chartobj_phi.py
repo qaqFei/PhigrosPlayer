@@ -3,14 +3,12 @@ from __future__ import annotations
 import init_logging as _
 
 import typing
-import logging
 import random
 import math
 from dataclasses import dataclass
 
 import const
 import tool_funcs
-import phi_easing
 
 def findevent(events: list[judgeLineBaseEvent]|list[speedEvent], t: float) -> typing.Optional[judgeLineBaseEvent|speedEvent]:
     l, r = 0, len(events) - 1
@@ -167,7 +165,7 @@ class Note:
             self.img_end_keyname = f"{self.type_string}_End{dub_text}"
             self.imgname_end = f"Note_{self.img_end_keyname}"
     
-    def getNoteClickPos(self, time: float) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
+    def getNoteClickPos(self, time: float) -> tuple[typing.Callable[[int, int], tuple[float, float]], float]:
         lineRotate = self.master.getRotate(time)
         
         cached: bool = False
@@ -184,7 +182,7 @@ class Note:
             
             return cachedata
         
-        return callback
+        return callback, lineRotate + 90
 
     def dump(self):
         return {

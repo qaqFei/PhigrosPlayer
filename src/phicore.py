@@ -172,12 +172,11 @@ class ClickSoundManager:
             self.res[nt].play()
 
 def processClickEffectBase(
-    x: float, y: float,
+    x: float, y: float, rotate: float,
     p: float, rblocks: typing.Optional[tuple[tuple[float, float]]],
     perfect: bool, noteWidth: float,
     root: webcv.WebCanvas,
-    rblocks_roundn: float = 0.0,
-    caller: typing.Callable[[typing.Callable, typing.Any], typing.Any] = lambda f, *args, **kwargs: f(*args, **kwargs)
+    rblocks_roundn: float = 0.0
 ):
     if rblocks is None: rblocks = tool_funcs.newRandomBlocks()
     
@@ -207,8 +206,7 @@ def processClickEffectBase(
             if pointr < 0.0: continue
             
             point = tool_funcs.rotate_point(x, y, deg, pointr)
-            caller(
-                addRoundRectData,
+            addRoundRectData(
                 point[0] - nowBlockSize / 2,
                 point[1] - nowBlockSize / 2,
                 nowBlockSize, nowBlockSize,
@@ -216,11 +214,10 @@ def processClickEffectBase(
                 wait_execute = True
             )
         
-        caller(drawRoundDatas, f"rgba{color + (1.0 - p, )}", wait_execute = True)
+        drawRoundDatas(f"rgba{color + (1.0 - p, )}", wait_execute = True)
     
     effectImageSize = effectSize * phira_resource_pack.globalPack.effectScale
-    caller(
-        drawMirrorImage if enableMirror else drawAlphaImage,
+    (drawMirrorImage if enableMirror else drawAlphaImage)(
         f"{imn}_{int(p * (phira_resource_pack.globalPack.effectFrameCount - 1)) + 1}",
         x - effectImageSize / 2, y - effectImageSize / 2,
         effectImageSize, effectImageSize, alpha,
@@ -228,18 +225,17 @@ def processClickEffectBase(
     )
 
 def processClickEffect(
-    x: float, y: float,
+    x: float, y: float, rotate: float,
     p: float, rblocks: tuple[tuple[float, float]],
-    perfect: bool,
-    caller: typing.Callable[[typing.Callable, typing.Any], typing.Any] = lambda f, *args, **kwargs: f(*args, **kwargs)
+    perfect: bool
 ):
     return processClickEffectBase(
-        x = x, y = y, p = p,
+        x = x, y = y, rotate = rotate,
+        p = p,
         rblocks = rblocks,
         perfect = perfect,
         noteWidth = globalNoteWidth,
         root = root,
-        caller = caller,
         rblocks_roundn = clickeffect_randomblock_roundn
     )
 
@@ -816,9 +812,9 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
         
     if noautoplay:
         for pplmckfi in pplm.clickeffects.copy():
-            perfect, eft, erbs, position = pplmckfi
+            perfect, eft, erbs, (position, rotate) = pplmckfi
             if eft <= now_t <= eft + effect_time:
-                processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, perfect)
+                processClickEffect(*position(w, h), rotate, (now_t - eft) / effect_time, erbs, perfect)
             
             if eft + effect_time < now_t:
                 pplm.clickeffects.remove(pplmckfi)
@@ -836,9 +832,9 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
             if not noautoplay and not note.clicked: break
             
             if not noautoplay:
-                for eft, erbs, position in note.effect_times:
+                for eft, erbs, (position, rotate) in note.effect_times:
                     if eft <= now_t <= eft + effect_time:
-                        processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, True)
+                        processClickEffect(*position(w, h), rotate, (now_t - eft) / effect_time, erbs, True)
                         
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:
@@ -1227,9 +1223,9 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     
     if noautoplay:
         for pplmckfi in pplm.clickeffects.copy():
-            perfect, eft, erbs, position = pplmckfi
+            perfect, eft, erbs, (position, rotate) = pplmckfi
             if eft <= now_t <= eft + effect_time:
-                processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, perfect)
+                processClickEffect(*position(w, h), rotate, (now_t - eft) / effect_time, erbs, perfect)
             
             if eft + effect_time < now_t:
                 pplm.clickeffects.remove(pplmckfi)
@@ -1247,9 +1243,9 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
             if not noautoplay and not note.clicked: break
             
             if not noautoplay:
-                for eft, erbs, position in note.effect_times:
+                for eft, erbs, (position, rotate) in note.effect_times:
                     if eft <= now_t <= eft + effect_time:
-                        processClickEffect(*position(w, h), (now_t - eft) / effect_time, erbs, True)
+                        processClickEffect(*position(w, h), rotate, (now_t - eft) / effect_time, erbs, True)
                         
             else: # noautoplay
                 if note.state == const.NOTE_STATE.MISS:

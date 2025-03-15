@@ -173,7 +173,7 @@ class Note:
             self.img_end_keyname = f"{self.type_string}_End{dub_text}"
             self.imgname_end = f"Note_{self.img_end_keyname}"
         
-    def getNoteClickPos(self, time: float) -> typing.Callable[[float|int, float|int], tuple[float, float]]:
+    def getNoteClickPos(self, time: float) -> tuple[typing.Callable[[int, int], tuple[float, float]], float]:
         linePos = tool_funcs.conrpepos(*self.masterLine.GetPos(time))
         lineRotate = sum([
             self.masterLine.getEventValue(time, layer.rotateEvents)
@@ -194,7 +194,7 @@ class Note:
             
             return cachedata
         
-        return callback
+        return callback, lineRotate + 90
 
     def dump(self):
         return {

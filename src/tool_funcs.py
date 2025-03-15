@@ -33,7 +33,7 @@ def Get_A_New_NoteId():
     note_id += 1
     return note_id
 
-def newRandomBlocks() -> tuple[tuple[float, float]]:
+def newRandomBlocks() -> tuple[tuple[float, float], ...]:
     return tuple(
         (random.uniform(0.0, 360.0), random.uniform(-0.15, 0.3))
         for _ in range(random_block_num)
@@ -760,7 +760,10 @@ class PhigrosPlayLogicManager:
                     self.pp.nproxy_get_ckstate(n) == const.NOTE_STATE.PERFECT,
                     t,
                     *e[1:-1],
-                    eval(f"lambda w, h: ({npos[0]} * w, {npos[1]} * h)") if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD) and self.pp.nproxy_stime(n) >= t else e[-1]
+                    
+                    (eval(f"lambda w, h: ({npos[0]} * w, {npos[1]} * h)"), *e[-1][1:])
+                    if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD) and self.pp.nproxy_stime(n) >= t
+                    else e[-1]
                 ))
 
     def _getmobt_byid(self, i: int):
