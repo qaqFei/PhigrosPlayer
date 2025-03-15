@@ -2120,8 +2120,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                 random.seed(st)
                 random.seed(random.uniform(-st, st))
                 phicore.processClickEffectBase(
-                    x = w * 0.75,
-                    y = h * 0.8,
+                    x = w * 0.75, y = h * 0.8, rotate = 0.0,
                     p = p, rblocks = None,
                     perfect = True,
                     noteWidth = w * 0.1234375 * size,
