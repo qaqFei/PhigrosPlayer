@@ -163,6 +163,22 @@ def countPlayData(chapter: phigame_obj.Chapter, key: str):
             count += 1
     return count
 
+class UserDataPopuper:
+    def __init__(self):
+        self.isPopup = True
+        self.animatTime = 0.4
+        self.animatEase = rpe_easing.ease_funcs[13]
+        self.lastClickTime = time.time() - self.animatTime
+    
+    def change(self):
+        self.isPopup = not self.isPopup
+        self.lastClickTime = time.time()
+    
+    @property
+    def p(self):
+        p = (time.time() - self.lastClickTime) / self.animatTime
+        return self.animatEase(tool_funcs.fixorp(p))
+
 if not exists("./phigros_userdata.json"):
     saveUserData(userData_default)
     loadUserData()
@@ -3414,6 +3430,7 @@ def chartPlayerRender(
             foregroundFrameRender()
             root.run_js_wait_code()
     
+    ud_popuper = UserDataPopuper()
     CHART_TYPE = const.SPEC_VALS.RES_NOLOADED
     chart_obj = const.SPEC_VALS.RES_NOLOADED
     audio_length = const.SPEC_VALS.RES_NOLOADED
@@ -3633,11 +3650,15 @@ def chartPlayerRender(
             needSetPlayData = True
             eventManager.unregEvent(clickEvent)
             tonextUI, tonextUISt = True, time.time()
+        
+        if tool_funcs.inrect(x, y, avatar_rect):
+            ud_popuper.change()
     
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
     # 前面初始化时间太长了, 放这里
     needSetPlayData = False
+    avatar_rect = const.EMPTY_RECT
     chartPlayerRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = nextUI, False, float("nan")
     rendingAnimation = phicore.lineCloseAimationFrame
@@ -3741,7 +3762,10 @@ def chartPlayerRender(
                         Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
                 
                 if rendingAnimation is phicore.settlementAnimationFrame: # 不能用elif, 不然会少渲染一个帧
-                    rendingAnimation(tool_funcs.fixorp((time.time() - rendingAnimationSt) / 3.5), False)
+                    avatar_rect = rendingAnimation(
+                        tool_funcs.fixorp((time.time() - rendingAnimationSt) / 3.5), False,
+                        ud_popuper.isPopup, ud_popuper.p
+                    )
         
         if time.time() - chartPlayerRenderSt < 1.25 and blackIn:
             p = (time.time() - chartPlayerRenderSt) / 1.25
@@ -3825,10 +3849,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     clickedBackButton = False
     immediatelyExitRender = False
     
-    userDataIsPopup = True
-    userDataPopupAnimatTime = 0.4
-    userDataPopupAnimatEase = rpe_easing.ease_funcs[13]
-    lastClickAvatarTime = time.time() - userDataPopupAnimatTime
+    ud_popuper = UserDataPopuper()
     userNameConstFontSize = (w + h) / const.USERNAME_CONST_FONT
     userNamePadding = w * 0.01
     userNameWidth = root.run_js_code(f"ctx.getTextSize({root.string2sctring_hqm(getUserData("userdata-userName"))}, '{userNameConstFontSize}px pgrFont')[0];") + userNamePadding * 2
@@ -4189,7 +4210,6 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     def clickEventCallback(x, y):
         nonlocal nextUI, tonextUI, tonextUISt
         nonlocal immediatelyExitRender
-        nonlocal userDataIsPopup, lastClickAvatarTime
         
         # 反转排序
         if tool_funcs.inrect(x, y, (
@@ -4288,7 +4308,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         
         # 展开/关闭 用户头像名称rks
         if tool_funcs.inrect(x, y, avatar_rect):
-            userDataIsPopup, lastClickAvatarTime = not userDataIsPopup, time.time()
+            ud_popuper.change()
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
@@ -4383,12 +4403,10 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 wait_execute = True
             )
         
-        popupUserDataP = (time.time() - lastClickAvatarTime) / userDataPopupAnimatTime
-        popupUserDataP = userDataPopupAnimatEase(tool_funcs.fixorp(popupUserDataP))
         avatar_rect = phicore.drawUserData(
-            root, popupUserDataP, w, h,
+            root, ud_popuper.p, w, h,
             Resource, avatar_img, userNameWidth,
-            userNamePadding, userDataIsPopup,
+            userNamePadding, ud_popuper.isPopup,
             getUserData("userdata-userName"),
             getUserData("userdata-rankingScore"),
             getPlayDataItem("hasChallengeMode"),

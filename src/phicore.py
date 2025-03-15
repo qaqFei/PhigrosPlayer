@@ -1719,7 +1719,11 @@ def initSettlementAnimation(
     saUserData.avatar = Image.open(avatar)
     saUserData.init()
 
-def settlementAnimationFrame(p: float, rjc: bool = True):
+def settlementAnimationFrame(
+    p: float, rjc: bool = True,
+    ud_isPopup: bool = True,
+    ud_popupP: float = 1.0
+):
     clearCanvas(wait_execute = True)
     im_ease_value = tool_funcs.finish_animation_eases.all_ease(p)
     im_ease_pos = w * 1.25 * (1 - im_ease_value)
@@ -2004,15 +2008,15 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
         wait_execute = True
     )
     
-    drawUserData(
-        root, 1.0,
+    avatar_rect = drawUserData(
+        root, ud_popupP,
         w, h,
         Resource,
         
         saUserData.avatar,
         saUserData.userNameWidth,
         saUserData.userNamePadding,
-        True,
+        ud_isPopup,
         
         saUserData.userName,
         saUserData.rankingScore,
@@ -2021,8 +2025,9 @@ def settlementAnimationFrame(p: float, rjc: bool = True):
     )
     
     root.run_js_code("ctx.restore();", wait_execute = True)
-    
     if rjc: root.run_js_wait_code()
+    
+    return avatar_rect
 
 def lineCloseAimationFrame(p: float, a1_combo: typing.Optional[int], rjc: bool = True):
     v = p ** 2
