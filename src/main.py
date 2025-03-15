@@ -206,6 +206,7 @@ def loadChartObject(first: bool = False):
             else chart_obj.META.RPEVersion
         )
         chart_obj.extra = extra
+        chart_obj.extra.bpm = chart_obj.BPMList.copy() # ?
     
     if not first:
         updateCoreConfig()
