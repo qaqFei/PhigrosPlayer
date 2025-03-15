@@ -54,4 +54,3 @@ if __name__ == "__main__":
     result = get_download_info(PHIGROS_APPID)
     print(f"版本: {result["data"]["apk"]["version_name"]}")
     print(f"下载地址: {result["data"]["apk"]["download"]}")
-    

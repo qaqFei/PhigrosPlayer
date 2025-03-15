@@ -908,4 +908,3 @@ if environ.get("ENABLE_JIT", "0") == "1":
     getCenterPointByRect((0.0, 0.0, 1.0, 1.0))
     getLineLength(0.0, 0.0, 1.0, 1.0)
     indrect(0.0, 3.0, (0.0, 0.0, 1.0, 4.5), 5.3)
-    

@@ -18,4 +18,3 @@ if platform.system() == "Windows":
             webview.platforms.winforms.renderer = "edgechromium"
         else:
             tkinter.messagebox.showwarning("警告", "EdgeChromium渲染器安装失败或取消")
-            

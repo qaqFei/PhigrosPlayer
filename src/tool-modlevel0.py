@@ -32,4 +32,3 @@ for obj in env.objects:
     
 env.save(out_path=argv[4])
 print("modified.")
-    

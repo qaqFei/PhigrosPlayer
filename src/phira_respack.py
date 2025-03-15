@@ -211,4 +211,3 @@ class PhiraResourcePack:
         logging.info(f"                         name: {self.name}")
         logging.info(f"                         author: {self.author}")
         logging.info(f"                         description: {self.description}")
-        

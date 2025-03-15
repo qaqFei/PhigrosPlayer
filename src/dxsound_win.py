@@ -146,4 +146,3 @@ class directSound:
             w32e.WaitForSingleObject(event, -1)
         
         return event, buffer
-    

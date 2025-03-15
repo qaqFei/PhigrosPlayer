@@ -6,4 +6,3 @@ if platform.system() == "Windows":
 else:
     import os
     exitfunc = os._exit
-    

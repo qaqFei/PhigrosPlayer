@@ -1168,4 +1168,3 @@ class valueTranformer:
     @enable.setter
     def enable(self, value: bool):
         self._inited = value
-    

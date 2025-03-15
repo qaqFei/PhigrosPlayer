@@ -221,4 +221,3 @@ def fillRectEx(
     wait_execute: bool = False
 ):
     root.run_js_code(f"{ctx}.fillRectEx({x}, {y}, {w}, {h}, '{color}');", wait_execute, order)
-    

@@ -630,4 +630,3 @@ if __name__ == "__main__":
     
     setApk(argv[1])
     run("--rpe" in argv, "--need-other-illu" in argv, "--need-other-res" in argv)
-    

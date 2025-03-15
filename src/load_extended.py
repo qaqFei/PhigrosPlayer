@@ -28,4 +28,3 @@ if "--extended" in argv:
         spec = importlib.util.spec_from_file_location("ppr-extended", argv[argv.index("--extended") + 1])
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        

@@ -32,4 +32,3 @@ class directSound:
             self.sounds[0][1] = time.time()
         
         vaild_sound.play()
-        

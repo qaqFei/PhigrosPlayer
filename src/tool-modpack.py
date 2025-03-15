@@ -163,4 +163,3 @@ for mod in modlist:
             
         case _:
             print(f"Unknown mod type: {mod["type"]}")
-            

@@ -116,4 +116,3 @@ class InfoLoader:
             res["BackgroundDim"] = 0.6
             
         return res
-    

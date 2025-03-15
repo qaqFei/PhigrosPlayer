@@ -214,4 +214,3 @@ def get_tip():
         return random.choice(pgr_builtin_tips)
     else:
         return random.choice(ppr_extended_tips)
-    

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import typing
 import time
-from threading import Lock
 from sys import argv
 
 import dxsound
@@ -139,4 +138,3 @@ mixer = mixerCls()
 
 if "--soundapi-downgrade" in argv:
     toDowngradeAPI()
-    
