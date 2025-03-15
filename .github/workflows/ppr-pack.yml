@@ -2,7 +2,6 @@ name: PhigrosPlayer Auto Build
 
 on:
   push:
-    branches: [ "main" ]
 
 jobs:
   build:
@@ -15,10 +14,8 @@ jobs:
         with:
           python-version: 3.12.8
 
-      - name: build
+      - name: pack
         run: |
-          exit
-
           cd src
           python tool-pack.py -y --zip
       
