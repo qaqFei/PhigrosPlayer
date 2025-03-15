@@ -553,7 +553,7 @@ def fileinlist(fn: str, lst: list[str]):
 
 timeoutMap = {}
 def setTimeout(func: typing.Callable, wait: float):
-    toid = random.randint(0, 2 < 31)
+    toid = random.randint(0, 2 << 31)
     cancel = False
     
     def f():
