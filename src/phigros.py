@@ -35,7 +35,7 @@ import chartobj_rpe
 import chartfuncs_phi
 import chartfuncs_rpe
 import dxsound
-import phira_resource_pack
+import phira_respack
 import tempdir
 import socket_webviewbridge
 from dxsmixer import mixer
@@ -287,7 +287,7 @@ def loadResource():
     logging.info("Loading Resource...")
     LoadSuccess = mixer.Sound(("./resources/LoadSuccess.wav"))
     
-    phi_rpack = phira_resource_pack.PhiraResourcePack("./resources/resource_packs/default")
+    phi_rpack = phira_respack.PhiraResourcePack("./resources/resource_packs/default")
     phi_rpack.setToGlobal()
     
     Resource = {
@@ -430,7 +430,7 @@ def loadResource():
     for k, v in Resource["Notes"].items():
         respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
     
-    for i in range(phira_resource_pack.globalPack.effectFrameCount):
+    for i in range(phira_respack.globalPack.effectFrameCount):
         respacker.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
         respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
 

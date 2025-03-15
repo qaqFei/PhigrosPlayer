@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw
 
 import const
 import rpe_easing
-import phira_resource_pack
+import phira_respack
 import tempdir
 import webcv
 import graplib_webview
@@ -355,8 +355,8 @@ class PhigrosPlayManager:
         if "B" in self.events or "M" in self.events:
             return (255, 255, 255)
         if "G" in self.events:
-            return phira_resource_pack.globalPack.goodRGB
-        return phira_resource_pack.globalPack.perfectRGB
+            return phira_respack.globalPack.goodRGB
+        return phira_respack.globalPack.perfectRGB
 
     def getCombo(self):
         cut = 0

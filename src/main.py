@@ -31,7 +31,7 @@ import dialog
 import info_loader
 import ppr_help
 import file_loader
-import phira_resource_pack
+import phira_respack
 import phicore
 import tempdir
 import socket_webviewbridge
@@ -274,7 +274,7 @@ def loadResource():
     noteWidth_raw = (0.125 * w + 0.2 * h) / 2
     globalNoteWidth = noteWidth_raw * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
     
-    phi_rpack = phira_resource_pack.PhiraResourcePack(respath)
+    phi_rpack = phira_respack.PhiraResourcePack(respath)
     phi_rpack.setToGlobal()
     phi_rpack.printInfo()
     
@@ -316,7 +316,7 @@ def loadResource():
     for k, v in Resource["Notes"].items():
         respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
     
-    for i in range(phira_resource_pack.globalPack.effectFrameCount):
+    for i in range(phira_respack.globalPack.effectFrameCount):
         respacker.reg_img(Resource["Note_Click_Effect"]["Perfect"][i], f"Note_Click_Effect_Perfect_{i + 1}")
         respacker.reg_img(Resource["Note_Click_Effect"]["Good"][i], f"Note_Click_Effect_Good_{i + 1}")
         

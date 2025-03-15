@@ -1,6 +1,6 @@
 # PhigrosPlayer
 
-![License](https://img.shields.io/badge/license-MIT-yellow)
+![MIT License](https://img.shields.io/badge/license-MIT-yellow)
 ![Language](https://img.shields.io/badge/language-python-brightgreen)
 
 ## 简单的部分功能介绍
@@ -152,7 +152,7 @@ python phigros.py
 
 ### RPEVersion 特殊处理
 
-- `>= 150` 时, `textEvents` 中的 `\n` 才生效, 否则使用 `webview` 默认行为
+- `>= 150` 时, `textEvents` 中的换行才生效
 
 ## 声明
 

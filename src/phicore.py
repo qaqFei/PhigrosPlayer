@@ -18,7 +18,7 @@ import chartobj_phi
 import chartobj_rpe
 import phi_tips
 import dxsound
-import phira_resource_pack
+import phira_respack
 from dxsmixer import mixer, musicCls
 from graplib_webview import *
 
@@ -181,22 +181,22 @@ def processClickEffectBase(
     if rblocks is None: rblocks = tool_funcs.newRandomBlocks()
     
     color = (
-        (phira_resource_pack.globalPack.perfectRGB if not phira_resource_pack.globalPack.isdefault_perfect else (255, 236, 160))
+        (phira_respack.globalPack.perfectRGB if not phira_respack.globalPack.isdefault_perfect else (255, 236, 160))
         if perfect else
-        phira_resource_pack.globalPack.goodRGB
+        phira_respack.globalPack.goodRGB
     )
     
     alpha = (
-        phira_resource_pack.globalPack.perfectAlpha
+        phira_respack.globalPack.perfectAlpha
         if perfect else
-        phira_resource_pack.globalPack.goodAlpha
+        phira_respack.globalPack.goodAlpha
     ) / 255
     
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
     effectSize = noteWidth * 1.375 * 1.12
     blockSize = effectSize / 7.2
     
-    if not phira_resource_pack.globalPack.hideParticles:
+    if not phira_respack.globalPack.hideParticles:
         randomblock_r = effectSize * (1 - (1 - p) ** 3.8) / 1.17
         nowBlockSize = blockSize * (0.426 * math.sin(p * math.pi / 1.185) + 0.5) # start: 0.5, end: 0.7, max: ~0.925
         
@@ -216,12 +216,12 @@ def processClickEffectBase(
         
         drawRoundDatas(f"rgba{color + (1.0 - p, )}", wait_execute = True)
     
-    effectImageSize = effectSize * phira_resource_pack.globalPack.effectScale
+    effectImageSize = effectSize * phira_respack.globalPack.effectScale
     (drawMirrorRotateImage if enableMirror else drawRotateImage)(
-        f"{imn}_{int(p * (phira_resource_pack.globalPack.effectFrameCount - 1)) + 1}",
+        f"{imn}_{int(p * (phira_respack.globalPack.effectFrameCount - 1)) + 1}",
         x, y,
         effectImageSize, effectImageSize,
-        rotate if phira_resource_pack.globalPack.effectRotate else 0.0, alpha,
+        rotate if phira_respack.globalPack.effectRotate else 0.0, alpha,
         wait_execute = True
     )
 
@@ -270,8 +270,8 @@ def getHoldDrawPosition(
     height_e = width / img_e.width * img_e.height
     
     headpos = (x, y)
-    bodypos = tool_funcs.rotate_point(*headpos, rotate, height_h / 2) if hadhead and not phira_resource_pack.globalPack.holdCompact else headpos
-    endpos = tool_funcs.rotate_point(*bodypos, rotate, height_b + ((height_e / 2) if not phira_resource_pack.globalPack.holdCompact else 0.0))
+    bodypos = tool_funcs.rotate_point(*headpos, rotate, height_h / 2) if hadhead and not phira_respack.globalPack.holdCompact else headpos
+    endpos = tool_funcs.rotate_point(*bodypos, rotate, height_b + ((height_e / 2) if not phira_respack.globalPack.holdCompact else 0.0))
     
     _headheadpos = tool_funcs.rotate_point(*headpos, rotate, -height_h / 2)
     _endendpos = tool_funcs.rotate_point(*endpos, rotate, height_e / 2)
@@ -576,7 +576,7 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
             *tool_funcs.rotate_point(*linePos, lineRotate, h * 5.76 / 2),
             *tool_funcs.rotate_point(*linePos, lineRotate + 180, h * 5.76 / 2)
         )
-        lineColor = (*(phira_resource_pack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()), lineAlpha)
+        lineColor = (*(phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()), lineAlpha)
         lineWebColor = f"rgba{lineColor}"
         
         if (lineColor[-1] > 0.0 and tool_funcs.lineInScreen(w, h, lineDrawPos)) or debug:
@@ -664,7 +664,7 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
                 noteWidth = globalNoteWidth * fix_scale
                 noteHeight = noteWidth / noteImg.width * noteImg.height
-                noteHadHead = not (note.ishold and note.clicked) or phira_resource_pack.globalPack.holdKeepHead
+                noteHadHead = not (note.ishold and note.clicked) or phira_respack.globalPack.holdKeepHead
                 
                 if note.ishold:
                     holdLength = note.hold_length_pgry * h * const.PGR_UH
@@ -771,7 +771,7 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 
     root.run_jscode_orders()
     
-    effect_time = phira_resource_pack.globalPack.effectDuration
+    effect_time = phira_respack.globalPack.effectDuration
     miss_effect_time = 0.2
     bad_effect_time = 0.5
     
@@ -925,7 +925,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
         pplm.pc_update(now_t)
         pplm.mob_update(now_t)
     
-    nowLineColor = phira_resource_pack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()
+    nowLineColor = phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()
     normalBeatTime = chart_obj.sec2beat(now_t, 1.0)
     
     for line in chart_obj.sortedLines:
@@ -1067,7 +1067,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                     
                 noteImg = Resource["Notes"][note.img_keyname]
                 noteWidth = globalNoteWidth * (const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)
-                noteHadHead = not (note.ishold and note.clicked) or phira_resource_pack.globalPack.holdKeepHead
+                noteHadHead = not (note.ishold and note.clicked) or phira_respack.globalPack.holdKeepHead
                     
                 if note.ishold:
                     noteEndImg = Resource["Notes"][note.img_end_keyname]
@@ -1180,7 +1180,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     
     root.run_jscode_orders()
     
-    effect_time = phira_resource_pack.globalPack.effectDuration
+    effect_time = phira_respack.globalPack.effectDuration
     miss_effect_time = 0.2
     bad_effect_time = 0.5
     
