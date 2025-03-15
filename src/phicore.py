@@ -888,7 +888,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     now_t -= chart_obj.META.offset / 1000
     
     if chart_obj.extra.videos:
-        for video, progress in chart_obj.extra.getVideoEffect(now_t):
+        for video, progress in chart_obj.extra.getVideoEffect(now_t, chart_obj.BPMList): # ??? 灵异事件
             video_ratio = video.size[0] / video.size[1]
             user_ratio = w / h
             
@@ -912,7 +912,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 (w - video_size[0]) / 2,
                 (h - video_size[1]) / 2
             )
-            root.run_js_code(f"{root.get_img_jsvarname(video.unqique_id)}.currentTime = {progress};", wait_execute=True)
+            root.wait_jspromise(f"setVideoTime({root.get_img_jsvarname(video.unqique_id)}, {progress});")
             drawImage(
                 video.unqique_id,
                 *video_pos,

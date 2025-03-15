@@ -819,12 +819,12 @@ class Extra:
                 
         return result
     
-    def getVideoEffect(self, t: float) -> list[tuple[ExtraVideo, float]]:
-        beat = Chart.sec2beat(None, t, 1.0, self.bpm)
+    def getVideoEffect(self, t: float, bpmList: list[BPMEvent]) -> list[tuple[ExtraVideo, float]]:
+        beat = Chart.sec2beat(None, t, 1.0, bpmList)
         result = []
         
         for video in self.videos:
             if video.time.value <= beat:
-                result.append((video, t - Chart.beat2sec(None, video.time.value, 1.0, self.bpm)))
+                result.append((video, t - Chart.beat2sec(None, video.time.value, 1.0, bpmList)))
         
         return result

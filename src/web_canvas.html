@@ -387,7 +387,7 @@ void main() {
         return imnames;
     }
 
-    function loadvideo(url, name) {
+    async function loadvideo(url, name) {
         let video = document.createElement("video");
         video.src = url;
         video.preload = "auto";
@@ -397,8 +397,15 @@ void main() {
         video.playsInline = true;
         video.setAttribute("crossOrigin", "Anonymous");
         window[name] = video;
-        return new Promise((resolve) => {
+        await new Promise((resolve) => {
             video.onloadeddata = resolve;
+        });
+    }
+
+    function setVideoTime(vdo, time) {
+        return new Promise((resolve) => {
+            vdo.currentTime = time;
+            vdo.onseeked = resolve;
         });
     }
 
