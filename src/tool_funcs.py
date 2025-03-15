@@ -8,6 +8,7 @@ import re
 import socket
 from sys import argv
 from os import environ, popen
+from os.path import isfile
 from dataclasses import dataclass
 
 from PIL import Image, ImageDraw
@@ -299,14 +300,25 @@ def video2h264(video: str):
     import cv2
     cap = cv2.VideoCapture(video)
     size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    return open(video, "rb").read(), size
+    probe = popen(f"ffprobe -i \"{video}\" -show_streams -v error").read()
+    
+    if "codec_name=h264" in probe:
+        return open(video, "rb").read(), size
     
     tid = random.randint(0, 2 << 31)
     fp = f"{tempdir.createTempDir()}/{tid}.mp4"
-    popen(f"ffmpeg -loglevel quiet -i \"{video}\" -an -c:v libx264 -crf 9999 \"{fp}\" -y").read()
-    cap = cv2.VideoCapture(video)
-    size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    return open(fp, "rb").read(), size
+    codecs = ["libx264", "h264_amf", "h264_mf", "h264_nvenc", "h264_qsv"]
+    codecs.reverse()
+    
+    for c in codecs:
+        popen(f"ffmpeg -loglevel quiet -hwaccel auto -i \"{video}\" -an -c:v {codecs} -crf 23 \"{fp}\" -y").read()
+        if not isfile(fp): continue
+        result = open(fp, "rb").read()
+        if not result: continue
+        return result, size
+
+    logging.error("failed to convert video to h264")
+    return open(video, "rb").read(), size
 
 def getShaderDefault(shader: str):
     result = {}
