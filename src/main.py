@@ -513,7 +513,9 @@ def playerStart():
             pppsm = tool_funcs.PhigrosPlayManager(chart_obj.note_num)
             pplm = tool_funcs.PhigrosPlayLogicManager(
                 pplm_proxy, pppsm,
-                enable_clicksound, lambda nt: Resource["Note_Click_Audio"][nt].play()
+                enable_clicksound, lambda nt: Resource["Note_Click_Audio"][nt].play(),
+                globalNoteWidth * const.MPBJUDGE_RANGE_X,
+                w, h
             )
             
             convertTime2Chart = lambda t: (t - show_start_time) * speed - (0.0 if CHART_TYPE == const.CHART_TYPE.PHI else chart_obj.META.offset / 1000)

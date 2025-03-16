@@ -476,7 +476,7 @@ void main() {
         const addr = prompt("please input the server address: ");
         const port = 8080;
         const socket = new WebSocket(`ws://${addr}:${port}`);
-        const split_magic = "\x00";
+        // const split_magic = "\x00";
         let socket_started = false;
 
         try {
@@ -485,7 +485,7 @@ void main() {
             const reqfs = document.body.requestFullscreen || document.body.webkitRequestFullscreen || document.body.mozRequestFullscreen || document.body.msRequestFullscreen;
             const callback = () => {
                 reqfs.call(document.body);
-                window.removeEventListener("touchstart", callback);
+                window.removeEventListener("touchend", callback);
             };
             window.addEventListener("touchend", callback);
         }
@@ -532,13 +532,13 @@ void main() {
                                 type: "evaljs_result",
                                 result: result,
                                 tid: data.tid
-                            }) + split_magic);
+                            }));
                         } catch (e) {
                             msgs.put(JSON.stringify({
                                 type: "jsapi_callback",
                                 name: "_socket_bridge_error",
                                 args: [data.code, e.msg + "\n" + e.stack]
-                            }) + split_magic);
+                            }));
                         }
                     }
                 }
@@ -1317,9 +1317,9 @@ void main() {
         });
     };
 
-    proxyMouseEvent("mousedown", "touchstart");
-    proxyMouseEvent("mousemove", "touchmove");
-    proxyMouseEvent("mouseup", "touchend");
+    // proxyMouseEvent("mousedown", "touchstart");
+    // proxyMouseEvent("mousemove", "touchmove");
+    // proxyMouseEvent("mouseup", "touchend");
 
     const fixEventPosition = (x, y) => [x * dpr - canvasPosD[0], y * dpr - canvasPosD[1]];
     const proxyNeedPositionEvent = function (from, to, cls) {

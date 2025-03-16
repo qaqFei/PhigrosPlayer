@@ -511,12 +511,16 @@ class PPLM_MOB_Touch:
     
     clickused: bool = False
     released: bool = False
+    release_time: float = float("nan")
+    # last_update_time: float = float("nan")
+
+    # def __post_init__(self):
+        # self.last_update_time = time.time()
     
-    def update(self, t: float, x: float, y: float) -> list[tuple[float, float]]:
+    def update(self, t: float, x: float, y: float) -> list[tuple[float, tuple[float, float]]]:
         self.x = x
         self.y = y
-        ...
-        return []
+        return [(time.time(), (self.x, self.y))]
 
 class PhigrosPlayLogicManager:
     def __init__(
@@ -525,12 +529,16 @@ class PhigrosPlayLogicManager:
             ppps: PhigrosPlayManager,
             enable_cksound: bool,
             psound: typing.Callable[[str], typing.Any],
+            mobjudge_range: float,
+            w: int, h: int
         ) -> None:
         
         self.pp = pplm_proxy
         self.ppps = ppps
         self.enable_cksound = enable_cksound
         self.psound = psound
+        self.mobjudge_range = mobjudge_range
+        self.w, self.h = w, h
         self.enable_mob: bool = False
         
         self.pc_clicks: list[PPLM_PC_ClickEvent] = []
@@ -570,6 +578,73 @@ class PhigrosPlayLogicManager:
     def pc_release(self, t: float, key: str) -> None:
         if not PPLM_vaildKey(key): return
         self.pc_keymap[key] = False
+    
+    def _process_clickjudge(
+        self,
+        t: float, n: typing.Any,
+        offset: float,
+        can_use_safe_notes: list[typing.Any],
+        judgetime: float
+    ):
+        abs_offset = abs(offset)
+        
+        if 0.0 <= abs_offset <= const.NOTE_JUDGE_RANGE.PERFECT:
+            state = const.NOTE_STATE.PERFECT
+            
+            self.pp.nproxy_set_ckstate(n, state)
+            
+            if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD):
+                self.pp.nproxy_set_holdjudged(n, True)
+                self.pp.nproxy_set_holdclickstate(n, state)
+            else:
+                self.ppps.addEvent("P")
+                
+        elif const.NOTE_JUDGE_RANGE.PERFECT < abs_offset <= const.NOTE_JUDGE_RANGE.GOOD:
+            state = const.NOTE_STATE.GOOD
+            self.pp.nproxy_set_ckstate(n, state)
+            
+            if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD):
+                self.pp.nproxy_set_holdjudged(n, True)
+                self.pp.nproxy_set_holdclickstate(n, state)
+            else:
+                self.ppps.addEvent("G", offset)
+        
+        elif const.NOTE_JUDGE_RANGE.GOOD < abs_offset <= const.NOTE_JUDGE_RANGE.BAD: # only tap can goto there
+            if can_use_safe_notes and offset < 0.0:
+                drag, _ = can_use_safe_notes[0]
+                if not self.pp.nproxy_get_wclick(drag):
+                    self.pp.nproxy_set_wclick(drag, True)
+                self.pp.nproxy_set_safe_used(drag, True)
+                return
+            
+            self.pp.nproxy_set_pbadtime(n, judgetime)
+            self.pp.nproxy_set_ckstate(n, const.NOTE_STATE.BAD)
+            self.ppps.addEvent("B")
+            self.badeffects.append((
+                judgetime,
+                self.pp.nproxy_nowrotate(n),
+                self.pp.nproxy_nowpos(n)
+            ))
+        
+        if self.pp.nproxy_get_ckstate(n) != const.NOTE_STATE.MISS:
+            self.pp.nproxy_set_pclick_offset(n, offset)
+            self.pp.nproxy_set_pclicked(n, True)
+        
+        if self.pp.nproxy_get_ckstate_ishit(n):
+            e = self.pp.nproxy_effects(n).pop(0)
+            npos = self.pp.nproxy_nowpos(n)
+            self.clickeffects.append((
+                self.pp.nproxy_get_ckstate(n) == const.NOTE_STATE.PERFECT,
+                t,
+                *e[1:-1],
+                
+                (eval(f"lambda w, h: ({npos[0]} * w, {npos[1]} * h)"), *e[-1][1:])
+                if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD) and self.pp.nproxy_stime(n) >= t
+                else e[-1]
+            ))
+            
+            if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD):
+                self.pp.nproxy_set_last_testholdmiss_time(n, t)
     
     def pc_update(self, t: float) -> None:
         pnotes = self.pp.get_all_pnotes()
@@ -699,63 +774,7 @@ class PhigrosPlayLogicManager:
             if not can_judge_notes: continue
             
             n, offset = can_judge_notes[0]
-            abs_offset = abs(offset)
-            
-            if 0.0 <= abs_offset <= const.NOTE_JUDGE_RANGE.PERFECT:
-                state = const.NOTE_STATE.PERFECT
-                
-                self.pp.nproxy_set_ckstate(n, state)
-                
-                if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD):
-                    self.pp.nproxy_set_holdjudged(n, True)
-                    self.pp.nproxy_set_holdclickstate(n, state)
-                else:
-                    self.ppps.addEvent("P")
-
-            elif const.NOTE_JUDGE_RANGE.PERFECT < abs_offset <= const.NOTE_JUDGE_RANGE.GOOD:
-                state = const.NOTE_STATE.GOOD
-
-                self.pp.nproxy_set_ckstate(n, state)
-                
-                if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD):
-                    self.pp.nproxy_set_holdjudged(n, True)
-                    self.pp.nproxy_set_holdclickstate(n, state)
-                else:
-                    self.ppps.addEvent("G", offset)
-            
-            elif const.NOTE_JUDGE_RANGE.GOOD < abs_offset <= const.NOTE_JUDGE_RANGE.BAD: # only tap can goto there
-                if can_use_safe_notes and offset < 0.0:
-                    drag, _ = can_use_safe_notes[0]
-                    if not self.pp.nproxy_get_wclick(drag):
-                        self.pp.nproxy_set_wclick(drag, True)
-                    self.pp.nproxy_set_safe_used(drag, True)
-                    continue
-                
-                self.pp.nproxy_set_pbadtime(n, cke.time)
-                self.pp.nproxy_set_ckstate(n, const.NOTE_STATE.BAD)
-                self.ppps.addEvent("B")
-                self.badeffects.append((
-                    cke.time,
-                    self.pp.nproxy_nowrotate(n),
-                    self.pp.nproxy_nowpos(n)
-                ))
-            
-            if self.pp.nproxy_get_ckstate(n) != const.NOTE_STATE.MISS:
-                self.pp.nproxy_set_pclick_offset(n, offset)
-                self.pp.nproxy_set_pclicked(n, True)
-            
-            if self.pp.nproxy_get_ckstate_ishit(n):
-                e = self.pp.nproxy_effects(n).pop(0)
-                npos = self.pp.nproxy_nowpos(n)
-                self.clickeffects.append((
-                    self.pp.nproxy_get_ckstate(n) == const.NOTE_STATE.PERFECT,
-                    t,
-                    *e[1:-1],
-                    
-                    (eval(f"lambda w, h: ({npos[0]} * w, {npos[1]} * h)"), *e[-1][1:])
-                    if self.pp.nproxy_typeis(n, const.NOTE_TYPE.HOLD) and self.pp.nproxy_stime(n) >= t
-                    else e[-1]
-                ))
+            self._process_clickjudge(t, n, offset, can_use_safe_notes, cke.time)
 
     def _getmobt_byid(self, i: int):
         for t in self.mob_touches:
@@ -768,7 +787,8 @@ class PhigrosPlayLogicManager:
         self.mob_touches.remove(touch)
     
     def mob_touchstart(self, t: float, x: float, y: float, i: int):
-        print(t, x, y, i)
+        print(t)
+        self._removemobt_byid(i)
         self.mob_touches.append(PPLM_MOB_Touch(t, x, y, i))
 
     def mob_touchmove(self, t: float, x: float, y: float, i: int):
@@ -782,26 +802,128 @@ class PhigrosPlayLogicManager:
         if touch is None: return
         
         touch.released = True
+        touch.release_time = time.time()
+    
+    def _mobjudge_polygon(self, pos: tuple[float, float], rotate: float):
+        rotate -= 90
+        r = self.w + self.h
+        s, e = rotate_point(*pos, rotate, r), rotate_point(*pos, rotate, -r)
+        return (
+            rotate_point(*s, rotate - 90, self.mobjudge_range / 2),
+            rotate_point(*s, rotate + 90, self.mobjudge_range / 2),
+            rotate_point(*e, rotate + 90, self.mobjudge_range / 2),
+            rotate_point(*e, rotate - 90, self.mobjudge_range / 2)
+        )
+
+    def _topxpos(self, pos: tuple[float, float]):
+        return (pos[0] * self.w, pos[1] * self.h)
     
     def mob_update(self, t: float):
         pnotes = self.pp.get_all_pnotes()
         
+        for touch in self.mob_touches.copy():
+            if touch.released and time.time() - touch.release_time > const.NOTE_JUDGE_RANGE.GOOD:
+                self.mob_touches.remove(touch)
+        
+        for mf in self.mob_flicks.copy():
+            if time.time() - mf[0] > const.NOTE_JUDGE_RANGE.GOOD:
+                self.mob_flicks.remove(mf)
+        
         for i in pnotes.copy():
-            if ( # drag / flick range judge
-                ...
+            nowrotate = self.pp.nproxy_nowrotate(i)
+            innoterange = any(
+                pointInPolygon(self._mobjudge_polygon(
+                    self._topxpos(self.pp.nproxy_nowpos(i)), nowrotate
+                ), self._topxpos((touch.x, touch.y)))
+                for touch in self.mob_touches
+            )
+            innoterange_hold = any(
+                (pointInPolygon(self._mobjudge_polygon(
+                    self._topxpos(self.pp.nproxy_nowpos(i)), nowrotate
+                ), self._topxpos((touch.x, touch.y))) if not touch.released else False)
+                for touch in self.mob_touches
+            )
+            
+            if ( # drag range judge
+                innoterange and
+                not self.pp.nproxy_get_wclick(i) and
+                self.pp.nproxy_typeis(i, const.NOTE_TYPE.DRAG) and
+                abs((self.pp.nproxy_stime(i) - t)) <= const.NOTE_JUDGE_RANGE.GOOD
             ):
                 self.pp.nproxy_set_wclick(i, True)
             
-            if ( # drag / flick it is time to judge (need multiplexing)
-                self.pp.nproxy_get_wclick(i) and
-                not self.pp.nproxy_get_pclicked(i) and
-                self.pp.nproxy_stime(i) <= t
+            if (
+                not self.pp.nproxy_get_wclick(i) and
+                self.pp.nproxy_typeis(i, const.NOTE_TYPE.FLICK) and
+                abs((self.pp.nproxy_stime(i) - t)) <= const.NOTE_JUDGE_RANGE.GOOD
             ):
-                self.pp.nproxy_set_pclicked(i, True)
-                self.pp.nproxy_set_ckstate(i, const.NOTE_STATE.PERFECT)
-                self.ppps.addEvent("P")
-                self.clickeffects.append((True, t, *self.pp.nproxy_effects(i).pop(0)[1:]))
+                for mf in self.mob_flicks.copy():
+                    if (time.time() - mf[0]) > const.NOTE_JUDGE_RANGE.GOOD:
+                        continue
+                    
+                    if pointInPolygon(self._mobjudge_polygon(
+                        self._topxpos(self.pp.nproxy_nowpos(i)), nowrotate
+                    ), self._topxpos(mf[1])):
+                        self.pp.nproxy_set_wclick(i, True)
+                        self.mob_flicks.remove(mf)
+                        break
+                
+            if ( # hold holding judge
+                innoterange_hold and
+                self.pp.nproxy_typeis(i, const.NOTE_TYPE.HOLD) and
+                self.pp.nproxy_get_pclicked(i) and
+                self.pp.nproxy_get_ckstate_ishit(i) and
+                self.pp.nproxy_etime(i) - 0.2 >= t
+            ):
+                self.pp.nproxy_set_last_testholdmiss_time(i, t)
+            
+            if self.pp.nproxy_stime(i) > t + const.NOTE_JUDGE_RANGE.BAD * 2:
+                break
+        
+        for touch in self.mob_touches:
+            if touch.clickused: continue
+            touch.clickused = True
+            
+            can_judge_notes = []
+            can_use_safe_notes = []
+            
+            for i in pnotes:
+                nowrotate = self.pp.nproxy_nowrotate(i)
+                innoterange = pointInPolygon(self._mobjudge_polygon(
+                    self._topxpos(self.pp.nproxy_nowpos(i)), nowrotate
+                ), self._topxpos((touch.x, touch.y)))
+            
+                if (
+                    innoterange and
+                    not self.pp.nproxy_get_pclicked(i) and
+                    self.pp.nproxy_typein(i, (const.NOTE_TYPE.TAP, const.NOTE_TYPE.HOLD)) and
+                    abs((offset := (self.pp.nproxy_stime(i) - touch.time))) <= (
+                        const.NOTE_JUDGE_RANGE.BAD \
+                            if self.pp.nproxy_typeis(i, const.NOTE_TYPE.TAP) else \
+                                const.NOTE_JUDGE_RANGE.GOOD
+                    )
+                ):
+                    can_judge_notes.append((i, offset))
+                
+                if (
+                    innoterange and
+                    self.pp.nproxy_typein(i, (const.NOTE_TYPE.DRAG, const.NOTE_TYPE.FLICK)) and
+                    not self.pp.nproxy_get_safe_used(i) and
+                    abs((offset := (self.pp.nproxy_stime(i) - touch.time))) <= const.NOTE_JUDGE_RANGE.GOOD
+                ):
+                    can_use_safe_notes.append((i, offset))
+
+                if self.pp.nproxy_stime(i) > touch.time + const.NOTE_JUDGE_RANGE.BAD * 2:
+                    break
     
+            can_judge_notes.sort(key = lambda x: abs(x[1]))
+            can_use_safe_notes.sort(key = lambda x: x[1])
+            
+            if not can_judge_notes: continue
+            
+            n, offset = can_judge_notes[0]
+            self._process_clickjudge(t, n, offset, can_use_safe_notes, touch.time)
+            
 class FramerateCalculator:
     def __init__(self):
         self._frame_count = 0

@@ -139,6 +139,7 @@ PGR_INF = 999999.0
 MIRROR_ICON_LEFT = 1 / 5.72
 EMPTY_RECT = (0.0, 0.0, 0.0, 0.0)
 USERNAME_CONST_FONT = 70
+MPBJUDGE_RANGE_X = 1.35
 ClickEffectType = list[tuple[
     float,
     tuple[tuple[float, ...]],

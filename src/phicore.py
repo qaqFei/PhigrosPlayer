@@ -553,8 +553,8 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     now_t *= speed
     noautoplay = pplm is not None # reset a global variable
     if noautoplay:
-        pplm.pc_update(now_t)
         pplm.mob_update(now_t)
+        pplm.pc_update(now_t)
     
     if presentationMode:
         for note in pplm.pp.get_all_pnotes():
@@ -925,8 +925,8 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     
     noautoplay = pplm is not None # reset a global variable
     if noautoplay:
-        pplm.pc_update(now_t)
         pplm.mob_update(now_t)
+        pplm.pc_update(now_t)
     
     nowLineColor = phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()
     normalBeatTime = chart_obj.sec2beat(now_t, 1.0)
