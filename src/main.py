@@ -272,7 +272,7 @@ def loadResource():
     Thread(target=WaitLoading_FadeIn, daemon = True).start()
     LoadSuccess.set_volume(0.75)
     WaitLoading.play(-1)
-    noteWidth_raw = (0.125 * w + 0.2 * h) / 2
+    noteWidth_raw = w * const.NOTE_DEFAULTSIZE
     globalNoteWidth = noteWidth_raw * (eval(sys.argv[sys.argv.index("--scale-note") + 1]) if "--scale-note" in sys.argv else 1.0)
     
     phi_rpack = phira_respack.PhiraResourcePack(respath)

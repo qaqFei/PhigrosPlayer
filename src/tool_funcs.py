@@ -36,7 +36,7 @@ def Get_A_New_NoteId():
 
 def newRandomBlocks() -> tuple[tuple[float, float], ...]:
     return tuple(
-        (random.uniform(0.0, 360.0), random.uniform(-0.15, 0.3))
+        (random.uniform(0.0, 360.0), random.uniform(185.0, 265.0))
         for _ in range(random_block_num)
     )
 

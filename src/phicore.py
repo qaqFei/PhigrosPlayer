@@ -194,14 +194,13 @@ def processClickEffectBase(
     
     imn = f"Note_Click_Effect_{"Perfect" if perfect else "Good"}"
     effectSize = noteWidth * 1.375 * 1.12
-    blockSize = effectSize / 7.2
     
     if not phira_respack.globalPack.hideParticles:
-        randomblock_r = effectSize * (1 - (1 - p) ** 3.8) / 1.17
-        nowBlockSize = blockSize * (0.426 * math.sin(p * math.pi / 1.185) + 0.5) # start: 0.5, end: 0.7, max: ~0.925
+        s = w * (noteWidth / (w * const.NOTE_DEFAULTSIZE)) / 4040 * 3
+        nowBlockSize = s * 30 * (((0.2078 * p - 1.6524) * p + 1.6399) * p + 0.4988)
         
         for deg, randdr in rblocks:
-            pointr = randomblock_r + randdr * blockSize
+            pointr = s * randdr * (9 * p / (8 * p + 1))
             
             if pointr < 0.0: continue
             

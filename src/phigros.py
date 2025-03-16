@@ -2094,7 +2094,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
         if CalibrationMusicPosition > 0.0:
             CalibrationMusicPosition += getUserData("setting-chartOffset") / 1000
             CalibrationMusicPosition %= 2.0
-            noteWidth = w * 0.1234375 * getUserData("setting-noteScale")
+            noteWidth = w * const.NOTE_DEFAULTSIZE * getUserData("setting-noteScale")
             noteHeight = noteWidth * Resource["Notes"]["Tap"].height / Resource["Notes"]["Tap"].width
             if CalibrationMusicPosition < 1.0:
                 noteY = h * 0.85 * CalibrationMusicPosition - h * 0.05
@@ -2123,7 +2123,7 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     x = w * 0.75, y = h * 0.8, rotate = 0.0,
                     p = p, rblocks = None,
                     perfect = True,
-                    noteWidth = w * 0.1234375 * size,
+                    noteWidth = w * const.NOTE_DEFAULTSIZE * size,
                     root = root
                 )
         
@@ -3484,7 +3484,7 @@ def chartPlayerRender(
     Thread(target=_fgrender, daemon=True).start()
     
     root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
-    globalNoteWidth = w * 0.1234375 * getUserData("setting-noteScale")
+    globalNoteWidth = w * const.NOTE_DEFAULTSIZE * getUserData("setting-noteScale")
     note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
     note_max_height = max(
         [
