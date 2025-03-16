@@ -43,7 +43,6 @@ res_files = [
     "ecwv_installer.exe",
     "icon.ico",
     "libogg.dll", "libvorbis.dll",
-    "openh264-1.8.0-win64.dll",
     "web_canvas.html"
 ]
 extend = open("_compile_pyiextend.py", "r", encoding="utf-8").read()
