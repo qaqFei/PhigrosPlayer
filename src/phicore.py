@@ -22,7 +22,7 @@ import phira_respack
 from dxsmixer import mixer, musicCls
 from graplib_webview import *
 
-drawUI_Default_Kwargs = {
+drawUIDefaultKwargs = {
     f"{k}_{k2}": v
     for k in ("combonumber", "combo", "score", "name", "level", "pause", "bar")
     for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
@@ -500,7 +500,7 @@ def draw_ui(
     mainFramerateCalculator.frame()
              
 def delDrawuiDefaultVals(kwargs: dict) -> dict:
-    return {k: v for k, v in kwargs.items() if v != drawUI_Default_Kwargs.get(k, None)}   
+    return {k: v for k, v in kwargs.items() if v != drawUIDefaultKwargs.get(k, None)}   
 
 def drawDebugText(text: str, x: float, y: float, rotate: float, color: str):
     root.run_js_code(
