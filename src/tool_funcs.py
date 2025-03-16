@@ -264,27 +264,6 @@ def sliderValueValue(p: float, values: tuple[tuple[float, float]]):
             return (p - r[0]) / (r[1] - r[0]) * (r[3] - r[2]) + r[2]
     return ranges[0][2] if p < ranges[0][0] else ranges[-1][3]
 
-def cutAnimationIllImage(im: Image.Image):
-    imdraw = ImageDraw.Draw(im)
-    imdraw.polygon(
-        [
-            (0, 0),
-            (0, im.height),
-            (im.width * 0.1, 0),
-            (0, 0)
-        ],
-        fill = "#00000000"
-    )
-    imdraw.polygon(
-        [
-            (im.width, 0),
-            (im.width, im.height),
-            (im.width * (1 - 0.1), im.height),
-            (im.width, 0)
-        ],
-        fill = "#00000000"
-    )
-
 def checkOffset(now_t: float, raw_audio_length: float, mixer):
     # must not use set_pos to reset music
     offset_judge_range = (1 / 60) * 4
@@ -806,6 +785,22 @@ class PhigrosPlayLogicManager:
     
     def mob_update(self, t: float):
         pnotes = self.pp.get_all_pnotes()
+        
+        for i in pnotes.copy():
+            if ( # drag / flick range judge
+                ...
+            ):
+                self.pp.nproxy_set_wclick(i, True)
+            
+            if ( # drag / flick it is time to judge (need multiplexing)
+                self.pp.nproxy_get_wclick(i) and
+                not self.pp.nproxy_get_pclicked(i) and
+                self.pp.nproxy_stime(i) <= t
+            ):
+                self.pp.nproxy_set_pclicked(i, True)
+                self.pp.nproxy_set_ckstate(i, const.NOTE_STATE.PERFECT)
+                self.ppps.addEvent("P")
+                self.clickeffects.append((True, t, *self.pp.nproxy_effects(i).pop(0)[1:]))
     
 class FramerateCalculator:
     def __init__(self):
