@@ -312,7 +312,6 @@ def loadResource():
     respacker.reg_img(background_image_blur, "background_blur")
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
-    const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     
     for k, v in Resource["Notes"].items():
         respacker.reg_img(Resource["Notes"][k], f"Note_{k}")
@@ -385,7 +384,7 @@ def loadResource():
     root.unreg_res("pgrFontThin.ttf")
     
     # root.file_server.shutdown()
-    note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
+    note_max_width = globalNoteWidth * phira_respack.globalPack.dub_fixscale
     note_max_height = max((
         note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,
         note_max_width / Resource["Notes"]["Tap_dub"].width * Resource["Notes"]["Tap_dub"].height,

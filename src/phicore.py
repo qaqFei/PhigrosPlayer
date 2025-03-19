@@ -659,7 +659,7 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 note.nowpos = (x / w, y / h)
                 note.nowrotate = lineToNoteRotate + 90
                 noteImg = Resource["Notes"][note.img_keyname]
-                fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
+                fix_scale = phira_respack.globalPack.dub_fixscale if note.morebets else 1.0
                 noteWidth = globalNoteWidth * fix_scale
                 noteHeight = noteWidth / noteImg.width * noteImg.height
                 noteHadHead = not (note.ishold and note.clicked) or phira_respack.globalPack.holdKeepHead
@@ -797,7 +797,7 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
         img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
         noteImg = Resource["Notes"][img_keyname]
         imgname = f"Note_{img_keyname}"
-        fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
+        fix_scale = phira_respack.globalPack.dub_fixscale if note.morebets else 1.0
         noteWidth = globalNoteWidth * fix_scale
         noteHeight = noteWidth / noteImg.width * noteImg.height
         drawRotateImage(
@@ -1067,7 +1067,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
                 note.nowrotate = lineToNoteRotate + 90
                     
                 noteImg = Resource["Notes"][note.img_keyname]
-                noteWidth = globalNoteWidth * (const.NOTE_DUB_FIXSCALE if note.morebets else 1.0)
+                noteWidth = globalNoteWidth * (phira_respack.globalPack.dub_fixscale if note.morebets else 1.0)
                 noteHadHead = not (note.ishold and note.clicked) or phira_respack.globalPack.holdKeepHead
                     
                 if note.ishold:
@@ -1210,7 +1210,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
             img_keyname = f"{note.type_string}{"_dub" if note.morebets else ""}"
             noteImg = Resource["Notes"][img_keyname]
             imgname = f"Note_{img_keyname}"
-            fix_scale = const.NOTE_DUB_FIXSCALE if note.morebets else 1.0
+            fix_scale = phira_respack.globalPack.dub_fixscale if note.morebets else 1.0
             noteWidth = globalNoteWidth * fix_scale
             noteHeight = noteWidth / noteImg.width * noteImg.height
             drawRotateImage(

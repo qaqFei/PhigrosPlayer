@@ -41,7 +41,7 @@ import socket_webviewbridge
 from dxsmixer import mixer
 from exitfunc import exitfunc
 from graplib_webview import *
-    
+
 if not exists("./phigros_assets") or not all([
     exists(tool_funcs.gtpresp(i)) for i in [
         "config.json",
@@ -365,7 +365,6 @@ def loadResource():
     
     Resource["ButtonRightBlack"] = Resource["ButtonLeftBlack"].transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
     Resource["Notes"]["Bad"] = putColor((90, 60, 70), Resource["Notes"]["Tap"])
-    const.set_NOTE_DUB_FIXSCALE(Resource["Notes"]["Hold_Body_dub"].width / Resource["Notes"]["Hold_Body"].width)
     
     imageBlackMaskHeight = 12
     imageBlackMask = Image.new("RGBA", (1, imageBlackMaskHeight), (0, 0, 0, 0))
@@ -3485,7 +3484,7 @@ def chartPlayerRender(
     
     root.run_js_code("delete background; delete chart_image; delete chart_image_gradientblack;")
     globalNoteWidth = w * const.NOTE_DEFAULTSIZE * getUserData("setting-noteScale")
-    note_max_width = globalNoteWidth * const.NOTE_DUB_FIXSCALE
+    note_max_width = globalNoteWidth * phira_respack.globalPack.dub_fixscale
     note_max_height = max(
         [
             note_max_width / Resource["Notes"]["Tap"].width * Resource["Notes"]["Tap"].height,

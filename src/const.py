@@ -307,10 +307,6 @@ PHIGROS_SETTING_SHADOW_XRECT_MAP = {
     PHIGROS_SETTING_STATE.OTHER: (0.0265625, 0.975),
 }
 
-def set_NOTE_DUB_FIXSCALE(scale: float):
-    global NOTE_DUB_FIXSCALE
-    NOTE_DUB_FIXSCALE = scale
-
 EXTRA_DEFAULTS = {
     "chromatic": {
         "sampleCount": 3,

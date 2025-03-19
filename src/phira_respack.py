@@ -152,6 +152,8 @@ class PhiraResourcePack:
         self.isdefault_perfect: bool = self.resource["colorPerfect"] == DEFAULT_PERFECT
         self.isdefault_good: bool = self.resource["colorGood"] == DEFAULT_GOOD
         
+        self.dub_fixscale = self.resource["img"]["click_mh.png"].width / self.resource["img"]["click.png"].width
+        
     def createResourceDict(self) -> dict:
         result = {
             "Notes": {},
