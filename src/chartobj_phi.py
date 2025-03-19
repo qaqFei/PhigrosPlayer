@@ -402,13 +402,17 @@ class Chart:
             for note in line.notesAbove + line.notesBelow:
                 note.sec = note.time * line.T
         
-        note_times = {}
         notes = [i for l in self.judgeLineList for i in l.notesAbove + l.notesBelow]
+        notes.sort(key = lambda n: n.sec)
+        last_time = float("nan")
+        last_note: typing.Optional[Note] = None
         for n in notes:
-            if n.sec not in note_times: note_times[n.sec] = 0
-            note_times[n.sec] += 1
-        for n in notes:
-            if note_times[n.sec] > 1: n.morebets = True
+            if last_time == n.sec:
+                last_note.morebets = True
+                n.morebets = True
+                
+            last_time = n.sec
+            last_note = n
             
         for line in self.judgeLineList:
             fp = 0.0
