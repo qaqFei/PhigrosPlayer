@@ -3,13 +3,13 @@ import logging
 import chartobj_phi
 import tool_funcs
 
-def loadChartObject(phigros_chart: dict):
+def loadChartObject(json_data: dict):
     logging.info("Loading Chart Object, fmt = phi")
     
-    fmtVersion = phigros_chart.get("formatVersion", 3)
+    fmtVersion = json_data.get("formatVersion", 3)
     
     if fmtVersion == 2:
-        phigros_chart = tool_funcs.SaveAsNewFormat(phigros_chart)
+        json_data = tool_funcs.SaveAsNewFormat(json_data)
     
     def _loadMoveEvents(es: list[dict]):
         match fmtVersion:
@@ -46,7 +46,7 @@ def loadChartObject(phigros_chart: dict):
     
     phigros_chart_obj = chartobj_phi.Chart(
         formatVersion = fmtVersion,
-        offset = phigros_chart.get("offset", 0.0),
+        offset = json_data.get("offset", 0.0),
         judgeLineList = [
             chartobj_phi.judgeLine(
                 bpm = line.get("bpm", -1.0),
@@ -86,7 +86,7 @@ def loadChartObject(phigros_chart: dict):
                     ) for e in line.get("judgeLineDisappearEvents", [])
                 ]
             )
-            for line in phigros_chart.get("judgeLineList", [])
+            for line in json_data.get("judgeLineList", [])
         ]
     )
     

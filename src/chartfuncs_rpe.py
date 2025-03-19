@@ -54,9 +54,9 @@ def _extended(line: dict):
         gifEvents = _extendedevents(extended_dict, "gifEvents", 0.0),
     )
 
-def loadChartObject(chart: dict):
+def loadChartObject(json_data: dict):
     logging.info("Loading Chart Object, fmt = rpe")
-    meta = chart.get("META", {})
+    meta = json_data.get("META", {})
     rpe_chart_obj = chartobj_rpe.Chart(
         META = chartobj_rpe.MetaData(
             RPEVersion = meta.get("RPEVersion", -1),
@@ -74,7 +74,7 @@ def loadChartObject(chart: dict):
                 startTime = chartobj_rpe.Beat(*bpme.get("startTime", [0, 0, 1])),
                 bpm = bpme.get("bpm", 140)
             )
-            for bpme in chart.get("BPMList", [])
+            for bpme in json_data.get("BPMList", [])
         ],
         judgeLineList = [
             chartobj_rpe.JudgeLine(
@@ -120,9 +120,9 @@ def loadChartObject(chart: dict):
                     yControls = _controlevents(line, "yControl", "x", "y")
                 )
             )
-            for line in chart.get("judgeLineList", [])
+            for line in json_data.get("judgeLineList", [])
         ],
-        isPec = chart.get("isPec", False)
+        isPec = json_data.get("isPec", False)
     )
     
     logging.info("loadChart Successfully, fmt = rpe")
