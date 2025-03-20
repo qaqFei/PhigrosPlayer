@@ -830,7 +830,7 @@ def drawChapters(rectmap: dict):
     for chapter in Chapters.items:
         chapterX += drawChapterItem(chapter, chapterX, rectmap)
 
-def drawButton(buttonName: typing.Literal["ButtonLeftBlack", "ButtonRightBlack"], iconName: str, buttonPos: tuple[float, float]):
+def drawButton(buttonName: str, iconName: str, buttonPos: tuple[float, float]):
     drawImage(buttonName, *buttonPos, ButtonWidth, ButtonHeight, wait_execute=True)
     
     centerPoint = (0.35, 0.395) if buttonName == "ButtonLeftBlack" else (0.65, 0.605)
