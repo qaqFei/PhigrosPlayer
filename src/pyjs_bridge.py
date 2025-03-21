@@ -1,6 +1,7 @@
 import typing
 import string
 import ast
+import sys
 from abc import abstractmethod
 
 @typing.runtime_checkable
@@ -25,6 +26,26 @@ js_keywords = (
     "throw", "throws", "transient", "true",
     "try", "typeof", "var", "void", "volatile",
     "while", "with", "yield"
+)
+
+pyexceptions = (
+    BaseException, GeneratorExit, KeyboardInterrupt,
+    SystemExit, Exception, StopIteration, OSError,
+    EnvironmentError, IOError, WindowsError if sys.platform == "win32" else type("WindowsError", (OSError, )),
+    ArithmeticError, AssertionError, AttributeError, BufferError,
+    EOFError, ImportError, LookupError, MemoryError,
+    NameError, ReferenceError, RuntimeError, StopAsyncIteration,
+    SyntaxError, SystemError, TypeError, ValueError,
+    FloatingPointError, OverflowError, ZeroDivisionError,
+    ModuleNotFoundError, IndexError, KeyError, UnboundLocalError,
+    BlockingIOError, ChildProcessError, ConnectionError,
+    BrokenPipeError, ConnectionAbortedError, ConnectionRefusedError,
+    ConnectionResetError, FileExistsError, FileNotFoundError,
+    InterruptedError, IsADirectoryError, NotADirectoryError,
+    PermissionError, ProcessLookupError, TimeoutError,
+    NotImplementedError, RecursionError, IndentationError,
+    TabError, UnicodeError, UnicodeDecodeError, UnicodeEncodeError,
+    UnicodeTranslateError
 )
 
 type jseval_type = (
@@ -80,7 +101,8 @@ class JsAst_Variable(PyJsVar):
             raise ValueError("Variable name cannot contain slash")
 
         if name in js_keywords:
-            raise ValueError(f"Variable name cannot be a reserved keyword: {name}")
+            name = f"_{name}"
+            # raise ValueError(f"Variable name cannot be a reserved keyword: {name}")
         
         if name.startswith(tuple(string.digits)):
             raise ValueError("Variable name cannot start with a number")
@@ -100,7 +122,7 @@ class JsAst_PrecededUnaryOp(PyJsVar):
         self.operand = operand
 
     def __js_eval__(self) -> str:
-        return f"{self.op}{tojseval(self.operand)}"
+        return f"({self.op}{tojseval(self.operand)})"
 
 class JsAst_Not(JsAst_PrecededUnaryOp): op = "!"
 class JsAst_BitNot(JsAst_PrecededUnaryOp): op = "~"
@@ -110,6 +132,11 @@ class JsAst_Typeof(JsAst_PrecededUnaryOp): op = "typeof "
 class JsAst_Delete(JsAst_PrecededUnaryOp): op = "delete "
 class JsAst_Inc(JsAst_PrecededUnaryOp): op = "++"
 class JsAst_Dec(JsAst_PrecededUnaryOp): op = "--"
+class JsAst_Unpack(JsAst_PrecededUnaryOp):
+    op = "..."
+    
+    def __js_eval__(self) -> str:
+        return f"{self.op}{tojseval(self.operand)}"
 
 class JsAst_PostfixUnaryOp(PyJsVar):
     op: str
@@ -121,7 +148,7 @@ class JsAst_PostfixUnaryOp(PyJsVar):
         self.operand = operand
 
     def __js_eval__(self) -> str:
-        return f"{tojseval(self.operand)}{self.op}"
+        return f"({tojseval(self.operand)}{self.op})"
 
 class JsAst_IncPost(JsAst_PostfixUnaryOp): op = "++"
 class JsAst_DecPost(JsAst_PostfixUnaryOp): op = "--"
@@ -160,7 +187,11 @@ class JsAst_LtEq(JsAst_BinOp): op = "<="
 class JsAst_Gt(JsAst_BinOp): op = ">"
 class JsAst_GtEq(JsAst_BinOp): op = ">="
 class JsAst_In(JsAst_BinOp): op = "in"
-class JsAst_NotIn(JsAst_BinOp): op = "not in"
+class JsAst_NotIn(JsAst_BinOp):
+    op = "in"
+    
+    def __js_eval__(self):
+        return f"!({tojseval(self.left)} {self.op} {tojseval(self.right)})"
 class JsAst_BoolAnd(JsAst_BinOp): op = "&&"
 class JsAst_BoolOr(JsAst_BinOp): op = "||"
 class JsAst_AugAssignAdd(JsAst_BinOp): op = "+="
@@ -225,7 +256,7 @@ class JsAst_Else(JsAst_Statement):
     def __js_eval__(self) -> str:
         return f"else {tojseval(self.code)}"
 
-class JsAst_For(PyJsVar):
+class JsAst_For(JsAst_Statement):
     def __init__(self, start: PyJsVar, end: PyJsVar, step: PyJsVar, code: JsAst_Block):
         self.start = start
         self.end = end
@@ -235,7 +266,7 @@ class JsAst_For(PyJsVar):
     def __js_eval__(self) -> str:
         return f"for ({tojseval(self.start)}; {tojseval(self.end)}; {tojseval(self.step)}) {tojseval(self.code)}"
 
-class JsAst_InFor(PyJsVar):
+class JsAst_InFor(JsAst_Statement):
     def __init__(self, name: PyJsVar, iterable: PyJsVar, code: JsAst_Block):
         self.name = name
         self.iterable = iterable
@@ -244,7 +275,7 @@ class JsAst_InFor(PyJsVar):
     def __js_eval__(self) -> str:
         return f"for ({tojseval(self.name)} in {tojseval(self.iterable)}) {tojseval(self.code)}"
 
-class JsAst_OfFor(PyJsVar):
+class JsAst_OfFor(JsAst_Statement):
     def __init__(self, name: PyJsVar, iterable: PyJsVar, code: JsAst_Block):
         self.name = name
         self.iterable = iterable
@@ -253,13 +284,34 @@ class JsAst_OfFor(PyJsVar):
     def __js_eval__(self) -> str:
         return f"for ({tojseval(self.name)} of {tojseval(self.iterable)}) {tojseval(self.code)}"
 
-class JsAst_While(PyJsVar):
+class JsAst_While(JsAst_Statement):
     def __init__(self, condition: PyJsVar, code: JsAst_Block):
         self.condition = condition
         self.code = code
     
     def __js_eval__(self) -> str:
         return f"while ({tojseval(self.condition)}) {tojseval(self.code)}"
+
+class JsAst_Try(JsAst_Statement):
+    def __init__(
+        self,
+        code: JsAst_Block, catch: JsAst_Block,
+        catch_name: typing.Optional[JsAst_Variable] = None,
+        finally_: typing.Optional[JsAst_Block] = None
+    ):
+        self.code = code
+        self.catch = catch
+        self.catch_name = catch_name
+        self.finally_ = finally_
+
+    def __js_eval__(self) -> str:
+        result = f"try {tojseval(self.code)} catch"
+        if self.catch_name is not None:
+            result += f" ({tojseval(self.catch_name)})"
+        result += f" {tojseval(self.catch)}"
+        if self.finally_ is not None:
+            result += f" finally {tojseval(self.finally_)}"
+        return result
 
 class JsAst_Continue(JsAst_Statement):
     def __init__(self):
@@ -284,13 +336,13 @@ class JsAst_DefineVar(JsAst_Statement):
     def __js_eval__(self) -> str:
         return f"{self.method if not self.method else (self.method + " ")}{tojseval(self.name)}={tojseval(self.value)};"
 
-class JsAst_SetVal(JsAst_Statement):
+class JsAst_SetVal(PyJsVar):
     def __init__(self, name: PyJsVar, value: JsAst_Variable):
         self.name = name
         self.value = value
 
     def __js_eval__(self) -> str:
-        return f"{self.name.__js_eval__()}={tojseval(self.value)};"
+        return f"{self.name.__js_eval__()}={tojseval(self.value)}"
     
 class JsAst_Attribute(PyJsVar):
     def __init__(self, name: PyJsVar, attr: PyJsVar):
@@ -299,6 +351,13 @@ class JsAst_Attribute(PyJsVar):
 
     def __js_eval__(self) -> str:
         return f"{tojseval(self.name)}.{tojseval(self.attr)}"
+
+class JsAst_New(PyJsVar):
+    def __init__(self, val: PyJsVar):
+        self.val = val
+
+    def __js_eval__(self) -> str:
+        return f"new {tojseval(self.val)}"
 
 class JsAst_Return(JsAst_Statement):
     def __init__(self, value: PyJsVar):
@@ -314,6 +373,13 @@ class JsAst_Call(PyJsVar):
 
     def __js_eval__(self) -> str:
         return f"{tojseval(self.name)}({",".join(map(tojseval, self.args))})"
+
+class JsAst_Throw(JsAst_Statement):
+    def __init__(self, value: PyJsVar):
+        self.value = value
+
+    def __js_eval__(self) -> str:
+        return f"throw {tojseval(self.value)};"
 
 class JsAst_FunctionArg(PyJsVar):
     def __init__(self, name: JsAst_Variable, default: typing.Optional[PyJsVar] = None):
@@ -345,7 +411,10 @@ class JsAst_Function(PyJsVar):
         arg_string = ", ".join(map(tojseval, self.args)) if self.args is not None else ""
         
         if self.has_ellipsis:
-            arg_string += ", ..." + tojseval(self.ellipsis_name)
+            ellipsis_str = f"...{tojseval(self.ellipsis_name)}"
+            if self.args:
+                arg_string += ", "
+            arg_string += ellipsis_str
             
         body_string = tojseval(self.body)
         
@@ -375,6 +444,14 @@ class JsAst_Lambda(PyJsVar):
 
         return f"({arg_string})=>{body_string}"
 
+class JsAst_Subscript(PyJsVar):
+    def __init__(self, name: PyJsVar, index: PyJsVar):
+        self.name = name
+        self.index = index
+
+    def __js_eval__(self) -> str:
+        return f"{tojseval(self.name)}[{tojseval(self.index)}]"
+
 class JsAst_TernaryOp(PyJsVar):
     def __init__(self, condition: PyJsVar, true_val: PyJsVar, false_val: PyJsVar):
         self.condition = condition
@@ -382,7 +459,50 @@ class JsAst_TernaryOp(PyJsVar):
         self.false_val = false_val
 
     def __js_eval__(self) -> str:
-        return f"{tojseval(self.condition)}?{tojseval(self.true_val)}:{tojseval(self.false_val)}"
+        return f"({tojseval(self.condition)}?{tojseval(self.true_val)}:{tojseval(self.false_val)})"
+
+class JsAst_MoreOp(PyJsVar):
+    op: str
+    
+    def __init__(self, vals: list[PyJsVar]):
+        self.vals = vals
+
+    def __js_eval__(self) -> str:
+        if not hasattr(self, "op"):
+            raise NotImplementedError("JsAst_MoreOp cannot be instantiated")
+        
+        op = f" {self.op} "
+        return f"({op.join(map(tojseval, self.vals))})"
+
+class JsAst_MoreOp_Add(JsAst_MoreOp): op = "+"
+class JsAst_MoreOp_Mul(JsAst_MoreOp): op = "*"
+class JsAst_MoreOp_BoolAnd(JsAst_MoreOp): op = "&&"
+class JsAst_MoreOp_BoolOr(JsAst_MoreOp): op = "||"
+
+class JsAst_FormatString(PyJsVar):
+    def __init__(self, values: list[PyJsVar]):
+        self.values = values
+    
+    def __js_eval__(self) -> str:
+        result = ["`"]
+        
+        for i in self.values:
+            if isinstance(i, str):
+                result.append(i)
+            else:
+                result.append("${")
+                result.append(tojseval(i))
+                result.append("}")
+        
+        result.append("`")
+        return "".join(result)
+
+class JsAst_Nop(JsAst_Statement):
+    def __init__(self):
+        pass
+
+    def __js_eval__(self) -> str:
+        return ""
 
 def tojseval(val: jseval_type) -> str:
     if isinstance(val, PyJsVar):
@@ -401,13 +521,25 @@ def tojseval(val: jseval_type) -> str:
         return f"new Set({tojseval(list(val))})"
 
     elif isinstance(val, typing.Mapping):
-        return f"{{{", ".join(map(lambda x: f"{tojseval(x[0])}: {tojseval(x[1])}", val.items()))}}}"
+        if "__js_unpacks__" in val:
+            unpack_str = ", ".join(map(lambda x: tojseval(x), val["__js_unpacks__"]))
+        else:
+            unpack_str = ""
+        
+        items = list(filter(lambda i: i[0] != "__js_unpacks__", val.items()))
+        if items and unpack_str:
+            unpack_str = f", {unpack_str}"
+            
+        return f"{{{", ".join(map(lambda x: f"{tojseval(x[0])}: {tojseval(x[1])}", items)) + unpack_str}}}"
 
     elif isinstance(val, typing.Iterable):
         return f"[{", ".join(map(tojseval, val))}]"
 
     elif val is None:
         return "null"
+    
+    elif isinstance(val, type(Ellipsis)):
+        return "(new function (){}())"
     
     else:
         raise TypeError(f"Cannot convert {type(val)} to js eval")
@@ -419,7 +551,18 @@ def pyast2jsast(pyast: ast.AST, need_somepyvar: bool = True) -> PyJsVar:
         block = JsAst_Block(list(map(inner_pyast2jsast, pyast.body if isinstance(pyast, ast.Module) else pyast)))
         if isinstance(pyast, ast.Module) and need_somepyvar:
             block.statements[:0] = inner_pyast2jsast(ast.parse("""
+def _nouse_new(cls):
+    return lambda *args: eval(f"new cls(...args)")
+
 print = console.log
+list = Array
+str = String
+int = Number
+float = Number
+bytes = Uint8Array
+bytearray = Uint8Array
+memoryview = Uint8Array
+set = _nouse_new(Set)
 
 def range(start, stop, step=1):
     result = []
@@ -439,14 +582,23 @@ def range(start, stop, step=1):
 
     return result
 
+def _array_extend(arr):
+    for i in arr:
+        this.push(i)
+
+Array.prototype._jssort = Array.prototype.sort
+Array.prototype.copy = lambda: this.slice()
 Array.prototype.append = Array.prototype.push
+Array.prototype.extend = _array_extend
+Array.prototype.pop = lambda: this.splice(this.length - 1, 1)[0]
+Array.prototype.index = lambda value: this.indexOf(value)
+Array.prototype.count = lambda value: this.filter(lambda x: x == value).length
 Array.prototype.insert = lambda index, value: this.splice(index, 0, value)
 Array.prototype.remove = lambda value: this.splice(this.indexOf(value), 1)
+Array.prototype.sort = lambda reverse, key=(lambda x: x): this._jssort(lambda a, b: key(a) - key(b) if reverse is undefined else key(b) - key(a))
 Array.prototype.clear = lambda: Reflect.set(this, "length", 0)
-Array.prototype.copy = lambda: this.slice()
-Array.prototype.pop = lambda: this.splice(this.length - 1, 1)[0]
-Array.prototype.reverse = lambda: this.reverse()
-Array.prototype.sort = lambda comparefn = (lambda a, b: a - b): this.sort(comparefn)
+""" + f"""
+{"\n".join(map(lambda e: f"{e.__name__} = Error", pyexceptions))}
 """)).statements
         return block
     
@@ -491,7 +643,9 @@ Array.prototype.sort = lambda comparefn = (lambda a, b: a - b): this.sort(compar
             ))
             
         if pyast.kwarg is not None:
-            raise NotImplementedError("Keyword arguments are not supported")
+            ...
+            # raise NotImplementedError("Keyword arguments are not supported")
+            
         return result
     
     elif isinstance(pyast, ast.Constant):
@@ -598,17 +752,233 @@ Array.prototype.sort = lambda comparefn = (lambda a, b: a - b): this.sort(compar
             JsAst_Variable(pyast.args.vararg.arg) if pyast.args.vararg is not None else None
         )
     
-    else:
-        print(f"Cannot convert {type(pyast)} to js ast")
+    elif isinstance(pyast, ast.Subscript):
+        if not isinstance(pyast.slice, ast.Slice):
+            return JsAst_Subscript(inner_pyast2jsast(pyast.value), inner_pyast2jsast(pyast.slice))
+        
+        s = pyast.slice
+        if s.step is None:
+            return JsAst_Call(
+                JsAst_Attribute(inner_pyast2jsast(pyast.value), JsAst_Variable("slice")),
+                [inner_pyast2jsast(s.lower), inner_pyast2jsast(s.upper)]
+            )
+    
+    elif isinstance(pyast, ast.IfExp):
+        return JsAst_TernaryOp(
+            inner_pyast2jsast(pyast.test),
+            inner_pyast2jsast(pyast.body),
+            inner_pyast2jsast(pyast.orelse)
+        )
+    
+    elif isinstance(pyast, ast.ClassDef):
+        statements = []
+        class_init = inner_pyast2jsast(pyast.body).statements
+        after_init = []
+        has_initfunc = False
+        initfunc = None
+        method_map = {}
+        
+        for stmt in class_init.copy():
+            if isinstance(stmt, (JsAst_DefineVar, JsAst_SetVal)):
+                v = JsAst_Variable(tojseval(stmt.name))
+                after_init.append(JsAst_SetVal(
+                    JsAst_Attribute(JsAst_Variable("cls"), v),
+                    v
+                ))
+                method_map[stmt.name] = stmt
+            
+            elif isinstance(stmt, JsAst_Function):
+                if stmt.name is None: continue
+                
+                if stmt.name == "__init__":
+                    has_initfunc = True
+                    initfunc = stmt
+                else:
+                    stmt.body.statements.insert(0, JsAst_SetVal(
+                        JsAst_Variable("self"), JsAst_Variable("this")
+                    ))
+                
+                method_map[stmt.name] = stmt
+                
+                v = JsAst_Variable(stmt.name)
+                after_init.append(JsAst_SetVal(
+                    JsAst_Attribute(JsAst_Variable("cls"), v),
+                    v
+                ))
+                
+                if not stmt.args: continue
+                if tojseval(stmt.args[0].name) == "self":
+                    stmt.args.pop(0)
+        
+        if "__str__" in method_map:
+            toString = method_map["__str__"]
+        elif "__repr__" in method_map:
+            toString = method_map["__repr__"]
+        else:
+            toString = JsAst_Function(
+                JsAst_Block([
+                    JsAst_Return(f"<python {pyast.name} object at unknow_address>")
+                ]), "__str__"
+            )
+            method_map["__str__"] = toString
+            class_init.append(toString)
+        
+        if toString is not None:
+            toString: JsAst_Function|JsAst_SetVal|JsAst_DefineVar
+            after_init.append(JsAst_SetVal(
+                JsAst_Subscript(JsAst_Variable("cls"), JsAst_Attribute(
+                    JsAst_Variable("Symbol"), JsAst_Variable("toPrimitive")
+                )),
+                JsAst_Variable(toString.name)
+            ))
+        
+        if not has_initfunc:
+            initfunc = JsAst_Function(JsAst_Block(), "__init__")
+            class_init.append(initfunc)
+
+        initfunc.body.statements.insert(0, JsAst_SetVal(
+            JsAst_Variable("self"),
+            {"__js_unpacks__": [JsAst_Unpack(JsAst_Variable("cls"))]}
+        ))
+        initfunc.body.statements.append(JsAst_Return(JsAst_Variable("self")))
+        
+        after_init.insert(0, JsAst_SetVal(
+            JsAst_Variable("cls"), JsAst_Variable("__init__")
+        ))
+        
+        statements.extend(class_init)
+        statements.extend(after_init)
+        statements.append(JsAst_Return(JsAst_Variable("cls")))
+        
+        return JsAst_SetVal(
+            JsAst_Variable(pyast.name),
+            JsAst_Call(JsAst_Function(JsAst_Block(statements)), [])
+        )
+    
+    elif isinstance(pyast, (ast.Global, ast.Nonlocal)):
+        return JsAst_Nop()
+    
+    elif isinstance(pyast, ast.JoinedStr):
+        return JsAst_FormatString(list(map(inner_pyast2jsast, pyast.values)))
+    
+    elif isinstance(pyast, ast.FormattedValue):
+        return inner_pyast2jsast(pyast.value)
+    
+    elif isinstance(pyast, ast.Raise):
+        return JsAst_Throw(inner_pyast2jsast(pyast.exc))
+    
+    elif isinstance(pyast, ast.Try):
+        jstry = JsAst_Try(inner_pyast2jsast(pyast.body), JsAst_Block())
+        if len(pyast.handlers) > 1:
+            pyast.handlers = pyast.handlers[:1]
+            # raise NotImplementedError("Multiple except clauses not supported")
+        
+        jstry.catch = inner_pyast2jsast(pyast.handlers[0].body)
+        if pyast.handlers[0].name is not None:
+            jstry.catch_name = JsAst_Variable(pyast.handlers[0].name)
+        
+        if pyast.finalbody:
+            jstry.finally_ = inner_pyast2jsast(pyast.finalbody)
+        
+        return jstry
+    
+    elif isinstance(pyast, ast.BoolOp):
+        boolop_map = {
+            ast.And: JsAst_MoreOp_BoolAnd,
+            ast.Or: JsAst_MoreOp_BoolOr
+        }
+        r = boolop_map[type(pyast.op)]
+        return r(list(map(inner_pyast2jsast, pyast.values)))
+    
+    elif isinstance(pyast, ast.Pass):
+        return JsUndefined()
+    
+    elif isinstance(pyast, ast.Starred):
+        return JsAst_Unpack(inner_pyast2jsast(pyast.value))
+    
+    elif isinstance(pyast, ast.NamedExpr):
+        return JsAst_SetVal(inner_pyast2jsast(pyast.target), inner_pyast2jsast(pyast.value))
+    
+    elif isinstance(pyast, ast.With):
+        def _get_optional_vars(wi: ast.withitem):
+            if wi.optional_vars is None:
+                return JsAst_Variable(f"withvar_{hash(wi)}")
+            return inner_pyast2jsast(wi.optional_vars)
+        
+        return JsAst_Block([
+            *(JsAst_DefineVar(
+                _get_optional_vars(wi),
+                inner_pyast2jsast(wi.context_expr)
+            ) for wi in pyast.items),
+            *(JsAst_Call(
+                JsAst_Attribute(_get_optional_vars(wi), JsAst_Variable("__enter__")),
+                []
+            ) for wi in pyast.items),
+            *inner_pyast2jsast(pyast.body).statements,
+            *(JsAst_Call(
+                JsAst_Attribute(_get_optional_vars(wi), JsAst_Variable("__leave__")),
+                [None, None, None]
+            ) for wi in pyast.items),
+        ])
+    
+    elif isinstance(pyast, (ast.Import, ast.ImportFrom)):
+        ...
+        # raise NotImplementedError("Import and ImportFrom not supported")
+    
+    elif isinstance(pyast, ast.AnnAssign):
+        return JsAst_SetVal(inner_pyast2jsast(pyast.target), inner_pyast2jsast(pyast.value))
+    
+    elif isinstance(pyast, ast.ListComp):
+        def _warp_if(statement):
+            if gen.ifs:
+                return JsAst_If(
+                    JsAst_MoreOp_BoolAnd(map(inner_pyast2jsast, gen.ifs)),
+                    JsAst_Block([statement])
+                )
+            return statement
+        
+        gen = pyast.generators.pop()
+        compval = JsAst_Variable("master_iter") if not pyast.generators else inner_pyast2jsast(gen.iter)
+        targetval = inner_pyast2jsast(gen.target)
+        temparr = JsAst_Variable("listcomp_temparr")
+        push_call = JsAst_Call(JsAst_Attribute(temparr, JsAst_Variable("push")), [inner_pyast2jsast(pyast.elt)])
+        
+        for_loop = JsAst_OfFor(targetval, compval, JsAst_Block([_warp_if(push_call)]))
+        
+        while pyast.generators:
+            gen = pyast.generators.pop()
+            compval = JsAst_Variable("master_iter") if not pyast.generators else inner_pyast2jsast(gen.iter)
+            targetval = inner_pyast2jsast(gen.target)
+            for_loop = JsAst_OfFor(targetval, compval, JsAst_Block([_warp_if(for_loop)]))
+        
+        result = JsAst_Call(
+            JsAst_Function(
+                JsAst_Block([
+                    JsAst_DefineVar(temparr, []),
+                    for_loop,
+                    JsAst_Return(temparr)
+                ]),
+                args=[JsAst_FunctionArg(JsAst_Variable("master_iter"))]
+            ),
+            [pyast2jsast(gen.iter)]
+        )
+        return result
+    
+    # else:
+    #     print(f"Cannot convert {type(pyast)} to js ast")
 
 pycode = """
-for i in range(10):
-    print(i ** 2)
+a = [i for i in range(10) if i != 6 for j in range(i) if i % 2 == 0 if j % 2 == 0]
+print(a)
 """
 
-# console = type("_", (object, ), {"log": print})()
-# print(exec(pycode))
+# pycode = open("src/phigros.py", "r", encoding="utf-8").read()
+
+exec(pycode)
+import jsbeautifier
 
 pyast = ast.parse(pycode)
-res = pyast2jsast(pyast)
-print(tojseval(res))
+jsast = pyast2jsast(pyast)
+res = jsbeautifier.beautify(tojseval(jsast))
+with open("out.js", "w", encoding="utf-8") as f:
+    f.write(res)
