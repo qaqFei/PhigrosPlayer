@@ -900,25 +900,29 @@ Array.prototype.clear = lambda: Reflect.set(this, "length", 0)
         return JsAst_SetVal(inner_pyast2jsast(pyast.target), inner_pyast2jsast(pyast.value))
     
     elif isinstance(pyast, ast.With):
-        def _get_optional_vars(wi: ast.withitem):
-            if wi.optional_vars is None:
-                return JsAst_Variable(f"withvar_{hash(wi)}")
-            return inner_pyast2jsast(wi.optional_vars)
+        def _get_wi_varname(wi: ast.withitem):
+            return JsAst_Variable(f"withvar_{hash(wi)}")
         
         return JsAst_Block([
             *(JsAst_DefineVar(
-                _get_optional_vars(wi),
+                _get_wi_varname(wi),
                 inner_pyast2jsast(wi.context_expr)
             ) for wi in pyast.items),
-            *(JsAst_Call(
-                JsAst_Attribute(_get_optional_vars(wi), JsAst_Variable("__enter__")),
+            *(JsAst_DefineVar(
+                inner_pyast2jsast(wi.optional_vars) if wi.optional_vars is not None else JsAst_Variable("_"), JsAst_Call(
+                JsAst_Attribute(_get_wi_varname(wi), JsAst_Variable("__enter__")),
                 []
-            ) for wi in pyast.items),
-            *inner_pyast2jsast(pyast.body).statements,
-            *(JsAst_Call(
-                JsAst_Attribute(_get_optional_vars(wi), JsAst_Variable("__leave__")),
-                [None, None, None]
-            ) for wi in pyast.items),
+            )) for wi in pyast.items),
+            *[
+                JsAst_Try(inner_pyast2jsast(pyast.body), JsAst_Block([
+                    JsAst_Throw(JsAst_Variable("e"))
+                ]), JsAst_Variable("e"), JsAst_Block([
+                    JsAst_Call(
+                        JsAst_Attribute(_get_wi_varname(wi), JsAst_Variable("__exit__")),
+                        [None, None, None]
+                    ) for wi in pyast.items
+                ]))
+            ]
         ])
     
     elif isinstance(pyast, (ast.Import, ast.ImportFrom)):
@@ -964,17 +968,31 @@ Array.prototype.clear = lambda: Reflect.set(this, "length", 0)
         )
         return result
     
-    # else:
-    #     print(f"Cannot convert {type(pyast)} to js ast")
+    elif isinstance(pyast, type(None)):
+        return None
+    
+    else:
+        print(f"Cannot convert {type(pyast)} to js ast")
 
 pycode = """
-a = [i for i in range(10) if i != 6 for j in range(i) if i % 2 == 0 if j % 2 == 0]
-print(a)
+class foo:
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    def __enter__(self):
+        print("enter", self.a, self.b)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        print("exit", self.a, self.b)
+
+with foo(1, 2) as f:
+    print(f.a, f.b)
 """
 
-# pycode = open("src/phigros.py", "r", encoding="utf-8").read()
-
-exec(pycode)
+pycode = open("src/phigros.py", "r", encoding="utf-8").read()
+# exec(pycode)
 import jsbeautifier
 
 pyast = ast.parse(pycode)
