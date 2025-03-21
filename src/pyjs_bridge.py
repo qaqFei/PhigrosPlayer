@@ -564,6 +564,21 @@ bytearray = Uint8Array
 memoryview = Uint8Array
 set = _nouse_new(Set)
 
+len = lambda obj: obj.length
+getattr = lambda obj, attr: obj[attr]
+setattr = lambda obj, attr, value: Relect.set(obj, attr, value)
+hasattr = lambda obj, attr: attr in obj
+
+def isinstance(obj, cls):
+    if not eval("cls instanceof Array"):
+        cls = [cls]
+    
+    for i in cls:
+        if eval("obj instanceof i"):
+            return True
+    
+    return False
+
 def range(start, stop, step=1):
     result = []
     
@@ -975,23 +990,15 @@ Array.prototype.clear = lambda: Reflect.set(this, "length", 0)
         print(f"Cannot convert {type(pyast)} to js ast")
 
 pycode = """
-class foo:
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
+a = "abc"
+b = 123
 
-    def __enter__(self):
-        print("enter", self.a, self.b)
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        print("exit", self.a, self.b)
-
-with foo(1, 2) as f:
-    print(f.a, f.b)
+print(isinstance(a, str), isinstance(b, int))
+print(isinstance(a, int), isinstance(b, str))
+print("hello world")
 """
 
-pycode = open("src/phigros.py", "r", encoding="utf-8").read()
+# pycode = open("src/phigros.py", "r", encoding="utf-8").read()
 # exec(pycode)
 import jsbeautifier
 
