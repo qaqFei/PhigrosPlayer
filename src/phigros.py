@@ -4644,7 +4644,7 @@ def loadingTransitionRender(nextUI: typing.Callable[[], typing.Any]):
     tip_font_size = phicore.getFontSize(tip, w * 0.84375 * 0.9, w * 0.020833 / 1.25)
     
     tonextUI, tonextUISt = False, float("nan")
-    transTime = 1.3
+    transTime = random.uniform(1.3, 1.8)
     transitionRenderSt = time.time()
     
     while True:
