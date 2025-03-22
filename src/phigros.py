@@ -4616,6 +4616,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         illrespacker.unload(illrespacker.getnames())
     
     def _whenexit():
+        chooseControler.mixer.music.fadeout(500)
         eventManager.unregEventByChooseChartControl(chooseControler)
         if not immediatelyExitRender:
             _release_illu()

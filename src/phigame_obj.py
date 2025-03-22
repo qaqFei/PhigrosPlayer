@@ -927,23 +927,23 @@ class ChooseChartControler:
             mixer.music.fadeout(fadeout)
             
             st = time.time()
-            while myevent.is_set():
+            while myevent.is_set() and not self._released:
                 if time.time() - st > fadeout / 1000:
                     break
                 
                 time.sleep(1 / 20)
             
-        if not myevent.is_set():
+        if not myevent.is_set() or self._released:
             return
         
         mixer.music.load(tool_funcs.gtpresp(song.preview), needlength=False)
-        if not myevent.is_set(): return
+        if not myevent.is_set() or self._released: return
         mixer.music.play()
         mixer.music.set_volume(0.0)
         mixer.music.set_pos(song.preview_start)
         
         st = time.time()
-        while myevent.is_set():
+        while myevent.is_set() and not self._released:
             if not mixer.music.get_busy():
                 break
             
@@ -952,7 +952,7 @@ class ChooseChartControler:
             
             mixer.music.set_volume(p)
         
-        if not myevent.is_set():
+        if not myevent.is_set() or self._released:
             return
         
         mixer.music.set_volume(1.0)
@@ -973,7 +973,7 @@ class ChooseChartControler:
                 self.mixer.music.fadeout(fadeout)
                 
                 st = time.time()
-                while myevent.is_set():
+                while myevent.is_set() and not self._released:
                     if time.time() - st > fadeout / 1000:
                         break
 
