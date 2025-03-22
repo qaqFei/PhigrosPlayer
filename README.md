@@ -54,7 +54,7 @@ python main.py <chart> --disengage-webview [args] [kwargs]
 
   > 开发python+android+web的是这个
 
-  > ![](./readme-res/xiyangyang-goooooood.jpg)
+  > ![](https://qaqfei.github.io/PhigrosPlayer/readme-res/xiyangyang-goooooood.jpg)
 </details>
 
 ## 使用 `phigros.py`
