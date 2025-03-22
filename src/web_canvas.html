@@ -1245,7 +1245,7 @@ void main() {
         this.rotate(rotate * Math.PI / 180);
         this.scale(-1, 1);
         this.globalAlpha = alpha;
-        this.drawImage(img, 0, 0, width, height);
+        this.drawImage(img, width / 2, -height / 2, width, height);
         this.restore();
     }
 
