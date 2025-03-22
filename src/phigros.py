@@ -3559,8 +3559,6 @@ def chartPlayerRender(
     def space():
         nonlocal paused, pauseAnimationSt, pauseSt
         
-        pauseATime = 0.25 if paused else 3.0
-        pauseP = tool_funcs.fixorp((time.time() - pauseAnimationSt) / pauseATime)
         if not ((time.time() - chartPlayerRenderSt) > 1.25 and pauseP == 1.0):
             return
         
