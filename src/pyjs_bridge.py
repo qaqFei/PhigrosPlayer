@@ -374,6 +374,21 @@ class JsAst_Call(PyJsVar):
     def __js_eval__(self) -> str:
         return f"{tojseval(self.name)}({",".join(map(tojseval, self.args))})"
 
+class JsAst_CallKwArg(PyJsVar):
+    def __init__(self, name: PyJsVar, val: PyJsVar):
+        self.name = name
+        self.val = val
+    
+    def __js_eval__(self) -> str:
+        return f"{tojseval(self.name)} = {tojseval(self.val)}"
+
+class JsAst_Await(PyJsVar):
+    def __init__(self, val: PyJsVar):
+        self.val = val
+
+    def __js_eval__(self) -> str:
+        return f"await {tojseval(self.val)}"
+
 class JsAst_Throw(JsAst_Statement):
     def __init__(self, value: PyJsVar):
         self.value = value
@@ -387,16 +402,14 @@ class JsAst_FunctionArg(PyJsVar):
         self.default = default
     
     def __js_eval__(self) -> str:
-        if self.default is None:
-            return self.name.__js_eval__()
-        else:
-            return f"{self.name.__js_eval__()}={tojseval(self.default)}"
+        return f"{self.name.__js_eval__()}={tojseval(self.default)}"
 
 class JsAst_Function(PyJsVar):
     def __init__(
         self,
         body: JsAst_Block|PyJsVar, name: typing.Optional[JsAst_Variable] = None, args: typing.Optional[list[JsAst_FunctionArg]] = None,
-        has_ellipsis: bool = False, ellipsis_name: typing.Optional[JsAst_Variable] = None
+        has_ellipsis: bool = False, ellipsis_name: typing.Optional[JsAst_Variable] = None,
+        is_async: bool = False
     ):
         if not isinstance(body, JsAst_Block):
             body = JsAst_Block([JsAst_Return(body)])
@@ -406,6 +419,7 @@ class JsAst_Function(PyJsVar):
         self.body = body
         self.has_ellipsis = has_ellipsis
         self.ellipsis_name = ellipsis_name
+        self.is_async = is_async
         
     def __js_eval__(self) -> str:
         arg_string = ", ".join(map(tojseval, self.args)) if self.args is not None else ""
@@ -417,11 +431,12 @@ class JsAst_Function(PyJsVar):
             arg_string += ellipsis_str
             
         body_string = tojseval(self.body)
+        function_header = f"{"async " if self.is_async else ""}function"
         
         if self.name is None:
-            return f"function({arg_string}){body_string}"
+            return f"{function_header}({arg_string}){body_string}"
         else:
-            return f"function {self.name}({arg_string}){body_string}"
+            return f"{function_header} {self.name}({arg_string}){body_string}"
 
 class JsAst_Lambda(PyJsVar):
     def __init__(
@@ -543,7 +558,7 @@ def tojseval(val: jseval_type) -> str:
     
     else:
         raise TypeError(f"Cannot convert {type(val)} to js eval")
-
+    
 def pyast2jsast(pyast: ast.AST, need_somepyvar: bool = True) -> PyJsVar:
     inner_pyast2jsast = lambda x: pyast2jsast(x, False)
     
@@ -559,22 +574,25 @@ list = Array
 str = String
 int = Number
 float = Number
-bytes = Uint8Array
-bytearray = Uint8Array
-memoryview = Uint8Array
+bytes = _nouse_new(Uint8Array)
+bytearray = _nouse_new(Uint8Array)
+memoryview = _nouse_new(Uint8Array)
 set = _nouse_new(Set)
 
 len = lambda obj: obj.length
 getattr = lambda obj, attr: obj[attr]
 setattr = lambda obj, attr, value: Relect.set(obj, attr, value)
 hasattr = lambda obj, attr: attr in obj
+repr = lambda obj: obj.toString()
+
+Object.prototype.keys = lambda: Object.keys(this)
 
 def isinstance(obj, cls):
     if not eval("cls instanceof Array"):
         cls = [cls]
     
     for i in cls:
-        if eval("obj instanceof i"):
+        if eval("obj.__proto__ === i.prototype"):
             return True
     
     return False
@@ -597,9 +615,19 @@ def range(start, stop, step=1):
 
     return result
 
+def _protytype_2_class(cls, names):
+    for i in names:
+        cls[i] = cls["prototype"][i]
+
 def _array_extend(arr):
     for i in arr:
         this.push(i)
+    
+def _toofrom_bytes_setbyteorder(bs, byteorder):
+    return bs.reverse() if byteorder == "little" else bs
+
+def _set_to_global(valname, val):
+    eval(f"{valname} = val")
 
 Array.prototype._jssort = Array.prototype.sort
 Array.prototype.copy = lambda: this.slice()
@@ -612,17 +640,86 @@ Array.prototype.insert = lambda index, value: this.splice(index, 0, value)
 Array.prototype.remove = lambda value: this.splice(this.indexOf(value), 1)
 Array.prototype.sort = lambda reverse, key=(lambda x: x): this._jssort(lambda a, b: key(a) - key(b) if reverse is undefined else key(b) - key(a))
 Array.prototype.clear = lambda: Reflect.set(this, "length", 0)
+
+_protytype_2_class(Array, [
+    "copy",
+    "extend",
+    "pop",
+    "index",
+    "count",
+    "insert",
+    "remove",
+    "sort",
+    "clear"
+])
+
+Number.prototype.real = lambda: this
+Number.prototype.imag = lambda: 0
+Number.prototype.numerator = lambda: this
+Number.prototype.denominator = lambda: 1
+Number.prototype.conjugate = lambda: this
+Number.prototype.bit_length = lambda: this.toString(2).length
+Number.prototype.to_bytes = lambda length, byteorder = "big", signed = False: _toofrom_bytes_setbyteorder(Array(length).fill(0).map(lambda x: this >> (8 * x) & 0xFF), byteorder)
+Number.prototype.from_bytes = lambda bytes, byteorder = "big", signed = False: _toofrom_bytes_setbyteorder(bytes, byteorder).reduce(lambda x, y: x << 8 | y, 0)
+
+_protytype_2_class(Number, [
+    "real",
+    "imag",
+    "numerator",
+    "denominator",
+    "conjugate",
+    "bit_length",
+    "to_bytes",
+    "from_bytes"
+])
+
+_python_packages = {}
+
+_python_packages.time = {
+    "time": lambda: Date.now() / 1000,
+    "sleep": lambda seconds: _nouse_new(Promise)(lambda resolve: setTimeout(resolve, seconds * 1000)),
+    "perf_counter": lambda: Date.now() / 1000,
+    "perf_counter_ns": lambda: Date.now() * 1000
+}
+
+_python_packages.random = {
+    "random": lambda: Math.random(),
+    "randint": lambda a, b: Math.floor(Math.random() * (b - a + 1)) + a,
+    "choice": lambda arr: arr[Math.floor(Math.random() * arr.length)],
+    "shuffle": lambda arr: arr.sort(lambda: Math.random() - 0.5),
+    "seed": lambda seed: Math.seedrandom(seed),
+    "uniform": lambda a, b: Math.random() * (b - a) + a,
+    "gauss": lambda mu, sigma: Math.random() * (high - low) + low,
+}
+
+def _import_from_python_package(package_name: str, varnames: list[list[str, str|None]], is_all: bool = False):
+    if package_name not in _python_packages:
+        raise ImportError(f"Package {package_name} not found")
+    
+    if is_all:
+        for i in _python_packages[package_name].keys():
+            _set_to_global(i, _python_packages[package_name][i])
+    else:
+        for i in varnames:
+            [varname, alias] = i
+            _set_to_global(alias if alias is not None else varname, _python_packages[package_name][varname])
+
+def _import_python_package(package_name: str, alias: str|None = None):
+    if package_name not in _python_packages:
+        raise ImportError(f"Package {package_name} not found")
+    _set_to_global(alias if alias is not None else package_name, _python_packages[package_name])
 """ + f"""
 {"\n".join(map(lambda e: f"{e.__name__} = Error", pyexceptions))}
 """)).statements
         return block
     
-    elif isinstance(pyast, ast.FunctionDef):
+    elif isinstance(pyast, (ast.FunctionDef, ast.AsyncFunctionDef)):
         return JsAst_Function(
             inner_pyast2jsast(pyast.body), pyast.name,
             inner_pyast2jsast(pyast.args),
             pyast.args.vararg is not None,
-            JsAst_Variable(pyast.args.vararg.arg) if pyast.args.vararg is not None else None
+            JsAst_Variable(pyast.args.vararg.arg) if pyast.args.vararg is not None else None,
+            isinstance(pyast, ast.AsyncFunctionDef)
         )
     
     elif isinstance(pyast, ast.Return):
@@ -667,7 +764,17 @@ Array.prototype.clear = lambda: Reflect.set(this, "length", 0)
         return pyast.value
     
     elif isinstance(pyast, ast.Call):
-        return JsAst_Call(inner_pyast2jsast(pyast.func), list(map(inner_pyast2jsast, pyast.args)))
+        return JsAst_Call(
+            inner_pyast2jsast(pyast.func),
+            list(map(inner_pyast2jsast, pyast.args)) +
+            list(map(inner_pyast2jsast, pyast.keywords))
+        )
+    
+    elif isinstance(pyast, ast.keyword):
+        return JsAst_CallKwArg(
+            JsAst_Variable(pyast.arg),
+            inner_pyast2jsast(pyast.value)
+        )
     
     elif isinstance(pyast, ast.Assign):
         return JsAst_DefineVar(inner_pyast2jsast(pyast.targets[0]), inner_pyast2jsast(pyast.value), "")
@@ -940,9 +1047,23 @@ Array.prototype.clear = lambda: Reflect.set(this, "length", 0)
             ]
         ])
     
-    elif isinstance(pyast, (ast.Import, ast.ImportFrom)):
-        ...
-        # raise NotImplementedError("Import and ImportFrom not supported")
+    elif isinstance(pyast, ast.Import):
+        result = JsAst_Block()
+        for i in pyast.names:
+            result.statements.append(JsAst_Call(
+                JsAst_Variable("_import_python_package"),
+                [i.name, i.asname]
+            ))
+        return result
+    
+    elif isinstance(pyast, ast.ImportFrom):
+        result = JsAst_Block()
+        for i in pyast.names:
+            result.statements.append(JsAst_Call(
+                JsAst_Variable("_import_from_python_package"),
+                [pyast.module, [[i.name, i.asname]], i.name == "*"]
+            ))
+        return result
     
     elif isinstance(pyast, ast.AnnAssign):
         return JsAst_SetVal(inner_pyast2jsast(pyast.target), inner_pyast2jsast(pyast.value))
@@ -982,6 +1103,9 @@ Array.prototype.clear = lambda: Reflect.set(this, "length", 0)
             [pyast2jsast(gen.iter)]
         )
         return result
+
+    elif isinstance(pyast, ast.Await):
+        return JsAst_Await(inner_pyast2jsast(pyast.value))
     
     elif isinstance(pyast, type(None)):
         return None
@@ -990,12 +1114,13 @@ Array.prototype.clear = lambda: Reflect.set(this, "length", 0)
         print(f"Cannot convert {type(pyast)} to js ast")
 
 pycode = """
-a = "abc"
-b = 123
+from time import sleep
 
-print(isinstance(a, str), isinstance(b, int))
-print(isinstance(a, int), isinstance(b, str))
-print("hello world")
+async def async_func():
+    await sleep(1)
+    print("hello world")
+
+async_func()
 """
 
 # pycode = open("src/phigros.py", "r", encoding="utf-8").read()
