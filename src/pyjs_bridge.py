@@ -1112,23 +1112,3 @@ def _import_python_package(package_name: str, alias: str|None = None):
     
     else:
         print(f"Cannot convert {type(pyast)} to js ast")
-
-pycode = """
-from time import sleep
-
-async def async_func():
-    await sleep(1)
-    print("hello world")
-
-async_func()
-"""
-
-# pycode = open("src/phigros.py", "r", encoding="utf-8").read()
-# exec(pycode)
-import jsbeautifier
-
-pyast = ast.parse(pycode)
-jsast = pyast2jsast(pyast)
-res = jsbeautifier.beautify(tojseval(jsast))
-with open("out.js", "w", encoding="utf-8") as f:
-    f.write(res)
