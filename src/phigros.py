@@ -2114,7 +2114,8 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
             for st, size in CalibrationClickEffects:
                 p = (time.time() - st) / 0.5
                 if p > 1.0: continue
-                    
+                
+                phicore.w = w
                 random.seed(st)
                 random.seed(random.uniform(-st, st))
                 phicore.processClickEffectBase(
@@ -4916,12 +4917,19 @@ def init():
     global rw, rh
     global w, h
     global Resource, eventManager
+    global presentationArrow
+    
+    presentationArrow = "--presentation-arrow" in sys.argv
     
     if webcv.disengage_webview:
         socket_webviewbridge.hook(root)
     
     w, h, webdpr, dw_legacy, dh_legacy = root.init_window_size_and_position(0.6)
     root.run_js_code(f"lowquality_scale = {1.0 / webdpr};")
+    
+    if presentationArrow:
+        root.wait_jspromise("ctx.loadArrowImage();")
+        root.run_js_code("document.body.style.cursor = 'none';")
 
     rw, rh = w, h
     if "--usu169" in sys.argv:

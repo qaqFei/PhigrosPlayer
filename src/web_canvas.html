@@ -1280,6 +1280,31 @@ void main() {
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.loadArrowImage = function () {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = "./resources/arrow.png";
+            this.arrowImage = img;
+            this.enable_presentation_arrow = true;
+        })
+    }
+
+    CanvasRenderingContext2D.prototype.onframeok = function () {
+        if (!this.enable_presentation_arrow) return;
+        if (isNaN(mouse_now_x) || isNaN(mouse_now_y)) return;
+        const [w, h] = [this.canvas.width, this.canvas.height];
+
+        this.drawImage(
+            this.arrowImage,
+            mouse_now_x,
+            mouse_now_y - (w + h) / 150,
+            (w + h) / 50,
+            (w + h) / 50
+        );
+    }
+
     window.addEventListener("touchstart", connectToSocketBridge);
 
     const proxyTouchEvent = function (from, to) {
@@ -1342,6 +1367,14 @@ void main() {
     proxyNeedPositionEvent("mousemove", "mousemove-np", MouseEvent);
     proxyNeedPositionEvent("mouseup", "mouseup-np", MouseEvent);
     proxyNeedPositionEvent("click", "click-np", MouseEvent);
+
+    var mouse_now_x = NaN;
+    var mouse_now_y = NaN;
+
+    window.addEventListener("mousemove-np", (e) => {
+        mouse_now_x = e.clientX;
+        mouse_now_y = e.clientY;
+    })
 
     // window.addEventListener("touchstart", (e) => {
     //     try {pywebview.api.call_attr("PhigrosPlay_KeyDown", new Date().getTime() / 1000, letters[e.changedTouches[0].identifier % letters.length])}
