@@ -137,6 +137,10 @@ class WebCanvas_FileServerHandler(http.server.BaseHTTPRequestHandler):
             elif self.path.endswith(".mkv"): ctype = "video/x-matroska"
             else: ctype = "application/octet-stream"
         
+        else:
+            data = b"404 Not Found"
+            ctype = "text/plain"
+        
         rangeHeader = self.headers.get("Range")
         code = 206 if rangeHeader else 200
         self.send_response(code)

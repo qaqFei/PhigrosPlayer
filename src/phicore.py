@@ -1328,6 +1328,63 @@ def getFontSize(text: str, maxwidth: float, maxsize: float, font: str = "pgrFont
     if w1px == 0: w1px = 1.0
     return min(maxsize, maxwidth / w1px)
 
+def drawTipAndLoading(
+    p: float, sec: float,
+    tip: str, tip_font_size: float
+):
+    tipalpha = tool_funcs.begin_animation_eases.tip_alpha_ease(p)
+    drawText(
+        w * 0.053125,
+        h * (1004 / 1080),
+        text = f"Tip: {tip}",
+        font = f"{tip_font_size}px pgrFont",
+        textAlign = "left",
+        textBaseline = "middle",
+        fillStyle = f"rgba(255, 255, 255, {tipalpha})",
+        wait_execute = True
+    )
+    
+    loadingBlockX = w * 0.84375
+    loadingBlockY = h * (971 / 1080)
+    loadingBlockWidth = w * 0.1046875
+    loadingBlockHeight = h * (50 / 1080)
+    loadingBlockTime = 0.65
+    loadingBlockState: typing.Literal[0, 1] = int(sec / loadingBlockTime) % 2
+    loadingBlockP = (sec % loadingBlockTime) / loadingBlockTime
+    loadingBlockP = min(loadingBlockP / 0.95, 1.0)
+    loadingBlockEasingType = 10
+    loadingBlockEasing = (
+        rpe_easing.ease_funcs[loadingBlockEasingType - 1](loadingBlockP)
+        if loadingBlockState == 0 else
+        (1.0 - rpe_easing.ease_funcs[loadingBlockEasingType - 1](1.0 - loadingBlockP))
+    )
+    
+    loadingBlockLeft = loadingBlockX if loadingBlockState == 0 else (loadingBlockX + loadingBlockEasing * loadingBlockWidth)
+    loadingBlockRight = (loadingBlockX + loadingBlockWidth) if loadingBlockState == 1 else (loadingBlockX + loadingBlockEasing * loadingBlockWidth)
+    root.run_js_code(
+        f"ctx.fillRectEx(\
+            {loadingBlockLeft}, {loadingBlockY}, {loadingBlockRight - loadingBlockLeft}, {loadingBlockHeight},\
+            'rgba(255, 255, 255, {tipalpha})'\
+        );",
+        wait_execute = True
+    )
+    
+    def drawLoadingItem(x0: float, x1: float, color: str):
+        root.run_js_code(
+            f"ctx.drawClipXText(\
+                'Loading...',\
+                {loadingBlockX + loadingBlockWidth / 2},\
+                {loadingBlockY + loadingBlockHeight / 2},\
+                'center', 'middle', '{color}',\
+                '{(w + h) / 100}px pgrFont',\
+                {x0}, {x1}\
+            );",
+            wait_execute = True
+        )
+    
+    drawLoadingItem(loadingBlockX, loadingBlockX + loadingBlockWidth, f"rgba(255, 255, 255, {tipalpha})")
+    drawLoadingItem(loadingBlockLeft, loadingBlockRight, f"rgba(0, 0, 0, {tipalpha})")
+
 def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None):
     if clear: clearCanvas(wait_execute=True)
     all_ease_value = tool_funcs.begin_animation_eases.im_ease(p)
@@ -1439,58 +1496,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         wait_execute = True
     )
     
-    tipalpha = tool_funcs.begin_animation_eases.tip_alpha_ease(p)
-    drawText(
-        w * 0.053125,
-        h * (1004 / 1080),
-        text = f"Tip: {tip}",
-        font = f"{tip_font_size}px pgrFont",
-        textAlign = "left",
-        textBaseline = "middle",
-        fillStyle = f"rgba(255, 255, 255, {tipalpha})",
-        wait_execute = True
-    )
-    
-    loadingBlockX = w * 0.84375
-    loadingBlockY = h * (971 / 1080)
-    loadingBlockWidth = w * 0.1046875
-    loadingBlockHeight = h * (50 / 1080)
-    loadingBlockTime = 0.65
-    loadingBlockState: typing.Literal[0, 1] = int(sec / loadingBlockTime) % 2
-    loadingBlockP = (sec % loadingBlockTime) / loadingBlockTime
-    loadingBlockP = min(loadingBlockP / 0.95, 1.0)
-    loadingBlockEasingType = 10
-    loadingBlockEasing = (
-        rpe_easing.ease_funcs[loadingBlockEasingType - 1](loadingBlockP)
-        if loadingBlockState == 0 else
-        (1.0 - rpe_easing.ease_funcs[loadingBlockEasingType - 1](1.0 - loadingBlockP))
-    )
-    
-    loadingBlockLeft = loadingBlockX if loadingBlockState == 0 else (loadingBlockX + loadingBlockEasing * loadingBlockWidth)
-    loadingBlockRight = (loadingBlockX + loadingBlockWidth) if loadingBlockState == 1 else (loadingBlockX + loadingBlockEasing * loadingBlockWidth)
-    root.run_js_code(
-        f"ctx.fillRectEx(\
-            {loadingBlockLeft}, {loadingBlockY}, {loadingBlockRight - loadingBlockLeft}, {loadingBlockHeight},\
-            'rgba(255, 255, 255, {tipalpha})'\
-        );",
-        wait_execute = True
-    )
-    
-    def drawLoading(x0: float, x1: float, color: str):
-        root.run_js_code(
-            f"ctx.drawClipXText(\
-                'Loading...',\
-                {loadingBlockX + loadingBlockWidth / 2},\
-                {loadingBlockY + loadingBlockHeight / 2},\
-                'center', 'middle', '{color}',\
-                '{(w + h) / 100}px pgrFont',\
-                {x0}, {x1}\
-            );",
-            wait_execute = True
-        )
-    
-    drawLoading(loadingBlockX, loadingBlockX + loadingBlockWidth, f"rgba(255, 255, 255, {tipalpha})")
-    drawLoading(loadingBlockLeft, loadingBlockRight, f"rgba(0, 0, 0, {tipalpha})")
+    drawTipAndLoading(p, sec, tip, tip_font_size)
     
     info_charter_dx = (1 - info_data_ease_value) * -1 * w * 0.075
     info_ill_dx = (1 - info_data_ease_value_2) * -1 * w * 0.075

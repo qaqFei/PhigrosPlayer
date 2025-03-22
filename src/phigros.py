@@ -38,6 +38,7 @@ import dxsound
 import phira_respack
 import tempdir
 import socket_webviewbridge
+import phi_tips
 from dxsmixer import mixer
 from exitfunc import exitfunc
 from graplib_webview import *
@@ -1308,7 +1309,7 @@ def mainRender():
                 if not tonextUI:
                     for e in events: eventManager.unregEvent(e)
 
-                nextUI, tonextUI, tonextUISt = lambda: chooseChartRender(Chapters.items[Chapters.aTo]), True, time.time()
+                nextUI, tonextUI, tonextUISt = lambda: loadingTransitionRender(lambda: chooseChartRender(Chapters.items[Chapters.aTo])), True, time.time()
                 mixer.music.fadeout(500)
                 Resource["UISound_2"].play()
     
@@ -4624,6 +4625,89 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
     
     _whenexit()
 
+def loadingTransitionRender(nextUI: typing.Callable[[], typing.Any]):
+    global dspSettingWidgets
+    
+    bg_path = random.choice([
+        song.image
+        for chapter in Chapters.items
+        for song in chapter.songs
+    ])
+    respacker = webcv.PILResPacker(root)
+    respacker.reg_img(tool_funcs.gtpresp(bg_path), "loading_transition_bg")
+    respacker.load(*respacker.pack())
+    
+    phicore.root = root
+    phicore.w, phicore.h = w, h
+    tip = phi_tips.get_tip()
+    tip_font_size = phicore.getFontSize(tip, w * 0.84375 * 0.9, w * 0.020833 / 1.25)
+    
+    tonextUI, tonextUISt = False, float("nan")
+    transTime = 1.3
+    transitionRenderSt = time.time()
+    
+    while True:
+        clearCanvas(wait_execute = True)
+        renderT = time.time() - transitionRenderSt
+        
+        if renderT > 0.5:
+            drawCoverFullScreenImage("loading_transition_bg", w, h, wait_execute=True)
+            blackRectAlpha = 1.0 - (renderT - 0.5) / 1.125
+            if blackRectAlpha <= 1.0:
+                fillRectEx(0, 0, w, h, f"rgba(0, 0, 0, {blackRectAlpha})", wait_execute=True)
+        
+        root.run_js_code(
+            f"ctx.drawGrd(\
+                {[0.0, h * 0.6, 0.0, h]},\
+                {[
+                    [0.0, "rgba(0, 0, 0, 0.0)"],
+                    [0.25, "rgba(0, 0, 0, 0.0)"],
+                    [0.5, "rgba(0, 0, 0, 0.25)"],
+                    [0.75, "rgba(0, 0, 0, 0.5)"],
+                    [1.0, "rgba(0, 0, 0, 0.796875)"]
+                ]},\
+                0.0, {h * 0.6}, {w}, {h}\
+            );",
+            wait_execute = True
+        )
+        
+        phicore.drawTipAndLoading(
+            tool_funcs.fixorp(renderT / 0.5),
+            renderT, tip, tip_font_size
+        )
+        
+        if renderT > transTime and not tonextUI:
+            tonextUI, tonextUISt = True, time.time()
+                
+        if renderT < 1.0:
+            p = renderT / 1.0
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
+                );",
+                wait_execute = True
+            )
+        
+        if tonextUI and time.time() - tonextUISt < 0.75:
+            p = (time.time() - tonextUISt) / 0.75
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
+                );",
+                wait_execute = True
+            )
+        elif tonextUI:
+            clearCanvas(wait_execute = True)
+            root.run_js_wait_code()
+            Thread(target=nextUI, daemon=True).start()
+            break
+        
+        root.run_js_wait_code()
+    
+    respacker.unload(respacker.getnames())
+    
 def importArchiveFromPhigros():
     sessionToken: typing.Optional[str] = root.run_js_code(f"prompt({root.string2sctring_hqm("请输入 Phigros 账号的 sessionToken: ")});")
     if sessionToken is None:
