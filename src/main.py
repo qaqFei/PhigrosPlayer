@@ -546,11 +546,15 @@ def playerStart():
                 show_start_time += time.time() - pause_st
                 pause_flag = False
         
+        choosing_dump = False
         @tool_funcs.runByThread
         def dumpChart():
-            if noautoplay: return
+            nonlocal choosing_dump
+            if noautoplay or choosing_dump: return
             
+            choosing_dump = True
             fn = dialog.savefile(fn="dump.json")
+            choosing_dump = False
             if fn is None: return
             
             with open(fn, "w", encoding="utf-8") as f:

@@ -3556,23 +3556,33 @@ def chartPlayerRender(
     show_start_time = time.time()
     _doCoreConfig()
     
+    def space():
+        nonlocal paused, pauseAnimationSt, pauseSt
+        
+        pauseP = tool_funcs.fixorp((time.time() - pauseAnimationSt) / pauseATime)
+        if not ((time.time() - chartPlayerRenderSt) > 1.25 and pauseP == 1.0):
+            return
+        
+        if not paused:
+            paused, pauseAnimationSt = True, time.time()
+            mixer.music.pause()
+            Resource["Pause"].play()
+            pauseSt = time.time()
+        else:
+            paused, pauseAnimationSt = False, time.time()
+    
     def clickEventCallback(x, y):
         global show_start_time
-        nonlocal paused, pauseAnimationSt, pauseSt
         nonlocal nextUI, tonextUI, tonextUISt
         nonlocal needSetPlayData
         
         if rendingAnimationSt != rendingAnimationSt: # nan, playing chart
             pauseATime = 0.25 if paused else 3.0
-            pauseP = tool_funcs.fixorp((time.time() - pauseAnimationSt) / pauseATime)
             if not paused and tool_funcs.inrect(x, y, (
                 w * 9.6 / 1920, h * -1.0 / 1080,
                 w * 96 / 1920, h * 102.6 / 1080
-            )) and (time.time() - chartPlayerRenderSt) > 1.25 and pauseP == 1.0:
-                paused, pauseAnimationSt = True, time.time()
-                mixer.music.pause()
-                Resource["Pause"].play()
-                pauseSt = time.time()
+            )):
+                space()
             
             pauseUIButtonR = (w + h) * 0.0275
             if paused and tool_funcs.inrect(x, y, (
@@ -3614,7 +3624,7 @@ def chartPlayerRender(
                 w * 0.5 + w * 0.1109375 + pauseUIButtonR / 2,
                 h * 0.5 + pauseUIButtonR / 2
             )):
-                paused, pauseAnimationSt = False, time.time()
+                space()
                 
         if rendingAnimation is not phicore.settlementAnimationFrame or (time.time() - rendingAnimationSt) <= 0.5:
             return
@@ -3653,6 +3663,9 @@ def chartPlayerRender(
             ud_popuper.change()
     
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
+    root.jsapi.set_attr("SpaceClicked", space)
+    root.run_js_code("_SpaceClicked = (e) => {if (e.key == ' ' && !e.repeat) pywebview.api.call_attr('SpaceClicked');};")
+    root.run_js_code("window.addEventListener('keydown', _SpaceClicked);")
     
     # 前面初始化时间太长了, 放这里
     needSetPlayData = False
@@ -3819,6 +3832,7 @@ def chartPlayerRender(
     if phicore.noautoplay and not presentationMode:
         pplm.unbind_events(root)
         
+    root.run_js_code("window.removeEventListener('keydown', _SpaceClicked);")
     phicore.enableMirror = False
     phicore.presentationMode = False
     cksmanager.stop()
