@@ -885,7 +885,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     now_t *= speed
     now_t -= chart_obj.META.offset / 1000
     
-    if chart_obj.extra.videos:
+    if chart_obj.extra is not None and chart_obj.extra.videos:
         for video, progress in chart_obj.extra.getVideoEffect(now_t):
             video_ratio = video.size[0] / video.size[1]
             user_ratio = w / h

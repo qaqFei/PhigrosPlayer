@@ -851,9 +851,9 @@ def drawDialog(
     dialogImageSize: tuple[float, float],
     noText: str, yesText: str
 ):
-    setCtx("dialog_canvas_ctx", wait_execute=True)
+    setCtx("dialog_canvas_ctx")
     clearCanvas(wait_execute=True)
-    setCtx("ctx", wait_execute=True)
+    setCtx("ctx")
             
     p = 1.0 - (1.0 - p) ** 3
     tempWidth = dialogImageSize[0] * (0.65 + p * 0.35)
