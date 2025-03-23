@@ -25,14 +25,12 @@ def compile(file: str, hideconsole: bool):
 debug = "--debug" in argv
 compile_files = [
     ("main.py", False),
-    ("gui_launcher.py", False),
-    ("irc_launcher.py", False),
+    ("tk_launcher.py", False),
     ("phigros.py", False),
     *(map(lambda x: (x, False), filter(lambda x: (
         x.startswith("tool-")
         and x.endswith(".py")
         and x not in ("tool-pack.py", "tool-create-innosetup-config.py")
-        and x not in ("qt_launcher.py", "imgui_launcher.py")
     ), listdir())))
 ]
 res_files = [
