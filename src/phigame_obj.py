@@ -829,6 +829,12 @@ class ChooseChartControler:
         self._released = False
         self.mixer = unix_mixer
         
+        self.challengeModeSelections = []
+        self.challengeModeSelectButtonAlpha = valueTranformer(rpe_easing.ease_funcs[0], 0.2)
+        self.challengeModeSelectTextAlpha = valueTranformer(rpe_easing.ease_funcs[0], 0.2)
+        self.challengeModeSelectButtonAlpha.target = 1.0
+        self.challengeModeSelectTextAlpha.target = 1.0
+        
         self.level_bar_rightx = valueTranformer(rpe_easing.ease_funcs[13])
         self.level_choose_x = valueTranformer(rpe_easing.ease_funcs[13])
         self.level_color = (
@@ -849,6 +855,8 @@ class ChooseChartControler:
         
         self._start_preview()
         self._preview_checker()
+        
+        self.challenge_mode_select_change_callback = self._challenge_mode_select_update
     
     def _set_level_bar_rightx(self):
         song = self.chapter.scsd_songs[self.vaildNowIndex]
@@ -874,6 +882,17 @@ class ChooseChartControler:
     def _set_level_diffnumber(self):
         song = self.chapter.scsd_songs[self.vaildNowIndex]
         self.level_diffnumber.target = song.difficlty[min(self.uistate.diff_index, len(song.difficlty) - 1)].level
+        self._challenge_mode_select_update()
+    
+    def _challenge_mode_select_update(self):
+        song = self.chapter.scsd_songs[self.vaildNowIndex]
+        diff = song.difficlty[min(self.uistate.diff_index, len(song.difficlty) - 1)]
+        if (song, diff) in self.challengeModeSelections:
+            self.challengeModeSelectButtonAlpha.target = 0.75
+            self.challengeModeSelectTextAlpha.target = 0.0
+        else:
+            self.challengeModeSelectButtonAlpha.target = 1.0
+            self.challengeModeSelectTextAlpha.target = 1.0
     
     def get_level_color(self):
         return tuple(map(lambda x: x.value, self.level_color))

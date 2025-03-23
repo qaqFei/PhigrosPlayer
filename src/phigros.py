@@ -299,6 +299,7 @@ def loadResource():
     global RandomIconWidth, RandomIconHeight
     global ChartChooseSettingIconWidth, ChartChooseSettingIconHeight
     global MirrorIconWidth, MirrorIconHeight
+    global challengeModeCheckedWidth, challengeModeCheckedHeight
     global LoadSuccess
     
     logging.info("Loading Resource...")
@@ -359,7 +360,9 @@ def loadResource():
         "close": Image.open("./resources/close.png"),
         "sort": Image.open("./resources/sort.png"),
         "Random": Image.open("./resources/Random.png"),
-        "mirror": Image.open("./resources/mirror.png")
+        "mirror": Image.open("./resources/mirror.png"),
+        "blackPixel": Image.new("RGBA", (1, 1), (0, 0, 0, 255)),
+        "challengeModeChecked": Image.open("./resources/challengeModeChecked.png"),
     }
     
     Resource.update(phi_rpack.createResourceDict())
@@ -408,6 +411,8 @@ def loadResource():
     respacker.reg_img(Resource["sort"], "sort")
     respacker.reg_img(Resource["Random"], "Random")
     respacker.reg_img(Resource["mirror"], "mirror")
+    respacker.reg_img(Resource["blackPixel"], "blackPixel")
+    respacker.reg_img(Resource["challengeModeChecked"], "challengeModeChecked")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -436,6 +441,8 @@ def loadResource():
     ChartChooseSettingIconHeight = ChartChooseSettingIconWidth / Resource["setting"].width * Resource["setting"].height
     MirrorIconWidth = w * 0.108925
     MirrorIconHeight = MirrorIconWidth / Resource["mirror"].width * Resource["mirror"].height
+    challengeModeCheckedWidth = w * 0.026
+    challengeModeCheckedHeight = challengeModeCheckedWidth / Resource["challengeModeChecked"].width * Resource["challengeModeChecked"].height
     
     phicore.MirrorIconWidth = MirrorIconWidth
     phicore.MirrorIconHeight = MirrorIconHeight
@@ -3989,6 +3996,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
         ctxRestore(wait_execute=True)
             
     def drawSongItems():
+        nonlocal selectButtonRect
+        
         ctxSave(wait_execute=True)
         ctxBeginPath(wait_execute=True)
         ctxRect(0, 0, w, h, wait_execute=True)
@@ -4182,6 +4191,46 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
             "rgb(255, 255, 255)"
         )
         
+        if isChallengeMode:
+            selectButtonLeftX = diffchoosebarRect[2] - w * 0.1125
+            selectPadding = (w * 0.0046875, h * (3 / 1080))
+            selectButtonRect = (
+                selectButtonLeftX - selectPadding[0],
+                diffchoosebarRect[1] - selectPadding[1],
+                diffchoosebarRect[2] - selectPadding[0],
+                diffchoosebarRect[3] + selectPadding[1]
+            )
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, selectButtonRect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(selectButtonRect), 75)},\
+                    'rgba(255, 255, 255, {chooseControler.challengeModeSelectButtonAlpha.value})'\
+                );",
+                wait_execute = True
+            )
+            
+            selectButtonCenter = tool_funcs.getCenterPointByRect(selectButtonRect)
+            
+            drawText(
+                *selectButtonCenter,
+                "Select",
+                font = f"{(w + h) / 95}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = f"rgba(0, 0, 0, {chooseControler.challengeModeSelectTextAlpha.value})",
+                wait_execute = True
+            )
+            
+            drawAlphaImage(
+                "challengeModeChecked",
+                selectButtonCenter[0] - challengeModeCheckedWidth / 2,
+                selectButtonCenter[1] - challengeModeCheckedHeight / 2,
+                challengeModeCheckedWidth, challengeModeCheckedHeight,
+                1.0 - chooseControler.challengeModeSelectTextAlpha.value,
+                wait_execute = True
+            )
+        
         sid = currectSong.difficlty[min(chooseState.diff_index, len(currectSong.difficlty) - 1)].unqique_id()
         diifpd = findPlayDataBySid(sid)
         levelimgname = diifpd["level"] if diifpd["level"] != "never_play" else "NEW"
@@ -4368,6 +4417,20 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
         # 展开/关闭 用户头像名称rks
         if tool_funcs.inrect(x, y, avatar_rect):
             ud_popuper.change()
+        
+        # 课题模式 - 选中
+        if tool_funcs.inrect(x, y, selectButtonRect) and isChallengeMode:
+            if len(chooseControler.challengeModeSelections) >= 3:
+                return
+            
+            song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
+            diff = song.difficlty[min(chooseState.diff_index, len(song.difficlty) - 1)]
+            if (song, diff) in chooseControler.challengeModeSelections:
+                return
+            
+            chooseControler.challengeModeSelections.append((song, diff))
+            Resource["UISound_2"].play()
+            chooseControler.challenge_mode_select_change_callback()
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
@@ -4377,6 +4440,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
     mirrorButtonRect, autoplayButtonRect = const.EMPTY_RECT, const.EMPTY_RECT
     playButtonRect = const.EMPTY_RECT
     avatar_rect = const.EMPTY_RECT
+    diffchoosebarRect = const.EMPTY_RECT
+    selectButtonRect = const.EMPTY_RECT
     
     chooseControler.disable_valueter()
     chooseState.change_diff(getUserData("internal-lastDiffIndex"))
@@ -4389,6 +4454,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
         nonlocal mirrorButtonRect, autoplayButtonRect
         nonlocal playButtonRect
         nonlocal avatar_rect
+        nonlocal diffchoosebarRect
         
         clearCanvas(wait_execute = True)
         
