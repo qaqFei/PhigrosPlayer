@@ -1311,12 +1311,15 @@ def mainRender():
     
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     
+    def unregEvents():
+        for e in events:
+            eventManager.unregEvent(e)
+    
     def SettingCallback(*args):
         nonlocal nextUI, tonextUI, tonextUISt
         
         if not tonextUI:
-            for e in events: eventManager.unregEvent(e)
-            
+            unregEvents()
             nextUI, tonextUI, tonextUISt = settingRender, True, time.time()
             mixer.music.fadeout(500)
             Resource["UISound_2"].play()
@@ -1338,13 +1341,17 @@ def mainRender():
         for cid, rect in chapterPlayButtonRectMap.copy().items():
             if tool_funcs.inrect(x, y, rect) and Chapters.items[Chapters.aTo].chapterId == cid:
                 if not tonextUI:
-                    for e in events: eventManager.unregEvent(e)
+                    unregEvents()
 
                 nextUI, tonextUI, tonextUISt = lambda: loadingTransitionRender(lambda: chooseChartRender(Chapters.items[Chapters.aTo])), True, time.time()
                 mixer.music.fadeout(500)
                 Resource["UISound_2"].play()
+                return
         
-        if tool_funcs.inrect(x, y, intoChallengeModeButtonRect):
+        if tool_funcs.inrect(x, y, intoChallengeModeButtonRect) and Chapters.aTo == 0:
+            if not tonextUI:
+                unregEvents()
+                
             nextUI, tonextUI, tonextUISt = lambda: loadingTransitionRender(lambda: chooseChartRender(Chapters.items[0], True)), True, time.time()
             mixer.music.fadeout(500)
             Resource["UISound_2"].play()
