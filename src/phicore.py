@@ -1688,10 +1688,13 @@ def lineOpenAnimation(fcb: typing.Callable[[], typing.Any] = lambda: None):
             drawLine(
                 w / 2 - (val * w / 2), h / 2,
                 w / 2 + (val * w / 2), h / 2,
-                strokeStyle = const.JUDGELINE_PERFECT_COLOR,
+                strokeStyle = const.JUDGELINE_PERFECT_COLOR if FCAPIndicator else "rgb(255, 255, 255)",
                 lineWidth = lineWidth / render_range_more_scale if render_range_more else lineWidth,
                 wait_execute = True
             )
+        
+        if enableMirror:
+            root.run_js_code("ctx.mirror();", wait_execute=True)
         
         root.run_js_wait_code()
     

@@ -3516,6 +3516,10 @@ def chartPlayerRender(
     loaded_event.set()
     
     _doCoreConfig()
+    phicore.enableMirror = mirror
+    phicore.enableWatermark = False
+    phicore.presentationMode = presentationMode
+    phicore.FCAPIndicator = getUserData("setting-enableFCAPIndicator")
     if startAnimation:
         phicore.loadingAnimation(False, foregroundFrameRender, font_options)
         threadres_loaded.wait()
@@ -3675,10 +3679,6 @@ def chartPlayerRender(
     rendingAnimationSt = float("nan")
     stoped = False
     paused, pauseAnimationSt, pauseSt = False, 0.0, float("nan")
-    phicore.enableMirror = mirror
-    phicore.enableWatermark = False
-    phicore.presentationMode = presentationMode
-    phicore.FCAPIndicator = getUserData("setting-enableFCAPIndicator")
     mixer.music.play()
     
     while True:
