@@ -250,7 +250,8 @@ def loadChapters():
                         ]
                     )
                     for song in chapter["songs"]
-                ]
+                ],
+                all_songs_flag = chapter is jsonData["chapters"][0]
             )
             for chapter in jsonData["chapters"]
         ]
@@ -604,14 +605,14 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
     chapterWidth = getChapterWidth(p)
     if dx + chapterWidth < 0: return getChapterToNextWidth(p)
     chapterImWidth = h * (1.0 - 140 / 1080 * 2) / item.im.height * item.im.width
-    dPower = tool_funcs.getDPower(chapterWidth, h * (1.0 - 140 / 1080 * 2), 75)
+    chapterDPower = tool_funcs.getDPower(chapterWidth, h * (1.0 - 140 / 1080 * 2), 75)
     
     chapterRect = getChapterRect(dx, chapterWidth)
     
     root.run_js_code(
         f"ctx.drawDiagonalRectangleShadow(\
             {",".join(map(str, chapterRect))},\
-            {dPower}, 'rgb(16, 16, 16)', 'rgba(16, 16, 16, 0.7)', {(w + h) / 125}\
+            {chapterDPower}, 'rgb(16, 16, 16)', 'rgba(16, 16, 16, 0.7)', {(w + h) / 125}\
         );",
         wait_execute = True
     )
@@ -622,7 +623,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
                 {",".join(map(str, chapterRect))},\
                 {root.get_img_jsvarname(f"chapter_{item.chapterId}_blur")},\
                 {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
-                {dPower}, 1.0\
+                {chapterDPower}, 1.0\
             );",
             wait_execute = True
         )
@@ -630,7 +631,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
         root.run_js_code(
             f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, chapterRect))},\
-                {dPower}, 'rgba(0, 0, 0, 0.5)'\
+                {chapterDPower}, 'rgba(0, 0, 0, 0.5)'\
             );",
             wait_execute = True
         )
@@ -640,7 +641,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             {",".join(map(str, chapterRect))},\
             {root.get_img_jsvarname(f"chapter_{item.chapterId}_raw")},\
             {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
-            {dPower}, {p}\
+            {chapterDPower}, {p}\
         );",
         wait_execute = True
     )
@@ -650,7 +651,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             {",".join(map(str, chapterRect))},\
             {root.get_img_jsvarname("imageBlackMask")},\
             {- (chapterImWidth - chapterWidth) / 2}, 0, {chapterImWidth}, {h * (1.0 - 140 / 1080 * 2)},\
-            {dPower}, 1.0\
+            {chapterDPower}, 1.0\
         );",
         wait_execute = True
     )
@@ -658,8 +659,8 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
     root.run_js_code(
         f"ctx.drawRotateText2(\
             '{processStringToLiteral(item.name)}',\
-            {chapterRect[2] - dPower * chapterWidth - (w + h) / 150}, {chapterRect[3] - (w + h) / 150},\
-            -75, 'rgba(255, 255, 255, {0.82 * (1.0 - tool_funcs.PhigrosChapterNameAlphaValueTransfrom(p))})', '{(w + h) / 50}px pgrFont',\
+            {chapterRect[2] - chapterDPower * chapterWidth - (w + h) / 150}, {chapterRect[3] - (w + h) / 150},\
+            -75, 'rgba(255, 255, 255, {0.82 * (1.0 - (1.0 if p >= 0.4 else p / 0.4))})', '{(w + h) / 50}px pgrFont',\
             'left', 'bottom'\
         );",
         wait_execute = True
@@ -678,7 +679,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
         )
         
         drawText(
-            chapterRect[0] + dPower * chapterWidth + (w + h) / 125,
+            chapterRect[0] + chapterDPower * chapterWidth + (w + h) / 125,
             chapterRect[1] + (w + h) / 90,
             item.o_name,
             font = f"{(w + h) / 115}px pgrFont",
@@ -693,8 +694,8 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
     PlayButtonDPower = tool_funcs.getDPower(PlayButtonWidth, PlayButtonHeight, 75)
 
     playButtonRect = (
-        chapterRect[2] - dPower * chapterWidth + PlayButtonDPower * PlayButtonWidth - PlayButtonWidth, chapterRect[3] - PlayButtonHeight,
-        chapterRect[2] - dPower * chapterWidth + PlayButtonDPower * PlayButtonWidth, chapterRect[3]
+        chapterRect[2] - chapterDPower * chapterWidth + PlayButtonDPower * PlayButtonWidth - PlayButtonWidth, chapterRect[3] - PlayButtonHeight,
+        chapterRect[2] - chapterDPower * chapterWidth + PlayButtonDPower * PlayButtonWidth, chapterRect[3]
     )
     
     playButtonTriangle = (
@@ -703,10 +704,10 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
         playButtonRect[0] + (playButtonRect[2] - playButtonRect[0]) * 0.25, playButtonRect[1] + (playButtonRect[3] - playButtonRect[1]) * 0.5
     )
     
-    playButtonAlpha = tool_funcs.PhigrosChapterPlayButtonAlphaValueTransfrom(p)
+    playButtonAlpha = 0.0 if p <= 0.6 else (p - 0.6) / 0.4
     rectmap[item.chapterId] = playButtonRect
     
-    if playButtonAlpha != 0.0:
+    if playButtonAlpha != 0.0 and not item.all_songs_flag:
         root.run_js_code(
             f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, playButtonRect))},\
@@ -735,96 +736,78 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             wait_execute = True
         )
     
-    dataAlpha = tool_funcs.PhigrosChapterDataAlphaValueTransfrom(p)
+    if item.all_songs_flag:
+        allsongs_bar_y0 = chapterRect[1] + (chapterRect[3] - chapterRect[1]) * 0.73625
+        allsongs_bar_height = h * (179 / 1080)
+        allsongs_bar_y1 = allsongs_bar_y0 + allsongs_bar_height
+        
+        getx_fromy = lambda y: chapterRect[0] + (1.0 - (y - chapterRect[1]) / (chapterRect[3] - chapterRect[1])) * chapterWidth * chapterDPower
+        
+        allsongs_bar_x0 = getx_fromy(allsongs_bar_y1)
+        allsongs_bar_x1 = getx_fromy(allsongs_bar_y0) + chapterWidth * (1.0 - chapterDPower)
+        allsongs_bar_rect = (
+            allsongs_bar_x0, allsongs_bar_y0,
+            allsongs_bar_x1, allsongs_bar_y1
+        )
+        
+        allsongs_bar_alpha = 0.0 if p <= 0.6 else (p - 0.6) / 0.4
+        
+        allsongs_show_level_dpower = tool_funcs.getDPower(*allsongs_show_level_size, 75)
+        root.run_js_code(
+            f"ctx.drawLeftBottomSkewText(\
+                {root.string2sctring_hqm(allsongs_show_level)},\
+                {chapterRect[0] + w * 0.03125}, {chapterRect[1] + h * (745 / 1080)},\
+                '{allsongs_show_level_font}px pgrFont', 'rgba{(255, 255, 255, allsongs_bar_alpha * 0.5)}', {allsongs_show_level_dpower}\
+            );",
+            wait_execute = True
+        )
+        ctxResetTransform(wait_execute=True)
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, allsongs_bar_rect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(allsongs_bar_rect), 75)}, 'rgba(0, 0, 0, {allsongs_bar_alpha * 0.4})'\
+            );",
+            wait_execute = True
+        )
+    
+    dataAlpha = 0.0 if p <= 0.6 else (p - 0.6) / 0.4
     
     if dataAlpha != 0.0:
-        drawText(
-            chapterRect[0] + chapterWidth * 0.075,
-            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
-            "All",
-            font = f"{(w + h) / 175}px pgrFont",
-            textAlign = "center",
-            textBaseline = "bottom",
-            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
-            wait_execute = True
-        )
+        def _drawScoreTexts(name: str, num: int, i: int):
+            dx = 0.095 * (i - 1)
+            dy = 0.0 if not item.all_songs_flag else -h * (15 / 1080)
+            x = chapterRect[0] + chapterWidth * (0.075 + dx)
+            
+            if item.all_songs_flag:
+                x += w * 0.0109375
+            
+            drawText(
+                x,
+                chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375 + dy,
+                name,
+                font = f"{(w + h) / 175 * 0.9}px pgrFont",
+                textAlign = "center",
+                textBaseline = "bottom",
+                fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+                wait_execute = True
+            )
+            
+            drawText(
+                x,
+                chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275) + dy,
+                f"{num}",
+                font = f"{(w + h) / 95 * 0.9}px pgrFont",
+                textAlign = "center",
+                textBaseline = "bottom",
+                fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
+                wait_execute = True
+            )
         
-        drawText(
-            chapterRect[0] + chapterWidth * 0.075,
-            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
-            f"{len(item.songs)}",
-            font = f"{(w + h) / 95}px pgrFont",
-            textAlign = "center",
-            textBaseline = "bottom",
-            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
-            wait_execute = True
-        )
-        
-        drawText(
-            chapterRect[0] + chapterWidth * (0.075 + 0.095),
-            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
-            "Clear",
-            font = f"{(w + h) / 175}px pgrFont",
-            textAlign = "center",
-            textBaseline = "bottom",
-            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
-            wait_execute = True
-        )
-        
-        drawText(
-            chapterRect[0] + chapterWidth * (0.075 + 0.095),
-            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
-            str(countPlayData(item, "C")),
-            font = f"{(w + h) / 95}px pgrFont",
-            textAlign = "center",
-            textBaseline = "bottom",
-            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
-            wait_execute = True
-        )
-        
-        drawText(
-            chapterRect[0] + chapterWidth * (0.075 + 0.095 * 2),
-            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
-            "Full Combo",
-            font = f"{(w + h) / 175}px pgrFont",
-            textAlign = "center",
-            textBaseline = "bottom",
-            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
-            wait_execute = True
-        )
-        
-        drawText(
-            chapterRect[0] + chapterWidth * (0.075 + 0.095 * 2),
-            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
-            str(countPlayData(item, "FC")),
-            font = f"{(w + h) / 95}px pgrFont",
-            textAlign = "center",
-            textBaseline = "bottom",
-            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
-            wait_execute = True
-        )
-        
-        drawText(
-            chapterRect[0] + chapterWidth * (0.075 + 0.095 * 3),
-            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * 0.04375,
-            "Phi",
-            font = f"{(w + h) / 175}px pgrFont",
-            textAlign = "center",
-            textBaseline = "bottom",
-            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
-            wait_execute = True
-        )
-        
-        drawText(
-            chapterRect[0] + chapterWidth * (0.075 + 0.095 * 3),
-            chapterRect[3] - h * (1.0 - 140 / 1080 * 2) * (0.04375 + 0.0275),
-            str(countPlayData(item, "AP")),
-            font = f"{(w + h) / 95}px pgrFont",
-            textAlign = "center",
-            textBaseline = "bottom",
-            fillStyle = f"rgba(255, 255, 255, {0.95 * dataAlpha})",
-            wait_execute = True
-        )
+        _drawScoreTexts("All", len(item.songs), 1)
+        _drawScoreTexts("Clear", countPlayData(item, "C"), 2)
+        _drawScoreTexts("Full Combo", countPlayData(item, "FC"), 3)
+        _drawScoreTexts("Phi", countPlayData(item, "AP"), 4)
     
     return getChapterToNextWidth(p)
 
@@ -1198,7 +1181,13 @@ def checkOffset(now_t: float):
         
 def mainRender():
     global inMainUI
+    global allsongs_show_level, allsongs_show_level_font
+    global allsongs_show_level_size
+    
     inMainUI = True
+    allsongs_show_level = const.DIFF_STRING_MAP[getUserData("internal-lastDiffIndex")]
+    allsongs_show_level_font = (w + h) / 24
+    allsongs_show_level_size = root.run_js_code(f"ctx.getTextSize({root.string2sctring_hqm(allsongs_show_level)}, '{allsongs_show_level_font}px pgrFont')")
     
     countPlayData.cache_clear()
     faManager.faculas.clear()

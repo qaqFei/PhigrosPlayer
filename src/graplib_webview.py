@@ -65,6 +65,12 @@ def ctxBeginPath(wait_execute: bool = False):
 def ctxClip(rule: str = "nonzero", wait_execute: bool = False):
     root.run_js_code(f"{ctx}.clip('{rule}');", wait_execute, order)
 
+def ctxSetTransform(a: number, b: number, c: number, d: number, e: number, f: number, wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.setTransform({a}, {b}, {c}, {d}, {e}, {f});", wait_execute, order)
+
+def ctxResetTransform(wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.resetTransform();", wait_execute, order)
+
 def clearCanvas(wait_execute: bool = False):
     root.run_js_code(f"{ctx}.clear();", wait_execute, order)
     

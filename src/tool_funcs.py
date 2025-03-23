@@ -213,21 +213,6 @@ def easeAlpha(p: float):
 def fixorp(p: float):
     return max(0.0, min(1.0, p))
 
-def PhigrosChapterNameAlphaValueTransfrom(p: float):
-    if p >= 0.4:
-        return 1.0
-    return p / 0.4
-
-def PhigrosChapterPlayButtonAlphaValueTransfrom(p: float):
-    if p <= 0.6:
-        return 0.0
-    return (p - 0.6) / 0.4
-
-def PhigrosChapterDataAlphaValueTransfrom(p: float):
-    if p <= 0.6:
-        return 0.0
-    return (p - 0.6) / 0.4
-
 def rect2drect_l(rect: tuple[float], deg: float):
     dpower = getDPower(*getSizeByRect(rect), deg)
     w = rect[2] - rect[0]
@@ -1002,9 +987,6 @@ if environ.get("ENABLE_JIT", "0") == "1":
         inDiagonalRectangle,
         compute_intersection,
         fixorp,
-        PhigrosChapterNameAlphaValueTransfrom,
-        PhigrosChapterPlayButtonAlphaValueTransfrom,
-        PhigrosChapterDataAlphaValueTransfrom,
         getDPower,
         getSizeByRect,
         getCenterPointByRect,
@@ -1029,9 +1011,6 @@ if environ.get("ENABLE_JIT", "0") == "1":
     inDiagonalRectangle(0.0, 0.0, 123.3, 32.2, 3.2, 0.2, 0.4)
     compute_intersection(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8)
     fixorp(2.3)
-    PhigrosChapterNameAlphaValueTransfrom(0.7)
-    PhigrosChapterPlayButtonAlphaValueTransfrom(0.5)
-    PhigrosChapterDataAlphaValueTransfrom(0.1)
     getDPower(24, 42, 75)
     getSizeByRect((0.0, 0.0, 1.0, 4.0))
     getCenterPointByRect((0.0, 0.0, 1.0, 1.0))

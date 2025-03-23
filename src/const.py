@@ -111,6 +111,11 @@ PGR_LEVEL_INTMAP = {
     "F": -7, "never_play": -8
 }
 
+DIFF_STRING_MAP = {
+    0: "EZ", 1: "HD",
+    2: "IN", 3: "AT"
+}
+
 MAX_LEVEL_NUM = 4
         
 INF = float("inf")

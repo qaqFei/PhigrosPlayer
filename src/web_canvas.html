@@ -1273,6 +1273,23 @@ void main() {
         this.restore();
     }
 
+    CanvasRenderingContext2D.prototype.drawLeftBottomSkewText = function (text, x, y, font, color, dpower) {
+        this.save();
+        this.fillStyle = color;
+        this.font = font;
+        this.textAlign = "left";
+        this.textBaseline = "bottom";
+        const [w, h] = [this.canvas.width, this.canvas.height];
+        const [text_w, text_h] = this.getTextSize(text, font);
+        let skew_ratio = text_w * dpower / text_h;
+        this.setTransform(
+            1.0, 0.0, -skew_ratio,
+            1.0, x, y
+        );
+        this.fillText(text, 0, 0);
+        this.restore();
+    }
+
     CanvasRenderingContext2D.prototype.clear = function() {
         this.save();
         this.setTransform(1, 0, 0, 1, 0, 0);

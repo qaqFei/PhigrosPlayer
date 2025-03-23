@@ -206,6 +206,7 @@ class Chapter:
     o_name: str
     image: str
     songs: list[Song]
+    all_songs_flag: bool
     im: None|Image.Image = None
     
     def __post_init__(self):
