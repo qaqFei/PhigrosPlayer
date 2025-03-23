@@ -1,6 +1,5 @@
 import check_bin as _
 
-from threading import Thread
 from os import system, mkdir, listdir
 from os.path import isfile
 from sys import argv
