@@ -452,6 +452,7 @@ class WebCanvas:
         if self._jscode_orders: self.run_jscode_orders() # not to create a new pyframe
         self.run_js_code("requestAnimationFrame(() => pywebview.api.call_attr('_rdcallback'));", wait_execute=True)
         self.run_js_code("if (!('_frame_counter' in window)) {&FRAMERATE_CODE&};".replace("&FRAMERATE_CODE&", framerate_counter), wait_execute=True)
+        self.run_js_code("ctx.onframeok();", wait_execute=True)
         
         codes = self._jscodes.copy()
         self._jscodes.clear()

@@ -27,9 +27,21 @@ drawUIDefaultKwargs = {
     for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
 }
 mainFramerateCalculator = tool_funcs.FramerateCalculator()
-enableMirror = False
-enableWatermark = True
-presentationMode = False
+
+def initGlobalSettings():
+    global enableMirror, enableWatermark
+    global presentationMode, FCAPIndicator
+    
+    enableMirror = False
+    enableWatermark = True
+    presentationMode = False
+    FCAPIndicator = True
+
+initGlobalSettings()
+
+# set in phigros.py
+MirrorIconWidth: int
+MirrorIconHeight: int
 
 class settlementAnimationUserData:
     # every instance share those variables
@@ -574,7 +586,7 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
             *tool_funcs.rotate_point(*linePos, lineRotate, h * 5.76 / 2),
             *tool_funcs.rotate_point(*linePos, lineRotate + 180, h * 5.76 / 2)
         )
-        lineColor = (*(phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()), lineAlpha)
+        lineColor = (*((phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()) if FCAPIndicator else (255, 255, 255)), lineAlpha)
         lineWebColor = f"rgba{lineColor}"
         
         if (lineColor[-1] > 0.0 and tool_funcs.lineInScreen(w, h, lineDrawPos)) or debug:
@@ -885,7 +897,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
     now_t *= speed
     now_t -= chart_obj.META.offset / 1000
     
-    if chart_obj.extra.videos:
+    if chart_obj.extra is not None and chart_obj.extra.videos:
         for video, progress in chart_obj.extra.getVideoEffect(now_t):
             video_ratio = video.size[0] / video.size[1]
             user_ratio = w / h
@@ -926,7 +938,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
         pplm.mob_update(now_t)
         pplm.pc_update(now_t)
     
-    nowLineColor = phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()
+    nowLineColor = (phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()) if FCAPIndicator else (255, 255, 255)
     normalBeatTime = chart_obj.sec2beat(now_t, 1.0)
     
     for line in chart_obj.sortedLines:
@@ -1549,16 +1561,28 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     baimg_x1 = w * 0.9453125
     baimg_y1 = h * (733 / 1080)
     baimg_y0 = h * (219 / 1080)
-    dpower = tool_funcs.getDPower(baimg_x1 - baimg_x0, baimg_y1 - baimg_y0, 75)
+    baimg_dpower = tool_funcs.getDPower(baimg_x1 - baimg_x0, baimg_y1 - baimg_y0, 75)
     root.run_js_code(
         f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
             {baimg_x0}, {baimg_y0},\
             {baimg_x1}, {baimg_y1},\
             {root.get_img_jsvarname("chart_image")},\
-            {baimg_y1 - baimg_y0}, {dpower}, 1.0\
+            {baimg_y1 - baimg_y0}, {baimg_dpower}, 1.0\
         );",
         wait_execute = True
     )
+    
+    if enableMirror:
+        mirrorIconLeft = (
+            baimg_x0 + (baimg_x1 - baimg_x0) * baimg_dpower
+        ) - const.MIRROR_ICON_LEFT * MirrorIconWidth
+        
+        drawImage(
+            "mirror",
+            mirrorIconLeft, baimg_y0,
+            MirrorIconWidth, MirrorIconHeight,
+            wait_execute = True
+        )
     
     root.run_js_code(
         f"ctx.translate(-{all_ease_value * w},0.0);",
@@ -1671,7 +1695,15 @@ def lineOpenAnimation(fcb: typing.Callable[[], typing.Any] = lambda: None):
         
         fcb()
         val = rpe_easing.ease_funcs[12](p)
+        
+        clearCanvas(wait_execute=True)
+        drawBg()
+        if enableMirror:
+            root.run_js_code("ctx.mirror();", wait_execute=True)
+            
         draw_ui(
+            clear = False,
+            background = False,
             animationing = True,
             dy = h / 7 * val
         )
@@ -1680,7 +1712,7 @@ def lineOpenAnimation(fcb: typing.Callable[[], typing.Any] = lambda: None):
             drawLine(
                 w / 2 - (val * w / 2), h / 2,
                 w / 2 + (val * w / 2), h / 2,
-                strokeStyle = const.JUDGELINE_PERFECT_COLOR,
+                strokeStyle = const.JUDGELINE_PERFECT_COLOR if FCAPIndicator else "rgb(255, 255, 255)",
                 lineWidth = lineWidth / render_range_more_scale if render_range_more else lineWidth,
                 wait_execute = True
             )
