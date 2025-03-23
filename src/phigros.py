@@ -300,6 +300,7 @@ def loadResource():
     global ChartChooseSettingIconWidth, ChartChooseSettingIconHeight
     global MirrorIconWidth, MirrorIconHeight
     global challengeModeCheckedWidth, challengeModeCheckedHeight
+    global UndoIconWidth, UndoIconHeight
     global LoadSuccess
     
     logging.info("Loading Resource...")
@@ -363,6 +364,7 @@ def loadResource():
         "mirror": Image.open("./resources/mirror.png"),
         "blackPixel": Image.new("RGBA", (1, 1), (0, 0, 0, 255)),
         "challengeModeChecked": Image.open("./resources/challengeModeChecked.png"),
+        "Undo": Image.open("./resources/Undo.png"),
     }
     
     Resource.update(phi_rpack.createResourceDict())
@@ -413,6 +415,7 @@ def loadResource():
     respacker.reg_img(Resource["mirror"], "mirror")
     respacker.reg_img(Resource["blackPixel"], "blackPixel")
     respacker.reg_img(Resource["challengeModeChecked"], "challengeModeChecked")
+    respacker.reg_img(Resource["Undo"], "Undo")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -443,6 +446,8 @@ def loadResource():
     MirrorIconHeight = MirrorIconWidth / Resource["mirror"].width * Resource["mirror"].height
     challengeModeCheckedWidth = w * 0.026
     challengeModeCheckedHeight = challengeModeCheckedWidth / Resource["challengeModeChecked"].width * Resource["challengeModeChecked"].height
+    UndoIconWidth = w * 0.02
+    UndoIconHeight = UndoIconWidth / Resource["Undo"].width * Resource["Undo"].height
     
     phicore.MirrorIconWidth = MirrorIconWidth
     phicore.MirrorIconHeight = MirrorIconHeight
@@ -3948,7 +3953,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
             x1 += dpower * (x1 - x0)
             return drawParallax(x0, y0, x1, y1)
         
-        for i in range(max(0, chooseControler.vaildNowCeil - 3), min(len(chapter_item.scsd_songs) - 1, chooseControler.vaildNowCeil + 3) + 1):
+        for i in range(max(0, chooseControler.vaildNowCeil - 5), min(len(chapter_item.scsd_songs) - 1, chooseControler.vaildNowCeil + 5) + 1):
             root.run_js_code(f"{root.get_img_jsvarname(f"songill_{chapter_item.scsd_songs[i].songId}")}.lazy_load();", wait_execute=True)
         
         thisSong = chapter_item.scsd_songs[chooseControler.vaildNowCeil]
@@ -3997,6 +4002,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
             
     def drawSongItems():
         nonlocal selectButtonRect
+        nonlocal undoAreaRect
         
         ctxSave(wait_execute=True)
         ctxBeginPath(wait_execute=True)
@@ -4097,13 +4103,14 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
             w * 0.4375, h * (219 / 1080),
             w * 0.9453125, h * (733 / 1080)
         )
+        previewParallaxRectWidth, previewParallaxRectHeight = tool_funcs.getSizeByRect(previewParallaxRect)
+        previewParallaxRectDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(previewParallaxRect), 75)
         drawParallax(*previewParallaxRect)
         
         if chooseState.is_mirror:
             mirrorIconLeft = (
                 previewParallaxRect[0] + 
-                tool_funcs.getSizeByRect(previewParallaxRect)[0]
-                * tool_funcs.getDPower(*tool_funcs.getSizeByRect(previewParallaxRect), 75)
+                previewParallaxRectWidth * previewParallaxRectDPower
             ) - const.MIRROR_ICON_LEFT * MirrorIconWidth
             
             drawImage(
@@ -4230,6 +4237,129 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                 1.0 - chooseControler.challengeModeSelectTextAlpha.value,
                 wait_execute = True
             )
+            
+            getx_fromy = lambda y: previewParallaxRect[0] + (1.0 - (y - previewParallaxRect[1]) / (previewParallaxRect[3] - previewParallaxRect[1])) * previewParallaxRectWidth * previewParallaxRectDPower
+            undoArea_y0 = previewParallaxRect[1] + previewParallaxRectHeight * (250 / 380)
+            undoArea_y1 = previewParallaxRect[1] + previewParallaxRectHeight * ((250 + 95) / 380)
+            undoArea_x0 = getx_fromy(undoArea_y1)
+            undoArea_x1 = getx_fromy(undoArea_y0) + w * 0.0578125
+            undoAreaRect = (
+                undoArea_x0, undoArea_y0,
+                undoArea_x1, undoArea_y1
+            )
+            undoAreaDPower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(undoAreaRect), 75)
+            undoAreaCenter = tool_funcs.getCenterPointByRect(undoAreaRect)
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, undoAreaRect))},\
+                    {undoAreaDPower},\
+                    'rgba(0, 0, 0, 0.525)'\
+                );",
+                wait_execute = True
+            )
+            
+            drawImage(
+                "Undo",
+                undoAreaCenter[0] - UndoIconWidth / 2 + w * 0.0016875,
+                undoAreaCenter[1] - UndoIconHeight / 2 - (undoAreaRect[3] - undoAreaRect[1]) / 8,
+                UndoIconWidth, UndoIconHeight,
+                wait_execute = True
+            )
+            
+            drawText(
+                undoAreaCenter[0] - w * 0.0016875 * 1.4,
+                undoAreaCenter[1] + (undoAreaRect[3] - undoAreaRect[1]) / 4.5,
+                "UNDO",
+                font = f"{(w + h) / 125}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "white",
+                wait_execute = True
+            )
+            
+            selection_illu_pady = h * (10 / 1080)
+            selection_illu_y0 = undoAreaRect[1] - selection_illu_pady
+            selection_illu_y1 = undoAreaRect[3] + selection_illu_pady
+            undoarea_smallwidth = (undoAreaRect[2] - undoAreaRect[0]) * (1.0 - undoAreaDPower)
+            selection_illu_allwidth = previewParallaxRectWidth * (1.0 - previewParallaxRectDPower) - undoarea_smallwidth
+            selection_illu_item_smallwidth = selection_illu_allwidth / 3
+            selection_illu_item_dpower_width = (selection_illu_y1 - selection_illu_y0) / math.tan(math.radians(75))
+            selection_illu_item_full_width = selection_illu_item_smallwidth + selection_illu_item_dpower_width
+            selection_illu_start_x = getx_fromy(selection_illu_y1) + undoarea_smallwidth
+            selection_illu_now_dx = 0
+            
+            for i in range(3):
+                this_illu_rect = (
+                    selection_illu_start_x + selection_illu_now_dx,
+                    selection_illu_y0,
+                    selection_illu_start_x + selection_illu_now_dx + selection_illu_item_full_width + 1,
+                    selection_illu_y1
+                )
+                this_illu_rect_size = tool_funcs.getSizeByRect(this_illu_rect)
+                this_illu_rect_dpower = tool_funcs.getDPower(*this_illu_rect_size, 75)
+                
+                try:
+                    song, diff = chooseControler.challengeModeSelections[i]
+                    root.run_js_code(
+                        f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
+                            {",".join(map(str, this_illu_rect))},\
+                            {root.get_img_jsvarname(f"songill_{song.songId}")},\
+                            {this_illu_rect_size[1]}, {this_illu_rect_dpower}, 1.0\
+                        );",
+                        wait_execute = True
+                    )
+                    
+                    challmode_diff_y0 = this_illu_rect[1] + this_illu_rect_size[1] * (80 / 110)
+                    challmode_diff_y1 = this_illu_rect[3]
+                    challmode_diff_x1 = this_illu_rect[2] - (challmode_diff_y0 - this_illu_rect[1]) / this_illu_rect_size[1] * this_illu_rect_size[0] * this_illu_rect_dpower
+                    challmode_diff_x0 = challmode_diff_x1 - this_illu_rect_size[0] * (58 / 200)
+                    challmode_diff_rect = (
+                        challmode_diff_x0, challmode_diff_y0,
+                        challmode_diff_x1, challmode_diff_y1
+                    )
+                    challmode_diff_rect_color = const.LEVEL_COLOR_MAP[song.difficlty.index(diff)]
+                    
+                    root.run_js_code(
+                        f"ctx.drawDiagonalRectangle(\
+                            {",".join(map(str, challmode_diff_rect))},\
+                            {tool_funcs.getDPower(*tool_funcs.getSizeByRect(challmode_diff_rect), 75)},\
+                            'rgb{challmode_diff_rect_color}'\
+                        );",
+                        wait_execute = True
+                    )
+                    
+                    drawText(
+                        *tool_funcs.getCenterPointByRect(challmode_diff_rect),
+                        diff.strdiffnum,
+                        font = f"{(w + h) / 100}px pgrFont",
+                        textAlign = "center",
+                        textBaseline = "middle",
+                        fillStyle = "white",
+                        wait_execute = True
+                    )
+                except IndexError:
+                    root.run_js_code(
+                        f"ctx.drawDiagonalRectangle(\
+                            {",".join(map(str, this_illu_rect))},\
+                            {this_illu_rect_dpower},\
+                            'black'\
+                        );",
+                        wait_execute = True
+                    )
+                    
+                    empty_song_text = ["1st", "2nd", "3rd"][i]
+                    drawText(
+                        *tool_funcs.getCenterPointByRect(this_illu_rect),
+                        empty_song_text,
+                        font = f"{(w + h) / 80}px pgrFont",
+                        textAlign = "center",
+                        textBaseline = "middle",
+                        fillStyle = "white",
+                        wait_execute = True
+                    )
+                
+                selection_illu_now_dx += selection_illu_item_smallwidth
         
         sid = currectSong.difficlty[min(chooseState.diff_index, len(currectSong.difficlty) - 1)].unqique_id()
         diifpd = findPlayDataBySid(sid)
@@ -4431,6 +4561,15 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
             chooseControler.challengeModeSelections.append((song, diff))
             Resource["UISound_2"].play()
             chooseControler.challenge_mode_select_change_callback()
+
+        # 课题模式 - UNDO
+        if tool_funcs.inrect(x, y, undoAreaRect) and isChallengeMode:
+            if not chooseControler.challengeModeSelections:
+                return
+            
+            chooseControler.challengeModeSelections.pop()
+            Resource["UISound_2"].play()
+            chooseControler.challenge_mode_select_change_callback()
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
@@ -4442,6 +4581,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
     avatar_rect = const.EMPTY_RECT
     diffchoosebarRect = const.EMPTY_RECT
     selectButtonRect = const.EMPTY_RECT
+    undoAreaRect = const.EMPTY_RECT
     
     chooseControler.disable_valueter()
     chooseState.change_diff(getUserData("internal-lastDiffIndex"))

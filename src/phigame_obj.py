@@ -829,7 +829,7 @@ class ChooseChartControler:
         self._released = False
         self.mixer = unix_mixer
         
-        self.challengeModeSelections = []
+        self.challengeModeSelections: list[tuple[Song, SongDifficlty]] = []
         self.challengeModeSelectButtonAlpha = valueTranformer(rpe_easing.ease_funcs[0], 0.2)
         self.challengeModeSelectTextAlpha = valueTranformer(rpe_easing.ease_funcs[0], 0.2)
         self.challengeModeSelectButtonAlpha.target = 1.0
