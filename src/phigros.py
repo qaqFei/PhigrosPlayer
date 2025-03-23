@@ -599,7 +599,10 @@ def getChapterRect(dx: float, chapterWidth: float):
         dx + chapterWidth, h * (1.0 - 140 / 1080)
     )
 
+intoChallengeModeButtonRect = const.EMPTY_RECT
 def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
+    global intoChallengeModeButtonRect
+    
     p = getChapterP(item)
     if dx > w: return getChapterToNextWidth(p)
     chapterWidth = getChapterWidth(p)
@@ -806,7 +809,7 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
             return button_rect
         
         rectmap[item.chapterId] = _drawButton(chapterRect[3] - h * (24 / 1080), "全部歌曲")
-        _drawButton(chapterRect[3] - h * (126 / 1080), "课题模式")
+        intoChallengeModeButtonRect = _drawButton(chapterRect[3] - h * (126 / 1080), "课题模式")
     
     dataAlpha = 0.0 if p <= 0.6 else (p - 0.6) / 0.4
     
@@ -1340,6 +1343,11 @@ def mainRender():
                 nextUI, tonextUI, tonextUISt = lambda: loadingTransitionRender(lambda: chooseChartRender(Chapters.items[Chapters.aTo])), True, time.time()
                 mixer.music.fadeout(500)
                 Resource["UISound_2"].play()
+        
+        if tool_funcs.inrect(x, y, intoChallengeModeButtonRect):
+            nextUI, tonextUI, tonextUISt = lambda: loadingTransitionRender(lambda: chooseChartRender(Chapters.items[0], True)), True, time.time()
+            mixer.music.fadeout(500)
+            Resource["UISound_2"].play()
     
     events.append(phigame_obj.ClickEvent(
         rect = (0, 0, w, h),
@@ -3867,7 +3875,7 @@ def chartPlayerRender(
     cksmanager.stop()
     respacker.unload(respacker.getnames())
 
-def chooseChartRender(chapter_item: phigame_obj.Chapter):
+def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool = False):
     illrespacker = webcv.LazyPILResPacker(root)
     for song in chapter_item.songs:
         illrespacker.reg_img(tool_funcs.gtpresp(song.image_lowres), f"songill_{song.songId}")
@@ -4174,35 +4182,36 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         levelimg_w = w * 0.05875
         levelimg_h = levelimg_w * levelimg.height / levelimg.width
         
-        drawImage(
-            f"Level_{levelimgname}",
-            w * 0.838625 - levelimg_w / 2,
-            h * (798 / 1080) - levelimg_h / 2,
-            levelimg_w, levelimg_h,
-            wait_execute = True
-        )
-        
-        drawText(
-            w * 0.7640625,
-            h * (817 / 1080),
-            f"{int(diifpd["score"] + 0.5):>07}",
-            font = f"{(w + h) / 60}px pgrFontThin",
-            textAlign = "right",
-            textBaseline = "middle",
-            fillStyle = "rgb(255, 255, 255)",
-            wait_execute = True
-        )
-        
-        drawText(
-            w * 0.81,
-            h * (828 / 1080),
-            f"{(diifpd["acc"] * 100):>05.2f}%",
-            font = f"{(w + h) / 154}px pgrFontThin",
-            textAlign = "right",
-            textBaseline = "middle",
-            fillStyle = "rgb(255, 255, 255)",
-            wait_execute = True
-        )
+        if not isChallengeMode:
+            drawImage(
+                f"Level_{levelimgname}",
+                w * 0.838625 - levelimg_w / 2,
+                h * (798 / 1080) - levelimg_h / 2,
+                levelimg_w, levelimg_h,
+                wait_execute = True
+            )
+            
+            drawText(
+                w * 0.7640625,
+                h * (817 / 1080),
+                f"{int(diifpd["score"] + 0.5):>07}",
+                font = f"{(w + h) / 60}px pgrFontThin",
+                textAlign = "right",
+                textBaseline = "middle",
+                fillStyle = "rgb(255, 255, 255)",
+                wait_execute = True
+            )
+            
+            drawText(
+                w * 0.81,
+                h * (828 / 1080),
+                f"{(diifpd["acc"] * 100):>05.2f}%",
+                font = f"{(w + h) / 154}px pgrFontThin",
+                textAlign = "right",
+                textBaseline = "middle",
+                fillStyle = "rgb(255, 255, 255)",
+                wait_execute = True
+            )
         
         if chooseState.diff_index > len(currectSong.difficlty) - 1:
             return
@@ -4271,11 +4280,11 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             Resource["UISound_5"].play()
         
         # 镜像
-        if tool_funcs.inrect(x, y, mirrorButtonRect):
+        if tool_funcs.inrect(x, y, mirrorButtonRect) and not isChallengeMode:
             chooseState.change_mirror()
         
         # 自动游玩
-        if tool_funcs.inrect(x, y, autoplayButtonRect):
+        if tool_funcs.inrect(x, y, autoplayButtonRect) and not isChallengeMode:
             chooseState.change_autoplay()
         
         # 随机
@@ -4295,7 +4304,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             h * (53 / 1080) + ChartChooseSettingIconHeight / 2
         )):
             unregEvents()
-            nextUI, tonextUI, tonextUISt = lambda: settingRender(lambda: chooseChartRender(chapter_item)), True, time.time()
+            nextUI, tonextUI, tonextUISt = lambda: settingRender(lambda: chooseChartRender(chapter_item, isChallengeMode)), True, time.time()
             mixer.music.fadeout(500)
             Resource["UISound_2"].play()
         
@@ -4337,7 +4346,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
                 blackIn = False,
                 foregroundFrameRender = lambda: _render(False),
                 renderRelaser = _release_illu,
-                nextUI = lambda: chooseChartRender(chapter_item),
+                nextUI = lambda: chooseChartRender(chapter_item, isChallengeMode),
                 font_options = {
                     "songNameFontSize": song.chooseSongs_nameFontSize,
                     "songComposerFontSize": song.currSong_composerFontSize,
@@ -4484,51 +4493,52 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
             wait_execute = True
         )
         
-        mirrorButtonRect = (
-            w * 0.40625, h * (897 / 1080),
-            w * 0.4828125, h * (947 / 1080)
-        )
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, mirrorButtonRect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(mirrorButtonRect), 75)},\
-                '{"rgba(0, 0, 0, 0.4)" if not chooseState.is_mirror else "rgb(255, 255, 255)"}'\
-            );",
-            wait_execute = True
-        )
-        
-        drawText(
-            *tool_funcs.getCenterPointByRect(mirrorButtonRect),
-            "Mirror",
-            font = f"{(w + h) / 130}px pgrFont",
-            textAlign = "center",
-            textBaseline = "middle",
-            fillStyle = "rgba(223, 223, 223, 0.75)" if not chooseState.is_mirror else "rgb(0, 0, 0, 0.8)",
-            wait_execute = True
-        )
-        
-        autoplayButtonRect = (
-            w * 0.4923828125, h * (897 / 1080),
-            w * 0.5689453125, h * (947 / 1080)
-        )
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, autoplayButtonRect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(autoplayButtonRect), 75)},\
-                '{"rgba(0, 0, 0, 0.4)" if not chooseState.is_autoplay else "rgb(255, 255, 255)"}'\
-            );",
-            wait_execute = True
-        )
-        
-        drawText(
-            *tool_funcs.getCenterPointByRect(autoplayButtonRect),
-            "Autoplay",
-            font = f"{(w + h) / 130}px pgrFont",
-            textAlign = "center",
-            textBaseline = "middle",
-            fillStyle = "rgba(223, 223, 223, 0.75)" if not chooseState.is_autoplay else "rgb(0, 0, 0, 0.8)",
-            wait_execute = True
-        )
+        if not isChallengeMode:
+            mirrorButtonRect = (
+                w * 0.40625, h * (897 / 1080),
+                w * 0.4828125, h * (947 / 1080)
+            )
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, mirrorButtonRect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(mirrorButtonRect), 75)},\
+                    '{"rgba(0, 0, 0, 0.4)" if not chooseState.is_mirror else "rgb(255, 255, 255)"}'\
+                );",
+                wait_execute = True
+            )
+            
+            drawText(
+                *tool_funcs.getCenterPointByRect(mirrorButtonRect),
+                "Mirror",
+                font = f"{(w + h) / 130}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "rgba(223, 223, 223, 0.75)" if not chooseState.is_mirror else "rgb(0, 0, 0, 0.8)",
+                wait_execute = True
+            )
+            
+            autoplayButtonRect = (
+                w * 0.4923828125, h * (897 / 1080),
+                w * 0.5689453125, h * (947 / 1080)
+            )
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, autoplayButtonRect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(autoplayButtonRect), 75)},\
+                    '{"rgba(0, 0, 0, 0.4)" if not chooseState.is_autoplay else "rgb(255, 255, 255)"}'\
+                );",
+                wait_execute = True
+            )
+            
+            drawText(
+                *tool_funcs.getCenterPointByRect(autoplayButtonRect),
+                "Autoplay",
+                font = f"{(w + h) / 130}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "rgba(223, 223, 223, 0.75)" if not chooseState.is_autoplay else "rgb(0, 0, 0, 0.8)",
+                wait_execute = True
+            )
         
         drawImage(
             "Random",
