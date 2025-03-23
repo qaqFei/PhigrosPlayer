@@ -705,7 +705,9 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
     )
     
     playButtonAlpha = 0.0 if p <= 0.6 else (p - 0.6) / 0.4
-    rectmap[item.chapterId] = playButtonRect
+    
+    if not item.all_songs_flag:
+        rectmap[item.chapterId] = playButtonRect
     
     if playButtonAlpha != 0.0 and not item.all_songs_flag:
         root.run_js_code(
@@ -763,13 +765,48 @@ def drawChapterItem(item: phigame_obj.Chapter, dx: float, rectmap: dict):
         )
         ctxResetTransform(wait_execute=True)
         
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, allsongs_bar_rect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(allsongs_bar_rect), 75)}, 'rgba(0, 0, 0, {allsongs_bar_alpha * 0.4})'\
-            );",
-            wait_execute = True
-        )
+        with tool_funcs.shadowDrawer("rgba(0, 0, 0, 0.8)", (w + h) / 85):
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, allsongs_bar_rect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(allsongs_bar_rect), 75)}, 'rgba(0, 0, 0, {allsongs_bar_alpha * 0.45})'\
+                );",
+                wait_execute = True
+            )
+        
+        def _drawButton(bottom_y: float, text: str):
+            dx = chapterWidth * (493 / 1083) - chapterWidth / 3 * (1.0 - p)
+            x0 = getx_fromy(bottom_y) + dx
+            top_y = bottom_y - h * (99 / 1080)
+            x1 = getx_fromy(top_y) + w * 0.18125 + dx
+            
+            button_rect = (
+                x0, top_y,
+                x1, bottom_y
+            )
+            
+            root.run_js_code(
+                f"ctx.drawDiagonalRectangle(\
+                    {",".join(map(str, button_rect))},\
+                    {tool_funcs.getDPower(*tool_funcs.getSizeByRect(button_rect), 75)}, 'rgba(255, 255, 255, {allsongs_bar_alpha * 0.9})'\
+                );",
+                wait_execute = True
+            )
+            
+            drawText(
+                *tool_funcs.getCenterPointByRect(button_rect),
+                text,
+                font = f"{(w + h) / 85}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = f"rgba(0, 0, 0, {allsongs_bar_alpha * 0.8})",
+                wait_execute = True
+            )
+            
+            return button_rect
+        
+        rectmap[item.chapterId] = _drawButton(chapterRect[3] - h * (24 / 1080), "全部歌曲")
+        _drawButton(chapterRect[3] - h * (126 / 1080), "课题模式")
     
     dataAlpha = 0.0 if p <= 0.6 else (p - 0.6) / 0.4
     
@@ -1186,7 +1223,7 @@ def mainRender():
     
     inMainUI = True
     allsongs_show_level = const.DIFF_STRING_MAP[getUserData("internal-lastDiffIndex")]
-    allsongs_show_level_font = (w + h) / 24
+    allsongs_show_level_font = (w + h) / 23
     allsongs_show_level_size = root.run_js_code(f"ctx.getTextSize({root.string2sctring_hqm(allsongs_show_level)}, '{allsongs_show_level_font}px pgrFont')")
     
     countPlayData.cache_clear()
