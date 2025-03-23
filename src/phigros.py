@@ -3471,6 +3471,7 @@ def chartPlayerRender(
     challengeMode: bool = False,
     loadingAnimationStartP: float = 0.0,
     loadingAnimationBlackIn: bool = False,
+    showSettlementAnimation: bool = True
 ):
     global raw_audio_length
     global show_start_time
@@ -3815,14 +3816,19 @@ def chartPlayerRender(
                 
                 if break_flag and not stoped:
                     finishPlay = True
-                    phicore.settlementAnimationUserData.userName = getUserData("userdata-userName")
-                    phicore.settlementAnimationUserData.rankingScore = getUserData("userdata-rankingScore")
-                    phicore.settlementAnimationUserData.hasChallengeMode = getPlayDataItem("hasChallengeMode")
-                    phicore.settlementAnimationUserData.challengeModeRank = getPlayDataItem("challengeModeRank")
                     
-                    phicore.initSettlementAnimation(pplm, tool_funcs.gtpresp(getUserData("userdata-userAvatar")))
-                    rendingAnimationSt = time.time()
-                    stoped = True
+                    if not showSettlementAnimation:
+                        if not tonextUI:
+                            tonextUI, tonextUISt = True, time.time()
+                    else:
+                        phicore.settlementAnimationUserData.userName = getUserData("userdata-userName")
+                        phicore.settlementAnimationUserData.rankingScore = getUserData("userdata-rankingScore")
+                        phicore.settlementAnimationUserData.hasChallengeMode = getPlayDataItem("hasChallengeMode")
+                        phicore.settlementAnimationUserData.challengeModeRank = getPlayDataItem("challengeModeRank")
+                        
+                        phicore.initSettlementAnimation(pplm, tool_funcs.gtpresp(getUserData("userdata-userAvatar")))
+                        rendingAnimationSt = time.time()
+                        stoped = True
             else:
                 if rendingAnimation is phicore.lineCloseAimationFrame:
                     if time.time() - rendingAnimationSt <= 0.75:
@@ -4980,7 +4986,8 @@ def loadingTransitionRender(nextUI: typing.Callable[[], typing.Any]):
     respacker.unload(respacker.getnames())
 
 def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, phigame_obj.SongDifficlty]], nextUI: typing.Callable[[], None]):
-    pplmResults = []
+    pplmResults: list[tool_funcs.PhigrosPlayLogicManager] = []
+    level = 0
     
     for song, diff in challengeModeSelections:
         chart_information = {
@@ -5000,15 +5007,45 @@ def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, ph
             playLoadSuccess = False,
             challengeMode = True,
             loadingAnimationStartP = 0.2,
-            loadingAnimationBlackIn = True
+            loadingAnimationBlackIn = True,
+            showSettlementAnimation = False
         )
+        
+        level += int(diff.level)
         
         if not finishPlay:
             return nextUI()
         
         pplmResults.append(pplm)
     
-    print(pplmResults)
+    score = sum(pplm.ppps.getScore() for pplm in pplmResults)
+    
+    if score >= 3000000:
+        challengeMode_level = 5
+    elif score >= 2940000:
+        challengeMode_level = 4
+    elif score >= 2850000:
+        challengeMode_level = 3
+    elif score >= 2700000:
+        challengeMode_level = 2
+    elif score >= 2460000:
+        challengeMode_level = 1
+    else:
+        return nextUI()
+    
+    challengeModeRank = challengeMode_level * 100 + level
+    challengeModeColor = [
+        None, "绿", "蓝", "红", "金", "彩"
+    ][challengeMode_level]
+    
+    if not root.run_js_code(f"confirm({root.string2sctring_hqm(f"本次课题模式成绩为: {challengeModeColor}{level}\n是否覆盖原成绩?")});"):
+        return nextUI()
+    
+    setPlayDataItem("challengeModeRank", challengeModeRank)
+    setPlayDataItem("hasChallengeMode", True)
+    savePlayData(playData)
+    
+    nextUI()
 
 def importArchiveFromPhigros():
     sessionToken: typing.Optional[str] = root.run_js_code(f"prompt({root.string2sctring_hqm("请输入 Phigros 账号的 sessionToken: ")});")

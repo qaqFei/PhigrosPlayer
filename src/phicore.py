@@ -1648,7 +1648,6 @@ def loadingAnimation(
         
         loadingAnimationFrame(p, sec, clear, fcb)
         
-        print(blackIn, real_sec, p)
         if blackIn and real_sec <= 0.75:
             fillRectEx(
                 0, 0, w, h, f"rgba(0, 0, 0, {1.0 - real_sec / 0.75})",
