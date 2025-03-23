@@ -18,7 +18,7 @@ import chartobj_rpe
 import phi_tips
 import dxsound
 import phira_respack
-from dxsmixer import mixer, musicCls
+from dxsmixer import mixer
 from graplib_webview import *
 
 drawUIDefaultKwargs = {
@@ -81,7 +81,6 @@ class PhiCoreConfig:
     chart_image: Image.Image
     
     clickeffect_randomblock_roundn: int
-    LoadSuccess: musicCls
     chart_res: dict[str, tuple[Image.Image, tuple[int, int]]]
     cksmanager: ClickSoundManager
     enable_clicksound: bool = True
@@ -115,7 +114,7 @@ def CoreConfigure(config: PhiCoreConfig):
     global note_max_size_half, audio_length
     global raw_audio_length, show_start_time
     global chart_image
-    global clickeffect_randomblock_roundn, LoadSuccess
+    global clickeffect_randomblock_roundn
     global chart_res, cksmanager
     global enable_clicksound, rtacc, noautoplay
     global showfps
@@ -138,7 +137,6 @@ def CoreConfigure(config: PhiCoreConfig):
     show_start_time = config.show_start_time
     chart_image = config.chart_image
     clickeffect_randomblock_roundn = config.clickeffect_randomblock_roundn
-    LoadSuccess = config.LoadSuccess
     chart_res = config.chart_res
     cksmanager = config.cksmanager
     enable_clicksound = config.enable_clicksound
@@ -1591,7 +1589,7 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     
     root.run_js_wait_code()
 
-def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = lambda: None, font_options: typing.Optional[dict] = None):
+def prepareLoadingAnimation(font_options: typing.Optional[dict] = None):
     global chart_name_text, chart_name_font_text_size
     global chart_artist_text, chart_artist_text_font_size
     global chart_level_number, chart_level_number_font_size
@@ -1604,8 +1602,6 @@ def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = 
     
     if font_options is None:
         font_options = {}
-    
-    animation_time = 4.5
     
     chart_name_text = chart_information["Name"]
     chart_level_number = getLevelNumber()
@@ -1632,9 +1628,15 @@ def loadingAnimation(clear: bool = True, fcb: typing.Callable[[], typing.Any] = 
     
     if len(chart_level_number) == 1:
         chart_level_text_font_size *= 1.35
+
+def loadingAnimation(
+    clear: bool = True,
+    fcb: typing.Callable[[], typing.Any] = lambda: None,
+    font_options: typing.Optional[dict] = None
+):
+    prepareLoadingAnimation(font_options)
     
-    LoadSuccess.play()
-    
+    animation_time = 4.5
     animation_st = time.time()
     while True:
         sec = time.time() - animation_st

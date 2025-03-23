@@ -491,6 +491,7 @@ def playerStart():
     
     Resource["Over"].stop()
     
+    LoadSuccess.play()
     phicore.loadingAnimation()
     phicore.lineOpenAnimation()
 
@@ -731,7 +732,7 @@ def updateCoreConfig():
         raw_audio_length = raw_audio_length, show_start_time = float("nan"),
         chart_image = chart_image,
         clickeffect_randomblock_roundn = clickeffect_randomblock_roundn,
-        LoadSuccess = LoadSuccess, chart_res = chart_res,
+        chart_res = chart_res,
         cksmanager = cksmanager,
         enable_clicksound = enable_clicksound, rtacc = rtacc,
         noautoplay = noautoplay, showfps = showfps,

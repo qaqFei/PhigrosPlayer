@@ -1989,8 +1989,6 @@ def settingRender(backUI: typing.Callable[[], typing.Any] = mainRender):
                     "BackgroundDim": None
                 },
                 blackIn = True,
-                foregroundFrameRender = lambda: None,
-                renderRelaser = lambda: None,
                 nextUI = mainRender
             ), True, time.time()
         
@@ -3461,14 +3459,16 @@ def chartPlayerRender(
     startAnimation: bool,
     chart_information: dict,
     blackIn: bool,
-    foregroundFrameRender: typing.Callable[[], typing.Any],
-    renderRelaser: typing.Callable[[], typing.Any],
-    nextUI: typing.Callable[[], typing.Any],
+    foregroundFrameRender: typing.Callable[[], typing.Any] = lambda: None,
+    renderRelaser: typing.Callable[[], typing.Any] = lambda: None,
+    nextUI: typing.Callable[[], typing.Any] = lambda: None,
     font_options: typing.Optional[dict] = None,
     autoplay: bool = False,
     sid: typing.Optional[str] = None,
     mirror: bool = False,
-    presentationMode: bool = "--presentation-mode" in sys.argv
+    presentationMode: bool = "--presentation-mode" in sys.argv,
+    playLoadSuccess: bool = True,
+    challengeMode: bool = False
 ):
     global raw_audio_length
     global show_start_time
@@ -3524,7 +3524,7 @@ def chartPlayerRender(
             audio_length = audio_length, raw_audio_length = raw_audio_length,
             show_start_time = float("nan"), chart_image = chart_image,
             clickeffect_randomblock_roundn = 0.0,
-            LoadSuccess = LoadSuccess, chart_res = {},
+            chart_res = {},
             cksmanager = cksmanager,
             enable_clicksound = getUserData("setting-enableClickSound"),
             noautoplay = not autoplay, showfps = "--debug" in sys.argv,
@@ -3577,6 +3577,8 @@ def chartPlayerRender(
     phicore.presentationMode = presentationMode
     phicore.FCAPIndicator = getUserData("setting-enableFCAPIndicator")
     if startAnimation:
+        if playLoadSuccess:
+            LoadSuccess.play()
         phicore.loadingAnimation(False, foregroundFrameRender, font_options)
         threadres_loaded.wait()
         phicore.lineOpenAnimation()
@@ -3659,7 +3661,7 @@ def chartPlayerRender(
                 h * 0.5 - pauseUIButtonR / 2,
                 w * 0.5 + pauseUIButtonR / 2,
                 h * 0.5 + pauseUIButtonR / 2
-            )):
+            )) and not challengeMode:
                 eventManager.unregEvent(clickEvent)
                 nextUIBak = nextUI
                 nextUI, tonextUI, tonextUISt = lambda: chartPlayerRender(
@@ -3669,8 +3671,6 @@ def chartPlayerRender(
                     startAnimation = False,
                     chart_information = chart_information,
                     blackIn = True,
-                    foregroundFrameRender = lambda: None,
-                    renderRelaser = lambda: None,
                     nextUI = nextUIBak,
                     autoplay = autoplay,
                     sid = sid,
@@ -3702,8 +3702,6 @@ def chartPlayerRender(
                 startAnimation = False,
                 chart_information = chart_information,
                 blackIn = True,
-                foregroundFrameRender = lambda: None,
-                renderRelaser = lambda: None,
                 nextUI = nextUIBak,
                 autoplay = autoplay,
                 sid = sid,
@@ -3744,19 +3742,19 @@ def chartPlayerRender(
         root.run_js_code(f"mask.style.backdropFilter = 'blur({(w + h) / 100 * pauseBgBlurP}px)';", wait_execute = True)
         
         def _renderPauseUIButtons(p: float, dx: float):
-            def _drawPauseButton(x: float, imname: str, scale: float):
+            def _drawPauseButton(x: float, imname: str, scale: float, alpha: float = 1.0):
                 ims = (w + h) * 0.0275
                 setCtx("dialog_canvas_ctx")
                 drawAlphaImage(
                     imname,
                     x - ims / 2, h / 2 - ims / 2,
                     ims * scale, ims * scale,
-                    1.0 - (1.0 - p) ** 2,
+                    (1.0 - (1.0 - p) ** 2) * alpha,
                     wait_execute = True
                 )
                 setCtx("ctx")
             _drawPauseButton(w * 0.5 - w * 0.1109375 + dx, "PUIBack", 1.0)
-            _drawPauseButton(w * 0.5 + dx, "PUIRetry", 1.0)
+            _drawPauseButton(w * 0.5 + dx, "PUIRetry", 1.0, 1.0 if not challengeMode else 0.5)
             _drawPauseButton(w * 0.5 + w * 0.1109375 + dx, "PUIResume", 0.95)
             
         root.run_js_code(f"dialog_canvas_ctx.clear();", wait_execute = True)
@@ -3893,6 +3891,8 @@ def chartPlayerRender(
     phicore.initGlobalSettings()
     cksmanager.stop()
     respacker.unload(respacker.getnames())
+    
+    return pplm
 
 def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool = False):
     illrespacker = webcv.LazyPILResPacker(root)
@@ -3911,6 +3911,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
     eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseControler.scter_mousemove))
     
     chooseState.change_diff_callback = lambda: (chooseControler.set_level_callback(), resort(), setUserData("internal-lastDiffIndex", chooseState.diff_index))
+    startButtonAlpha = phigame_obj.valueTranformer(rpe_easing.ease_funcs[0], 0.2)
+    startButtonAlpha.target = 1.0 if not isChallengeMode else 0.5
     
     chooseChartRenderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
@@ -4507,8 +4509,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
             if tool_funcs.indrect(x, y, rect, tool_funcs.getDPower(*tool_funcs.getSizeByRect(rect), 75)):
                 chooseState.change_diff_byuser(i)
         
-        # 开始
-        if tool_funcs.indrect(x, y, playButtonRect, tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)):
+        # 开始 - 普通模式
+        if tool_funcs.indrect(x, y, playButtonRect, tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)) and not isChallengeMode:
             unregEvents()
             
             song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
@@ -4544,6 +4546,13 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                 mirror = chooseState.is_mirror
             )
         
+        # 开始 - 课题模式
+        if tool_funcs.indrect(x, y, playButtonRect, tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)) and isChallengeMode and len(chooseControler.challengeModeSelections) == 3:
+            unregEvents()
+            LoadSuccess.play()
+            nextUI = lambda: challengeModeRender(chooseControler.challengeModeSelections, lambda: chooseChartRender(chapter_item, isChallengeMode))
+            tonextUI, tonextUISt = True, time.time()
+        
         # 展开/关闭 用户头像名称rks
         if tool_funcs.inrect(x, y, avatar_rect):
             ud_popuper.change()
@@ -4561,6 +4570,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
             chooseControler.challengeModeSelections.append((song, diff))
             Resource["UISound_2"].play()
             chooseControler.challenge_mode_select_change_callback()
+            startButtonAlpha.target = 1.0 if len(chooseControler.challengeModeSelections) == 3 else 0.5
 
         # 课题模式 - UNDO
         if tool_funcs.inrect(x, y, undoAreaRect) and isChallengeMode:
@@ -4663,7 +4673,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                 f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, playButtonRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)},\
-                    'rgb(255, 255, 255)'\
+                    'rgba(255, 255, 255, {startButtonAlpha.target})'\
                 );",
                 wait_execute = True
             )
@@ -4963,7 +4973,31 @@ def loadingTransitionRender(nextUI: typing.Callable[[], typing.Any]):
         root.run_js_wait_code()
     
     respacker.unload(respacker.getnames())
+
+def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, phigame_obj.SongDifficlty]], nextUI: typing.Callable[[], None]):
+    pplmResults = []
     
+    for song, diff in challengeModeSelections:
+        chart_information = {
+            "Name": song.name,
+            "Artist": song.composer,
+            "Level": f"{diff.name}  Lv.{diff.strdiffnum}",
+            "Illustrator": song.iller,
+            "Charter": diff.charter,
+            "BackgroundDim": None
+        }
+        pplmResults.append(chartPlayerRender(
+            chartAudio = tool_funcs.gtpresp(diff.chart_audio),
+            chartImage = tool_funcs.gtpresp(diff.chart_image),
+            chartFile = tool_funcs.gtpresp(diff.chart_file),
+            startAnimation = True,
+            chart_information = chart_information,
+            blackIn = True,
+            challengeMode = True
+        ))
+    
+    print(pplmResults)
+
 def importArchiveFromPhigros():
     sessionToken: typing.Optional[str] = root.run_js_code(f"prompt({root.string2sctring_hqm("请输入 Phigros 账号的 sessionToken: ")});")
     if sessionToken is None:
