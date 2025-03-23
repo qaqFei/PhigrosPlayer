@@ -17,3 +17,5 @@ ffmpeg.exe
 ffprobe.exe
 
 need-ignore-*
+
+imgui.ini
