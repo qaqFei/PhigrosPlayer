@@ -4233,6 +4233,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         )):
             chooseState.sort_reverse = not chooseState.sort_reverse
             resort()
+            Resource["UISound_5"].play()
         
         # 下一个排序方法
         if tool_funcs.inrect(x, y, (
@@ -4241,6 +4242,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter):
         )):
             chooseState.next_sort_method()
             resort()
+            Resource["UISound_5"].play()
         
         # 镜像
         if tool_funcs.inrect(x, y, mirrorButtonRect):
