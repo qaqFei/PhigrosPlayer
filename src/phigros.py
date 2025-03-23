@@ -5038,12 +5038,10 @@ def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, ph
         None, "绿", "蓝", "红", "金", "彩"
     ][challengeMode_level]
     
-    if not root.run_js_code(f"confirm({root.string2sctring_hqm(f"本次课题模式成绩为: {challengeModeColor}{level}\n是否覆盖原成绩?")});"):
-        return nextUI()
-    
-    setPlayDataItem("challengeModeRank", challengeModeRank)
-    setPlayDataItem("hasChallengeMode", True)
-    savePlayData(playData)
+    if root.run_js_code(f"confirm({root.string2sctring_hqm(f"本次课题模式成绩为: {challengeModeColor}{level}\n是否覆盖原成绩?")});"):
+        setPlayDataItem("challengeModeRank", challengeModeRank)
+        setPlayDataItem("hasChallengeMode", True)
+        savePlayData(playData)
     
     nextUI()
 
