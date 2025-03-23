@@ -2,15 +2,15 @@ import fix_workpath as _
 
 import os
 import sys
-import ctypes
 import glfw
 import imgui
 import threading
-import subprocess
 from imgui.integrations.glfw import GlfwRenderer
 from os import popen
 from os.path import exists, isfile, isdir
 from sys import executable
+
+from const import PPR_CMDARGS
 
 if exists("./main.py") and isfile("./main.py"):
     target_path = f"\"PhigrosPlayer\" \"{executable}\" ./main.py"
@@ -19,61 +19,6 @@ elif exists("./main.exe") and isfile("./main.exe"):
 else:
     print("Can't find main.py or main.exe.")
     raise SystemExit
-
-# Setup argument settings
-arg_setting = [
-    ("调试", "debug"),
-    ("全屏", "fullscreen"),
-    ("自动循环", "loop"),
-    ("禁用点击音效", "noclicksound"),
-    ("扩展渲染范围", "render-range-more"),
-    ("窗口无边框", "frameless"),
-    ("禁用自动游玩", "noautoplay"),
-    ("启用实时准度", "rtacc"),
-    ("低画质模式", "lowquality"),
-    ("显示帧率", "showfps"),
-    ("不播放谱面, 立即结算", "noplaychart"),
-    ("启用rpe谱面control类字段", "rpe-control", "有极大的性能开销"),
-    ("替换文本为中文 (wl)", "wl-more-chinese"),
-    ("使用 raf 限制帧率", "renderdemand"),
-    ("异步渲染", "renderasync"),
-    ("保留渲染的 JavaScript 代码", "enable-jslog"),
-    ("启用 BitmapImage", "enable-jscanvas-bitmap"),
-    ("降级音频API", "soundapi-downgrade"),
-    ("不清理临时文件", "nocleartemp"),
-    ("脱离 WebView", "disengage-webview"),
-    ("禁用 localhost 作为内置服务器地址", "nolocalhost"),
-    ("使用 16:9 的比例", "usu169"),
-    ("渲染视频", "render-video"),
-    ("渲染视频后自动退出", "render-video-autoexit"),
-]
-
-kwarg_setting = [
-    ("连击提示文本", "combotips", "AUTOPLAY", "string"),
-    ("打击特效随机块数量", "random-block-num", 4, "int"),
-    ("设置音符缩放", "scale-note", 1.0, "float"),
-    ("设置窗口大小 (如: \"1920 1080\")", "size", None, "string-nowarp"),
-    ("设置渲染范围更多的缩放", "render-range-more-scale", 2.0, "float"),
-    ("设置窗口宿主 (hwnd)", "window-host", None, "int"),
-    ("设置低画质渲染缩放", "lowquality-scale", 2.0, "float"),
-    ("设置资源路径", "res", None, "path-dir"),
-    ("设置谱面速度", "speed", 1.0, "float"),
-    ("设置打击特效方块的圆角系数", "clickeffect-randomblock-roundn", 0.0, "float"),
-    ("设置打击音效音量", "clicksound-volume", 1.0, "float"),
-    ("设置音乐音量", "musicsound-volume", 1.0, "float"),
-    ("设置低画质渲染缩放 (js调用层)", "lowquality-imjscvscale-x", 1.0, "float"),
-    ("使用 phira 谱面 (id)", "phira-chart", None, "int"),
-    ("保存 phira 谱面路径", "phira-chart-save", None, "path"),
-    ("播放时跳过的时间", "skip-time", 0.0, "float"),
-    ("设置 渲染JavaScript 代码输出路径", "jslog-path", None, "path"),
-    ("设置低画质渲染最大尺寸 (js调用层)", "lowquality-imjs-maxsize", 256, "int"),
-    ("设置 rpe 谱面纹理缩放方法", "rpe-texture-scalemethod", "by-width", "choice", ["by-width", "by-height"]),
-    ("扩展", "extended", None, "path"),
-    ("设置渲染视频的帧率", "render-video-fps", 60.0, "float"),
-    ("设置生成视频编码", "render-video-fourcc", "mp4v", "string"),
-    ("设置渲染视频的保存路径", "render-video-savefp", None, "path"),
-    ("手动指定 rpe 谱面版本", "rpeversion", None, "int"),
-]
 
 class PhigrosLauncher:
     def __init__(self):
@@ -126,11 +71,7 @@ class PhigrosLauncher:
         except Exception as e:
             print(f"Failed to load font: {e}")
 
-        
-
-
         self.impl = GlfwRenderer(self.window)
-
         
         # Configure style
         style = imgui.get_style()
@@ -139,15 +80,13 @@ class PhigrosLauncher:
         style.colors[imgui.COLOR_HEADER_ACTIVE] = (0.3, 0.4, 0.7, 1.0)
         style.frame_rounding = 4.0
 
-
-
         # Application state
         self.chart_file = ""
-        self.arg_values = [False] * len(arg_setting)
-        self.kwarg_values = [""] * len(kwarg_setting)
+        self.arg_values = [False] * len(PPR_CMDARGS["args"])
+        self.kwarg_values = [""] * len(PPR_CMDARGS["kwargs"])
         
         # Initialize default values
-        for i, setting in enumerate(kwarg_setting):
+        for i, setting in enumerate(PPR_CMDARGS["kwargs"]):
             if setting[2] is not None:
                 self.kwarg_values[i] = str(setting[2])
         
@@ -195,12 +134,12 @@ class PhigrosLauncher:
         launch_args.append(self.chart_file)
         
         # Add boolean args
-        for i, arg in enumerate(arg_setting):
+        for i, arg in enumerate(PPR_CMDARGS["args"]):
             if self.arg_values[i]:
                 launch_args.append(f"--{arg[1]}")
         
         # Add keyword args
-        for i, (setting, value) in enumerate(zip(kwarg_setting, self.kwarg_values)):
+        for i, (setting, value) in enumerate(zip(PPR_CMDARGS["kwargs"], self.kwarg_values)):
             if not value:
                 continue
             
@@ -303,11 +242,11 @@ class PhigrosLauncher:
                     cols = 2
                     imgui.columns(cols)
                     
-                    for i, arg in enumerate(arg_setting):
+                    for i, arg in enumerate(PPR_CMDARGS["args"]):
                         changed, self.arg_values[i] = imgui.checkbox(f"{arg[0]}##arg{i}", self.arg_values[i])
                         
                         # Go to next column after half the items
-                        if (i + 1) % (len(arg_setting) // cols + 1) == 0:
+                        if (i + 1) % (len(PPR_CMDARGS["args"]) // cols + 1) == 0:
                             imgui.next_column()
                     
                     imgui.columns(1)
@@ -322,7 +261,7 @@ class PhigrosLauncher:
                     browse_button_width = 60
                     right_margin = browse_button_width + input_width + 40  # 200px margin from the right edge
                     
-                    for i, kwarg in enumerate(kwarg_setting):
+                    for i, kwarg in enumerate(PPR_CMDARGS["kwargs"]):
                         imgui.push_id(str(i))
                         
                         # Display the label with left alignment
