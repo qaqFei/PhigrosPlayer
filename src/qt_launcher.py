@@ -1,3 +1,5 @@
+# PyQt-Fluent-Widgets==1.7.1
+
 import os
 import sys
 import subprocess

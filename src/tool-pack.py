@@ -33,6 +33,7 @@ compile_files = [
         x.startswith("tool-")
         and x.endswith(".py")
         and x not in ("tool-pack.py", "tool-create-innosetup-config.py")
+        and x not in ("qt_launcher.py", "imgui_launcher.py")
     ), listdir())))
 ]
 res_files = [

@@ -1,3 +1,5 @@
+# glfw>=2.6.2 imgui>=2.0.0
+
 import fix_workpath as _
 
 import os
