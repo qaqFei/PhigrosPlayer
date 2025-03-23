@@ -39,6 +39,10 @@ def initGlobalSettings():
 
 initGlobalSettings()
 
+# set in phigros.py
+MirrorIconWidth: int
+MirrorIconHeight: int
+
 class settlementAnimationUserData:
     # every instance share those variables
     avatar: typing.Optional[Image.Image] = None
@@ -1557,16 +1561,28 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
     baimg_x1 = w * 0.9453125
     baimg_y1 = h * (733 / 1080)
     baimg_y0 = h * (219 / 1080)
-    dpower = tool_funcs.getDPower(baimg_x1 - baimg_x0, baimg_y1 - baimg_y0, 75)
+    baimg_dpower = tool_funcs.getDPower(baimg_x1 - baimg_x0, baimg_y1 - baimg_y0, 75)
     root.run_js_code(
         f"ctx.drawDiagonalRectangleClipImageOnlyHeight(\
             {baimg_x0}, {baimg_y0},\
             {baimg_x1}, {baimg_y1},\
             {root.get_img_jsvarname("chart_image")},\
-            {baimg_y1 - baimg_y0}, {dpower}, 1.0\
+            {baimg_y1 - baimg_y0}, {baimg_dpower}, 1.0\
         );",
         wait_execute = True
     )
+    
+    if enableMirror:
+        mirrorIconLeft = (
+            baimg_x0 + (baimg_x1 - baimg_x0) * baimg_dpower
+        ) - const.MIRROR_ICON_LEFT * MirrorIconWidth
+        
+        drawImage(
+            "mirror",
+            mirrorIconLeft, baimg_y0,
+            MirrorIconWidth, MirrorIconHeight,
+            wait_execute = True
+        )
     
     root.run_js_code(
         f"ctx.translate(-{all_ease_value * w},0.0);",

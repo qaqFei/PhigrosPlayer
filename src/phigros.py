@@ -436,6 +436,9 @@ def loadResource():
     MirrorIconWidth = w * 0.108925
     MirrorIconHeight = MirrorIconWidth / Resource["mirror"].width * Resource["mirror"].height
     
+    phicore.MirrorIconWidth = MirrorIconWidth
+    phicore.MirrorIconHeight = MirrorIconHeight
+    
     for k, v in Resource["levels"].items():
         respacker.reg_img(v, f"Level_{k}")
     
