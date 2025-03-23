@@ -53,7 +53,6 @@ if not exists("./phigros_assets") or not all([
     system("pause")
     raise SystemExit
 
-phicore.enableWatermark = False
 tempdir.clearTempDir()
 temp_dir = tempdir.createTempDir()
 
@@ -3677,7 +3676,9 @@ def chartPlayerRender(
     stoped = False
     paused, pauseAnimationSt, pauseSt = False, 0.0, float("nan")
     phicore.enableMirror = mirror
+    phicore.enableWatermark = False
     phicore.presentationMode = presentationMode
+    phicore.FCAPIndicator = getUserData("setting-enableFCAPIndicator")
     mixer.music.play()
     
     while True:
@@ -3833,8 +3834,7 @@ def chartPlayerRender(
         pplm.unbind_events(root)
         
     root.run_js_code("window.removeEventListener('keydown', _SpaceClicked);")
-    phicore.enableMirror = False
-    phicore.presentationMode = False
+    phicore.initGlobalSettings()
     cksmanager.stop()
     respacker.unload(respacker.getnames())
 

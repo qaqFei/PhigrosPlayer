@@ -27,9 +27,17 @@ drawUIDefaultKwargs = {
     for k2, v in (("dx", 0.0), ("dy", 0.0), ("scaleX", 1.0), ("scaleY", 1.0), ("color", "rgba(255, 255, 255, 1.0)"))
 }
 mainFramerateCalculator = tool_funcs.FramerateCalculator()
-enableMirror = False
-enableWatermark = True
-presentationMode = False
+
+def initGlobalSettings():
+    global enableMirror, enableWatermark
+    global presentationMode, FCAPIndicator
+    
+    enableMirror = False
+    enableWatermark = True
+    presentationMode = False
+    FCAPIndicator = True
+
+initGlobalSettings()
 
 class settlementAnimationUserData:
     # every instance share those variables
@@ -574,7 +582,7 @@ def renderChart_Phi(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
             *tool_funcs.rotate_point(*linePos, lineRotate, h * 5.76 / 2),
             *tool_funcs.rotate_point(*linePos, lineRotate + 180, h * 5.76 / 2)
         )
-        lineColor = (*(phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()), lineAlpha)
+        lineColor = (*((phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()) if FCAPIndicator else (255, 255, 255)), lineAlpha)
         lineWebColor = f"rgba{lineColor}"
         
         if (lineColor[-1] > 0.0 and tool_funcs.lineInScreen(w, h, lineDrawPos)) or debug:
@@ -926,7 +934,7 @@ def renderChart_Rpe(now_t: float, clear: bool = True, rjc: bool = True, pplm: ty
         pplm.mob_update(now_t)
         pplm.pc_update(now_t)
     
-    nowLineColor = phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()
+    nowLineColor = (phira_respack.globalPack.perfectRGB if not noautoplay else pplm.ppps.getLineColor()) if FCAPIndicator else (255, 255, 255)
     normalBeatTime = chart_obj.sec2beat(now_t, 1.0)
     
     for line in chart_obj.sortedLines:
