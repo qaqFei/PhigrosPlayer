@@ -3458,7 +3458,7 @@ def chartPlayerRender(
     chartFile: str,
     startAnimation: bool,
     chart_information: dict,
-    blackIn: bool,
+    blackIn: bool = False,
     foregroundFrameRender: typing.Callable[[], typing.Any] = lambda: None,
     renderRelaser: typing.Callable[[], typing.Any] = lambda: None,
     nextUI: typing.Callable[[], typing.Any] = lambda: None,
@@ -3468,7 +3468,8 @@ def chartPlayerRender(
     mirror: bool = False,
     presentationMode: bool = "--presentation-mode" in sys.argv,
     playLoadSuccess: bool = True,
-    challengeMode: bool = False
+    challengeMode: bool = False,
+    loadingAnimationStartP: float = 0.0,
 ):
     global raw_audio_length
     global show_start_time
@@ -3579,7 +3580,7 @@ def chartPlayerRender(
     if startAnimation:
         if playLoadSuccess:
             LoadSuccess.play()
-        phicore.loadingAnimation(False, foregroundFrameRender, font_options)
+        phicore.loadingAnimation(False, foregroundFrameRender, font_options, loadingAnimationStartP)
         threadres_loaded.wait()
         phicore.lineOpenAnimation()
     else:
@@ -3674,7 +3675,8 @@ def chartPlayerRender(
                     nextUI = nextUIBak,
                     autoplay = autoplay,
                     sid = sid,
-                    mirror = mirror
+                    mirror = mirror,
+                    loadingAnimationStartP = loadingAnimationStartP
                 ), True, time.time()
                 
             elif paused and tool_funcs.inrect(x, y, (
@@ -4531,7 +4533,6 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                 chartFile = tool_funcs.gtpresp(diff.chart_file),
                 startAnimation = True,
                 chart_information = chart_information,
-                blackIn = False,
                 foregroundFrameRender = lambda: _render(False),
                 renderRelaser = _release_illu,
                 nextUI = lambda: chooseChartRender(chapter_item, isChallengeMode),
@@ -4992,8 +4993,9 @@ def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, ph
             chartFile = tool_funcs.gtpresp(diff.chart_file),
             startAnimation = True,
             chart_information = chart_information,
-            blackIn = True,
-            challengeMode = True
+            playLoadSuccess = False,
+            challengeMode = True,
+            loadingAnimationStartP = 0.2
         ))
     
     print(pplmResults)

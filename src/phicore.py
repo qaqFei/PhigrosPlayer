@@ -1632,12 +1632,13 @@ def prepareLoadingAnimation(font_options: typing.Optional[dict] = None):
 def loadingAnimation(
     clear: bool = True,
     fcb: typing.Callable[[], typing.Any] = lambda: None,
-    font_options: typing.Optional[dict] = None
+    font_options: typing.Optional[dict] = None,
+    start_p: float = 0.0
 ):
     prepareLoadingAnimation(font_options)
     
     animation_time = 4.5
-    animation_st = time.time()
+    animation_st = time.time() - start_p * animation_time
     while True:
         sec = time.time() - animation_st
         p = sec / animation_time
