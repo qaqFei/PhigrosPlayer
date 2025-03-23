@@ -1680,11 +1680,13 @@ def lineOpenAnimation(fcb: typing.Callable[[], typing.Any] = lambda: None):
         fcb()
         val = rpe_easing.ease_funcs[12](p)
         
+        clearCanvas(wait_execute=True)
         drawBg()
         if enableMirror:
             root.run_js_code("ctx.mirror();", wait_execute=True)
             
         draw_ui(
+            clear = False,
             background = False,
             animationing = True,
             dy = h / 7 * val
