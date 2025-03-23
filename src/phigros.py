@@ -3470,6 +3470,7 @@ def chartPlayerRender(
     playLoadSuccess: bool = True,
     challengeMode: bool = False,
     loadingAnimationStartP: float = 0.0,
+    loadingAnimationBlackIn: bool = False,
 ):
     global raw_audio_length
     global show_start_time
@@ -3580,7 +3581,7 @@ def chartPlayerRender(
     if startAnimation:
         if playLoadSuccess:
             LoadSuccess.play()
-        phicore.loadingAnimation(False, foregroundFrameRender, font_options, loadingAnimationStartP)
+        phicore.loadingAnimation(False, foregroundFrameRender, font_options, loadingAnimationStartP, loadingAnimationBlackIn)
         threadres_loaded.wait()
         phicore.lineOpenAnimation()
     else:
@@ -3616,7 +3617,8 @@ def chartPlayerRender(
             pplm.pc_click(-1, "z")
     else:
         pplm = None
-        
+    
+    finishPlay = False
     show_start_time = time.time()
     _doCoreConfig()
     
@@ -3812,6 +3814,7 @@ def chartPlayerRender(
                 break_flag = phicore.processExTask(extasks)
                 
                 if break_flag and not stoped:
+                    finishPlay = True
                     phicore.settlementAnimationUserData.userName = getUserData("userdata-userName")
                     phicore.settlementAnimationUserData.rankingScore = getUserData("userdata-rankingScore")
                     phicore.settlementAnimationUserData.hasChallengeMode = getPlayDataItem("hasChallengeMode")
@@ -3894,7 +3897,7 @@ def chartPlayerRender(
     cksmanager.stop()
     respacker.unload(respacker.getnames())
     
-    return pplm
+    return pplm, finishPlay
 
 def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool = False):
     illrespacker = webcv.LazyPILResPacker(root)
@@ -3913,7 +3916,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
     eventManager.regMoveEvent(phigame_obj.MoveEvent(chooseControler.scter_mousemove))
     
     chooseState.change_diff_callback = lambda: (chooseControler.set_level_callback(), resort(), setUserData("internal-lastDiffIndex", chooseState.diff_index))
-    startButtonAlpha = phigame_obj.valueTranformer(rpe_easing.ease_funcs[0], 0.2)
+    startButtonAlpha = phigame_obj.valueTranformer(rpe_easing.ease_funcs[0])
     startButtonAlpha.target = 1.0 if not isChallengeMode else 0.5
     
     chooseChartRenderSt = time.time()
@@ -4581,6 +4584,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
             chooseControler.challengeModeSelections.pop()
             Resource["UISound_2"].play()
             chooseControler.challenge_mode_select_change_callback()
+            startButtonAlpha.target = 1.0 if len(chooseControler.challengeModeSelections) == 3 else 0.5
             
     clickEvent = eventManager.regClickEventFs(clickEventCallback, False)
     
@@ -4987,7 +4991,7 @@ def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, ph
             "Charter": diff.charter,
             "BackgroundDim": None
         }
-        pplmResults.append(chartPlayerRender(
+        pplm, finishPlay = chartPlayerRender(
             chartAudio = tool_funcs.gtpresp(diff.chart_audio),
             chartImage = tool_funcs.gtpresp(diff.chart_image),
             chartFile = tool_funcs.gtpresp(diff.chart_file),
@@ -4995,8 +4999,14 @@ def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, ph
             chart_information = chart_information,
             playLoadSuccess = False,
             challengeMode = True,
-            loadingAnimationStartP = 0.2
-        ))
+            loadingAnimationStartP = 0.2,
+            loadingAnimationBlackIn = True
+        )
+        
+        if not finishPlay:
+            return nextUI()
+        
+        pplmResults.append(pplm)
     
     print(pplmResults)
 

@@ -1586,8 +1586,6 @@ def loadingAnimationFrame(p: float, sec: float, clear: bool = True, fcb: typing.
         f"ctx.translate(-{all_ease_value * w},0.0);",
         wait_execute = True
     )
-    
-    root.run_js_wait_code()
 
 def prepareLoadingAnimation(font_options: typing.Optional[dict] = None):
     global chart_name_text, chart_name_font_text_size
@@ -1633,7 +1631,8 @@ def loadingAnimation(
     clear: bool = True,
     fcb: typing.Callable[[], typing.Any] = lambda: None,
     font_options: typing.Optional[dict] = None,
-    start_p: float = 0.0
+    start_p: float = 0.0,
+    blackIn: bool = False
 ):
     prepareLoadingAnimation(font_options)
     
@@ -1641,11 +1640,22 @@ def loadingAnimation(
     animation_st = time.time() - start_p * animation_time
     while True:
         sec = time.time() - animation_st
+        real_sec = sec - start_p * animation_time
         p = sec / animation_time
+        
         if p > 1.0:
             break
         
         loadingAnimationFrame(p, sec, clear, fcb)
+        
+        print(blackIn, real_sec, p)
+        if blackIn and real_sec <= 0.75:
+            fillRectEx(
+                0, 0, w, h, f"rgba(0, 0, 0, {1.0 - real_sec / 0.75})",
+                wait_execute = True
+            )
+    
+        root.run_js_wait_code()
         
 def lineOpenAnimation(fcb: typing.Callable[[], typing.Any] = lambda: None):
     csat = 1.25
