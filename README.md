@@ -3,6 +3,10 @@
 ![MIT License](https://img.shields.io/badge/license-MIT-yellow)
 ![Language](https://img.shields.io/badge/language-python-brightgreen)
 
+> (1) 本项目是一款仿制作品，原作为Pigeon Games 鸽游创作的《Phigros》。
+>
+> (2) 本项目仅为研究学习目的，不可商业使用、违法使用。
+
 ## 简单的部分功能介绍
 
 - `main.py`: 谱面模拟器
@@ -181,11 +185,7 @@ python phigros.py
     - [x] colorPerfect
     - [x] colorGood
 
-## 声明
-
-- 此项目仅用于学习交流, 请勿用于商业用途
-
-### 鸣谢
+## 鸣谢
 
 - [7z](https://github.com/ip7z/7zip)
 - [libogg](https://github.com/gcp/libogg)
