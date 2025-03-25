@@ -190,7 +190,7 @@ pgr_builtin_tips = [
 ]
 
 ppr_extended_tips = [
-    "https://github.com/qaqFei/PhigrosPlayer",
+    "https://github.com/qaqFei/phispler",
     "你知道吗, float('nan') != float('nan') 哦",
     "本项目是使用MIT协议开源的哦!",
     "(╯‵□′)╯",

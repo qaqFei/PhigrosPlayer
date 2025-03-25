@@ -192,7 +192,7 @@ FLOAT_LESSZERO_MAGIC = -1 / 1024
 CSOUND_MANAGER_THREADNUM = 1
 INFBEAT = 1e9
 ALL_LETTER = "qwertyuiopasdfghjklzxcvbnm"
-REPO_URL = "https://github.com/qaqFei/PhigrosPlayer"
+REPO_URL = "https://github.com/qaqFei/phispler"
 BASE_PORT = 16384
 MAX_PORT = 65535
 PGR_INF = 999999.0
@@ -337,9 +337,9 @@ Ctymax
 “主要负责了版权商务相关大大小小的事宜，尽可能为玩家们搜罗来优质的音乐与美术作品。希望大家喜欢！”
 
 --------------------------------
-关于PhigrosPlayer项目 (https://github.com/qaqFei/PhigrosPlayer),
+关于 phispler 项目 (https://github.com/qaqFei/phispler),
 
-PhigrosPlayer 使用MIT协议进行开源喵！！
+phispler 使用MIT协议进行开源喵！！
 ( MIT 万岁 ！！！
 
 鸣谢

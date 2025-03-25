@@ -68,9 +68,9 @@ Filename: "{app}\\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange
 
 replacedict = {
     "AppId": open("./Inno_AppId.txt", "r", encoding="utf-8").read(),
-    "AppName": "PhigrosPlayer",
+    "AppName": "phispler",
     "AppVersion": argv[1],
-    "AppURL": "https://github.com/qaqFei/PhigrosPlayer",
+    "AppURL": "https://github.com/qaqFei/phispler",
     "AppExeName": argv[3],
     "AppAssocExeName": argv[4],
     "AppAssocName": "Phigros Re:PhiEdit 谱面文件",

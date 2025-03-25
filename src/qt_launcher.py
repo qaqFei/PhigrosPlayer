@@ -76,7 +76,7 @@ class Ui_command_box(MessageBoxBase):
 
 class MainWindow(FluentWindow):
     def openrespository(self):
-        url = "https://github.com/qaqfei/PhigrosPlayer"
+        url = "https://github.com/qaqfei/phispler"
         QDesktopServices.openUrl(QUrl(url))
         
     def initWindow(self):
@@ -204,7 +204,7 @@ class SettingsWindow(QWidget):
         return command
 
     def openrespository(self):
-        url = "https://github.com/qaqfei/PhigrosPlayer"
+        url = "https://github.com/qaqfei/phispler"
         QDesktopServices.openUrl(QUrl(url))
 
     def setupUi(self, MainWindow):

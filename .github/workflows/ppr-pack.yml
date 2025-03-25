@@ -1,4 +1,4 @@
-name: PhigrosPlayer Auto Build
+name: phispler Auto Build
 
 on:
   workflow_dispatch:

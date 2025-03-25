@@ -1,4 +1,4 @@
-# PhigrosPlayer
+# phispler
 
 ![MIT License](https://img.shields.io/badge/license-MIT-yellow)
 ![Language](https://img.shields.io/badge/language-python-brightgreen)
@@ -26,20 +26,20 @@
 - Windows
 
 ```batch
-git clone https://github.com/qaqFei/PhigrosPlayer
-cd PhigrosPlayer\src
+git clone https://github.com/qaqFei/phispler
+cd phispler\src
 pip install -r requirements.txt
 python main.py <chart> [args] [kwargs]
 ```
 
-- Termux (运行 `main.py` 后访问 `https://qaqfei.github.io/PhigrosPlayer/src/web_canvas.html` 并触发 `touchstart` 连接 `127.0.0.1` 即可)
+- Termux (运行 `main.py` 后访问 `https://qaqfei.github.io/phispler/src/web_canvas.html` 并触发 `touchstart` 连接 `127.0.0.1` 即可)
 
 ```bash
-curl https://qaqfei.github.io/PhigrosPlayer/src/termux_install.sh -o install.sh
+curl https://qaqfei.github.io/phispler/src/termux_install.sh -o install.sh
 chmod 777 install.sh
 ./install.sh
 
-cd PhigrosPlayer/src
+cd phispler/src
 python main.py <chart> --disengage-webview [args] [kwargs]
 ```
 
@@ -52,7 +52,7 @@ python main.py <chart> --disengage-webview [args] [kwargs]
   > canvas2d又小众，什么跑网页跑JavaScript的nodejs, Chromium, edgeruntime全溜去桌面端。
   > 仅有的几个支持安卓的项目，配上python高低得打一架
   > 开发python+android+web的是这个
-  > ![/xiyangyang-goooooood](https://qaqfei.github.io/PhigrosPlayer/readme-res/xiyangyang-goooooood.jpg)
+  > ![/xiyangyang-goooooood](https://qaqfei.github.io/phispler/readme-res/xiyangyang-goooooood.jpg)
 </details>
 
 ## 使用 `phigros.py`

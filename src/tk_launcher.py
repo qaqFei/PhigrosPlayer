@@ -12,7 +12,7 @@ from sys import executable
 from const import PPR_CMDARGS
 
 if exists("./main.py") and isfile("./main.py"):
-    target_path = f"\"PhigrosPlayer\" \"{executable}\" ./main.py"
+    target_path = f"\"phispler\" \"{executable}\" ./main.py"
 elif exists("./main.exe") and isfile("./main.exe"):
     target_path = "./main.exe"
 else:

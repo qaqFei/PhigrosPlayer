@@ -481,7 +481,7 @@ def draw_ui(
         } if showfps else None,
         {
             "type": "text",
-            "text": "PhigrosPlayer - by qaqFei - github.com/qaqFei/PhigrosPlayer - MIT License",
+            "text": "phispler - by qaqFei - github.com/qaqFei/phispler - MIT License",
             "fontsize": (w + h) / 275 / 0.75,
             "textBaseline": "bottom", "textAlign": "center",
             "x": w * 0.5, "y": h * 0.99,
