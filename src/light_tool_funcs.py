@@ -233,8 +233,10 @@ def compute_intersection(
         return x0, y0
 
 def getDPower(width: float, height: float, deg: float):
+    if width == 0.0: return 1.0
     sw = height / math.tan(math.radians(deg))
     return sw / width
+    
     l1 = 0, 0, width, 0
     l2 = 0, height, *rotate_point(0, height, deg, (width ** 2 + height ** 2) ** 0.5)
     try:
