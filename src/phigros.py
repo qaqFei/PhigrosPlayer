@@ -606,9 +606,10 @@ def getChapterToNextWidth(p: float):
     return w * (295 / 1920) + (w * 0.5 - w * (295 / 1920)) * p
 
 def getChapterRect(dx: float, chapterWidth: float):
+    pady = 140 / 1920 * w
     return (
-        dx, h * (140 / 1080),
-        dx + chapterWidth, h * (1.0 - 140 / 1080)
+        dx, pady,
+        dx + chapterWidth, h - pady
     )
 
 intoChallengeModeButtonRect = const.EMPTY_RECT
