@@ -306,6 +306,7 @@ def drawDeepBgAndClipScreen():
     outOfTransformDrawCoverFullscreenChartBackgroundImage("background_blur", wait_execute=True)
     
     ctxSave(wait_execute=True)
+    ctxBeginPath(wait_execute=True)
     ctxRect(0, 0, w, h, wait_execute=True)
     ctxClip(wait_execute=True)
 
