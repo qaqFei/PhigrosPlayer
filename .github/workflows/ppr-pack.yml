@@ -1,4 +1,4 @@
-name: phispler Auto Build
+name: phispler auto build
 
 on:
   workflow_dispatch:
