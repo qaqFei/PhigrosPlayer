@@ -158,7 +158,7 @@ def countPlayData(chapter: phigame_obj.Chapter, key: str):
     diffindex = getUserData("internal-lastDiffIndex")
     count = 0
     for song in chapter.songs:
-        diff = song.difficlty[min(diffindex, len(song.difficlty) - 1)]
+        diff = song.difficulty[min(diffindex, len(song.difficulty) - 1)]
         if const.PGR_LEVEL_INTMAP[findPlayDataBySid(diff.unqique_id())["level"]] >= const.PGR_LEVEL_INTMAP[key]:
             count += 1
     return count
@@ -237,8 +237,8 @@ def loadChapters():
                         preview_start = song["preview_start"],
                         preview_end = song["preview_end"],
                         import_archive_alias = song.get("import_archive_alias", None),
-                        difficlty = [
-                            phigame_obj.SongDifficlty(
+                        difficulty = [
+                            phigame_obj.SongDifficulty(
                                 name = diff["name"],
                                 level = diff["level"],
                                 chart_audio = diff["chart_audio"],
@@ -259,7 +259,7 @@ def loadChapters():
     
     for chapter in Chapters.items:
         for song in chapter.songs:
-            for diff in song.difficlty:
+            for diff in song.difficulty:
                 initPlayDataItem(diff.unqique_id())
     
     savePlayData(playData)
@@ -1138,7 +1138,19 @@ def showStartAnimation():
         savePlayData(playData)
         settingRender()
     else:
-        mainRender()
+        if "--dbg" in sys.argv:
+            pplms = [
+                tool_funcs.PhigrosPlayLogicManager(..., tool_funcs.PhigrosPlayManager(10), 1, ..., 1, ..., ...),
+                tool_funcs.PhigrosPlayLogicManager(..., tool_funcs.PhigrosPlayManager(10), 1, ..., 1, ..., ...),
+                tool_funcs.PhigrosPlayLogicManager(..., tool_funcs.PhigrosPlayManager(10), 1, ..., 1, ..., ...)
+            ]
+            challengeModeSettlementRender(pplms, [
+                (Chapters.items[0].songs[0], Chapters.items[0].songs[0].difficulty[0]),
+                (Chapters.items[0].songs[0], Chapters.items[0].songs[0].difficulty[0]),
+                (Chapters.items[0].songs[0], Chapters.items[0].songs[0].difficulty[0]),
+            ], mainRender, 45)
+        else:
+            mainRender()
 
 def soundEffect_From0To1():
     v = 0.0
@@ -4056,10 +4068,10 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                 wait_execute = True
             )
             
-            if chooseState.diff_index <= len(song.difficlty) - 1:
+            if chooseState.diff_index <= len(song.difficulty) - 1:
                 drawText(
                     x + cuttedWidth - w * 0.027625, y,
-                    song.difficlty[chooseState.diff_index].strdiffnum,
+                    song.difficulty[chooseState.diff_index].strdiffnum,
                     font = f"{(w + h) / 57}px pgrFontThin",
                     textAlign = "right",
                     textBaseline = "middle",
@@ -4067,7 +4079,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                     wait_execute = True
                 )
         
-                sid = song.difficlty[chooseState.diff_index].unqique_id()
+                sid = song.difficulty[chooseState.diff_index].unqique_id()
                 diifpd = findPlayDataBySid(sid)
                 levelimgname = diifpd["level"] if diifpd["level"] != "never_play" else "NEW"
                 levelimg = Resource["levels"][levelimgname]
@@ -4185,8 +4197,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
         
         ctxSave(wait_execute=True)
         root.run_js_code(f"ctx.clipDiagonalRectangle({",".join(map(str, level_bar_rect))}, {level_bar_dpower});", wait_execute=True)
-        for i in range(len(currectSong.difficlty)):
-            diff = currectSong.difficlty[i]
+        for i in range(len(currectSong.difficulty)):
+            diff = currectSong.difficulty[i]
             drawChooseBarDiff(
                 w * chooseControler.chooselevel_textsx[i].value,
                 diff.strdiffnum,
@@ -4208,7 +4220,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
         drawChooseBarDiff(
             level_choose_block_center[0],
             now_choosediffnum,
-            currectSong.difficlty[min(chooseState.diff_index, len(currectSong.difficlty) - 1)].name,
+            currectSong.difficulty[min(chooseState.diff_index, len(currectSong.difficulty) - 1)].name,
             "rgb(255, 255, 255)"
         )
         
@@ -4332,7 +4344,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                         challmode_diff_x0, challmode_diff_y0,
                         challmode_diff_x1, challmode_diff_y1
                     )
-                    challmode_diff_rect_color = const.LEVEL_COLOR_MAP[song.difficlty.index(diff)]
+                    challmode_diff_rect_color = const.LEVEL_COLOR_MAP[song.difficulty.index(diff)]
                     
                     root.run_js_code(
                         f"ctx.drawDiagonalRectangle(\
@@ -4375,7 +4387,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                 
                 selection_illu_now_dx += selection_illu_item_smallwidth
         
-        sid = currectSong.difficlty[min(chooseState.diff_index, len(currectSong.difficlty) - 1)].unqique_id()
+        sid = currectSong.difficulty[min(chooseState.diff_index, len(currectSong.difficulty) - 1)].unqique_id()
         diifpd = findPlayDataBySid(sid)
         levelimgname = diifpd["level"] if diifpd["level"] != "never_play" else "NEW"
         levelimg = Resource["levels"][levelimgname]
@@ -4413,10 +4425,10 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                 wait_execute = True
             )
         
-        if chooseState.diff_index > len(currectSong.difficlty) - 1:
+        if chooseState.diff_index > len(currectSong.difficulty) - 1:
             return
         
-        diff = currectSong.difficlty[chooseState.diff_index]
+        diff = currectSong.difficulty[chooseState.diff_index]
         
         drawText(
             w * 0.390655, h * (419 / 1080),
@@ -4451,8 +4463,8 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
         chapter_item.scsd_songs[:] = chooseState.dosort(
             chapter_item,
             lambda song: findPlayDataBySid(
-                song.difficlty[chooseState.diff_index].unqique_id()
-            )["score"] if chooseState.diff_index <= len(song.difficlty) - 1 else -1.0
+                song.difficulty[chooseState.diff_index].unqique_id()
+            )["score"] if chooseState.diff_index <= len(song.difficulty) - 1 else -1.0
         )
         chooseControler.setto_index(chapter_item.scsd_songs.index(song))
         last_sort_method = this_sort_method
@@ -4510,7 +4522,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
         
         # 难度选择
         song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
-        xlist = const.LEVEL_CHOOSE_XMAP[len(song.difficlty) - 1]
+        xlist = const.LEVEL_CHOOSE_XMAP[len(song.difficulty) - 1]
         for i, leftx in enumerate(xlist):
             leftx *= w
             rect = (
@@ -4526,7 +4538,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
             unregEvents()
             
             song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
-            diff = song.difficlty[min(chooseState.diff_index, len(song.difficlty) - 1)]
+            diff = song.difficulty[min(chooseState.diff_index, len(song.difficulty) - 1)]
             chart_information = {
                 "Name": song.name,
                 "Artist": song.composer,
@@ -4574,7 +4586,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                 return
             
             song = chapter_item.scsd_songs[chooseControler.vaildNowIndex]
-            diff = song.difficlty[min(chooseState.diff_index, len(song.difficlty) - 1)]
+            diff = song.difficulty[min(chooseState.diff_index, len(song.difficulty) - 1)]
             if (song, diff) in chooseControler.challengeModeSelections:
                 return
             
@@ -4986,7 +4998,7 @@ def loadingTransitionRender(nextUI: typing.Callable[[], typing.Any]):
     
     respacker.unload(respacker.getnames())
 
-def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, phigame_obj.SongDifficlty]], nextUI: typing.Callable[[], None]):
+def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, phigame_obj.SongDifficulty]], nextUI: typing.Callable[[], None]):
     pplmResults: list[tool_funcs.PhigrosPlayLogicManager] = []
     level = 0
     
@@ -5018,8 +5030,24 @@ def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, ph
             return nextUI()
         
         pplmResults.append(pplm)
-    
+        
+    return challengeModeSettlementRender(pplmResults, challengeModeSelections, nextUI, level)
+
+    if ...:
+        setPlayDataItem("challengeModeRank", challengeModeRank)
+        setPlayDataItem("hasChallengeMode", True)
+        savePlayData(playData)
+
+def challengeModeSettlementRender(
+    pplmResults: list[tool_funcs.PhigrosPlayLogicManager],
+    songs: list[tuple[phigame_obj.Song, phigame_obj.SongDifficulty]],
+    nextUI: typing.Callable[[], None],
+    level: int
+):
     score = sum(pplm.ppps.getScore() for pplm in pplmResults)
+    
+    if "--dbg" in sys.argv:
+        score = 2900000
     
     if score >= 3000000:
         challengeMode_level = 5
@@ -5035,17 +5063,76 @@ def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, ph
         return nextUI()
     
     challengeModeRank = challengeMode_level * 100 + level
-    challengeModeColor = [
-        None, "绿", "蓝", "红", "金", "彩"
-    ][challengeMode_level]
     
-    if root.run_js_code(f"confirm({root.string2sctring_hqm(f"本次课题模式成绩为: {challengeModeColor}{level}\n是否覆盖原成绩?")});"):
-        setPlayDataItem("challengeModeRank", challengeModeRank)
-        setPlayDataItem("hasChallengeMode", True)
-        savePlayData(playData)
+    def songItemRender(i: int, p: float):
+        pplm = pplmResults[i]
+        song, diff = songs[i]
     
-    nextUI()
-
+    renderSt = time.time()
+    nextUI, tonextUI, tonextUISt = None, False, float("nan")
+    mixer.music.load("./resources/Over.mp3")
+    Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
+    
+    songItemRenderDur = 1.2
+    renderTasks = [
+        {"st": 1.3, "dur": songItemRenderDur, "render": lambda p: songItemRender(0, p)},
+        {"st": 1.5, "dur": songItemRenderDur, "render": lambda p: songItemRender(1, p)},
+        {"st": 1.7, "dur": songItemRenderDur, "render": lambda p: songItemRender(2, p)},
+    ]
+    
+    while True:
+        clearCanvas(wait_execute = True)
+        drawImage("AllSongBlur", 0, 0, w, h, wait_execute=True)
+        
+        pplmRenderRect = (
+            w * 0.075, h * (145 / 1080),
+            w * 0.8953125, h * (795 / 1080)
+        )
+        pplmRenderPady = h * (33 / 1080)
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, pplmRenderRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(pplmRenderRect), 75)}, 'rgba(0, 0, 0, 0.5)'\
+            );",
+            wait_execute = True
+        )
+        
+        # drawButton("ButtonRightBlack", "Arrow_Right", (w - ButtonWidth, h - ButtonHeight))
+        
+        now_t = time.time() - renderSt
+        for task in renderTasks:
+            if now_t >= task["st"]:
+                p = tool_funcs.fixorp((now_t - task["st"]) / task["dur"])
+                task["render"](p)
+                
+        if time.time() - renderSt < 1.25:
+            p = (time.time() - renderSt) / 1.25
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {(1.0 - p) ** 2})'\
+                );",
+                wait_execute = True
+            )
+        
+        if tonextUI and time.time() - tonextUISt < 0.75:
+            p = (time.time() - tonextUISt) / 0.75
+            root.run_js_code(
+                f"ctx.fillRectEx(\
+                    0, 0, {w}, {h},\
+                    'rgba(0, 0, 0, {1.0 - (1.0 - p) ** 2})'\
+                );",
+                wait_execute = True
+            )
+        elif tonextUI:
+            clearCanvas(wait_execute = True)
+            root.run_js_wait_code()
+            Thread(target=nextUI, daemon=True).start()
+            break
+        
+        root.run_js_wait_code()
+    
 def importArchiveFromPhigros():
     sessionToken: typing.Optional[str] = root.run_js_code(f"prompt({root.string2sctring_hqm("请输入 Phigros 账号的 sessionToken: ")});")
     if sessionToken is None:
@@ -5132,14 +5219,14 @@ def importArchiveFromPhigros():
                     recordData: list = recordData.copy()
                     i = 0
                     while recordData:
-                        if i >= len(song.difficlty):
+                        if i >= len(song.difficulty):
                             logging.warning(f"song {song.name} has no difficulty {i}")
                             break
                         
                         score = recordData.pop(0)
                         acc = recordData.pop(0)
                         isFullCombo = bool(recordData.pop(0))
-                        diff = song.difficlty[i]
+                        diff = song.difficulty[i]
                         setPlayData(
                             diff.unqique_id(), score, acc / 100,
                             tool_funcs.pgrGetLevel(score, isFullCombo)

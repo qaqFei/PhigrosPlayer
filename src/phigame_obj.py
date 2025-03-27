@@ -153,7 +153,7 @@ class FaculaAnimationManager:
         })
 
 @dataclass
-class SongDifficlty:
+class SongDifficulty:
     name: str
     level: float
     chart_audio: str
@@ -182,7 +182,7 @@ class Song:
     preview: str
     preview_start: float
     preview_end: float
-    difficlty: list[SongDifficlty]
+    difficulty: list[SongDifficulty]
     import_archive_alias: typing.Optional[str]
     
     chooseSongs_nameFontSize: float = float("nan")
@@ -190,10 +190,10 @@ class Song:
     
     def __post_init__(self):
         self.songId = int(uniform(0.0, 1.0) * (2 << 31))
-        self.difficlty = self.difficlty[:4]
-        self.level_bar_rightx_max = const.LEVEL_BAR_END_XMAP[len(self.difficlty) - 1]
+        self.difficulty = self.difficulty[:4]
+        self.level_bar_rightx_max = const.LEVEL_BAR_END_XMAP[len(self.difficulty) - 1]
         
-        for diff in self.difficlty:
+        for diff in self.difficulty:
             diff.song = self
     
     def __eq__(self, value: typing.Any):
@@ -829,7 +829,7 @@ class ChooseChartControler:
         self._released = False
         self.mixer = unix_mixer
         
-        self.challengeModeSelections: list[tuple[Song, SongDifficlty]] = []
+        self.challengeModeSelections: list[tuple[Song, SongDifficulty]] = []
         self.challengeModeSelectButtonAlpha = valueTranformer(rpe_easing.ease_funcs[0], 0.2)
         self.challengeModeSelectTextAlpha = valueTranformer(rpe_easing.ease_funcs[0], 0.2)
         self.challengeModeSelectButtonAlpha.target = 1.0
@@ -850,7 +850,7 @@ class ChooseChartControler:
         self._set_level_bar_rightx()
         
         song = self.chapter.scsd_songs[self.vaildNowIndex]
-        self.uistate.max_diffindex = len(song.difficlty) - 1
+        self.uistate.max_diffindex = len(song.difficulty) - 1
         self.set_level_callback = self._set_level_bar_rightx
         
         self._start_preview()
@@ -862,14 +862,14 @@ class ChooseChartControler:
         song = self.chapter.scsd_songs[self.vaildNowIndex]
         self.level_bar_rightx.target = song.level_bar_rightx_max
         
-        for i in range(len(song.difficlty)):
-            self.chooselevel_textsx[i].target = const.LEVEL_CHOOSE_XMAP[len(song.difficlty) - 1][i] + const.LEVEL_CHOOSE_BLOCK_WIDTH / 2
+        for i in range(len(song.difficulty)):
+            self.chooselevel_textsx[i].target = const.LEVEL_CHOOSE_XMAP[len(song.difficulty) - 1][i] + const.LEVEL_CHOOSE_BLOCK_WIDTH / 2
         
         self._set_level_choose_x()
     
     def _set_level_choose_x(self):
         song = self.chapter.scsd_songs[self.vaildNowIndex]
-        xs = const.LEVEL_CHOOSE_XMAP[len(song.difficlty) - 1]
+        xs = const.LEVEL_CHOOSE_XMAP[len(song.difficulty) - 1]
         self.level_choose_x.target = xs[min(self.uistate.diff_index, len(xs) - 1)]
         self._set_level_color()
         self._set_level_diffnumber()
@@ -881,12 +881,12 @@ class ChooseChartControler:
     
     def _set_level_diffnumber(self):
         song = self.chapter.scsd_songs[self.vaildNowIndex]
-        self.level_diffnumber.target = song.difficlty[min(self.uistate.diff_index, len(song.difficlty) - 1)].level
+        self.level_diffnumber.target = song.difficulty[min(self.uistate.diff_index, len(song.difficulty) - 1)].level
         self._challenge_mode_select_update()
     
     def _challenge_mode_select_update(self):
         song = self.chapter.scsd_songs[self.vaildNowIndex]
-        diff = song.difficlty[min(self.uistate.diff_index, len(song.difficlty) - 1)]
+        diff = song.difficulty[min(self.uistate.diff_index, len(song.difficulty) - 1)]
         if (song, diff) in self.challengeModeSelections:
             self.challengeModeSelectButtonAlpha.target = 0.75
             self.challengeModeSelectTextAlpha.target = 0.0
@@ -913,7 +913,7 @@ class ChooseChartControler:
             self._start_preview()
             self._set_level_bar_rightx()
             song = self.chapter.scsd_songs[self.vaildNowIndex]
-            self.uistate.max_diffindex = len(song.difficlty) - 1
+            self.uistate.max_diffindex = len(song.difficulty) - 1
         
         self._itemLastDy = self.itemNowDy
     
@@ -1110,7 +1110,7 @@ class ChartChooseUI_State:
                 newsongs.sort(key=lambda x: ord(x.name[0]))
             
             case const.PHI_SORTMETHOD.DIFFICULTY:
-                newsongs.sort(key=lambda x: x.difficlty[self.diff_index].level if self.diff_index <= len(x.difficlty) - 1 else -1.0)
+                newsongs.sort(key=lambda x: x.difficulty[self.diff_index].level if self.diff_index <= len(x.difficulty) - 1 else -1.0)
             
             case const.PHI_SORTMETHOD.SCORE:
                 newsongs.sort(key=getScore)
