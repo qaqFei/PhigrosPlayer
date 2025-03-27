@@ -49,13 +49,7 @@ python main.py <chart> --disengage-webview [args] [kwargs]
 
 ## 使用 `phigros.py`
 
-```batch
-cd src
-python tool-unpack.py <apk> --need-other-illu --need-other-res
-python tool-make-pgrassets-byunpack.py .\unpack-result .\phigros_assets
-
-python phigros.py
-```
+自行探索。
 
 ## 谱面兼容
 
