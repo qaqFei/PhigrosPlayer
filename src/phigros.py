@@ -4685,7 +4685,7 @@ def chooseChartRender(chapter_item: phigame_obj.Chapter, isChallengeMode: bool =
                 f"ctx.drawDiagonalRectangle(\
                     {",".join(map(str, playButtonRect))},\
                     {tool_funcs.getDPower(*tool_funcs.getSizeByRect(playButtonRect), 75)},\
-                    'rgba(255, 255, 255, {startButtonAlpha.target})'\
+                    'rgba(255, 255, 255, {startButtonAlpha.value})'\
                 );",
                 wait_execute = True
             )
