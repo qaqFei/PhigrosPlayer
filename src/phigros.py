@@ -5069,6 +5069,9 @@ def challengeModeSettlementRender(
     
     challengeModeRank = challengeMode_level * 100 + level
     
+    phicore.root = root
+    songNameFontSizes = [phicore.getFontSize(song.name, w * 0.8203125 * 0.7, w * 0.021) for song, _ in songs]
+    
     def songItemRender(i: int, p: float):
         pplm = pplmResults[i]
         song, diff = songs[i]
@@ -5084,10 +5087,9 @@ def challengeModeSettlementRender(
         illu_name = f"cmsr_song_{i}"
         illu_rect = (
             songItemRect[0], songItemRect[1],
-            songItemRect[0] + songItemSize[0] / 2, songItemRect[3]
+            songItemRect[0] + songItemSize[0] * 0.52, songItemRect[3]
         )
-        
-        print(i, songItemRect)
+        illu_rect_dpower = tool_funcs.getDPower(*tool_funcs.getSizeByRect(illu_rect), 75)
         
         root.run_js_code(
             f"ctx.drawDiagonalRectangle(\
@@ -5101,8 +5103,60 @@ def challengeModeSettlementRender(
             f"ctx.drawDiagonalRectangleClipImageOnlyWidth(\
                 {",".join(map(str, illu_rect))},\
                 {root.get_img_jsvarname(illu_name)},\
-                {songItemSize[0]}, {tool_funcs.getDPower(*tool_funcs.getSizeByRect(illu_rect), 75)}, 1.0\
+                {songItemSize[0]}, {illu_rect_dpower}, 1.0\
             );",
+            wait_execute = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalGrd(\
+                {",".join(map(str, illu_rect))},\
+                {illu_rect_dpower}, {[
+                    [0.0, "rgba(0, 0, 0, 0.0)"],
+                    [0.25, "rgba(0, 0, 0, 0.0)"],
+                    [0.5, "rgba(0, 0, 0, 0.25)"],
+                    [0.75, "rgba(0, 0, 0, 0.5)"],
+                    [1.0, "rgba(0, 0, 0, 0.796875)"]
+                ]},\
+                {[
+                    0.0, illu_rect[1],
+                    0.0, illu_rect[3]
+                ]}\
+            );",
+            wait_execute = True
+        )
+        
+        drawText(
+            illu_rect[0] + w * 0.0171875, illu_rect[3] - h * (41 / 1080),
+            song.name,
+            font = f"{songNameFontSizes[i]}px pgrFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "white",
+            wait_execute = True
+        )
+        
+        difffonts = (w + h) / 105
+        
+        drawText(
+            illu_rect[2] - w * 0.0328125,
+            illu_rect[1] + h * (185 / 1080),
+            f"Lv.{diff.strdiffnum}",
+            font = f"{difffonts}px pgrFont",
+            textAlign = "right",
+            textBaseline = "bottom",
+            fillStyle = "white",
+            wait_execute = True
+        )
+        
+        drawText(
+            illu_rect[2] - w * 0.0328125,
+            illu_rect[1] + h * (154 / 1080),
+            diff.name,
+            font = f"{difffonts}px pgrFont",
+            textAlign = "right",
+            textBaseline = "bottom",
+            fillStyle = "white",
             wait_execute = True
         )
         
