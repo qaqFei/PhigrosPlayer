@@ -5067,17 +5067,37 @@ def challengeModeSettlementRender(
     def songItemRender(i: int, p: float):
         pplm = pplmResults[i]
         song, diff = songs[i]
-    
+        y0 = pplmRenderRect[1] + i * (pplmRenderItemHeight + pplmRenderPady)
+        y1 = y0 + pplmRenderItemHeight
+        dx = (1 - p) ** 1.9 * w * 1.4
+        songItemRect = (
+            pplmrrt_getx_fromy(y1) + dx, y0,
+            pplmrrt_getx_fromy(y0) + dx + pplmRenderRectSize[0] * (1 - pplmRenderRectDPower), y1
+        )
+        songItemSize = tool_funcs.getSizeByRect(songItemRect)
+        songItemDPower = tool_funcs.getDPower(*songItemSize, 75)
+        
+        # fillRectEx(*tool_funcs.xxyy_rect2_xywh(songItemRect), "pink", wait_execute=True)
+        print(i, songItemRect)
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, songItemRect))},\
+                {songItemDPower}, 'rgba(0, 0, 0, 0.5)'\
+            );",
+            wait_execute = True
+        )
+        
     renderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     mixer.music.load("./resources/Over.mp3")
     Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
     
-    songItemRenderDur = 1.2
+    songItemRenderDur = 1.3
     renderTasks = [
-        {"st": 1.3, "dur": songItemRenderDur, "render": lambda p: songItemRender(0, p)},
-        {"st": 1.5, "dur": songItemRenderDur, "render": lambda p: songItemRender(1, p)},
-        {"st": 1.7, "dur": songItemRenderDur, "render": lambda p: songItemRender(2, p)},
+        {"st": 0.2, "dur": songItemRenderDur, "render": lambda p: songItemRender(0, p)},
+        {"st": 0.7, "dur": songItemRenderDur, "render": lambda p: songItemRender(1, p)},
+        {"st": 1.2, "dur": songItemRenderDur, "render": lambda p: songItemRender(2, p)},
     ]
     
     while True:
@@ -5088,15 +5108,19 @@ def challengeModeSettlementRender(
             w * 0.075, h * (145 / 1080),
             w * 0.8953125, h * (795 / 1080)
         )
+        pplmRenderRectSize = tool_funcs.getSizeByRect(pplmRenderRect)
+        pplmRenderRectDPower = tool_funcs.getDPower(*pplmRenderRectSize, 75)
         pplmRenderPady = h * (33 / 1080)
+        pplmRenderItemHeight = (pplmRenderRectSize[1] - pplmRenderPady * 2) / 3
+        pplmrrt_getx_fromy = lambda y: pplmRenderRect[0] + (1.0 - (y - pplmRenderRect[1]) / pplmRenderRectSize[1]) * pplmRenderRectSize[0] * pplmRenderRectDPower
         
-        root.run_js_code(
-            f"ctx.drawDiagonalRectangle(\
-                {",".join(map(str, pplmRenderRect))},\
-                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(pplmRenderRect), 75)}, 'rgba(0, 0, 0, 0.5)'\
-            );",
-            wait_execute = True
-        )
+        # root.run_js_code(
+        #     f"ctx.drawDiagonalRectangle(\
+        #         {",".join(map(str, pplmRenderRect))},\
+        #         {pplmRenderRectDPower}, 'rgba(0, 0, 0, 0.5)'\
+        #     );",
+        #     wait_execute = True
+        # )
         
         # drawButton("ButtonRightBlack", "Arrow_Right", (w - ButtonWidth, h - ButtonHeight))
         
