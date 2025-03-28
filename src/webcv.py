@@ -184,10 +184,10 @@ class JsApi:
 class PILResPacker:
     def __init__(self, cv: WebCanvas):
         self.cv = cv
-        self.imgs: list[tuple[str, Image.Image|bytes]] = []
+        self.imgs: list[tuple[str, Image.Image|bytes|str]] = []
         self._imgopted: dict[str, threading.Event] = {}
     
-    def reg_img(self, img: Image.Image|bytes, name: str):
+    def reg_img(self, img: Image.Image|bytes|str, name: str):
         self.imgs.append((name, img))
         
     def pack(self):

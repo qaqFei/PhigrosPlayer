@@ -5044,6 +5044,11 @@ def challengeModeSettlementRender(
     nextUI: typing.Callable[[], None],
     level: int
 ):
+    respacker = webcv.PILResPacker(root)
+    for i, (s, _) in enumerate(songs):
+        respacker.reg_img(tool_funcs.gtpresp(s.image), f"cmsr_song_{i}")
+    respacker.load(*respacker.pack())
+    
     score = sum(pplm.ppps.getScore() for pplm in pplmResults)
     
     if "--dbg" in sys.argv:
@@ -5069,21 +5074,34 @@ def challengeModeSettlementRender(
         song, diff = songs[i]
         y0 = pplmRenderRect[1] + i * (pplmRenderItemHeight + pplmRenderPady)
         y1 = y0 + pplmRenderItemHeight
-        dx = (1 - p) ** 1.9 * w * 1.4
+        dx = (1 - p) ** 3 * w * 1.4
         songItemRect = (
             pplmrrt_getx_fromy(y1) + dx, y0,
             pplmrrt_getx_fromy(y0) + dx + pplmRenderRectSize[0] * (1 - pplmRenderRectDPower), y1
         )
         songItemSize = tool_funcs.getSizeByRect(songItemRect)
         songItemDPower = tool_funcs.getDPower(*songItemSize, 75)
+        illu_name = f"cmsr_song_{i}"
+        illu_rect = (
+            songItemRect[0], songItemRect[1],
+            songItemRect[0] + songItemSize[0] / 2, songItemRect[3]
+        )
         
-        # fillRectEx(*tool_funcs.xxyy_rect2_xywh(songItemRect), "pink", wait_execute=True)
         print(i, songItemRect)
         
         root.run_js_code(
             f"ctx.drawDiagonalRectangle(\
                 {",".join(map(str, songItemRect))},\
                 {songItemDPower}, 'rgba(0, 0, 0, 0.5)'\
+            );",
+            wait_execute = True
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangleClipImageOnlyWidth(\
+                {",".join(map(str, illu_rect))},\
+                {root.get_img_jsvarname(illu_name)},\
+                {songItemSize[0]}, {tool_funcs.getDPower(*tool_funcs.getSizeByRect(illu_rect), 75)}, 1.0\
             );",
             wait_execute = True
         )
@@ -5156,6 +5174,8 @@ def challengeModeSettlementRender(
             break
         
         root.run_js_wait_code()
+        
+    respacker.unload(respacker.getnames())
     
 def importArchiveFromPhigros():
     sessionToken: typing.Optional[str] = root.run_js_code(f"prompt({root.string2sctring_hqm("请输入 Phigros 账号的 sessionToken: ")});")

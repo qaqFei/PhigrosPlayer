@@ -1049,6 +1049,29 @@ void main() {
         return this.drawDiagonalRectangleClipImage(x0, y0, x1, y1, im, imx, imy, imw, imh, power, alpha);
     }
 
+    CanvasRenderingContext2D.prototype.drawDiagonalRectangleClipImageOnlyWidth = function(x0, y0, x1, y1, im, imw, power, alpha) {
+        const [irw, irh] = [
+            im.__drawImage__ ? im.__drawImage__().width : im.width,
+            im.__drawImage__ ? im.__drawImage__().height : im.height
+        ]
+
+        let imh = imw / irw * irh;
+
+        if (imh < y1 - y0) {
+            imh = y1 - y0;
+            imw = imh / irh * irw;
+        }
+
+        if (isNaN(imw) || isNaN(imh)){
+            imw = this.canvas.width;
+            imh = this.canvas.height;
+        }
+
+        let imx = (x1 - x0) / 2 - imw / 2;
+        let imy = (y1 - y0) / 2 - imh / 2;
+        return this.drawDiagonalRectangleClipImage(x0, y0, x1, y1, im, imx, imy, imw, imh, power, alpha);
+    }
+
     CanvasRenderingContext2D.prototype.drawRotateText2 = function(text, x, y, deg, color, font, align, baseline) {
         this.save();
         this.translate(x, y);
