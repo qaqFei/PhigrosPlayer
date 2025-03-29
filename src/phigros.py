@@ -5049,23 +5049,25 @@ def challengeModeSettlementRender(
         respacker.reg_img(tool_funcs.gtpresp(s.image), f"cmsr_song_{i}")
     respacker.load(*respacker.pack())
     
-    score = sum(pplm.ppps.getScore() for pplm in pplmResults)
+    totalScore = sum(pplm.ppps.getScore() for pplm in pplmResults)
     
     if "--dbg" in sys.argv:
-        score = 2900000
+        totalScore = 2900000
     
-    if score >= 3000000:
+    if totalScore >= 3000000:
         challengeMode_level = 5
-    elif score >= 2940000:
+    elif totalScore >= 2940000:
         challengeMode_level = 4
-    elif score >= 2850000:
+    elif totalScore >= 2850000:
         challengeMode_level = 3
-    elif score >= 2700000:
+    elif totalScore >= 2700000:
         challengeMode_level = 2
-    elif score >= 2460000:
+    elif totalScore >= 2460000:
         challengeMode_level = 1
     else:
         return nextUI()
+    
+    challengeMode_levelName = {5: "AP", 4: "V", 3: "S", 2: "A", 1: "B"}[challengeMode_level]
     
     challengeModeRank = challengeMode_level * 100 + level
     
@@ -5160,16 +5162,119 @@ def challengeModeSettlementRender(
             wait_execute = True
         )
         
+        drawText(
+            songItemRect[2] - w * 0.034375,
+            songItemRect[1] + h * (61 / 1080),
+            phicore.stringifyScore(pplm.ppps.getScore()),
+            font = f"{(w + h) / 40}px pgrFont",
+            textAlign = "right",
+            textBaseline = "middle",
+            fillStyle = "white",
+            wait_execute = True
+        )
+        
+        def drawDataCount(dx: float, text: str, count: int):
+            x = songItemRect[2] - dx
+            
+            drawText(
+                x, songItemRect[1] + h * (165 / 1080),
+                text,
+                font = f"{(w + h) / 195}px pgrFontThin",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "rgba(247, 247, 247, 0.8)",
+                wait_execute = True
+            )
+            
+            drawText(
+                x, songItemRect[1] + h * (133 / 1080),
+                f"{count}",
+                font = f"{(w + h) / 80}px pgrFont",
+                textAlign = "center",
+                textBaseline = "middle",
+                fillStyle = "white",
+                wait_execute = True
+            )
+        
+        def drawELCount(dy: float, text: str, count: int):
+            y = songItemRect[1] + dy
+            
+            drawText(
+                songItemRect[2] - w * 0.0390625,
+                y,
+                f"{count}",
+                font = f"{(w + h) / 125}px pgrFont",
+                textAlign = "right",
+                textBaseline = "middle",
+                fillStyle = "white",
+                wait_execute = True
+            )
+            
+            drawText(
+                songItemRect[2] - w * 0.1203125,
+                y,
+                text,
+                font = f"{(w + h) / 130}px pgrFontThin",
+                textAlign = "left",
+                textBaseline = "middle",
+                fillStyle = "rgba(247, 247, 247, 0.8)",
+                wait_execute = True
+            )
+        
+        drawDataCount(w * 0.34375, "Perfect", pplm.ppps.getPerfectCount())
+        drawDataCount(w * 0.2703125, "Good", pplm.ppps.getGoodCount())
+        drawDataCount(w * 0.2171875, "Bad", pplm.ppps.getBadCount())
+        drawDataCount(w * 0.165625, "Miss", pplm.ppps.getMissCount())
+        
+        drawELCount(h * (131 / 1080), "Early", pplm.ppps.getEarlyCount())
+        drawELCount(h * (159 / 1080), "Late", pplm.ppps.getLateCount())
+    
+    def totalRender(p: float):
+        dx = (1 - p) ** 3 * w * 1.4
+        totalDataRect = (
+            w * 0.5359375 + dx, h * (829 / 1080),
+            w * 0.9078125 + dx, h * (968 / 1080)
+        )
+        
+        root.run_js_code(
+            f"ctx.drawDiagonalRectangle(\
+                {",".join(map(str, totalDataRect))},\
+                {tool_funcs.getDPower(*tool_funcs.getSizeByRect(totalDataRect), 75)},\
+                'rgba(0, 0, 0, 0.5)'\
+            );",
+            wait_execute = True
+        )
+        
+        drawText(
+            totalDataRect[0] + w * 0.04375,
+            totalDataRect[1] + h * (52 / 1080),
+            phicore.stringifyScore(totalScore),
+            font = f"{(w + h) / 42}px pgrFont",
+            textAlign = "left",
+            textBaseline = "middle",
+            fillStyle = "white",
+            wait_execute = True
+        )
+        
     renderSt = time.time()
     nextUI, tonextUI, tonextUISt = None, False, float("nan")
     mixer.music.load("./resources/Over.mp3")
     Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
     
-    songItemRenderDur = 1.3
+    songItemRenderDur = 1.5
     renderTasks = [
         {"st": 0.2, "dur": songItemRenderDur, "render": lambda p: songItemRender(0, p)},
-        {"st": 0.7, "dur": songItemRenderDur, "render": lambda p: songItemRender(1, p)},
-        {"st": 1.2, "dur": songItemRenderDur, "render": lambda p: songItemRender(2, p)},
+        {"st": 0.8, "dur": songItemRenderDur, "render": lambda p: songItemRender(1, p)},
+        {"st": 1.4, "dur": songItemRenderDur, "render": lambda p: songItemRender(2, p)},
+        {"st": 2.0, "dur": songItemRenderDur, "render": totalRender},
+        {"st": 3.2, "dur": 0.7, "render": lambda p: drawAlphaImage(
+            f"Level_{challengeMode_levelName}",
+            w * 0.8578125 - (lw := w * 0.0875 * 1.3 * (1.0 + ((1.0 - p) ** 1.7) * 0.4)) / 2,
+            h * (841 / 1080) - (lh := lw / Resource["levels"][challengeMode_levelName].width * Resource["levels"][challengeMode_levelName].height) / 2,
+            lw, lh,
+            1.0 - (1.0 - p) ** 2,
+            wait_execute = True
+        )}
     ]
     
     while True:

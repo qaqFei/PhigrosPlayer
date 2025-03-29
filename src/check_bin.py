@@ -5,11 +5,15 @@ import logging
 import pydub.utils
 from os import popen
 from os.path import exists, isfile
+from sys import argv
 
 vaildfile = lambda x: exists(x) and isfile(x)
 
 hasprogram = lambda name: pydub.utils.which(name) is not None
-if not (hasprogram("avconv") or hasprogram("ffmpeg")):
+if "--nocheck-bin" not in argv and (
+    (not (hasprogram("avconv") or hasprogram("ffmpeg"))) or
+    (not (hasprogram("avprobe") or hasprogram("ffprobe")))
+):
     logging.warning("cannot find avconv or ffmpeg, unzip ...")
     
     if not vaildfile("./resources/pydub-ff.7z"):
