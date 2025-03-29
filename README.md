@@ -35,18 +35,6 @@ cd phispler/src
 python main.py <chart> --disengage-webview [args] [kwargs]
 ```
 
-<details>
-  <summary>展开</summary>
-
-  > 与 gpu 通信人家 Windows 有 Dx, macOS 有 metal。
-  > 安卓上就他nnd gles和vulkan，gles老掉牙性能差，vulkan兼容性与代码复杂度都依托。新来的wgpu更没生态
-  > kivy还在用gles2.0，那api、设计逻辑还跟web沾不上一点边
-  > canvas2d又小众，什么跑网页跑JavaScript的nodejs, Chromium, edgeruntime全溜去桌面端。
-  > 仅有的几个支持安卓的项目，配上python高低得打一架
-  > 开发python+android+web的是这个
-  > ![/xiyangyang-goooooood](https://qaqfei.github.io/phispler/readme-res/xiyangyang-goooooood.jpg)
-</details>
-
 ## 使用 `phigros.py`
 
 自行探索。
