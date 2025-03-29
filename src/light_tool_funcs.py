@@ -281,6 +281,9 @@ def indrect(x: float, y: float, rect: tuple[float, float, float, float], dpower:
 def xxyy_rect2_xywh(rect: tuple[float, float, float, float]):
     return rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]
 
+def xywh_rect2_xxyy(rect: tuple[float, float, float, float]):
+    return rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]
+
 def isfloatable(s: str):
     try: float(s); return True
     except: return False

@@ -180,6 +180,7 @@ def drawAlphaImage(
 ):
     jvn = root.get_img_jsvarname(imname)
     root.run_js_code(f"{ctx}.drawAlphaImage({jvn}, {x}, {y}, {width}, {height}, {alpha});", wait_execute, order)
+    return x, y, width, height
 
 def drawMirrorImage(
     imname: str,

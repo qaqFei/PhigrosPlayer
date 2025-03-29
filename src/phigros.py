@@ -365,6 +365,7 @@ def loadResource():
         "blackPixel": Image.new("RGBA", (1, 1), (0, 0, 0, 255)),
         "challengeModeChecked": Image.open("./resources/challengeModeChecked.png"),
         "Undo": Image.open("./resources/Undo.png"),
+        "cross": Image.open("./resources/cross.png"),
     }
     
     Resource.update(phi_rpack.createResourceDict())
@@ -416,6 +417,7 @@ def loadResource():
     respacker.reg_img(Resource["blackPixel"], "blackPixel")
     respacker.reg_img(Resource["challengeModeChecked"], "challengeModeChecked")
     respacker.reg_img(Resource["Undo"], "Undo")
+    respacker.reg_img(Resource["cross"], "cross")
 
     ButtonWidth = w * 0.10875
     ButtonHeight = ButtonWidth / Resource["ButtonLeftBlack"].width * Resource["ButtonLeftBlack"].height # bleft and bright size is the same.
@@ -1145,19 +1147,7 @@ def showStartAnimation():
         savePlayData(playData)
         settingRender()
     else:
-        if "--dbg" in sys.argv:
-            pplms = [
-                tool_funcs.PhigrosPlayLogicManager(..., tool_funcs.PhigrosPlayManager(10), 1, ..., 1, ..., ...),
-                tool_funcs.PhigrosPlayLogicManager(..., tool_funcs.PhigrosPlayManager(10), 1, ..., 1, ..., ...),
-                tool_funcs.PhigrosPlayLogicManager(..., tool_funcs.PhigrosPlayManager(10), 1, ..., 1, ..., ...)
-            ]
-            challengeModeSettlementRender(pplms, [
-                (Chapters.items[0].songs[0], Chapters.items[0].songs[0].difficulty[0]),
-                (Chapters.items[0].songs[0], Chapters.items[0].songs[0].difficulty[0]),
-                (Chapters.items[0].songs[0], Chapters.items[0].songs[0].difficulty[0]),
-            ], mainRender, 45)
-        else:
-            mainRender()
+        mainRender()
 
 def soundEffect_From0To1():
     v = 0.0
@@ -5040,11 +5030,6 @@ def challengeModeRender(challengeModeSelections: list[tuple[phigame_obj.Song, ph
         
     return challengeModeSettlementRender(pplmResults, challengeModeSelections, nextUI, level)
 
-    if ...:
-        setPlayDataItem("challengeModeRank", challengeModeRank)
-        setPlayDataItem("hasChallengeMode", True)
-        savePlayData(playData)
-
 def challengeModeSettlementRender(
     pplmResults: list[tool_funcs.PhigrosPlayLogicManager],
     songs: list[tuple[phigame_obj.Song, phigame_obj.SongDifficulty]],
@@ -5062,9 +5047,6 @@ def challengeModeSettlementRender(
     
     totalScore = sum(pplm.ppps.getScore() for pplm in pplmResults)
     
-    if "--dbg" in sys.argv:
-        totalScore = 2900000
-    
     if totalScore >= 3000000:
         challengeMode_level = 5
     elif totalScore >= 2940000:
@@ -5079,7 +5061,6 @@ def challengeModeSettlementRender(
         return nextUI()
     
     challengeMode_levelName = {5: "AP", 4: "V", 3: "S", 2: "A", 1: "B"}[challengeMode_level]
-    
     challengeModeRank = challengeMode_level * 100 + level
     
     phicore.root = root
@@ -5283,7 +5264,10 @@ def challengeModeSettlementRender(
     userNameConstFontSize = (w + h) / const.USERNAME_CONST_FONT
     userNamePadding = w * 0.01
     userNameWidth = root.run_js_code(f"ctx.getTextSize({root.string2sctring_hqm(getUserData("userdata-userName"))}, '{userNameConstFontSize}px pgrFont')[0];") + userNamePadding * 2
+    
     avatar_rect = const.EMPTY_RECT
+    cross_rect = const.EMPTY_RECT
+    checked_rect = const.EMPTY_RECT
     
     songItemRenderDur = 1.5
     renderTasks = [
@@ -5314,6 +5298,13 @@ def challengeModeSettlementRender(
     
     def unregEvents():
         eventManager.unregEvent(mainClickEvent)
+        
+    def findRenderTaskByTag(tag: str):
+        for task in renderTasks:
+            if task.get("tag", None) == tag:
+                return task
+        
+        return None
     
     def mainClickCallback(x, y):
         nonlocal nextUI, tonextUI, tonextUISt
@@ -5350,9 +5341,47 @@ def challengeModeSettlementRender(
                     textBaseline = "middle",
                     fillStyle = f"rgba(255, 255, 255, {1.0 - (1.0 - tool_funcs.fixorp(p * 2)) ** 2})",
                     wait_execute = True
-                ), "cmr": True}
+                ), "cmr": True},
+                {"st": now_t + 1.0, "dur": 0.7, "render": lambda p: drawAlphaImage(
+                    "cross",
+                    height = (cross_h := (h * (71 / 1080))),
+                    width = (cross_w := cross_h / Resource["cross"].height * Resource["cross"].width),
+                    x = w / 2 - w * 0.10625 - cross_w / 2,
+                    y = h * (836 / 1080) - cross_h / 2,
+                    alpha = 1.0 - (1.0 - tool_funcs.fixorp(p)) ** 2,
+                    wait_execute = True
+                ), "cmr": True, "tag": "cross"},
+                {"st": now_t + 1.6, "dur": 0.7, "render": lambda p: drawAlphaImage(
+                    "checked",
+                    height = (checked_h := (h * (71 / 1080))),
+                    width = (checked_w := checked_h / Resource["checked"].height * Resource["checked"].width),
+                    x = w / 2 + w * 0.10625 - checked_w / 2,
+                    y = h * (836 / 1080) - checked_h / 2,
+                    alpha = 1.0 - (1.0 - tool_funcs.fixorp(p)) ** 2,
+                    wait_execute = True
+                ), "cmr": True, "tag": "checked"},
             ])
-    
+        
+        # 放弃成绩
+        if tool_funcs.inrect(x, y, cross_rect):
+            rt = findRenderTaskByTag("cross")
+            if rt is not None and rt["st"] <= now_t:
+                unregEvents()
+                tonextUI, tonextUISt = True, time.time()
+        
+        # 保存成绩
+        if tool_funcs.inrect(x, y, checked_rect):
+            rt = findRenderTaskByTag("checked")
+            if rt is not None and rt["st"] <= now_t:
+                unregEvents()
+                nextUI_Bak = nextUI
+                nextUI, tonextUI, tonextUISt = lambda: (
+                    setPlayDataItem("challengeModeRank", challengeModeRank),
+                    setPlayDataItem("hasChallengeMode", True),
+                    savePlayData(playData),
+                    nextUI_Bak()
+                ), True, time.time()
+        
     mainClickEvent = phigame_obj.ClickEvent(
         rect = (0, 0, w, h),
         callback = mainClickCallback,
@@ -5396,9 +5425,11 @@ def challengeModeSettlementRender(
             if now_t >= task["st"] and not task.get("cmr", False):
                 p = tool_funcs.fixorp((now_t - task["st"]) / task["dur"])
                 res = task["render"](p)
+                tag = task.get("tag", None)
                 
-                if task.get("tag", None) == "userdata":
-                    avatar_rect = res
+                match tag:
+                    case "userdata":
+                        avatar_rect = res
         
         if cmr_seted_ga:
             ctxRestore(wait_execute=True)
@@ -5407,7 +5438,15 @@ def challengeModeSettlementRender(
             for task in renderTasks:
                 if now_t >= task["st"] and task.get("cmr", False):
                     p = tool_funcs.fixorp((now_t - task["st"]) / task["dur"])
-                    task["render"](p)
+                    res = task["render"](p)
+                    tag = task.get("tag", None)
+                    
+                    match tag:
+                        case "cross":
+                            cross_rect = tool_funcs.xywh_rect2_xxyy(res)
+                        
+                        case "checked":
+                            checked_rect = tool_funcs.xywh_rect2_xxyy(res)
         
         if time.time() - renderSt < 1.25:
             p = (time.time() - renderSt) / 1.25
