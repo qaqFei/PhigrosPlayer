@@ -869,17 +869,24 @@ def drawChapters(rectmap: dict):
     for chapter in Chapters.items:
         chapterX += drawChapterItem(chapter, chapterX, rectmap)
 
-def drawButton(buttonName: str, iconName: str, buttonPos: tuple[float, float]):
+def drawButton(
+    buttonName: str,
+    iconName: str,
+    buttonPos: tuple[float, float],
+    iconSize: typing.Optional[tuple[float, float]] = None
+):
+    if iconSize is None:
+        iconSize = (MainUIIconWidth, MainUIIconHeight)
+        
     drawImage(buttonName, *buttonPos, ButtonWidth, ButtonHeight, wait_execute=True)
     
     centerPoint = (0.35, 0.395) if buttonName == "ButtonLeftBlack" else (0.65, 0.605)
     
     drawImage(
         iconName,
-        buttonPos[0] + ButtonWidth * centerPoint[0] - MainUIIconWidth / 2,
-        buttonPos[1] + ButtonHeight * centerPoint[1] - MainUIIconHeight / 2,
-        MainUIIconWidth,
-        MainUIIconHeight,
+        buttonPos[0] + ButtonWidth * centerPoint[0] - iconSize[0] / 2,
+        buttonPos[1] + ButtonHeight * centerPoint[1] - iconSize[1] / 2,
+        *iconSize,
         wait_execute = True
     )
 
@@ -5045,8 +5052,12 @@ def challengeModeSettlementRender(
     level: int
 ):
     respacker = webcv.PILResPacker(root)
+    
     for i, (s, _) in enumerate(songs):
         respacker.reg_img(tool_funcs.gtpresp(s.image), f"cmsr_song_{i}")
+        
+    avatar_img = Image.open(tool_funcs.gtpresp(getUserData("userdata-userAvatar")))
+    respacker.reg_img(avatar_img, "user_avatar")
     respacker.load(*respacker.pack())
     
     totalScore = sum(pplm.ppps.getScore() for pplm in pplmResults)
@@ -5255,11 +5266,24 @@ def challengeModeSettlementRender(
             fillStyle = "white",
             wait_execute = True
         )
-        
+    
+    def drawButtons(p: float):
+        dx = ButtonWidth * (1 - p) ** 1.4
+        retry_size = w * const.FINISH_UI_BUTTON_SIZE / 190 * 145 * 0.3
+        drawButton("ButtonLeftBlack", "Retry", (-dx, 0), (retry_size, retry_size))
+        drawButton("ButtonRightBlack", "Arrow_Left", (w + dx - ButtonWidth, h - ButtonHeight))
+    
     renderSt = time.time()
-    nextUI, tonextUI, tonextUISt = None, False, float("nan")
+    tonextUI, tonextUISt = False, float("nan")
+    showingCMR, showingCMRSt = False, float("nan")
     mixer.music.load("./resources/Over.mp3")
     Thread(target=lambda: (time.sleep(0.25), mixer.music.play(-1)), daemon=True).start()
+    
+    ud_popuper = UserDataPopuper()
+    userNameConstFontSize = (w + h) / const.USERNAME_CONST_FONT
+    userNamePadding = w * 0.01
+    userNameWidth = root.run_js_code(f"ctx.getTextSize({root.string2sctring_hqm(getUserData("userdata-userName"))}, '{userNameConstFontSize}px pgrFont')[0];") + userNamePadding * 2
+    avatar_rect = const.EMPTY_RECT
     
     songItemRenderDur = 1.5
     renderTasks = [
@@ -5274,8 +5298,67 @@ def challengeModeSettlementRender(
             lw, lh,
             1.0 - (1.0 - p) ** 2,
             wait_execute = True
-        )}
+        )},
+        {"st": 4.0, "dur": 0.7, "render": lambda p: phicore.drawUserData(
+            root, ud_popuper.p, w, h,
+            Resource, avatar_img, userNameWidth,
+            userNamePadding, ud_popuper.isPopup,
+            getUserData("userdata-userName"),
+            getUserData("userdata-rankingScore"),
+            getPlayDataItem("hasChallengeMode"),
+            getPlayDataItem("challengeModeRank"),
+            1.0 - (1.0 - p) ** 2
+        ), "tag": "userdata"},
+        {"st": 4.7, "dur": 0.7, "render": drawButtons}
     ]
+    
+    def unregEvents():
+        eventManager.unregEvent(mainClickEvent)
+    
+    def mainClickCallback(x, y):
+        nonlocal nextUI, tonextUI, tonextUISt
+        nonlocal showingCMR, showingCMRSt
+        
+        # 点击头像
+        if tool_funcs.inrect(x, y, avatar_rect) and not showingCMR:
+            ud_popuper.change()
+        
+        # 重试
+        if tool_funcs.inrect(x, y, (0, 0, ButtonWidth, ButtonHeight)) and now_t > 4.8 and not showingCMR:
+            mixer.music.fadeout(500)
+            unregEvents()
+            nextUI_Bak = nextUI
+            nextUI, tonextUI, tonextUISt = lambda: challengeModeRender(songs, nextUI_Bak), True, time.time()
+        
+        # 继续
+        if tool_funcs.inrect(x, y, (w - ButtonWidth, h - ButtonHeight, w, h)) and now_t > 4.8 and not showingCMR:
+            showingCMR, showingCMRSt = True, time.time()
+            renderTasks.extend([
+                {"st": now_t + 0.7, "dur": 0.7, "render": lambda p: drawAlphaImage(
+                    f"cmlevel_{challengeMode_level}",
+                    w / 2 - (cml_w := (w * 0.1875 * 1.1)) / 2,
+                    h * (605 / 1080) - (cml_h := cml_w / Resource["challenge_mode_levels"][challengeMode_level].width * Resource["challenge_mode_levels"][challengeMode_level].height) / 2,
+                    cml_w, cml_h,
+                    1.0 - (1.0 - tool_funcs.fixorp(p)) ** 2,
+                    wait_execute = True
+                ), "cmr": True},
+                {"st": now_t + 0.5, "dur": 0.7, "render": lambda p: drawText(
+                    w / 2, h * (545 / 1080),
+                    f"{level}",
+                    font = f"{(w + h) / 20 * (1.0 + ((1.0 - p) ** 2) * 0.4)}px pgrFont",
+                    textAlign = "center",
+                    textBaseline = "middle",
+                    fillStyle = f"rgba(255, 255, 255, {1.0 - (1.0 - tool_funcs.fixorp(p * 2)) ** 2})",
+                    wait_execute = True
+                ), "cmr": True}
+            ])
+    
+    mainClickEvent = phigame_obj.ClickEvent(
+        rect = (0, 0, w, h),
+        callback = mainClickCallback,
+        once = False
+    )
+    eventManager.regClickEvent(mainClickEvent)
     
     while True:
         clearCanvas(wait_execute = True)
@@ -5301,12 +5384,31 @@ def challengeModeSettlementRender(
         
         # drawButton("ButtonRightBlack", "Arrow_Right", (w - ButtonWidth, h - ButtonHeight))
         
+        cmr_seted_ga = False
+        if showingCMR:
+            cmr_p = tool_funcs.fixorp((time.time() - showingCMRSt) / 1.75)
+            ctxSave(wait_execute=True)
+            ctxSetGlobalAlpha(1.0 - tool_funcs.fixorp(cmr_p * 3.5), wait_execute=True)
+            cmr_seted_ga = True
+        
         now_t = time.time() - renderSt
         for task in renderTasks:
-            if now_t >= task["st"]:
+            if now_t >= task["st"] and not task.get("cmr", False):
                 p = tool_funcs.fixorp((now_t - task["st"]) / task["dur"])
-                task["render"](p)
+                res = task["render"](p)
                 
+                if task.get("tag", None) == "userdata":
+                    avatar_rect = res
+        
+        if cmr_seted_ga:
+            ctxRestore(wait_execute=True)
+            fillRectEx(0, 0, w, h, f"rgba(0, 0, 0, {tool_funcs.fixorp(cmr_p * 3.5) * 0.6})", wait_execute=True)
+            
+            for task in renderTasks:
+                if now_t >= task["st"] and task.get("cmr", False):
+                    p = tool_funcs.fixorp((now_t - task["st"]) / task["dur"])
+                    task["render"](p)
+        
         if time.time() - renderSt < 1.25:
             p = (time.time() - renderSt) / 1.25
             root.run_js_code(
@@ -5330,6 +5432,7 @@ def challengeModeSettlementRender(
             clearCanvas(wait_execute = True)
             root.run_js_wait_code()
             Thread(target=nextUI, daemon=True).start()
+            root.run_js_code("mask.style.backdropFilter = '';", wait_execute = True)
             break
         
         root.run_js_wait_code()

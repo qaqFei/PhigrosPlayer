@@ -74,6 +74,9 @@ def ctxResetTransform(wait_execute: bool = False):
 def ctxSetGlobalAlpha(alpha: number, wait_execute: bool = False):
     root.run_js_code(f"{ctx}.globalAlpha = {alpha};", wait_execute, order)
 
+def ctxMutGlobalAlpha(alpha: number, wait_execute: bool = False):
+    root.run_js_code(f"{ctx}.globalAlpha *= {alpha};", wait_execute, order)
+
 def clearCanvas(wait_execute: bool = False):
     root.run_js_code(f"{ctx}.clear();", wait_execute, order)
     

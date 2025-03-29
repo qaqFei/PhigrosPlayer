@@ -2120,9 +2120,14 @@ def drawUserData(
     userName: str = "GUEST",
     rankingScore: float = 0,
     hasChallengeMode: bool = False,
-    challengeModeRank: int = 000
+    challengeModeRank: int = 000,
+    
+    alpha: float = 1.0
 ):
     tool_funcs.shadowDrawer.root = root
+    
+    ctxSave(wait_execute=True)
+    ctxMutGlobalAlpha(alpha, wait_execute=True)
     
     userDataRect = (
         w * 0.83025, h * (28 / 1080),
@@ -2248,5 +2253,7 @@ def drawUserData(
                 fillStyle = "rgba(255, 255, 255, 0.8)",
                 wait_execute = True
             )
+    
+    ctxRestore(wait_execute=True)
     
     return avatar_rect
